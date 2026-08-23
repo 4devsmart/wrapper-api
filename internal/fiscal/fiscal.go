@@ -52,12 +52,11 @@ func (c Certificado) Validar() error {
 	if !c.Informado() {
 		return errors.New("certificado.pfx_b64 é obrigatório para transmitir")
 	}
+	// Informado() já garantiu conteúdo não vazio, e base64 não vazio decodifica
+	// para pelo menos um byte: não há caso de "decodificou para nada".
 	bruto, err := base64.StdEncoding.DecodeString(strings.TrimSpace(c.PFXBase64))
 	if err != nil {
 		return errors.New("certificado.pfx_b64 não é base64 válido")
-	}
-	if len(bruto) == 0 {
-		return errors.New("certificado.pfx_b64 está vazio")
 	}
 	if len(bruto) > tamanhoMaxPFX {
 		return fmt.Errorf("certificado.pfx_b64 tem %d bytes; o limite é %d", len(bruto), tamanhoMaxPFX)

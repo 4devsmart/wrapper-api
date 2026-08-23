@@ -15,15 +15,16 @@ import (
 type svcFake struct {
 	acbr.Servico
 
-	xml       string
-	errMontar error
+	xml          string
+	codigoMontar int
+	errMontar    error
 
 	respValidar string
 	errValidar  error
 }
 
 func (f svcFake) MontarXML(acbr.TenantConfig, string) (acbr.Result, error) {
-	return acbr.Result{XML: f.xml}, f.errMontar
+	return acbr.Result{XML: f.xml, Codigo: f.codigoMontar}, f.errMontar
 }
 
 func (f svcFake) ValidarRegras(acbr.TenantConfig, string) (acbr.Result, error) {
@@ -110,5 +111,22 @@ func TestResponderErroDaLib_StatusPorSentinela(t *testing.T) {
 				t.Errorf("status %d, esperava %d", w.Code, c.quero)
 			}
 		})
+	}
+}
+
+// A montagem é a primeira chamada: se ela falha, não há XML nem validação, e o
+// erro tem de chegar inteiro ao handler com o Result da lib junto (é dele que
+// sai o "detalhes" com o código de retorno).
+func TestMontar_FalhaNaMontagemSobeComOResultado(t *testing.T) {
+	svc := svcFake{codigoMontar: -10, errMontar: errors.New("CTE_CarregarINI falhou")}
+	xml, val, res, err := Montar(svc, acbr.TenantConfig{}, "[ide]")
+	if err == nil {
+		t.Fatal("falha na montagem precisa subir")
+	}
+	if xml != "" || val.OK || val.Suportada {
+		t.Errorf("nada deveria vir preenchido: xml=%q val=%+v", xml, val)
+	}
+	if res.Codigo != -10 {
+		t.Errorf("o Result da lib se perdeu (codigo=%d): é dele que sai o detalhes do erro", res.Codigo)
 	}
 }

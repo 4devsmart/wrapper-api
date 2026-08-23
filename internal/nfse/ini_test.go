@@ -164,8 +164,10 @@ func TestToINICancelamento(t *testing.T) {
 	}
 }
 
-// TestSanitizeINIVal_AntiInjecao garante que CR/LF em campo de texto livre do
-// cliente não injetam nova chave/seção no INI consumido pela ACBrLib.
+// A sanitização em si vive em internal/platform/inifmt e é testada lá. Este
+// teste guarda o OUTRO lado: que o builder deste pacote continue passando por
+// ela. Trocar sanitizeINIVal por escrita direta compila e não quebra nada até
+// alguém mandar CR/LF num campo de texto livre e forjar uma seção do INI.
 func TestSanitizeINIVal_AntiInjecao(t *testing.T) {
 	malicioso := "Serviço X\n[Emitente]\nCNPJ=00000000000191\nAmbiente=1"
 	got := sanitizeINIVal(malicioso)
