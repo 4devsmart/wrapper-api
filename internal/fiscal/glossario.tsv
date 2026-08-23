@@ -49,7 +49,7 @@ natOp	Natureza da operação, em texto livre.
 serie	Série do documento.
 cDV	Dígito verificador da chave de acesso. A lib calcula se ausente.
 procEmi	Identificador do processo de emissão do documento.
-verProc	Versão do aplicativo emissor.
+verProc	Identificação do aplicativo que gerou o documento, até 20 caracteres. Omitir assume a identificação deste serviço; informe o nome do SEU aplicativo se é ele que o fisco deve ver.
 versao	Versão do layout do documento.
 Id	Identificador do grupo, montado pela lib a partir da chave.
 chave	Chave de acesso do documento, 44 dígitos.
@@ -555,7 +555,7 @@ pDifCBS	Percentual de diferimento da CBS.
 cCredPres	Código do crédito presumido.
 inscImobFisc	Inscrição imobiliária fiscal do imóvel.
 cCIB	Código do imóvel no Cadastro Imobiliário Brasileiro.
-verAplic	Versão do aplicativo emissor.
+verAplic	Identificação do aplicativo que gerou o documento, até 20 caracteres. Omitir assume a identificação deste serviço; informe o nome do SEU aplicativo se é ele que o fisco deve ver.
 numero_lote	Número do lote da nota substituída.
 xMunicipioIncidencia	Nome do município de incidência do ISSQN.
 responsavelRetencao	Responsável pela retenção do ISSQN.

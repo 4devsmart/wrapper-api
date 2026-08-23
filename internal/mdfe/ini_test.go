@@ -3,6 +3,8 @@ package mdfe
 import (
 	"strings"
 	"testing"
+
+	"github.com/4devsmart/wrapper-api/internal/platform/versao"
 )
 
 // pedidoFixture monta um MDF-e rodoviário sintético (uma carga, uma descarga
@@ -144,5 +146,26 @@ func TestToINIPagamentoOperacao(t *testing.T) {
 		if !strings.Contains(ini, s) {
 			t.Errorf("INI pagamento sem %q\n%s", s, ini)
 		}
+	}
+}
+
+// TestToINI_VerProcIdentificaEsteServico: o default do campo era o nome do
+// repositório privado de origem, e ele vai para o XML autorizado na SEFAZ.
+// Quem não preenchesse transmitia documentos assinados como um produto alheio.
+func TestToINI_VerProcIdentificaEsteServico(t *testing.T) {
+	p := pedidoFixture()
+	ini := ToINI(p)
+	if !strings.Contains(ini, "verProc="+versao.Emissor()) {
+		t.Errorf("INI sem verProc=%s:\n%s", versao.Emissor(), ini[:min(400, len(ini))])
+	}
+	if strings.Contains(ini, "nuvem-fiscal") {
+		t.Error("o nome do projeto de origem voltou ao documento")
+	}
+
+	// O que o cliente informa continua vencendo: quem emite pode ser o
+	// aplicativo dele, e há quem precise se identificar com nome próprio.
+	p.InfMDFe.Ide.VerProc = "erp-do-cliente/2.1"
+	if ini := ToINI(p); !strings.Contains(ini, "verProc=erp-do-cliente/2.1") {
+		t.Error("verProc informado pelo cliente foi ignorado")
 	}
 }
