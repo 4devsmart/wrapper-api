@@ -1,0 +1,68 @@
+name: Publicar imagem
+
+# Builda e publica a imagem no GHCR a cada push em main, taggeada com o SHA.
+# NÃO implanta nada: quem promove para :vX.Y.Z é o workflow de release.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGEM: ghcr.io/${{ github.repository }}/api
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # A imagem precisa dos .so, que não estão no repositório: vêm dos anexos de
+      # release. Como o repositório é público, o download é sem token.
+      - name: baixa as libs nativas
+        run: make acbr-libs-baixar
+
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64 # a ACBrLib só existe para x86_64
+          push: true
+          tags: |
+            ${{ env.IMAGEM }}:${{ github.sha }}
+            ${{ env.IMAGEM }}:latest
+          build-args: |
+            APP_COMMIT=${{ github.sha }}
+            APP_BUILD=${{ github.event.repository.updated_at }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Prova que a imagem sobe e que a lib nativa carrega de verdade, antes de
+      # alguém puxá-la. Uma imagem que publica e não sobe é pior que build falho.
+      - name: fumaça — a lib carrega e o serviço responde
+        run: |
+          set -eu
+          docker network create fumaca
+          docker run -d --name w --network fumaca \
+            -v /tmp/run:/run/wrapper "${IMAGEM}:${GITHUB_SHA}" worker
+          docker run -d --name a --network fumaca -p 8080:8080 \
+            -e API_TOKEN=fumaca -e ACBR_WORKERS=/run/wrapper/fiscal.sock \
+            -v /tmp/run:/run/wrapper "${IMAGEM}:${GITHUB_SHA}"
+          for i in $(seq 1 30); do
+            curl -fsS localhost:8080/healthz >/dev/null 2>&1 && break || sleep 1
+          done
+          curl -fsS localhost:8080/healthz
+          curl -fsS localhost:8080/readyz
+          # backend "cgo" nos cinco serviços = a lib nativa realmente carregou.
+          docker logs w 2>&1 | grep -c '"backend":"cgo"' | grep -q '^5$' \
+            || { echo "::error::a lib nativa não carregou nos 5 serviços"; docker logs w; exit 1; }
+          echo "fumaça OK"

@@ -1,0 +1,29 @@
+# Binários
+/out/
+/bin/
+/dist/
+
+# Ambiente
+.env
+.env.*
+!.env*.example
+
+# Artefatos nativos da ACBrLib: NÃO versionados. São assets de release,
+# baixados por scripts/baixar-acbr-libs.sh — este diretório é só cache local.
+/acbr-libs/
+
+# Cache local dos fontes ACBr (make acbr-update)
+/acbr-source/
+
+# Go
+*.test
+*.out
+/vendor/
+
+# Editores
+.idea/
+.vscode/
+*.swp
+
+# Configuração local do Claude Code (por usuário)
+.claude/settings.local.json

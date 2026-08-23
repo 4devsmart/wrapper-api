@@ -1,0 +1,10 @@
+.git
+.gitignore
+out/
+dist/
+docs/
+*.md
+!README.md
+.env
+.env.*
+acbr-source/
