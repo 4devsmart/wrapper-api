@@ -1,0 +1,13 @@
+# Valores aceitos por campo do boleto.
+# Formato: enum <TAB> valor <TAB> rótulo
+TipoInscricao	1	CNPJ
+TipoInscricao	2	CPF
+AmbienteWS	1	Produção
+AmbienteWS	2	Homologação
+TipoCarteira	0	Simples
+TipoCarteira	1	Registrada
+TipoCarteira	2	Eletrônica
+CNAB	1	CNAB 400
+CNAB	2	CNAB 240
+OperacaoRegistro	0	Incluir
+OperacaoRegistro	2	Baixar

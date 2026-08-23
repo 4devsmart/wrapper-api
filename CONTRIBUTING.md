@@ -86,8 +86,32 @@ make openapi-check  # é o que o CI roda
 Expôs um pedido novo numa rota? Acrescente-o a `raizes` em
 `cmd/gerar-openapi/main.go`, senão ele fica fora da documentação.
 
-E escreva o comentário do campo pensando em quem vai ler no Swagger: ele **é** a
+Escreva o comentário do campo pensando em quem vai ler no Swagger: ele **é** a
 descrição publicada.
+
+### Enriquecendo um campo
+
+Três fontes alimentam a documentação de um campo, nesta ordem:
+
+1. **comentário no modelo**, que sempre vence, por ser específico do contexto;
+2. **`internal/fiscal/glossario.tsv`**, a descrição padrão de nomes que se
+   repetem nos três documentos (`CNPJ`, `xNome`, `cMun`, `vBC`). Comentar um a
+   um seria copiar a mesma frase em dezenas de lugares para desatualizar em
+   alguns;
+3. **tags no campo**:
+   - `enum:"TipoServico"` publica os valores aceitos e a legenda. A tabela é
+     `internal/<doc>/enums.tsv`, com os valores vindos das unidades de conversão
+     da ACBrLib, que é o que a lib aceita de fato;
+   - `fmt:"data"` ou `fmt:"data-hora"` publicam o formato e a semântica do
+     offset.
+
+```go
+TpServ int    `json:"tpServ" enum:"TipoServico"`
+DhEmi  string `json:"dhEmi"  fmt:"data-hora"`
+```
+
+Campo enumerado que aparece como `integer` puro no Swagger não diz nada a quem
+integra. Se você encostar num, aproveite e enriqueça.
 
 ## Pull requests
 

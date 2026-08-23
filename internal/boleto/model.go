@@ -27,9 +27,9 @@ func (p Pedido) SemCredenciais() Pedido {
 // Conta é a configuração da conta de cobrança ([Banco]+[Conta]+[Cedente]).
 type Conta struct {
 	// Banco ([Banco]): número (ex.: "237") + tipo de cobrança (enum ACBr) + CNAB.
-	Banco        string `json:"banco"`                  // número do banco (ex.: 001=BB, 237=Bradesco)
-	TipoCobranca int    `json:"tipoCobranca,omitempty"` // enum ACBr (BB=1, Santander=2, Caixa=3, Bradesco=5, Itau=6...)
-	CNAB         string `json:"CNAB,omitempty"`         // "1"=400, "2"=240
+	Banco        string `json:"banco"`                      // número do banco (ex.: 001=BB, 237=Bradesco)
+	TipoCobranca int    `json:"tipoCobranca,omitempty"`     // enum ACBr (BB=1, Santander=2, Caixa=3, Bradesco=5, Itau=6...)
+	CNAB         string `json:"CNAB,omitempty" enum:"CNAB"` // "1"=400, "2"=240
 	// Conta ([Conta]).
 	Agencia       string `json:"agencia"`
 	DigitoAgencia string `json:"digitoAgencia,omitempty"`
@@ -39,7 +39,7 @@ type Conta struct {
 	Nome           string `json:"nome"`
 	Fantasia       string `json:"fantasia,omitempty"`
 	CNPJCPF        string `json:"CNPJCPF"`
-	TipoInscricao  int    `json:"tipoInscricao,omitempty"` // 1=CNPJ, 2=CPF
+	TipoInscricao  int    `json:"tipoInscricao,omitempty" enum:"TipoInscricao"` // 1=CNPJ, 2=CPF
 	TipoPessoa     int    `json:"tipoPessoa,omitempty"`
 	Logradouro     string `json:"logradouro,omitempty"`
 	Numero         string `json:"numero,omitempty"`
@@ -53,7 +53,7 @@ type Conta struct {
 	Modalidade     string `json:"modalidade,omitempty"`
 	Convenio       string `json:"convenio,omitempty"`
 	CodTransmissao string `json:"codTransmissao,omitempty"`
-	TipoCarteira   int    `json:"tipoCarteira,omitempty"` // 0=simples,1=registrada,2=eletronica
+	TipoCarteira   int    `json:"tipoCarteira,omitempty" enum:"TipoCarteira"` // 0=simples,1=registrada,2=eletronica
 	TipoDocumento  int    `json:"tipoDocumento,omitempty"`
 	RespEmis       int    `json:"respEmis,omitempty"`
 	LayoutBol      int    `json:"layoutBol,omitempty"`
@@ -72,7 +72,7 @@ type Conta struct {
 // slog distraído não as despeje em log: num serviço sem estado, é a única forma
 // realista de um segredo do cliente escapar do processo.
 type ContaWS struct {
-	Ambiente     int    `json:"ambiente,omitempty"` // 1=produção, 2=homologação
+	Ambiente     int    `json:"ambiente,omitempty" enum:"AmbienteWS"` // 1=produção, 2=homologação
 	ClientID     string `json:"clientID,omitempty"`
 	ClientSecret string `json:"clientSecret,omitempty"`
 	KeyUser      string `json:"keyUser,omitempty"`

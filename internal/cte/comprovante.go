@@ -13,13 +13,13 @@ import (
 type PedidoComprovanteEntrega struct {
 	NProt         string   `json:"nProt,omitempty"`
 	UF            string   `json:"UF,omitempty"`
-	DhEntrega     string   `json:"dhEntrega,omitempty"`
+	DhEntrega     string   `json:"dhEntrega,omitempty" fmt:"data-hora"`
 	NDoc          string   `json:"nDoc,omitempty"`
 	XNome         string   `json:"xNome,omitempty"`
 	Latitude      float64  `json:"latitude,omitempty"`
 	Longitude     float64  `json:"longitude,omitempty"`
 	HashEntrega   string   `json:"hashEntrega,omitempty"`
-	DhHashEntrega string   `json:"dhHashEntrega,omitempty"`
+	DhHashEntrega string   `json:"dhHashEntrega,omitempty" fmt:"data-hora"`
 	Documentos    []string `json:"documentos"` // chaves de NF-e entregues
 	NSeqEvento    int      `json:"nSeqEvento,omitempty"`
 }

@@ -197,7 +197,7 @@ type PedidoEvento struct {
 	Chave       string             `json:"chave"`
 	Protocolo   string             `json:"protocolo,omitempty"`
 	Ambiente    string             `json:"ambiente,omitempty"`
-	DhEvento    string             `json:"dhEvento,omitempty"`
+	DhEvento    string             `json:"dhEvento,omitempty" fmt:"data-hora"`
 	Certificado fiscal.Certificado `json:"certificado"`
 	Evento      json.RawMessage    `json:"evento,omitempty"`
 }

@@ -9,9 +9,9 @@ import (
 // PedidoEncerramento é o corpo de POST /v1/mdfe/eventos/encerramento (ACBr.API).
 // chMDFe e nProt vêm do documento autorizado.
 type PedidoEncerramento struct {
-	DataEncerramento string `json:"data_encerramento,omitempty"` // ISO; default hoje
-	CUF              int    `json:"cUF,omitempty"`               // UF do encerramento
-	CMun             string `json:"cMun"`                        // município do encerramento
+	DataEncerramento string `json:"data_encerramento,omitempty" fmt:"data"` // ISO; default hoje
+	CUF              int    `json:"cUF,omitempty"`                          // UF do encerramento
+	CMun             string `json:"cMun"`                                   // município do encerramento
 }
 
 // PedidoCancelamento é o corpo de POST /v1/mdfe/eventos/cancelamento (ACBr.API).

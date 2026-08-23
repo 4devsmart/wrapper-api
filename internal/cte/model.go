@@ -8,7 +8,7 @@
 // o ToINI marcado como pendente de verificação contra a lib.
 package cte
 
-// PedidoEmissao espelha CtePedidoEmissao.
+// PedidoEmissao é o CT-e a ser gerado, no contrato da Nuvem Fiscal / ACBr.API.
 type PedidoEmissao struct {
 	InfCte     InfCte      `json:"infCte"`
 	InfCTeSupl *InfCTeSupl `json:"infCTeSupl,omitempty"`
@@ -38,34 +38,37 @@ type InfCte struct {
 
 // Ide espelha CteSefazIde.
 type Ide struct {
-	CUF            int                `json:"cUF"`
-	CCT            string             `json:"cCT,omitempty"`
-	CFOP           string             `json:"CFOP"`
-	NatOp          string             `json:"natOp"`
-	Mod            int                `json:"mod,omitempty"`
-	Serie          int                `json:"serie"`
-	NCT            int                `json:"nCT"`
-	DhEmi          string             `json:"dhEmi"`
-	TpImp          int                `json:"tpImp"`
-	TpEmis         int                `json:"tpEmis"`
-	CDV            int                `json:"cDV,omitempty"`
-	TpAmb          int                `json:"tpAmb,omitempty"`
-	TpCTe          int                `json:"tpCTe"`
+	CUF    int    `json:"cUF"`
+	CCT    string `json:"cCT,omitempty"`
+	CFOP   string `json:"CFOP"`
+	NatOp  string `json:"natOp"`
+	Mod    int    `json:"mod,omitempty" enum:"Modelo"`
+	Serie  int    `json:"serie"`
+	NCT    int    `json:"nCT"`
+	DhEmi  string `json:"dhEmi" fmt:"data-hora"`
+	TpImp  int    `json:"tpImp" enum:"TipoImpressao"`
+	TpEmis int    `json:"tpEmis" enum:"TipoEmissao"`
+	CDV    int    `json:"cDV,omitempty"`
+	TpAmb  int    `json:"tpAmb,omitempty" enum:"TipoAmbiente"`
+	// TpCTe não tem mais o valor 2 (Anulação): o CT-e de Anulação saiu do layout
+	// na versão 4.00, e o ACBr só gera o grupo infCteAnu para VersaoDF <= 3.00
+	// (pcteCTeW.pas:3309). Quem vem da 3.00 usa o CT-e Substituto (valor 3).
+	TpCTe          int                `json:"tpCTe" enum:"TipoCTe"`
 	ProcEmi        int                `json:"procEmi"`
 	VerProc        string             `json:"verProc"`
 	IndGlobalizado int                `json:"indGlobalizado,omitempty"`
 	CMunEnv        string             `json:"cMunEnv"`
 	XMunEnv        string             `json:"xMunEnv"`
 	UFEnv          string             `json:"UFEnv"`
-	Modal          string             `json:"modal"`
-	TpServ         int                `json:"tpServ"`
+	Modal          string             `json:"modal" enum:"Modal"`
+	TpServ         int                `json:"tpServ" enum:"TipoServico"`
 	CMunIni        string             `json:"cMunIni"`
 	XMunIni        string             `json:"xMunIni"`
 	UFIni          string             `json:"UFIni"`
 	CMunFim        string             `json:"cMunFim"`
 	XMunFim        string             `json:"xMunFim"`
 	UFFim          string             `json:"UFFim"`
-	Retira         int                `json:"retira"`
+	Retira         int                `json:"retira" enum:"Retira"`
 	XDetRetira     string             `json:"xDetRetira,omitempty"`
 	IndIEToma      int                `json:"indIEToma"`
 	Toma3          *Toma3             `json:"toma3,omitempty"`
@@ -76,13 +79,17 @@ type Ide struct {
 }
 
 // Toma3 espelha CteSefazToma3.
+// Toma3 identifica o tomador quando ele JÁ é uma das partes do documento.
+// Exclusivo com toma4: informe um ou outro, nunca os dois.
 type Toma3 struct {
-	Toma int `json:"toma"`
+	Toma int `json:"toma" enum:"Tomador"` // qual das partes do documento é o tomador
 }
 
-// Toma4 espelha CteSefazToma4.
+// Toma4 identifica o tomador quando ele NÃO é nenhuma das partes do documento.
+// Por isso toma é sempre 4 (Outros) e os dados dele vêm aqui. Exclusivo com
+// toma3: informe um ou outro, nunca os dois.
 type Toma4 struct {
-	Toma      int      `json:"toma"`
+	Toma      int      `json:"toma" enum:"TomadorOutros"` // sempre 4; o tomador é um terceiro
 	CNPJ      string   `json:"CNPJ,omitempty"`
 	CPF       string   `json:"CPF,omitempty"`
 	IE        string   `json:"IE,omitempty"`
@@ -207,7 +214,7 @@ type Emit struct {
 	XNome     string   `json:"xNome,omitempty"`
 	XFant     string   `json:"xFant,omitempty"`
 	EnderEmit *EndeEmi `json:"enderEmit,omitempty"`
-	CRT       int      `json:"CRT,omitempty"`
+	CRT       int      `json:"CRT,omitempty" enum:"CRT"`
 }
 
 // EndeEmi espelha CteSefazEndeEmi.
@@ -513,10 +520,10 @@ type InfDoc struct {
 type InfNF struct {
 	NRoma         string          `json:"nRoma,omitempty"`
 	NPed          string          `json:"nPed,omitempty"`
-	Mod           string          `json:"mod"`
+	Mod           string          `json:"mod" enum:"Modelo"`
 	Serie         string          `json:"serie"`
 	NDoc          string          `json:"nDoc"`
-	DEmi          string          `json:"dEmi"`
+	DEmi          string          `json:"dEmi" fmt:"data"`
 	VBC           float64         `json:"vBC"`
 	VICMS         float64         `json:"vICMS"`
 	VBCST         float64         `json:"vBCST"`
@@ -526,7 +533,7 @@ type InfNF struct {
 	NCFOP         string          `json:"nCFOP"`
 	NPeso         float64         `json:"nPeso,omitempty"`
 	PIN           string          `json:"PIN,omitempty"`
-	DPrev         string          `json:"dPrev,omitempty"`
+	DPrev         string          `json:"dPrev,omitempty" fmt:"data"`
 	InfUnidCarga  []UnidCarga     `json:"infUnidCarga,omitempty"`
 	InfUnidTransp []UnidadeTransp `json:"infUnidTransp,omitempty"`
 }
@@ -562,7 +569,7 @@ type LacUnidTransp struct {
 type InfNFe struct {
 	Chave         string          `json:"chave"`
 	PIN           string          `json:"PIN,omitempty"`
-	DPrev         string          `json:"dPrev,omitempty"`
+	DPrev         string          `json:"dPrev,omitempty" fmt:"data"`
 	InfUnidCarga  []UnidCarga     `json:"infUnidCarga,omitempty"`
 	InfUnidTransp []UnidadeTransp `json:"infUnidTransp,omitempty"`
 }
@@ -572,9 +579,9 @@ type InfOutros struct {
 	TpDoc         string          `json:"tpDoc"`
 	DescOutros    string          `json:"descOutros,omitempty"`
 	NDoc          string          `json:"nDoc,omitempty"`
-	DEmi          string          `json:"dEmi,omitempty"`
+	DEmi          string          `json:"dEmi,omitempty" fmt:"data"`
 	VDocFisc      float64         `json:"vDocFisc,omitempty"`
-	DPrev         string          `json:"dPrev,omitempty"`
+	DPrev         string          `json:"dPrev,omitempty" fmt:"data"`
 	InfUnidCarga  []UnidCarga     `json:"infUnidCarga,omitempty"`
 	InfUnidTransp []UnidadeTransp `json:"infUnidTransp,omitempty"`
 }
@@ -611,7 +618,7 @@ type IdDocAntPap struct {
 	Serie  string `json:"serie"`
 	Subser string `json:"subser,omitempty"`
 	NDoc   string `json:"nDoc"`
-	DEmi   string `json:"dEmi"`
+	DEmi   string `json:"dEmi" fmt:"data"`
 }
 
 // IdDocAntEle espelha CteSefazIdDocAntEle.
@@ -640,7 +647,7 @@ type Rodo struct {
 type Occ struct {
 	Serie  string  `json:"serie,omitempty"`
 	NOcc   int     `json:"nOcc"`
-	DEmi   string  `json:"dEmi"`
+	DEmi   string  `json:"dEmi" fmt:"data"`
 	EmiOcc *EmiOcc `json:"emiOcc,omitempty"`
 }
 
@@ -834,7 +841,7 @@ type Fat struct {
 // Dup espelha CteSefazDup.
 type Dup struct {
 	NDup  string  `json:"nDup,omitempty"`
-	DVenc string  `json:"dVenc,omitempty"`
+	DVenc string  `json:"dVenc,omitempty" fmt:"data"`
 	VDup  float64 `json:"vDup,omitempty"`
 }
 
