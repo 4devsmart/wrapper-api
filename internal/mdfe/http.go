@@ -73,7 +73,7 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !ambienteDoPedido(w, &p.Ambiente, p.InfMDFe.Ide.TpAmb) {
+	if !ambienteDoPedido(w, &p.Ambiente, p.InfMDFe.Ide.TpAmb) || !modalSuportado(w, p.InfMDFe.Ide.Modal) {
 		return
 	}
 	t := fiscal.Tenant(cnpj, secaoACBr, p.Ambiente, fiscal.Certificado{})
@@ -448,6 +448,23 @@ func (m *Modulo) handlePDFEvento(w http.ResponseWriter, r *http.Request) {
 	}
 	res, err := m.svc.SalvarEventoPDF(fiscal.Tenant("", secaoACBr, "", fiscal.Certificado{}), xml, evt)
 	m.responderPDF(w, res, err)
+}
+
+// modalRodoviario é o único modal que este serviço emite. Ver Escopo, no README.
+const modalRodoviario = 1
+
+// modalSuportado recusa o pedido de um modal que não emitimos.
+//
+// O grupo infModal só tem "rodo": um pedido de outro modal chegaria aqui sem os
+// campos dele (o JSON recusa campo desconhecido) e viraria um MDF-e com o modal
+// declarado e nenhum dado de modal. Melhor dizer não na entrada.
+func modalSuportado(w http.ResponseWriter, modal int) bool {
+	if modal == 0 || modal == modalRodoviario {
+		return true
+	}
+	httpx.ErroJSON(w, http.StatusUnprocessableEntity, "modal_nao_suportado",
+		"este serviço emite apenas o modal rodoviário (modal=1); recebido modal="+strconv.Itoa(modal))
+	return false
 }
 
 // ambienteDoPedido normaliza o ambiente NO PRÓPRIO pedido, para que a sessão

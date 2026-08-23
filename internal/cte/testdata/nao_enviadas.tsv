@@ -248,3 +248,55 @@ veic/tprod
 veic/tpveic
 veic/uf
 veic/xnome
+
+# --- Modais não-rodoviários: FORA DO ESCOPO, por decisão ---------------------
+#
+# Este serviço cobre o modal RODOVIÁRIO. Aéreo, aquaviário, ferroviário,
+# dutoviário e multimodal saíram do contrato: os campos não são mais aceitos no
+# JSON, e o pedido que os traga recebe 400 campo desconhecido em vez de um
+# documento gerado sem eles.
+#
+# As chaves abaixo continuam existindo no leitor da lib. Ficam registradas aqui
+# para que o lockstep não as trate como lacuna nova a cada bump do .so.
+aereo/cinfmanu
+aereo/cl
+aereo/ctar
+aereo/dprevaereo
+aereo/nminu
+aereo/noca
+aereo/vtar
+aereo/xdime
+aquav/direc
+aquav/irin
+aquav/nviag
+aquav/tpnav
+aquav/vafrmm
+aquav/vprest
+aquav/xnavio
+balsa/xbalsa
+duto/classduto
+duto/codpontoentrada
+duto/codpontosaida
+duto/dfim
+duto/dini
+duto/ncontrato
+duto/tpcontratacao
+duto/vtar
+ferroenv/cep
+ferroenv/cmun
+ferroenv/cnpj
+ferroenv/ie
+ferroenv/nro
+ferroenv/uf
+ferroenv/xbairro
+ferroenv/xcpl
+ferroenv/xlgr
+ferroenv/xmun
+ferroenv/xnome
+ferrov/chcteferroorigem
+ferrov/ferremi
+ferrov/fluxo
+ferrov/respfat
+ferrov/tptraf
+ferrov/vfrete
+peri/nonu

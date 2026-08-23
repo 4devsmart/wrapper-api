@@ -14,10 +14,13 @@ import (
 // ACBrLibMDFe (MDFE_CarregarINI). Seções/chaves seguem o modelo oficial
 // (acbr.sourceforge.io/ACBrLib/ModeloMDFeINI.html).
 //
-// Cobertura do rodoviário completo: infANTT (CIOT/valePed/contratante/infPag),
-// veicTracao/veicReboque/condutor/lacRodo, descarga (infNFe/infCTe/infMDFeTransp
-// com peri + unidCarga/unidTransp aninhados), seg, prodPred/infLotacao, infAdic,
-// infRespTec. Pendente: modais aquaviário/ferroviário/aéreo (não-rodoviário).
+// Cobertura do MODAL RODOVIÁRIO, que é o escopo do serviço: infANTT
+// (CIOT/valePed/contratante/infPag), veicTracao/veicReboque/condutor/lacRodo,
+// descarga (infNFe/infCTe/infMDFeTransp com peri + unidCarga/unidTransp
+// aninhados), seg, prodPred/infLotacao, infAdic, infRespTec.
+//
+// Aéreo, aquaviário e ferroviário estão fora do contrato, e o handler recusa
+// antes de chegar aqui (ver modalSuportado, http.go).
 func ToINI(p PedidoEmissao) string {
 	inf := p.InfMDFe
 	id := inf.Ide
@@ -183,51 +186,6 @@ func ToINI(p PedidoEmissao) string {
 		}
 	}
 
-	if a := inf.InfModal.Aereo; a != nil {
-		b.section("aereo")
-		b.kv("nac", a.Nac) // gate do reader
-		b.kvOpt("matr", a.Matr)
-		b.kvOpt("nVoo", a.NVoo)
-		b.kvOpt("cAerEmb", a.CAerEmb)
-		b.kvOpt("cAerDes", a.CAerDes)
-		b.kvOpt("dVoo", b.dataOpt(a.DVoo))
-	}
-
-	if a := inf.InfModal.Aquav; a != nil {
-		b.section("aquav")
-		b.kv("irin", a.Irin) // gate do reader (CNPJAgeNav ou irin)
-		b.kvOpt("tpEmb", a.TpEmb)
-		b.kvOpt("cEmbar", a.CEmbar)
-		b.kvOpt("xEmbar", a.XEmbar)
-		b.kvOpt("nViag", a.NViag)
-		b.kvOpt("cPrtEmb", a.CPrtEmb)
-		b.kvOpt("cPrtDest", a.CPrtDest)
-		b.kvOpt("MMSI", a.MMSI)
-		b.kvOpt("prtTrans", a.PrtTrans)
-		b.kvIntOpt("tpNav", a.TpNav)
-		// Nota: coleções infTermCarreg/Descarreg/infEmbComb/infUnidCargaVazia
-		// do aquaviário ficam para uma iteração futura.
-	}
-
-	if f := inf.InfModal.Ferrov; f != nil {
-		b.section("ferrov")
-		b.kv("xPref", f.Trem.XPref) // gate do reader
-		b.kvOpt("dhTrem", b.dataOpt(f.Trem.DhTrem))
-		b.kvOpt("xOri", f.Trem.XOri)
-		b.kvOpt("xDest", f.Trem.XDest)
-		b.kvIntOpt("qVag", f.Trem.QVag)
-		for i, v := range f.Vag {
-			b.section("vag" + seq(i+1))
-			b.kv("serie", v.Serie)
-			b.kvIntOpt("nVag", v.NVag)
-			b.kvIntOpt("nSeq", v.NSeq)
-			b.kvOpt("TU", moneyOpt(v.TU))
-			b.kvOpt("pesoBC", moneyOpt(v.PesoBC))
-			b.kvOpt("pesoR", moneyOpt(v.PesoR))
-			b.kvOpt("tpVag", v.TpVag)
-		}
-	}
-
 	for di, desc := range inf.InfDoc.InfMunDescarga {
 		b.section("DESC" + seq(di+1))
 		b.kv("cMunDescarga", desc.CMunDescarga)
@@ -330,9 +288,6 @@ func ToINI(p PedidoEmissao) string {
 		b.kvIntOpt("idCSRT", rt.IdCSRT)
 		b.kvOpt("hashCSRT", rt.HashCSRT)
 	}
-	// TODO: modais aquaviário/ferroviário/aéreo, unidCarga/unidTransp + peri,
-	// infANTT.infPag (pagamento): indexação aninhada profunda, a confirmar.
-
 	return b.String()
 }
 

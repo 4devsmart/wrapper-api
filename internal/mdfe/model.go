@@ -100,21 +100,8 @@ type EndeEmi struct {
 
 // InfModal espelha MdfeSefazInfModal.
 type InfModal struct {
-	VersaoModal string  `json:"versaoModal"`
-	Aereo       *Aereo  `json:"aereo,omitempty"`
-	Rodo        *Rodo   `json:"rodo,omitempty"`
-	Aquav       *Aquav  `json:"aquav,omitempty"`
-	Ferrov      *Ferrov `json:"ferrov,omitempty"`
-}
-
-// Aereo espelha MdfeSefazAereo.
-type Aereo struct {
-	Nac     string `json:"nac"`
-	Matr    string `json:"matr"`
-	NVoo    string `json:"nVoo"`
-	CAerEmb string `json:"cAerEmb"`
-	CAerDes string `json:"cAerDes"`
-	DVoo    string `json:"dVoo"`
+	VersaoModal string `json:"versaoModal"`
+	Rodo        *Rodo  `json:"rodo,omitempty"`
 }
 
 // Rodo espelha MdfeSefazRodo.
@@ -271,81 +258,6 @@ type VeicReboqueProp struct {
 // LacRodo espelha MdfeSefazLacRodo.
 type LacRodo struct {
 	NLacre string `json:"nLacre"`
-}
-
-// Aquav espelha MdfeSefazAquav.
-type Aquav struct {
-	Irin               string               `json:"irin"`
-	TpEmb              string               `json:"tpEmb"`
-	CEmbar             string               `json:"cEmbar"`
-	XEmbar             string               `json:"xEmbar"`
-	NViag              string               `json:"nViag"`
-	CPrtEmb            string               `json:"cPrtEmb"`
-	CPrtDest           string               `json:"cPrtDest"`
-	PrtTrans           string               `json:"prtTrans,omitempty"`
-	TpNav              int                  `json:"tpNav,omitempty" enum:"TipoNavegacao"`
-	InfTermCarreg      []InfTermCarreg      `json:"infTermCarreg,omitempty"`
-	InfTermDescarreg   []InfTermDescarreg   `json:"infTermDescarreg,omitempty"`
-	InfEmbComb         []InfEmbComb         `json:"infEmbComb,omitempty"`
-	InfUnidCargaVazia  []InfUnidCargaVazia  `json:"infUnidCargaVazia,omitempty"`
-	InfUnidTranspVazia []InfUnidTranspVazia `json:"infUnidTranspVazia,omitempty"`
-	MMSI               string               `json:"MMSI,omitempty"`
-}
-
-// InfTermCarreg espelha MdfeSefazInfTermCarreg.
-type InfTermCarreg struct {
-	CTermCarreg string `json:"cTermCarreg"`
-	XTermCarreg string `json:"xTermCarreg"`
-}
-
-// InfTermDescarreg espelha MdfeSefazInfTermDescarreg.
-type InfTermDescarreg struct {
-	CTermDescarreg string `json:"cTermDescarreg"`
-	XTermDescarreg string `json:"xTermDescarreg"`
-}
-
-// InfEmbComb espelha MdfeSefazInfEmbComb.
-type InfEmbComb struct {
-	CEmbComb string `json:"cEmbComb"`
-	XBalsa   string `json:"xBalsa"`
-}
-
-// InfUnidCargaVazia espelha MdfeSefazInfUnidCargaVazia.
-type InfUnidCargaVazia struct {
-	IdUnidCargaVazia string `json:"idUnidCargaVazia"`
-	TpUnidCargaVazia int    `json:"tpUnidCargaVazia" enum:"TipoUnidadeCargaVazia"`
-}
-
-// InfUnidTranspVazia espelha MdfeSefazInfUnidTranspVazia.
-type InfUnidTranspVazia struct {
-	IdUnidTranspVazia string `json:"idUnidTranspVazia"`
-	TpUnidTranspVazia int    `json:"tpUnidTranspVazia" enum:"TipoUnidadeTransporteVazia"`
-}
-
-// Ferrov espelha MdfeSefazFerrov.
-type Ferrov struct {
-	Trem Trem  `json:"trem"`
-	Vag  []Vag `json:"vag"`
-}
-
-// Trem espelha MdfeSefazTrem.
-type Trem struct {
-	XPref  string `json:"xPref"`
-	DhTrem string `json:"dhTrem,omitempty"`
-	XOri   string `json:"xOri"`
-	XDest  string `json:"xDest"`
-	QVag   int    `json:"qVag"`
-}
-
-// Vag espelha MdfeSefazVag.
-type Vag struct {
-	PesoBC float64 `json:"pesoBC"`
-	PesoR  float64 `json:"pesoR"`
-	TpVag  string  `json:"tpVag,omitempty"`
-	Serie  string  `json:"serie"`
-	NVag   int     `json:"nVag"`
-	NSeq   int     `json:"nSeq,omitempty"`
-	TU     float64 `json:"TU"`
 }
 
 // InfDoc espelha MdfeSefazInfDoc.

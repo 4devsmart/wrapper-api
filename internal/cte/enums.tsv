@@ -28,36 +28,18 @@ TipoEmissao	3	Regime Especial NFF
 TipoEmissao	4	EPEC pela SVC
 TipoEmissao	7	Autorização pela SVC-RS
 TipoEmissao	8	Autorização pela SVC-SP
-Modal	01	Rodoviário
-Modal	02	Aéreo
-Modal	03	Aquaviário
-Modal	04	Ferroviário
-Modal	05	Dutoviário
-Modal	06	Multimodal
+Modal	01	Rodoviário. É o único modal que este serviço emite
 Tomador	0	Remetente
 Tomador	1	Expedidor
 Tomador	2	Recebedor
 Tomador	3	Destinatário
 TomadorOutros	4	Outros
-FormaPagamento	0	Pago
-FormaPagamento	1	A pagar
-FormaPagamento	2	Outros
 Retira	0	Sim
 Retira	1	Não
-Lotacao	0	Não
-Lotacao	1	Sim
 CRT	1	Simples Nacional
 CRT	2	Simples Nacional, excesso de sublimite de receita bruta
 CRT	3	Regime Normal
 CRT	4	Simples Nacional, Microempreendedor Individual (MEI)
-TipoPropriedade	P	Próprio
-TipoPropriedade	T	Terceiro
-Direcao	N	Norte
-Direcao	L	Leste
-Direcao	S	Sul
-Direcao	O	Oeste
-ResponsavelSeguro	4	Emitente do CT-e
-ResponsavelSeguro	5	Tomador do serviço
 TipoPeriodoEntrega	0	Sem data definida
 TipoPeriodoEntrega	1	Na data
 TipoPeriodoEntrega	2	Até a data
@@ -68,12 +50,6 @@ TipoHorarioEntrega	1	No horário
 TipoHorarioEntrega	2	Até o horário
 TipoHorarioEntrega	3	A partir do horário
 TipoHorarioEntrega	4	No intervalo de tempo
-TipoTrafego	0	Próprio
-TipoTrafego	1	Mútuo
-TipoTrafego	2	Rodoferroviário
-TipoTrafego	3	Rodoviário
-ResponsavelFaturamento	1	Ferrovia de origem
-ResponsavelFaturamento	2	Ferrovia de destino
 TipoUnidadeTransporte	1	Rodoviário tração
 TipoUnidadeTransporte	2	Rodoviário reboque
 TipoUnidadeTransporte	3	Navio
@@ -101,32 +77,11 @@ IndicadorIEToma	1	Contribuinte do ICMS
 IndicadorIEToma	2	Contribuinte isento de inscrição
 IndicadorIEToma	9	Não contribuinte
 Sim	1	Sim. Omitir o campo equivale a não.
-NaoNegociavelNegociavel	0	Não negociável
-NaoNegociavelNegociavel	1	Negociável
 TipoDocumentoTransportado	00	Declaração
 TipoDocumentoTransportado	10	Dutoviário
 TipoDocumentoTransportado	59	CF-e SAT
 TipoDocumentoTransportado	65	NFC-e
 TipoDocumentoTransportado	99	Outros
-ClassificacaoDutoviario	1	Gasoduto
-ClassificacaoDutoviario	2	Mineroduto
-ClassificacaoDutoviario	3	Oleoduto
-TipoContratacaoDuto	0	Ponta a ponto
-TipoContratacaoDuto	1	Capacidade de entrada
-TipoContratacaoDuto	2	Capacidade de saída
-TipoComponente	1	Custódia
-TipoComponente	2	Embarque
-TipoComponente	3	Tempo de espera
-TipoComponente	4	Malote
-TipoComponente	5	Ad valorem
-TipoComponente	6	Outros
-NacionalidadeNumerario	1	Nacional
-NacionalidadeNumerario	2	Estrangeiro
-TipoFretamento	1	Eventual
-TipoFretamento	2	Contínuo
-TipoProprietarioOS	0	TAC agregado
-TipoProprietarioOS	1	TAC independente
-TipoProprietarioOS	2	Outros
 TipoMedida	00	Cubagem da NF-e
 TipoMedida	01	Cubagem aferida pelo transportador
 TipoMedida	02	Peso bruto da NF-e
@@ -154,34 +109,5 @@ TipoEnteGovernamental	3	Distrito Federal
 TipoEnteGovernamental	4	Municípios
 TipoEnteGovernamental	5	Consórcio público
 TipoEnteGovernamental	6	Comitê Gestor do IBS
-FerroviaEmitente	1	Ferrovia de origem
-FerroviaEmitente	2	Ferrovia de destino
-DirecaoAquaviario	N	Norte
-DirecaoAquaviario	L	Leste
-DirecaoAquaviario	S	Sul
-DirecaoAquaviario	O	Oeste
-TipoNavegacao	0	Interior
-TipoNavegacao	1	Cabotagem
-UnidadeMedidaArtigoPerigoso	1	KG
-UnidadeMedidaArtigoPerigoso	2	KG G (quilograma bruto)
-UnidadeMedidaArtigoPerigoso	3	Litros
-UnidadeMedidaArtigoPerigoso	4	TI (índice de transporte para radioativos)
-UnidadeMedidaArtigoPerigoso	5	Unidades, para artigos perigosos que não se medem pelas anteriores (baterias, celulares, equipamentos, veículos)
-InformacaoManuseio	01	Certificado do expedidor para embarque de animal vivo
-InformacaoManuseio	02	Artigo perigoso conforme Declaração do Expedidor anexa
-InformacaoManuseio	03	Somente em aeronave cargueira
-InformacaoManuseio	04	Artigo perigoso, Declaração do Expedidor não requerida
-InformacaoManuseio	05	Artigo perigoso em quantidade isenta
-InformacaoManuseio	06	Gelo seco para refrigeração (informe a quantidade nas observações)
-InformacaoManuseio	07	Não restrito (informe a Disposição Especial nas observações)
-InformacaoManuseio	08	Artigo perigoso em carga consolidada (informe a quantidade nas observações)
-InformacaoManuseio	09	Autorização da autoridade governamental anexa (identifique nas observações)
-InformacaoManuseio	10	Baterias de íons de lítio conforme a Seção II da PI965, CAO
-InformacaoManuseio	11	Baterias de íons de lítio conforme a Seção II da PI966
-InformacaoManuseio	12	Baterias de íons de lítio conforme a Seção II da PI967
-InformacaoManuseio	13	Baterias de metal lítio conforme a Seção II da PI968, CAO
-InformacaoManuseio	14	Baterias de metal lítio conforme a Seção II da PI969
-InformacaoManuseio	15	Baterias de metal lítio conforme a Seção II da PI970
-InformacaoManuseio	99	Outro (descreva nas observações)
 Ambiente	homologacao	Ambiente de homologação, sem valor fiscal
 Ambiente	producao	Ambiente de produção

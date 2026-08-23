@@ -74,7 +74,7 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 		httpx.ErroJSON(w, http.StatusBadRequest, "campo_obrigatorio", "infCte.emit.CNPJ é obrigatório")
 		return
 	}
-	if !ambienteDoPedido(w, &p.Ambiente, p.InfCte.Ide.TpAmb) {
+	if !ambienteDoPedido(w, &p.Ambiente, p.InfCte.Ide.TpAmb) || !modalSuportado(w, p.InfCte.Ide.Modal) {
 		return
 	}
 	m.montar(w, fiscal.Tenant(cnpj, secaoACBr, p.Ambiente, fiscal.Certificado{}), ToINI(p))
@@ -90,7 +90,7 @@ func (m *Modulo) handleXMLSimp(w http.ResponseWriter, r *http.Request) {
 		httpx.ErroJSON(w, http.StatusBadRequest, "campo_obrigatorio", "infCte.emit.CNPJ é obrigatório")
 		return
 	}
-	if !ambienteDoPedido(w, &p.Ambiente, p.InfCte.Ide.TpAmb) {
+	if !ambienteDoPedido(w, &p.Ambiente, p.InfCte.Ide.TpAmb) || !modalSuportado(w, p.InfCte.Ide.Modal) {
 		return
 	}
 	m.montar(w, fiscal.Tenant(cnpj, secaoACBr, p.Ambiente, fiscal.Certificado{}), ToINISimp(p))
@@ -504,6 +504,23 @@ func (m *Modulo) responderPDF(w http.ResponseWriter, res acbr.Result, err error)
 }
 
 // --- apoio ------------------------------------------------------------------
+
+// modalRodoviario é o único modal que este serviço emite. Ver Escopo, no README.
+const modalRodoviario = "01"
+
+// modalSuportado recusa o pedido de um modal que não emitimos.
+//
+// O grupo infModal só tem "rodo": um pedido de outro modal chegaria aqui sem os
+// campos dele (o JSON recusa campo desconhecido) e viraria um CT-e com o modal
+// declarado e nenhum dado de modal. Melhor dizer não na entrada.
+func modalSuportado(w http.ResponseWriter, modal string) bool {
+	if modal == "" || modal == modalRodoviario {
+		return true
+	}
+	httpx.ErroJSON(w, http.StatusUnprocessableEntity, "modal_nao_suportado",
+		"este serviço emite apenas o modal rodoviário (modal=01); recebido modal="+modal)
+	return false
+}
 
 // ambienteDoPedido normaliza o ambiente NO PRÓPRIO pedido, para que a sessão
 // nativa e o INI leiam o mesmo valor, e confere o tpAmb explícito de infCte.ide
