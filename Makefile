@@ -51,10 +51,9 @@ test-cgo:
 openapi:
 	CGO_ENABLED=0 go run ./cmd/gerar-openapi
 
-## openapi-valida: confere que a spec é YAML válido
+## openapi-valida: confere que a spec é YAML válido e está descrita
 openapi-valida:
-	@python3 -c "import yaml,sys; d=yaml.safe_load(open('api/openapi.yaml')); \
-	  print('openapi.yaml válido:', len(d['paths']), 'rotas,', len(d['components']['schemas']), 'schemas')"
+	@python3 scripts/validar-openapi.py
 
 ## openapi-check: falha se a spec estiver desatualizada em relação aos modelos
 openapi-check: openapi-valida

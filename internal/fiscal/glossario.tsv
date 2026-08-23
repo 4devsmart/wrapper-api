@@ -204,7 +204,7 @@ cstat	Código de status devolvido pelo fisco.
 motivo	Descrição do status devolvido pelo fisco.
 codigo_verificacao	Código de verificação da NFS-e, devolvido pelo provedor.
 titulos	Títulos a incluir no boleto ou na remessa.
-conta	Conta de cobrança: banco, agência, conta e cedente.
+conta	Número da conta corrente.
 telefone	Telefone, só dígitos, com DDD.
 tipo	Tipo da operação ou do documento.
 numero	Número do documento.
@@ -276,3 +276,290 @@ xml_evento_b64	XML do evento em base64.
 xml_proc_b64	XML do documento autorizado, com o protocolo. Guarde: não há segunda via.
 data_hora	Data e hora do processamento, como devolvida pelo provedor.
 id_dps	Identificador da DPS. Use em /nfse/consulta-dps para recuperar a transmissão.
+# --- NFS-e: documentos referenciados, tributos federais, totais -------------
+tipoChaveDFe	Tipo da chave do documento fiscal referenciado.
+xTipoChaveDFe	Descrição do tipo da chave do documento referenciado.
+cMunDocFiscal	Código IBGE do município do documento referenciado.
+xDocFiscal	Descrição do documento fiscal referenciado.
+xDoc	Descrição do documento referenciado quando não é fiscal.
+fornecCNPJ	CNPJ do fornecedor do documento referenciado.
+fornecCPF	CPF do fornecedor do documento referenciado.
+fornecNome	Nome do fornecedor do documento referenciado.
+dtEmiDoc	Data de emissão do documento referenciado.
+dtCompDoc	Data de competência do documento referenciado.
+tpReeRepRes	Tipo de reembolso, repasse ou ressarcimento.
+xTpReeRepRes	Descrição do tipo de reembolso, repasse ou ressarcimento.
+vlrReeRepRes	Valor do reembolso, repasse ou ressarcimento.
+vBCPisCofins	Base de cálculo do PIS e da COFINS.
+pAliqPis	Alíquota do PIS, em percentual.
+pAliqCofins	Alíquota da COFINS, em percentual.
+vPis	Valor do PIS.
+vCofins	Valor da COFINS.
+tpRetPisCofins	Tipo de retenção do PIS e da COFINS.
+vRetCP	Valor retido de contribuição previdenciária.
+vRetIRRF	Valor retido de imposto de renda na fonte.
+vRetCSLL	Valor retido de CSLL.
+indTotTrib	Indica se os totais de tributos são informados.
+pTotTribSN	Percentual total de tributos do Simples Nacional.
+vTotTribFed	Valor total dos tributos federais.
+vTotTribEst	Valor total dos tributos estaduais.
+vTotTribMun	Valor total dos tributos municipais.
+pTotTribFed	Percentual total dos tributos federais.
+pTotTribEst	Percentual total dos tributos estaduais.
+pTotTribMun	Percentual total dos tributos municipais.
+finNFSe	Finalidade da NFS-e.
+indFinal	Indica operação com consumidor final.
+cIndOp	Código do indicador da operação.
+tpOper	Tipo da operação.
+indDest	Indicador do destinatário.
+mecAFComexP	Mecanismo de apoio ao comércio exterior do prestador.
+mecAFComexT	Mecanismo de apoio ao comércio exterior do tomador.
+movTempBens	Movimentação temporária de bens.
+mdic	Informações exigidas pelo MDIC.
+idDocTec	Identificação do documento técnico.
+docRef	Documento de referência.
+xPed	Número do pedido do tomador.
+xInfComp	Informações complementares da nota.
+# --- CT-e: partilha do ICMS, notas, Reforma Tributária ----------------------
+vBCUFFim	Base de cálculo do ICMS na UF de término da prestação.
+pFCPUFFim	Alíquota do Fundo de Combate à Pobreza na UF de término.
+pICMSUFFim	Alíquota interna na UF de término da prestação.
+pICMSInter	Alíquota interestadual entre a UF de início e a de término.
+vFCPUFFim	Valor do Fundo de Combate à Pobreza devido à UF de término.
+vICMSUFFim	Valor do ICMS devido à UF de término da prestação.
+vICMSUFIni	Valor do ICMS devido à UF de início da prestação.
+vProd	Valor total dos produtos.
+vNF	Valor total da nota fiscal.
+nCFOP	CFOP predominante da nota fiscal.
+nPeso	Peso total em quilos.
+pRedBCOutraUF	Percentual de redução da base de cálculo na outra UF.
+vBCOutraUF	Base de cálculo do ICMS devido à outra UF.
+pICMSOutraUF	Alíquota do ICMS devido à outra UF.
+vICMSOutraUF	Valor do ICMS devido à outra UF.
+pAliqIBSUF	Alíquota do IBS estadual.
+vTribIBSUF	Valor do IBS estadual.
+pAliqIBSMun	Alíquota do IBS municipal.
+vTribIBSMun	Valor do IBS municipal.
+pAliqCBS	Alíquota da CBS.
+vTribCBS	Valor da CBS.
+pAliqEfetRegIBSUF	Alíquota efetiva do IBS estadual no regime regular.
+vTribRegIBSUF	Valor do IBS estadual no regime regular.
+pAliqEfetRegIBSMun	Alíquota efetiva do IBS municipal no regime regular.
+vTribRegIBSMun	Valor do IBS municipal no regime regular.
+pAliqEfetRegCBS	Alíquota efetiva da CBS no regime regular.
+vTribRegCBS	Valor da CBS no regime regular.
+origCalc	Município de origem para o cálculo da prestação.
+destCalc	Município de destino para o cálculo da prestação.
+ObsCont	Observações de uso livre do contribuinte.
+ObsFisco	Observações de interesse do fisco.
+grupoAlterado	Nome do grupo do XML que está sendo corrigido.
+campoAlterado	Nome do campo que está sendo corrigido.
+valorAlterado	Novo valor do campo corrigido.
+nroItemAlterado	Número do item corrigido, quando o campo pertence a uma lista. 0 se não se aplica.
+proPred	Produto predominante da carga.
+xOutCat	Outras características da carga.
+infQ	Quantidades da carga, por unidade de medida.
+vCargaAverb	Valor da carga para averbação do seguro.
+respFat	Ferrovia responsável pelo faturamento no tráfego mútuo.
+ferrEmi	Ferrovia emitente do CT-e.
+chCTeFerroOrigem	Chave do CT-e ferroviário de origem.
+ferroEnv	Ferrovias envolvidas no tráfego mútuo.
+chassi	Chassi do veículo novo transportado.
+cCor	Código da cor do veículo, conforme a montadora.
+xCor	Nome da cor do veículo.
+cMod	Código do modelo do veículo, conforme a montadora.
+vUnit	Valor unitário.
+classDuto	Classificação no modal dutoviário.
+tpContratacao	Tipo de contratação no modal dutoviário.
+codPontoEntrada	Código do ponto de entrada no duto.
+codPontoSaida	Código do ponto de saída do duto.
+nContrato	Número do contrato.
+# --- MDF-e: modais, pagamento, vale-pedágio --------------------------------
+nac	Nacionalidade da aeronave.
+matr	Matrícula da aeronave.
+nVoo	Número do voo.
+cAerEmb	Código do aeródromo de embarque.
+cAerDes	Código do aeródromo de destino.
+dVoo	Data do voo.
+MMSI	Identificação MMSI da embarcação.
+CNPJForn	CNPJ do fornecedor do vale-pedágio.
+CNPJPg	CNPJ do responsável pelo pagamento do vale-pedágio.
+CPFPg	CPF do responsável pelo pagamento do vale-pedágio.
+nCompra	Número do comprovante de compra do vale-pedágio.
+vValePed	Valor do vale-pedágio.
+tpValePed	Tipo do vale-pedágio.
+vContrato	Valor total do contrato de transporte.
+indAltoDesemp	Indica operação de transporte de alto desempenho.
+vAdiant	Valor do adiantamento.
+indAntecipaAdiant	Indica antecipação do adiantamento.
+tpAntecip	Tipo de antecipação da parcela.
+nParcela	Número da parcela.
+vParcela	Valor da parcela.
+pesoBC	Peso base de cálculo do frete no modal ferroviário.
+pesoR	Peso real do vagão.
+tpVag	Tipo do vagão.
+nVag	Número de identificação do vagão.
+nSeq	Sequência do vagão na composição.
+TU	Tonelada útil, com três casas decimais.
+xPref	Prefixo do trem.
+dhTrem	Data e hora de liberação do trem na origem.
+xOri	Estação de origem do trem.
+qVag	Quantidade de vagões da composição.
+codBanco	Código do banco para o pagamento.
+codAgencia	Código da agência para o pagamento.
+CNPJIPEF	CNPJ da instituição de pagamento eletrônico do frete.
+PIX	Chave PIX para o pagamento.
+indCanalVerde	Indica adesão ao Canal Verde Brasil.
+indCarregaPosterior	Indica que o carregamento pode ocorrer após a emissão.
+infMunCarrega	Municípios de carregamento da carga.
+infPercurso	UFs de percurso entre a origem e o destino.
+# --- CT-e: modais, documentos anteriores, cobrança --------------------------
+balsa	Balsas utilizadas no transporte aquaviário.
+direc	Direção da navegação no modal aquaviário.
+detCont	Detalhamento dos contêineres transportados.
+nCont	Número de identificação do contêiner.
+lacre	Lacres aplicados.
+dup	Duplicatas da fatura.
+nDup	Número da duplicata.
+vDup	Valor da duplicata.
+nFat	Número da fatura.
+vOrig	Valor original da fatura.
+vTRec	Valor total recebido.
+dProg	Data programada para a entrega.
+hProg	Hora programada para a entrega.
+hIni	Hora inicial do intervalo de entrega.
+hFim	Hora final do intervalo de entrega.
+comp	Componentes que somam o valor da prestação.
+infDocAnt	Documentos de transporte anteriores.
+emiDocAnt	Emitentes dos documentos anteriores.
+idDocAnt	Identificação dos documentos anteriores.
+idDocAntPap	Documentos anteriores em papel.
+idDocAntEle	Documentos anteriores eletrônicos, identificados pela chave.
+subser	Subsérie do documento anterior em papel.
+tpPrest	Tipo da prestação no documento anterior.
+infNFeTranspParcial	NF-e transportada parcialmente.
+xOrig	Sigla ou código da origem do fluxo da carga.
+xDest	Sigla ou código do destino do fluxo da carga.
+pass	Pontos de passagem da carga.
+xPass	Sigla ou código do ponto de passagem.
+xRota	Código da rota de entrega.
+tpTraf	Tipo de tráfego no modal ferroviário.
+fluxo	Fluxo ferroviário: origem, passagens e destino.
+vag	Vagões da composição.
+occ	Ordens de Coleta de Carga.
+nOcc	Número da Ordem de Coleta.
+indSN	Indica que o emitente é optante pelo Simples Nacional.
+indGlobalizado	Indica CT-e Globalizado, sem detalhamento dos documentos.
+xDetRetira	Detalhes de onde a carga deve ser retirada.
+dhCont	Data e hora da entrada em contingência.
+vTotDFe	Valor total dos documentos fiscais transportados.
+chCTeMultimodal	Chave do CT-e multimodal ao qual este está vinculado.
+chCte	Chave do CT-e referenciado.
+indAlteraToma	Indica que o CT-e substituto altera o tomador.
+veicNovos	Veículos novos transportados.
+qrCodCTe	QR Code do DACTE, gerado pela biblioteca.
+infCteComp	CT-e complementados por este documento.
+det	Itens do CT-e Simplificado.
+infOutros	Outros documentos transportados.
+infDCe	Declarações de Conteúdo eletrônicas transportadas.
+descOutros	Descrição do outro documento transportado.
+vDocFisc	Valor do documento fiscal.
+tpMed	Tipo da medida: peso bruto, cubagem, litragem.
+xDime	Dimensões da carga, no formato CxLxA em metros.
+cInfManu	Informações de manuseio da carga.
+qTotEmb	Quantidade total de embalagens do produto perigoso.
+uniAP	Unidade do total aproximado de tributos.
+COTM	Número do Conhecimento de Transporte Multimodal de Cargas.
+indNegociavel	Indica se o CT-e é negociável.
+CL	Classe da tarifa no modal aéreo.
+cTar	Código da tarifa no modal aéreo.
+pRedAliq	Percentual de redução da alíquota no redespacho ferroviário.
+pAliqEfet	Alíquota efetiva aplicada.
+indDoacao	Indica operação de doação.
+pRedutor	Percentual redutor aplicado em compra governamental.
+vDevTrib	Valor do tributo devolvido.
+pDif	Percentual do ICMS diferido.
+vDif	Valor do ICMS diferido.
+vIBS	Valor do IBS.
+pIBSUF	Alíquota do IBS estadual.
+vIBSUF	Valor do IBS estadual.
+pIBSMun	Alíquota do IBS municipal.
+vIBSMun	Valor do IBS municipal.
+pCBS	Alíquota da CBS.
+vCBS	Valor da CBS.
+vIBSEstCred	Valor do IBS com estorno de crédito.
+vCBSEstCred	Valor da CBS com estorno de crédito.
+correcoes	Grupos a corrigir. Um por campo alterado.
+hashEntrega	Hash SHA-1 do comprovante de entrega, em base64.
+hashTentativaEntrega	Hash SHA-1 do comprovante da tentativa, em base64.
+nTentativa	Número da tentativa de entrega.
+xJustMotivo	Justificativa do insucesso, quando o motivo exige.
+vICMSST	Valor do ICMS por substituição tributária.
+erro	Detalhe do erro. Trate pelo campo codigo.
+# --- MDF-e ------------------------------------------------------------------
+tpComp	Tipo do componente do valor.
+xComp	Descrição do componente, quando o tipo é Outros.
+cpf	CPF, 11 dígitos.
+documentos	Documentos a incluir.
+pagamentos	Pagamentos da operação de transporte.
+infCIOT	CIOTs da operação.
+infContratante	Contratantes do serviço de transporte.
+infPag	Pagamentos ao transportador.
+infPrazo	Parcelas, quando o pagamento é a prazo.
+indPrestacaoParcial	Indica prestação parcial do serviço.
+infNFePrestParcial	NF-e com prestação parcial.
+NroContrato	Número do contrato com o contratante.
+vContratoGlobal	Valor global do contrato.
+infMunDescarga	Municípios de descarregamento e o que é entregue em cada um.
+cEmbComb	Código da embarcação do comboio.
+qtdTotal	Quantidade total da carga.
+qtdParcial	Quantidade entregue nesta parcela.
+seg	Seguros da carga.
+lacres	Lacres do manifesto.
+qrCodMDFe	QR Code do DAMDFE, gerado pela biblioteca.
+infCTe	CT-e entregues neste município.
+infMDFeTransp	MDF-e transportados neste município.
+UFPer	Sigla da UF de percurso.
+cTermCarreg	Código do terminal de carregamento.
+xTermCarreg	Nome do terminal de carregamento.
+cTermDescarreg	Código do terminal de descarregamento.
+xTermDescarreg	Nome do terminal de descarregamento.
+idUnidCargaVazia	Identificação da unidade de carga que segue vazia.
+tpUnidCargaVazia	Tipo da unidade de carga que segue vazia.
+idUnidTranspVazia	Identificação da unidade de transporte que segue vazia.
+tpUnidTranspVazia	Tipo da unidade de transporte que segue vazia.
+qtdViagens	Quantidade de viagens da operação.
+nroViagem	Número desta viagem.
+xProd	Descrição do produto.
+cEAN	Código de barras GTIN do produto.
+NCM	Código NCM do produto, 8 dígitos.
+veicReboque	Reboques acoplados ao veículo de tração.
+codAgPorto	Código de agendamento no porto.
+lacRodo	Lacres no modal rodoviário.
+qCTe	Quantidade de CT-e no manifesto.
+qNFe	Quantidade de NF-e no manifesto.
+qMDFe	Quantidade de MDF-e no manifesto.
+disp	Dispositivos de vale-pedágio.
+categCombVeic	Categoria de combinação veicular, conforme a ANTT.
+tpRod	Tipo de rodado do veículo.
+infTermCarreg	Terminais de carregamento no modal aquaviário.
+infTermDescarreg	Terminais de descarregamento no modal aquaviário.
+infEmbComb	Embarcações do comboio.
+infUnidCargaVazia	Unidades de carga que seguem vazias.
+infUnidTranspVazia	Unidades de transporte que seguem vazias.
+# --- NFS-e ------------------------------------------------------------------
+NIF	Número de Identificação Fiscal no exterior.
+pDifUF	Percentual de diferimento do IBS estadual.
+pDifMun	Percentual de diferimento do IBS municipal.
+pDifCBS	Percentual de diferimento da CBS.
+cCredPres	Código do crédito presumido.
+inscImobFisc	Inscrição imobiliária fiscal do imóvel.
+cCIB	Código do imóvel no Cadastro Imobiliário Brasileiro.
+verAplic	Versão do aplicativo emissor.
+numero_lote	Número do lote da nota substituída.
+xMunicipioIncidencia	Nome do município de incidência do ISSQN.
+responsavelRetencao	Responsável pela retenção do ISSQN.
+pRedBCBM	Percentual de redução da base de cálculo do benefício municipal.
+vBCST	Base de cálculo do ICMS por substituição tributária.
+vST	Valor do ICMS retido por substituição tributária.
+infCTeMultimodal	CT-e multimodal ao qual o serviço está vinculado.
