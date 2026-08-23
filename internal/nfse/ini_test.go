@@ -3,6 +3,8 @@ package nfse
 import (
 	"strings"
 	"testing"
+
+	"github.com/4devsmart/wrapper-api/internal/platform/versao"
 )
 
 // pedidoSintetico monta um DPSPedido com dados ANONIMIZADOS (CNPJ/endereço
@@ -172,5 +174,24 @@ func TestSanitizeINIVal_AntiInjecao(t *testing.T) {
 	}
 	if strings.Contains(got, "\n[Emitente]") {
 		t.Fatalf("injeção de seção não neutralizada: %q", got)
+	}
+}
+
+// TestToINI_VerAplicIdentificaEsteServico: o default do campo era o nome do
+// repositório privado de origem, e ele acompanha a DPS enviada ao ADN. Quem não
+// preenchesse transmitia documentos identificados como um produto alheio.
+func TestToINI_VerAplicIdentificaEsteServico(t *testing.T) {
+	p := pedidoSintetico()
+	ini := ToINI(p)
+	if !strings.Contains(ini, "verAplic="+versao.Emissor()) {
+		t.Errorf("INI sem verAplic=%s", versao.Emissor())
+	}
+	if strings.Contains(ini, "nuvem-fiscal") {
+		t.Error("o nome do projeto de origem voltou ao documento")
+	}
+
+	p.InfDPS.VerAplic = "erp-do-cliente/2.1"
+	if ini := ToINI(p); !strings.Contains(ini, "verAplic=erp-do-cliente/2.1") {
+		t.Error("verAplic informado pelo cliente foi ignorado")
 	}
 }

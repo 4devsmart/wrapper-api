@@ -2969,7 +2969,7 @@ components:
           description: 'Identificador do processo de emissão do documento. Valores: 0 = Aplicativo do contribuinte; 3 = Aplicativo fornecido pelo SEBRAE (no CT-e OS, aplicativo fornecido pelo Fisco); 4 = Provedor de Assinatura e Autorização, PAA (não vale para o CT-e OS).'
         verProc:
           type: string
-          description: 'Versão do aplicativo emissor.'
+          description: 'Identificação do aplicativo que gerou o documento, até 20 caracteres. Omitir assume a identificação deste serviço; informe o nome do SEU aplicativo se é ele que o fisco deve ver.'
         indGlobalizado:
           type: integer
           enum: [1]
@@ -4407,7 +4407,7 @@ components:
           description: 'Identificador do processo de emissão do documento. Valores: 0 = Aplicativo do contribuinte; 4 = Provedor de Assinatura e Autorização (PAA).'
         verProc:
           type: string
-          description: 'Versão do aplicativo emissor.'
+          description: 'Identificação do aplicativo que gerou o documento, até 20 caracteres. Omitir assume a identificação deste serviço; informe o nome do SEU aplicativo se é ele que o fisco deve ver.'
         UFIni:
           type: string
           description: 'Sigla da UF de início da prestação.'
@@ -5687,7 +5687,7 @@ components:
           description: 'Valores: 1 = Prestador; 2 = Tomador; 3 = Intermediário.'
         verAplic:
           type: string
-          description: 'Versão do aplicativo emissor.'
+          description: 'Identificação do aplicativo que gerou o documento, até 20 caracteres. Omitir assume a identificação deste serviço; informe o nome do SEU aplicativo se é ele que o fisco deve ver.'
         cLocEmi:
           type: string
           description: 'município emissor (IBGE); vazio = cMun do prestador'

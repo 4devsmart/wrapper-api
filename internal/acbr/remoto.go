@@ -91,7 +91,7 @@ func novoPool(cfg config.ACBr) *poolWorkers {
 }
 
 // novoDestino monta o cliente HTTP de um endereço de worker. Aceita caminho de
-// socket unix ("/run/mnf/fiscal.sock", "unix:///run/..."), usado em produção, e
+// socket unix ("/run/wrapper/fiscal.sock", "unix:///run/..."), usado em produção, e
 // URL http:// (útil em teste).
 func novoDestino(addr string) *destino {
 	tr := &http.Transport{

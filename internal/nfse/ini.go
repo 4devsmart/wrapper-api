@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/4devsmart/wrapper-api/internal/platform/inifmt"
+	"github.com/4devsmart/wrapper-api/internal/platform/versao"
 )
 
 // codigoPaisBrasil é o código BACEN do Brasil, usado como default do endereço
@@ -44,7 +45,7 @@ func ToINI(p DPSPedido) string {
 	b.kv("Serie", inf.Serie)
 	b.kv("DataEmissao", dateBR(inf.DhEmi))
 	b.kv("Competencia", dateBR(inf.DCompet))
-	b.kv("verAplic", defaultStr(inf.VerAplic, "my-nuvem-fiscal"))
+	b.kv("verAplic", defaultStr(inf.VerAplic, versao.Emissor()))
 	b.kv("tpEmit", strconv.Itoa(defaultInt(inf.TpEmit, 1)))
 	// Local de emissão (município emissor). Default = município do prestador.
 	b.kv("cLocEmi", defaultStr(inf.CLocEmi, inf.Prest.CMun))

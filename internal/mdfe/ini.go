@@ -7,6 +7,7 @@ import (
 
 	"github.com/4devsmart/wrapper-api/internal/fiscal"
 	"github.com/4devsmart/wrapper-api/internal/platform/inifmt"
+	"github.com/4devsmart/wrapper-api/internal/platform/versao"
 )
 
 // ToINI traduz o pedido (JSON ACBr.API) para o INI do MDF-e consumido pela
@@ -36,7 +37,7 @@ func ToINI(p PedidoEmissao) string {
 	b.kv("dhemi", b.dataHora(id.DhEmi))
 	b.kv("tpEmis", strconv.Itoa(defaultInt(id.TpEmis, 1)))
 	b.kv("procEmi", defaultStr(id.ProcEmi, "0"))
-	b.kv("verProc", defaultStr(id.VerProc, "my-nuvem-fiscal"))
+	b.kv("verProc", defaultStr(id.VerProc, versao.Emissor()))
 	b.kv("UFIni", id.UFIni)
 	b.kv("UFFim", id.UFFim)
 	// dhIniViagem pertence a [ide]: o leitor da lib faz ReadString(<ide>,

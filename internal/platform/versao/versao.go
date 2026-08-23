@@ -44,3 +44,32 @@ func Curto() string {
 	}
 	return c
 }
+
+// Aplicativo é o nome deste serviço. Vai no campo que identifica QUEM gerou o
+// documento fiscal: verProc no CT-e e no MDF-e, verAplic na NFS-e.
+const Aplicativo = "wrapper-api"
+
+// maxEmissor é o limite dos três layouts para esse campo (minLength 1,
+// maxLength 20, conferido nos XSD do CT-e 4.00, do MDF-e 3.00 e do Padrão
+// Nacional 1.01). Estourar aqui é rejeição de schema.
+const maxEmissor = 20
+
+// Emissor identifica este serviço no documento fiscal quando o cliente não
+// informa o seu próprio verProc/verAplic.
+//
+// O commit entra junto porque é isso que o campo serve para responder: quando
+// uma rejeição vier de um erro de montagem, o XML autorizado diz qual build o
+// produziu. Sem carimbo (build local), sobra só o nome.
+//
+// O cliente sempre pode sobrescrever: quem emite é o aplicativo dele, e há
+// quem precise se identificar com nome próprio perante o fisco.
+func Emissor() string {
+	e := Aplicativo
+	if c := Curto(); c != "" {
+		e += "/" + c
+	}
+	if len(e) > maxEmissor {
+		return e[:maxEmissor]
+	}
+	return e
+}

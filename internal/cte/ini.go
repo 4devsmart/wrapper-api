@@ -7,6 +7,7 @@ import (
 
 	"github.com/4devsmart/wrapper-api/internal/fiscal"
 	"github.com/4devsmart/wrapper-api/internal/platform/inifmt"
+	"github.com/4devsmart/wrapper-api/internal/platform/versao"
 )
 
 // ToINI traduz o pedido (JSON ACBr.API) para o INI do CT-e consumido pela
@@ -122,7 +123,7 @@ func (b *iniBuilder) identificacao(id Ide, ambiente string) {
 	b.kv("tpEmis", strconv.Itoa(defaultInt(id.TpEmis, 1)))
 	b.kv("tpCTe", strconv.Itoa(id.TpCTe))
 	b.kv("procEmi", strconv.Itoa(id.ProcEmi))
-	b.kv("verProc", defaultStr(id.VerProc, "my-nuvem-fiscal"))
+	b.kv("verProc", defaultStr(id.VerProc, versao.Emissor()))
 	b.kvIntOpt("indGlobalizado", id.IndGlobalizado)
 	b.kvOpt("cMunEnv", id.CMunEnv)
 	b.kvOpt("xMunEnv", id.XMunEnv)
