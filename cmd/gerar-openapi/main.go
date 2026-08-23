@@ -187,20 +187,147 @@ var (
 	reACBr      = regexp.MustCompile(`(?i)\bo ACBr\b|\ba ACBr\b|\bACBr\b`)
 	reINI       = regexp.MustCompile(`(?i)\bdo INI\b|\bno INI\b|\bo INI\b|\bINI\b`)
 	reEspacos   = regexp.MustCompile(`\s{2,}`)
+
+	// reInterno decide se um aparte é sobre a implementação. É a lista de tudo
+	// que o público não deve ver: o nome do contrato de origem, o da biblioteca,
+	// as funções nativas, o arquivo-fonte dela e as seções do INI.
+	reInterno = regexp.MustCompile(`(?i)\bACBr|\bNuvem Fiscal\b|\.pas\b|\bespelha\b|\bseção \[|\[[A-Za-z][A-Za-z0-9_]*\]|\b(?:NFSE|CTE|MDFE|NFE|Boleto)_[A-Za-z]+`)
+
+	// reFontePascal casa a citação de arquivo-fonte da biblioteca
+	// ("pcteCTeW.pas:3309"): é rastro de investigação, útil no código e ruído
+	// no contrato.
+	reFontePascal = regexp.MustCompile(`(?i)\s*\b[\w.]+\.pas(?::\d+)?\b`)
+
+	// reProdutoOrigem tira o nome do produto privado de onde este serviço foi
+	// portado, junto com a oração que o carrega.
+	reProdutoOrigem = regexp.MustCompile(`(?i),?\s*(?:no |em )?(?:contrato|estilo|padrão) d[ao] Nuvem Fiscal\b[^.;]*|\s*\bNuvem Fiscal\b`)
+
+	reParenOrfao = regexp.MustCompile(`\s*\([^).;]*(?:[.;]|$)`)
 )
 
 func semDetalheDeImplementacao(doc string) string {
+	// Primeiro os APARTES: "(espelha o X do ACBr.API)", "(gReeRepRes, seção
+	// [DocumentosNNNN])". Recortar por dentro deles é o que deixava parêntese
+	// aberto e frase truncada no meio ("...do. Códigos/motivos variam").
+	// Removido como unidade, o resto da frase fica inteiro.
+	doc = removerApartesInternos(doc)
+
 	doc = reSecaoINI.ReplaceAllString(doc, "")
 	doc = reSecaoSolt.ReplaceAllString(doc, "")
 	doc = reNativa.ReplaceAllString(doc, "a biblioteca fiscal")
+	doc = reFontePascal.ReplaceAllString(doc, "")
 	doc = reACBrAPI.ReplaceAllString(doc, "")
+	doc = reProdutoOrigem.ReplaceAllString(doc, "")
 	doc = reACBrLib.ReplaceAllString(doc, "a biblioteca fiscal")
 	doc = reACBr.ReplaceAllString(doc, "a biblioteca fiscal")
 	doc = reINI.ReplaceAllString(doc, "o documento")
 	doc = reColchete.ReplaceAllString(doc, "")
-	doc = strings.NewReplacer(" ,", ",", " .", ".", " :", ":", " ;", ";", "()", "", "( )", "").Replace(doc)
+	return normalizarPontuacao(doc)
+}
+
+// removerApartesInternos apaga cada parêntese cujo conteúdo é sobre COMO o
+// serviço é feito: nome do contrato de origem, da biblioteca, de função nativa,
+// de arquivo-fonte, de seção do arquivo intermediário.
+//
+// Funciona por varredura, não por expressão: parênteses aninhados quebram
+// regex, e um aparte cortado pela metade é pior que um aparte inteiro.
+func removerApartesInternos(doc string) string {
+	var out strings.Builder
+	for i := 0; i < len(doc); i++ {
+		if doc[i] != '(' {
+			out.WriteByte(doc[i])
+			continue
+		}
+		fim, nivel := -1, 0
+		for j := i; j < len(doc); j++ {
+			switch doc[j] {
+			case '(':
+				nivel++
+			case ')':
+				if nivel--; nivel == 0 {
+					fim = j
+				}
+			}
+			if fim >= 0 {
+				break
+			}
+		}
+		if fim < 0 { // parêntese sem fecho: deixa como está e segue
+			out.WriteByte(doc[i])
+			continue
+		}
+		if reInterno.MatchString(doc[i+1 : fim]) {
+			// come o espaço que ficaria sobrando antes do aparte
+			atual := out.String()
+			out.Reset()
+			out.WriteString(strings.TrimRight(atual, " "))
+			i = fim
+			continue
+		}
+		out.WriteString(doc[i : fim+1])
+		i = fim
+	}
+	return out.String()
+}
+
+// palavrasDeLigacao são as que a troca de nome costuma duplicar: o comentário
+// dizia "a ACBrLib resolve", a troca põe "a biblioteca fiscal" no lugar do nome
+// e sobra "a a biblioteca fiscal".
+var palavrasDeLigacao = map[string]bool{
+	"a": true, "o": true, "as": true, "os": true, "de": true, "da": true,
+	"do": true, "em": true, "na": true, "no": true, "que": true,
+}
+
+// semPalavraRepetida remove a segunda ocorrência de uma palavra de ligação
+// repetida em sequência. Em Go não dá para fazer isso com uma expressão: a RE2
+// não tem retrovisor, e é por isso que a checagem mora aqui.
+func semPalavraRepetida(doc string) string {
+	campos := strings.Fields(doc)
+	out := campos[:0]
+	for i, p := range campos {
+		if i > 0 && strings.EqualFold(p, campos[i-1]) && palavrasDeLigacao[strings.ToLower(p)] {
+			continue
+		}
+		out = append(out, p)
+	}
+	return strings.Join(out, " ")
+}
+
+// normalizarPontuacao junta o que sobrou depois dos recortes. Sem ela o texto
+// publicado sai com " .", ",.", "(", ou artigo repetido, e a descrição é o
+// produto: um campo mal descrito custa uma integração.
+func normalizarPontuacao(doc string) string {
+	doc = semPalavraRepetida(doc)
+	// Protege as reticências: a troca de ".." por "." transformaria "..." em
+	// ".." e o texto sairia com pontuação estranha.
+	doc = strings.ReplaceAll(doc, "...", "\x00")
+	// O Replacer varre UMA vez: " ." vira "." e o ".." que nasce daí não é
+	// revisto. Repetir até estabilizar é o que fecha os casos encadeados
+	// (". ." -> ".." -> "."), com teto para não girar à toa.
+	junta := strings.NewReplacer(
+		" ,", ",", " .", ".", " :", ":", " ;", ";",
+		",.", ".", ":.", ".", ";.", ".", "/.", ".", "..", ".",
+		"()", "", "( )", "", "(,", "(", "(.", "",
+	)
+	for i := 0; i < 5; i++ {
+		antes := doc
+		if doc = junta.Replace(doc); doc == antes {
+			break
+		}
+	}
 	doc = reEspacos.ReplaceAllString(doc, " ")
-	return strings.TrimSpace(strings.Trim(strings.TrimSpace(doc), ",;:-"))
+	// Sobrou parêntese sem par: apaga da abertura até o fim da frase, que é o
+	// único corte que não deixa texto sem sentido.
+	if strings.Count(doc, "(") != strings.Count(doc, ")") {
+		doc = reParenOrfao.ReplaceAllString(doc, "")
+	}
+	doc = strings.TrimSpace(reEspacos.ReplaceAllString(doc, " "))
+	doc = strings.ReplaceAll(doc, "\x00", "...")
+	doc = strings.TrimSpace(strings.Trim(doc, ",;:-("))
+	if doc != "" && !strings.ContainsAny(doc[len(doc)-1:], ".!?") {
+		doc += "."
+	}
+	return doc
 }
 
 func semTestes(fi os.FileInfo) bool { return !strings.HasSuffix(fi.Name(), "_test.go") }
@@ -315,7 +442,7 @@ func (g *gerador) emitir(pacote, tipo string) {
 	}
 
 	nome := g.nome(pacote, tipo)
-	doc := info.doc
+	doc := semNomeDoTipoGo(info.doc, tipo, nome)
 	if doc == "" {
 		// O glossário de grupos é indexado pelo nome do TIPO, sem o prefixo do
 		// documento: "Ide" descreve CteIde e MdfeIde, que são o mesmo conceito.
@@ -381,7 +508,7 @@ func (g *gerador) achatar(b *strings.Builder, pacote, tipo string) {
 // descarta o irmão, e a descrição sumiria justamente nos campos que apontam
 // para outra estrutura.
 func (g *gerador) escreverCampo(b *strings.Builder, pacote, jsonNome string, f *ast.Field, ind string) {
-	desc := semDetalheDeImplementacao(descricaoCampo(f))
+	desc := semDetalheDeImplementacao(semNomeDoTipoGo(descricaoCampo(f), "", jsonNome))
 	if desc == "" {
 		desc = g.glossario[jsonNome]
 	}
@@ -433,9 +560,7 @@ var reListaDeValores = regexp.MustCompile(`\(?"?\b\d+"?\s*=\s*[^;.]*(?:,\s*"?\d+
 // enum na spec ela vira repetição, e o campo passaria a exibir a mesma
 // informação duas vezes, uma delas desatualizável.
 func semListaDeValores(desc string) string {
-	desc = reListaDeValores.ReplaceAllString(desc, "")
-	desc = strings.NewReplacer(" ,", ",", " .", ".", "..", ".", "  ", " ").Replace(desc)
-	return strings.TrimSpace(strings.Trim(strings.TrimSpace(desc), ",;:-"))
+	return normalizarPontuacao(reListaDeValores.ReplaceAllString(desc, ""))
 }
 
 // reDicaDeFormato casa a dica de formato escrita à mão no comentário, como
@@ -445,9 +570,7 @@ var reDicaDeFormato = regexp.MustCompile(`\(?\b(?i:[AY]{4}-MM-DD|DD/MM/[AY]{4}|I
 // semDicaDeFormato tira do comentário a dica de formato: com o campo `format` e
 // a descrição canônica na spec, ela vira repetição, e repetição desatualiza.
 func semDicaDeFormato(desc string) string {
-	desc = reDicaDeFormato.ReplaceAllString(desc, "")
-	desc = strings.NewReplacer(" ,", ",", " ;", ";", "  ", " ", "()", "").Replace(desc)
-	return strings.TrimSpace(strings.Trim(strings.TrimSpace(desc), ",;:-"))
+	return normalizarPontuacao(reDicaDeFormato.ReplaceAllString(desc, ""))
 }
 
 // descricaoDasOpcoes rende os valores legíveis: "1 = Produção; 2 = Homologação".
@@ -603,6 +726,38 @@ func valorTag(tag, chave string) string {
 	}
 	return ""
 }
+
+// semNomeDoTipoGo tira o identificador que abre o comentário quando ele não é o
+// nome publicado.
+//
+// A convenção de doc do Go manda começar pelo nome do que se documenta, e o
+// gerador copiava a frase inteira: o schema CteDocumento chegava ao contrato
+// dizendo "PedidoEmissao é o CT-e a ser gerado". O nome interno não existe do
+// lado de fora, e quem lê a spec não tem como saber a que ele se refere.
+//
+// tipoGo vazio significa "qualquer identificador serve": é o caso dos campos,
+// onde o nome Go (ExigibISS) e o publicado (exigibilidadeISS) quase nunca
+// coincidem, e nenhum dos dois pertence à frase.
+func semNomeDoTipoGo(doc, tipoGo, nomePublicado string) string {
+	if doc == "" || tipoGo == nomePublicado {
+		return doc
+	}
+	m := reAberturaGodoc.FindStringSubmatch(doc)
+	if m == nil || (tipoGo != "" && m[1] != tipoGo) {
+		return doc
+	}
+	resto := strings.TrimSpace(doc[len(m[0]):])
+	if resto == "" {
+		return doc
+	}
+	return strings.ToUpper(resto[:1]) + resto[1:]
+}
+
+// reAberturaGodoc casa "Nome <verbo de definição> " no início do comentário.
+// Só os verbos de definição: "Emit informa o emitente" continua inteiro, porque
+// ali o nome é o campo, não o tipo.
+var reAberturaGodoc = regexp.MustCompile(
+	`^([A-Z][A-Za-z0-9]*) (?:é|são|representa|espelha|reúne|agrega|descreve|identifica|traz|lista|marca|guarda|contém|modela|define|agrupa) `)
 
 // descricaoCampo prefere o comentário ACIMA do campo; na falta, o da direita.
 // É onde mora o conhecimento que não está no tipo.

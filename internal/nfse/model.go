@@ -76,13 +76,15 @@ type RegTrib struct {
 
 // Servico descreve o serviço prestado.
 type Servico struct {
-	CMunPrestacao  string     `json:"cMunPrestacao,omitempty"`       // município da prestação (IBGE)
-	CServ          string     `json:"cServ,omitempty"`               // item da lista (→ cTribNac no Padrão Nacional)
-	CTribMun       string     `json:"cTribMun,omitempty"`            // código de tributação municipal
-	CNBS           string     `json:"cNBS,omitempty"`                // código NBS
-	CodigoCnae     string     `json:"codigoCnae,omitempty"`          // CNAE
-	XDescServ      string     `json:"xDescServ"`                     // discriminação
-	ExigibISS      int        `json:"exigibilidadeISS,omitempty"`    // 1=exigível, 2=não incidência...
+	CMunPrestacao string `json:"cMunPrestacao,omitempty"` // município da prestação (IBGE)
+	CServ         string `json:"cServ,omitempty"`         // item da lista (→ cTribNac no Padrão Nacional)
+	CTribMun      string `json:"cTribMun,omitempty"`      // código de tributação municipal
+	CNBS          string `json:"cNBS,omitempty"`          // código NBS
+	CodigoCnae    string `json:"codigoCnae,omitempty"`    // CNAE
+	XDescServ     string `json:"xDescServ"`               // discriminação
+	// ExigibilidadeISS é campo do padrão ABRASF: o Padrão Nacional usa
+	// tribMun.tribISSQN. Os provedores ABRASF esperam a tabela do layout 2.04.
+	ExigibISS      int        `json:"exigibilidadeISS,omitempty" enum:"ExigibilidadeISS"`
 	MunIncidencia  string     `json:"municipioIncidencia,omitempty"` // município de incidência do ISS (IBGE)
 	XMunIncidencia string     `json:"xMunicipioIncidencia,omitempty"`
 	NumeroProcesso string     `json:"numeroProcesso,omitempty"` // processo de suspensão/exigibilidade
@@ -142,12 +144,12 @@ type Valores struct {
 // TribMun é a tributação municipal (seção [tribMun]).
 type TribMun struct {
 	TribISSQN   int     `json:"tribISSQN,omitempty" enum:"TributacaoISSQN"` // 1=operação tributável
-	TpRetISSQN  int     `json:"tpRetISSQN,omitempty"`                       // 1=não retido, 2=retido tomador...
-	PAliq       float64 `json:"pAliq,omitempty"`                            // alíquota (%)
-	TpImunidade int     `json:"tpImunidade,omitempty"`                      // tipo de imunidade
-	TpSusp      int     `json:"tpSusp,omitempty"`                           // exigibilidade suspensa
-	NProcesso   string  `json:"nProcesso,omitempty"`                        // processo de suspensão
-	VRedBCBM    float64 `json:"vRedBCBM,omitempty"`                         // redução da BC (benefício)
+	TpRetISSQN  int     `json:"tpRetISSQN,omitempty" enum:"TipoRetencaoISSQN"`
+	PAliq       float64 `json:"pAliq,omitempty"`       // alíquota (%)
+	TpImunidade int     `json:"tpImunidade,omitempty"` // tipo de imunidade
+	TpSusp      int     `json:"tpSusp,omitempty"`      // exigibilidade suspensa
+	NProcesso   string  `json:"nProcesso,omitempty"`   // processo de suspensão
+	VRedBCBM    float64 `json:"vRedBCBM,omitempty"`    // redução da BC (benefício)
 	PRedBCBM    float64 `json:"pRedBCBM,omitempty"`
 	NBM         string  `json:"nBM,omitempty"` // nº do benefício municipal
 }
