@@ -115,7 +115,7 @@ docker-build: acbr-libs-conferir
 
 ## up / down: sobe e derruba o stack (api + worker)
 up: docker-build
-	docker compose up -d
+	APP_IMAGE=$(APP_IMAGE) docker compose up -d
 down:
 	docker compose down
 

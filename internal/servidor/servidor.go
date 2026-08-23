@@ -31,6 +31,7 @@ type Servidor struct {
 	mux      *http.ServeMux
 	modulos  []modulo.Modulo
 	capsJSON map[string][]string
+	taxa     *limitador
 }
 
 // Novo monta o servidor com os módulos informados. Passar nenhum módulo é
@@ -42,6 +43,7 @@ func Novo(cfg config.Config, svc *acbr.Servicos, modulos ...modulo.Modulo) *Serv
 		mux:      http.NewServeMux(),
 		modulos:  modulos,
 		capsJSON: map[string][]string{},
+		taxa:     novoLimitador(cfg.APIRatePerMin),
 	}
 	s.rotas()
 	return s
@@ -84,6 +86,9 @@ func (s *Servidor) rotas() {
 func (s *Servidor) Handler() http.Handler {
 	var h http.Handler = s.mux
 	h = s.limitarCorpo(h)
+	// O limite vem ANTES de ler o corpo e DEPOIS do registro: recusar cedo é o
+	// ponto, e o 429 precisa aparecer no log como qualquer outro desfecho.
+	h = s.limitarTaxa(h)
 	h = s.registrar(h)
 	h = s.recuperar(h)
 	return h

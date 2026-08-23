@@ -26,13 +26,24 @@ type Config struct {
 	// NÃO é o tpAmb do documento: esse vai no payload, por requisição, e a
 	// mesma instância atende homologação e produção.
 	Modo string
-	// APIRatePerMin limita requisições por minuto por IP (0 = desligado).
+	// APIRatePerMin limita requisições por minuto por endereço de chamador
+	// (0 = desligado). O limite fica FORA da autenticação: se só valesse depois
+	// do Bearer, tentar tokens continuaria saindo ao ritmo da rede. /healthz e
+	// /readyz não gastam ficha, pelo mesmo motivo de não exigirem token.
 	APIRatePerMin int
 	// MaxBodyBytes limita o corpo aceito. Importa mais aqui do que num serviço
 	// comum: cada transmissão carrega o certificado e o XML, e um corpo sem teto
 	// vira vetor de exaustão de memória barato.
 	MaxBodyBytes int64
-	// TrustProxyHeaders confia em X-Forwarded-For quando o peer é proxy interno.
+	// TrustProxyHeaders manda ler X-Forwarded-For para descobrir quem chamou.
+	// O cabeçalho é escrito por quem chama, então ele só é lido quando o peer
+	// da conexão é interno, e mesmo assim isso não basta: DENTRO do Docker o
+	// peer é o gateway da bridge, que é privado, e com isso todo chamador
+	// pareceria estar atrás de um proxy nosso. Um X-Forwarded-For forjado
+	// furaria o limite inteiro. Por isso o default é FALSO: ligar é ato de
+	// quem realmente pôs um proxy na frente e sabe que ele reescreve o
+	// cabeçalho. Desligado, quem está atrás de proxy divide um balde só, o que
+	// aparece como 429 em vez de sumir em silêncio.
 	TrustProxyHeaders bool
 	ACBr              ACBr
 }
@@ -74,8 +85,6 @@ type ACBr struct {
 	// diferença entre não persistir nada e persistir o pior.
 	LogNivel string
 	LogPath  string
-	// DANFSeLocal gera o PDF do DANFSE localmente (exige widgetset GUI + Xvfb).
-	DANFSeLocal bool
 }
 
 // EmProducao indica implantação de produção (endurece o boot).
@@ -89,7 +98,7 @@ func Load() (Config, error) {
 		Modo:              env("MODO", "homologacao"),
 		APIRatePerMin:     envInt("API_RATE_PER_MIN", 240),
 		MaxBodyBytes:      int64(envInt("MAX_BODY_BYTES", 8<<20)), // 8 MiB
-		TrustProxyHeaders: envBool("TRUST_PROXY_HEADERS", true),
+		TrustProxyHeaders: envBool("TRUST_PROXY_HEADERS", false),
 		ACBr: ACBr{
 			Workers:         envList("ACBR_WORKERS"),
 			WorkerSlots:     envInt("ACBR_WORKER_SLOTS", 1),
@@ -103,7 +112,6 @@ func Load() (Config, error) {
 			SchemasPathNFe:  env("ACBR_SCHEMAS_PATH_NFE", "/opt/acbr/schemas-nfe"),
 			LogNivel:        env("ACBR_LOG_NIVEL", ""),
 			LogPath:         env("ACBR_LOG_PATH", ""),
-			DANFSeLocal:     envBool("ACBR_DANFSE_LOCAL", false),
 		},
 	}
 
@@ -120,6 +128,11 @@ func Load() (Config, error) {
 	}
 	if cfg.MaxBodyBytes <= 0 {
 		return Config{}, fmt.Errorf("MAX_BODY_BYTES deve ser positivo")
+	}
+	// Zero é desligado, e é opção legítima atrás de um gateway que já limita.
+	// Negativo não é nada: é engano de quem quis desligar e digitou -1.
+	if cfg.APIRatePerMin < 0 {
+		return Config{}, fmt.Errorf("API_RATE_PER_MIN não pode ser negativo (0 desliga o limite)")
 	}
 	return cfg, nil
 }

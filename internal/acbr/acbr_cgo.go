@@ -427,7 +427,7 @@ func iniValue(text, key string) string {
 
 // SubstituirNFSe carrega a DPS substituta (NFSE_CarregarINI) e transmite a
 // substituição da NFS-e antiga (NFSE_SubstituirNFSe). O componente exige a nota
-// nova carregada antes. Em sucesso, captura o XML (e o PDF, se DANFSeLocal).
+// nova carregada antes. Em sucesso captura o XML; o PDF sai sob demanda.
 func (l *cgoLib) SubstituirNFSe(t TenantConfig, iniNovaDPS string, sub SubstituicaoNFSe) (Result, error) {
 	return l.withSession(t, func(h C.LibHandle) (Result, error) {
 		if code, resp := configCarregarINI(h, iniNovaDPS); code != 0 {

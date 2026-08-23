@@ -33,14 +33,14 @@ antigas.
 
 ## Escopo
 
-Relevante: autenticação/sessão da API e do painel, isolamento multi-tenant (RLS),
-tratamento de certificados/segredos, injeção (SQL/INI/XML), e a superfície HTTP
-pública. Fora de escopo: vulnerabilidades em dependências de terceiros já
-rastreadas (use o fluxo do upstream) e configurações inseguras do próprio operador.
+Relevante: autenticação da API, tratamento do certificado e da senha que chegam
+no payload, injeção nos formatos que montamos (INI e XML), a fronteira com a
+biblioteca nativa, e a superfície HTTP pública. Fora de escopo: vulnerabilidades
+em dependências de terceiros já rastreadas (use o fluxo do upstream) e
+configurações inseguras do próprio operador.
 
-> Há uma análise de segurança interna do projeto em
-> [`docs/security-review.md`](docs/security-review.md) (revisão de controles: não
-> é um canal de report).
+Não há banco, painel, sessão nem multi-tenancy: esse serviço não guarda nada, e
+a classe de vulnerabilidade que vem com isso não existe aqui.
 
 [Private Vulnerability Reporting]: https://docs.github.com/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability
 
@@ -61,4 +61,7 @@ Consequências que valem um olhar extra em qualquer contribuição:
 - **O PFX vai da API ao worker por socket unix** e não sai do host. Se um dia o
   transporte virar TCP, ele precisa ficar preso à rede interna.
 - **Um token dá acesso a tudo.** Não há escopo. Quem expõe a API na internet
-  precisa de TLS na borda e de restringir quem alcança a porta.
+  precisa de TLS na borda e de restringir quem alcança a porta. O limite por
+  endereço (`API_RATE_PER_MIN`) vale antes da autenticação justamente para que
+  adivinhar o token não saia ao ritmo da rede, mas ele é piso, não substituto
+  do limite no proxy de borda.
