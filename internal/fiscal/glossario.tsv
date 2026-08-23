@@ -48,7 +48,7 @@ CFOP	Código Fiscal de Operações e Prestações, 4 dígitos.
 natOp	Natureza da operação, em texto livre.
 serie	Série do documento.
 cDV	Dígito verificador da chave de acesso. A lib calcula se ausente.
-procEmi	Identificador do processo de emissão. 0 = aplicativo do contribuinte.
+procEmi	Identificador do processo de emissão do documento.
 verProc	Versão do aplicativo emissor.
 versao	Versão do layout do documento.
 Id	Identificador do grupo, montado pela lib a partir da chave.

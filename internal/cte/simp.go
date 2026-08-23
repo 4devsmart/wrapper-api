@@ -42,7 +42,7 @@ type InfCteSimp struct {
 // Toma é o tomador único do CT-e Simplificado/OS (seção [toma]).
 type Toma struct {
 	Toma      int      `json:"toma" enum:"Tomador"`
-	IndIEToma int      `json:"indIEToma,omitempty"`
+	IndIEToma int      `json:"indIEToma,omitempty" enum:"IndicadorIEToma"`
 	CNPJ      string   `json:"CNPJ,omitempty"`
 	CPF       string   `json:"CPF,omitempty"`
 	IE        string   `json:"IE,omitempty"`
@@ -71,7 +71,7 @@ type Det struct {
 // DetDocAnt é um documento anterior dentro de um trecho do Simplificado.
 type DetDocAnt struct {
 	ChCTe               string          `json:"chCTe"`
-	TpPrest             int             `json:"tpPrest,omitempty"`
+	TpPrest             int             `json:"tpPrest,omitempty" enum:"TipoPrestacaoAnterior"`
 	InfNFeTranspParcial []TranspParcial `json:"infNFeTranspParcial,omitempty"`
 }
 

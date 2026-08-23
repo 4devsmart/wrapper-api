@@ -47,6 +47,10 @@ test-cgo:
 	CGO_LDFLAGS="-L$(abspath $(ACBRLIBS)) -Wl,-rpath,$(abspath $(ACBRLIBS))" \
 	go vet -tags acbrlib $(PKGS)
 
+## enums-conferir: compara os enums declarados com os schemas XSD oficiais
+enums-conferir:
+	@python3 scripts/conferir-enums.py
+
 ## openapi: regenera os schemas da spec a partir dos modelos Go
 openapi:
 	CGO_ENABLED=0 go run ./cmd/gerar-openapi
@@ -123,5 +127,5 @@ limpar:
 help:
 	@grep -hE '^## ' $(MAKEFILE_LIST) | sed 's/^## /  /' | sort
 
-.PHONY: build build-cgo run test test-cgo openapi openapi-check openapi-valida vet fmt fmt-check tidy limpar help \
+.PHONY: build build-cgo run test test-cgo openapi openapi-check openapi-valida enums-conferir vet fmt fmt-check tidy limpar help \
 	acbr-libs-baixar acbr-libs-publicar acbr-libs-conferir docker-build up down

@@ -54,9 +54,9 @@ type Ide struct {
 	// na versão 4.00, e o ACBr só gera o grupo infCteAnu para VersaoDF <= 3.00
 	// (pcteCTeW.pas:3309). Quem vem da 3.00 usa o CT-e Substituto (valor 3).
 	TpCTe          int                `json:"tpCTe" enum:"TipoCTe"`
-	ProcEmi        int                `json:"procEmi"`
+	ProcEmi        int                `json:"procEmi" enum:"ProcessoEmissao"`
 	VerProc        string             `json:"verProc"`
-	IndGlobalizado int                `json:"indGlobalizado,omitempty"`
+	IndGlobalizado int                `json:"indGlobalizado,omitempty" enum:"Sim"`
 	CMunEnv        string             `json:"cMunEnv"`
 	XMunEnv        string             `json:"xMunEnv"`
 	UFEnv          string             `json:"UFEnv"`
@@ -70,7 +70,7 @@ type Ide struct {
 	UFFim          string             `json:"UFFim"`
 	Retira         int                `json:"retira" enum:"Retira"`
 	XDetRetira     string             `json:"xDetRetira,omitempty"`
-	IndIEToma      int                `json:"indIEToma"`
+	IndIEToma      int                `json:"indIEToma" enum:"IndicadorIEToma"`
 	Toma3          *Toma3             `json:"toma3,omitempty"`
 	Toma4          *Toma4             `json:"toma4,omitempty"`
 	DhCont         string             `json:"dhCont,omitempty"`
@@ -116,7 +116,7 @@ type Endereco struct {
 
 // CompraGovReduzido espelha CteSefazCompraGovReduzido.
 type CompraGovReduzido struct {
-	TpEnteGov int     `json:"tpEnteGov"`
+	TpEnteGov int     `json:"tpEnteGov" enum:"TipoEnteGovernamental"`
 	PRedutor  float64 `json:"pRedutor"`
 }
 
@@ -159,36 +159,36 @@ type Entrega struct {
 
 // SemData espelha CteSefazSemData.
 type SemData struct {
-	TpPer int `json:"tpPer"`
+	TpPer int `json:"tpPer" enum:"TipoPeriodoEntrega"`
 }
 
 // ComData espelha CteSefazComData.
 type ComData struct {
-	TpPer int    `json:"tpPer"`
+	TpPer int    `json:"tpPer" enum:"TipoPeriodoEntrega"`
 	DProg string `json:"dProg"`
 }
 
 // NoPeriodo espelha CteSefazNoPeriodo.
 type NoPeriodo struct {
-	TpPer int    `json:"tpPer"`
+	TpPer int    `json:"tpPer" enum:"TipoPeriodoEntrega"`
 	DIni  string `json:"dIni"`
 	DFim  string `json:"dFim"`
 }
 
 // SemHora espelha CteSefazSemHora.
 type SemHora struct {
-	TpHor int `json:"tpHor"`
+	TpHor int `json:"tpHor" enum:"TipoHorarioEntrega"`
 }
 
 // ComHora espelha CteSefazComHora.
 type ComHora struct {
-	TpHor int    `json:"tpHor"`
+	TpHor int    `json:"tpHor" enum:"TipoHorarioEntrega"`
 	HProg string `json:"hProg"`
 }
 
 // NoInter espelha CteSefazNoInter.
 type NoInter struct {
-	TpHor int    `json:"tpHor"`
+	TpHor int    `json:"tpHor" enum:"TipoHorarioEntrega"`
 	HIni  string `json:"hIni"`
 	HFim  string `json:"hFim"`
 }
@@ -312,7 +312,7 @@ type ICMS struct {
 
 // ICMS00 espelha CteSefazICMS00.
 type ICMS00 struct {
-	CST   string  `json:"CST"`
+	CST   string  `json:"CST" enum:"CSTICMS00"`
 	VBC   float64 `json:"vBC"`
 	PICMS float64 `json:"pICMS"`
 	VICMS float64 `json:"vICMS"`
@@ -320,7 +320,7 @@ type ICMS00 struct {
 
 // ICMS20 espelha CteSefazICMS20.
 type ICMS20 struct {
-	CST        string  `json:"CST"`
+	CST        string  `json:"CST" enum:"CSTICMS20"`
 	PRedBC     float64 `json:"pRedBC"`
 	VBC        float64 `json:"vBC"`
 	PICMS      float64 `json:"pICMS"`
@@ -331,14 +331,14 @@ type ICMS20 struct {
 
 // ICMS45 espelha CteSefazICMS45.
 type ICMS45 struct {
-	CST        string  `json:"CST"`
+	CST        string  `json:"CST" enum:"CSTICMS45"`
 	VICMSDeson float64 `json:"vICMSDeson,omitempty"`
 	CBenef     string  `json:"cBenef,omitempty"`
 }
 
 // ICMS60 espelha CteSefazICMS60.
 type ICMS60 struct {
-	CST        string  `json:"CST"`
+	CST        string  `json:"CST" enum:"CSTICMS60"`
 	VBCSTRet   float64 `json:"vBCSTRet"`
 	VICMSSTRet float64 `json:"vICMSSTRet"`
 	PICMSSTRet float64 `json:"pICMSSTRet"`
@@ -349,7 +349,7 @@ type ICMS60 struct {
 
 // ICMS90 espelha CteSefazICMS90.
 type ICMS90 struct {
-	CST        string  `json:"CST"`
+	CST        string  `json:"CST" enum:"CSTICMS90"`
 	PRedBC     float64 `json:"pRedBC,omitempty"`
 	VBC        float64 `json:"vBC"`
 	PICMS      float64 `json:"pICMS"`
@@ -361,7 +361,7 @@ type ICMS90 struct {
 
 // ICMSOutraUF espelha CteSefazICMSOutraUF.
 type ICMSOutraUF struct {
-	CST           string  `json:"CST"`
+	CST           string  `json:"CST" enum:"CSTICMSOutraUF"`
 	PRedBCOutraUF float64 `json:"pRedBCOutraUF,omitempty"`
 	VBCOutraUF    float64 `json:"vBCOutraUF"`
 	PICMSOutraUF  float64 `json:"pICMSOutraUF"`
@@ -372,8 +372,8 @@ type ICMSOutraUF struct {
 
 // ICMSSN espelha CteSefazICMSSN.
 type ICMSSN struct {
-	CST   string `json:"CST"`
-	IndSN int    `json:"indSN"`
+	CST   string `json:"CST" enum:"CSTICMSSN"`
+	IndSN int    `json:"indSN" enum:"Sim"`
 }
 
 // ICMSUFFim espelha CteSefazICMSUFFim.
@@ -391,7 +391,7 @@ type ICMSUFFim struct {
 type TribCTe struct {
 	CST          string       `json:"CST"`
 	CClassTrib   string       `json:"cClassTrib,omitempty"`
-	IndDoacao    int          `json:"indDoacao,omitempty"`
+	IndDoacao    int          `json:"indDoacao,omitempty" enum:"Sim"`
 	GIBSCBS      *CIBS        `json:"gIBSCBS,omitempty"`
 	GEstornoCred *EstornoCred `json:"gEstornoCred,omitempty"`
 }
@@ -503,8 +503,8 @@ type InfCarga struct {
 
 // InfQ espelha CteSefazInfQ.
 type InfQ struct {
-	CUnid  string  `json:"cUnid"`
-	TpMed  string  `json:"tpMed"`
+	CUnid  string  `json:"cUnid" enum:"UnidadeMedida"`
+	TpMed  string  `json:"tpMed" enum:"TipoMedida"`
 	QCarga float64 `json:"qCarga"`
 }
 
@@ -540,7 +540,7 @@ type InfNF struct {
 
 // UnidCarga espelha CteSefazUnidCarga.
 type UnidCarga struct {
-	TpUnidCarga  int            `json:"tpUnidCarga"`
+	TpUnidCarga  int            `json:"tpUnidCarga" enum:"TipoUnidadeCarga"`
 	IdUnidCarga  string         `json:"idUnidCarga"`
 	LacUnidCarga []LacUnidCarga `json:"lacUnidCarga,omitempty"`
 	QtdRat       float64        `json:"qtdRat,omitempty"`
@@ -553,7 +553,7 @@ type LacUnidCarga struct {
 
 // UnidadeTransp espelha CteSefazUnidadeTransp.
 type UnidadeTransp struct {
-	TpUnidTransp  int             `json:"tpUnidTransp"`
+	TpUnidTransp  int             `json:"tpUnidTransp" enum:"TipoUnidadeTransporte"`
 	IdUnidTransp  string          `json:"idUnidTransp"`
 	LacUnidTransp []LacUnidTransp `json:"lacUnidTransp,omitempty"`
 	InfUnidCarga  []UnidCarga     `json:"infUnidCarga,omitempty"`
@@ -576,7 +576,7 @@ type InfNFe struct {
 
 // InfOutros espelha CteSefazInfOutros.
 type InfOutros struct {
-	TpDoc         string          `json:"tpDoc"`
+	TpDoc         string          `json:"tpDoc" enum:"TipoDocumentoTransportado"`
 	DescOutros    string          `json:"descOutros,omitempty"`
 	NDoc          string          `json:"nDoc,omitempty"`
 	DEmi          string          `json:"dEmi,omitempty" fmt:"data"`
@@ -614,7 +614,7 @@ type IdDocAnt struct {
 
 // IdDocAntPap espelha CteSefazIdDocAntPap.
 type IdDocAntPap struct {
-	TpDoc  string `json:"tpDoc"`
+	TpDoc  string `json:"tpDoc" enum:"TipoDocumentoTransportado"`
 	Serie  string `json:"serie"`
 	Subser string `json:"subser,omitempty"`
 	NDoc   string `json:"nDoc"`
@@ -673,7 +673,7 @@ type Aereo struct {
 // NatCarga espelha CteSefazNatCarga.
 type NatCarga struct {
 	XDime    string   `json:"xDime,omitempty"`
-	CInfManu []string `json:"cInfManu,omitempty"`
+	CInfManu []string `json:"cInfManu,omitempty" enum:"InformacaoManuseio"`
 }
 
 // Tarifa espelha CteSefazTarifa.
@@ -693,20 +693,20 @@ type Peri struct {
 // InfTotAP espelha CteSefazInfTotAP.
 type InfTotAP struct {
 	QTotProd float64 `json:"qTotProd"`
-	UniAP    int     `json:"uniAP"`
+	UniAP    int     `json:"uniAP" enum:"UnidadeMedidaArtigoPerigoso"`
 }
 
 // Ferrov espelha CteSefazFerrov.
 type Ferrov struct {
-	TpTraf  int      `json:"tpTraf"`
+	TpTraf  int      `json:"tpTraf" enum:"TipoTrafego"`
 	TrafMut *TrafMut `json:"trafMut,omitempty"`
 	Fluxo   string   `json:"fluxo"`
 }
 
 // TrafMut espelha CteSefazTrafMut.
 type TrafMut struct {
-	RespFat          int        `json:"respFat"`
-	FerrEmi          int        `json:"ferrEmi"`
+	RespFat          int        `json:"respFat" enum:"ResponsavelFaturamento"`
+	FerrEmi          int        `json:"ferrEmi" enum:"FerroviaEmitente"`
 	VFrete           float64    `json:"vFrete"`
 	ChCTeFerroOrigem string     `json:"chCTeFerroOrigem,omitempty"`
 	FerroEnv         []FerroEnv `json:"ferroEnv,omitempty"`
@@ -740,10 +740,10 @@ type Aquav struct {
 	XNavio  string    `json:"xNavio"`
 	Balsa   []Balsa   `json:"balsa,omitempty"`
 	NViag   string    `json:"nViag,omitempty"`
-	Direc   string    `json:"direc"`
+	Direc   string    `json:"direc" enum:"DirecaoAquaviario"`
 	Irin    string    `json:"irin"`
 	DetCont []DetCont `json:"detCont,omitempty"`
-	TpNav   int       `json:"tpNav,omitempty"`
+	TpNav   int       `json:"tpNav,omitempty" enum:"TipoNavegacao"`
 }
 
 // Balsa espelha CteSefazBalsa.
@@ -787,8 +787,8 @@ type Duto struct {
 	VTar            float64 `json:"vTar,omitempty"`
 	DIni            string  `json:"dIni"`
 	DFim            string  `json:"dFim"`
-	ClassDuto       int     `json:"classDuto,omitempty"`
-	TpContratacao   int     `json:"tpContratacao,omitempty"`
+	ClassDuto       int     `json:"classDuto,omitempty" enum:"ClassificacaoDutoviario"`
+	TpContratacao   int     `json:"tpContratacao,omitempty" enum:"TipoContratacaoDuto"`
 	CodPontoEntrada string  `json:"codPontoEntrada,omitempty"`
 	CodPontoSaida   string  `json:"codPontoSaida,omitempty"`
 	NContrato       string  `json:"nContrato,omitempty"`
@@ -797,7 +797,7 @@ type Duto struct {
 // Multimodal espelha CteSefazMultimodal.
 type Multimodal struct {
 	COTM          string `json:"COTM"`
-	IndNegociavel int    `json:"indNegociavel"`
+	IndNegociavel int    `json:"indNegociavel" enum:"NaoNegociavelNegociavel"`
 	Seg           *Seg   `json:"seg,omitempty"`
 }
 
@@ -848,7 +848,7 @@ type Dup struct {
 // InfCteSub espelha CteSefazInfCteSub.
 type InfCteSub struct {
 	ChCte         string `json:"chCte"`
-	IndAlteraToma int    `json:"indAlteraToma,omitempty"`
+	IndAlteraToma int    `json:"indAlteraToma,omitempty" enum:"Sim"`
 }
 
 // InfGlobalizado espelha CteSefazInfGlobalizado.

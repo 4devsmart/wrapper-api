@@ -6,7 +6,7 @@ type PedidoInsucessoEntrega struct {
 	NProt                  string   `json:"nProt,omitempty"`
 	DhTentativaEntrega     string   `json:"dhTentativaEntrega,omitempty" fmt:"data-hora"`
 	NTentativa             int      `json:"nTentativa,omitempty"`
-	TpMotivo               string   `json:"tpMotivo,omitempty"` // default 1
+	TpMotivo               string   `json:"tpMotivo,omitempty" enum:"TipoMotivoInsucesso"` // default 1
 	XJustMotivo            string   `json:"xJustMotivo,omitempty"`
 	Latitude               float64  `json:"latitude,omitempty"`
 	Longitude              float64  `json:"longitude,omitempty"`

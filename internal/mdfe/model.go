@@ -49,15 +49,15 @@ type Ide struct {
 	Modal               int             `json:"modal" enum:"Modal"`
 	DhEmi               string          `json:"dhEmi" fmt:"data-hora"`
 	TpEmis              int             `json:"tpEmis" enum:"TipoEmissao"`
-	ProcEmi             string          `json:"procEmi"`
+	ProcEmi             string          `json:"procEmi" enum:"ProcessoEmissao"`
 	VerProc             string          `json:"verProc"`
 	UFIni               string          `json:"UFIni"`
 	UFFim               string          `json:"UFFim"`
 	InfMunCarrega       []InfMunCarrega `json:"infMunCarrega"`
 	InfPercurso         []InfPercurso   `json:"infPercurso,omitempty"`
 	DhIniViagem         string          `json:"dhIniViagem,omitempty" fmt:"data-hora"`
-	IndCanalVerde       int             `json:"indCanalVerde,omitempty"`
-	IndCarregaPosterior int             `json:"indCarregaPosterior,omitempty"`
+	IndCanalVerde       int             `json:"indCanalVerde,omitempty" enum:"Sim"`
+	IndCarregaPosterior int             `json:"indCarregaPosterior,omitempty" enum:"Sim"`
 }
 
 // InfMunCarrega espelha MdfeSefazInfMunCarrega.
@@ -142,7 +142,7 @@ type InfCIOT struct {
 // ValePed espelha MdfeSefazValePed.
 type ValePed struct {
 	Disp          []Disp `json:"disp"`
-	CategCombVeic string `json:"categCombVeic,omitempty"`
+	CategCombVeic string `json:"categCombVeic,omitempty" enum:"CategoriaCombinacaoVeicular"`
 }
 
 // Disp espelha MdfeSefazDisp.
@@ -152,7 +152,7 @@ type Disp struct {
 	CPFPg     string  `json:"CPFPg,omitempty"`
 	NCompra   string  `json:"nCompra,omitempty"`
 	VValePed  float64 `json:"vValePed"`
-	TpValePed string  `json:"tpValePed,omitempty"`
+	TpValePed string  `json:"tpValePed,omitempty" enum:"TipoValePedagio"`
 }
 
 // InfContratante espelha MdfeSefazInfContratante.
@@ -178,18 +178,18 @@ type InfPag struct {
 	IdEstrangeiro     string     `json:"idEstrangeiro,omitempty"`
 	Comp              []Comp     `json:"Comp"`
 	VContrato         float64    `json:"vContrato"`
-	IndAltoDesemp     int        `json:"indAltoDesemp,omitempty"`
+	IndAltoDesemp     int        `json:"indAltoDesemp,omitempty" enum:"Sim"`
 	IndPag            int        `json:"indPag" enum:"IndicadorPagamento"`
 	VAdiant           float64    `json:"vAdiant,omitempty"`
-	IndAntecipaAdiant int        `json:"indAntecipaAdiant,omitempty"`
+	IndAntecipaAdiant int        `json:"indAntecipaAdiant,omitempty" enum:"Sim"`
 	InfPrazo          []InfPrazo `json:"infPrazo,omitempty"`
-	TpAntecip         int        `json:"tpAntecip,omitempty"`
+	TpAntecip         int        `json:"tpAntecip,omitempty" enum:"TipoAntecipacaoParcela"`
 	InfBanc           InfBanc    `json:"infBanc"`
 }
 
 // Comp espelha MdfeSefazComp.
 type Comp struct {
-	TpComp string  `json:"tpComp"`
+	TpComp string  `json:"tpComp" enum:"TipoComponentePagamento"`
 	VComp  float64 `json:"vComp"`
 	XComp  string  `json:"xComp,omitempty"`
 }
@@ -219,8 +219,8 @@ type VeicTracao struct {
 	CapM3    int        `json:"capM3,omitempty"`
 	Prop     *Prop      `json:"prop,omitempty"`
 	Condutor []Condutor `json:"condutor"`
-	TpRod    string     `json:"tpRod"`
-	TpCar    string     `json:"tpCar"`
+	TpRod    string     `json:"tpRod" enum:"TipoRodado"`
+	TpCar    string     `json:"tpCar" enum:"TipoCarroceria"`
 	UF       string     `json:"UF,omitempty"`
 }
 
@@ -232,7 +232,7 @@ type Prop struct {
 	XNome  string `json:"xNome"`
 	IE     string `json:"IE,omitempty"`
 	UF     string `json:"UF,omitempty"`
-	TpProp int    `json:"tpProp"`
+	TpProp int    `json:"tpProp" enum:"TipoPropriedadeVeiculo"`
 }
 
 // Condutor espelha MdfeSefazCondutor.
@@ -250,7 +250,7 @@ type VeicReboque struct {
 	CapKG   int              `json:"capKG"`
 	CapM3   int              `json:"capM3,omitempty"`
 	Prop    *VeicReboqueProp `json:"prop,omitempty"`
-	TpCar   string           `json:"tpCar"`
+	TpCar   string           `json:"tpCar" enum:"TipoCarroceria"`
 	UF      string           `json:"UF,omitempty"`
 }
 
@@ -262,7 +262,7 @@ type VeicReboqueProp struct {
 	XNome  string `json:"xNome"`
 	IE     string `json:"IE,omitempty"`
 	UF     string `json:"UF,omitempty"`
-	TpProp int    `json:"tpProp"`
+	TpProp int    `json:"tpProp" enum:"TipoPropriedadeVeiculo"`
 }
 
 // LacRodo espelha MdfeSefazLacRodo.
@@ -280,7 +280,7 @@ type Aquav struct {
 	CPrtEmb            string               `json:"cPrtEmb"`
 	CPrtDest           string               `json:"cPrtDest"`
 	PrtTrans           string               `json:"prtTrans,omitempty"`
-	TpNav              int                  `json:"tpNav,omitempty"`
+	TpNav              int                  `json:"tpNav,omitempty" enum:"TipoNavegacao"`
 	InfTermCarreg      []InfTermCarreg      `json:"infTermCarreg,omitempty"`
 	InfTermDescarreg   []InfTermDescarreg   `json:"infTermDescarreg,omitempty"`
 	InfEmbComb         []InfEmbComb         `json:"infEmbComb,omitempty"`
@@ -310,13 +310,13 @@ type InfEmbComb struct {
 // InfUnidCargaVazia espelha MdfeSefazInfUnidCargaVazia.
 type InfUnidCargaVazia struct {
 	IdUnidCargaVazia string `json:"idUnidCargaVazia"`
-	TpUnidCargaVazia int    `json:"tpUnidCargaVazia"`
+	TpUnidCargaVazia int    `json:"tpUnidCargaVazia" enum:"TipoUnidadeCargaVazia"`
 }
 
 // InfUnidTranspVazia espelha MdfeSefazInfUnidTranspVazia.
 type InfUnidTranspVazia struct {
 	IdUnidTranspVazia string `json:"idUnidTranspVazia"`
-	TpUnidTranspVazia int    `json:"tpUnidTranspVazia"`
+	TpUnidTranspVazia int    `json:"tpUnidTranspVazia" enum:"TipoUnidadeTransporteVazia"`
 }
 
 // Ferrov espelha MdfeSefazFerrov.
@@ -363,17 +363,17 @@ type InfMunDescarga struct {
 type InfCTe struct {
 	ChCTe               string               `json:"chCTe"`
 	SegCodBarra         string               `json:"SegCodBarra,omitempty"`
-	IndReentrega        int                  `json:"indReentrega,omitempty"`
+	IndReentrega        int                  `json:"indReentrega,omitempty" enum:"Sim"`
 	InfUnidTransp       []UnidadeTransp      `json:"infUnidTransp,omitempty"`
 	Peri                []Peri               `json:"peri,omitempty"`
 	InfEntregaParcial   *InfEntregaParcial   `json:"infEntregaParcial,omitempty"`
-	IndPrestacaoParcial int                  `json:"indPrestacaoParcial,omitempty"`
+	IndPrestacaoParcial int                  `json:"indPrestacaoParcial,omitempty" enum:"Sim"`
 	InfNFePrestParcial  []InfNFePrestParcial `json:"infNFePrestParcial,omitempty"`
 }
 
 // UnidadeTransp espelha MdfeSefazUnidadeTransp.
 type UnidadeTransp struct {
-	TpUnidTransp  int             `json:"tpUnidTransp"`
+	TpUnidTransp  int             `json:"tpUnidTransp" enum:"TipoUnidadeTransporte"`
 	IdUnidTransp  string          `json:"idUnidTransp"`
 	LacUnidTransp []LacUnidTransp `json:"lacUnidTransp,omitempty"`
 	InfUnidCarga  []UnidCarga     `json:"infUnidCarga,omitempty"`
@@ -387,7 +387,7 @@ type LacUnidTransp struct {
 
 // UnidCarga espelha MdfeSefazUnidCarga.
 type UnidCarga struct {
-	TpUnidCarga  int            `json:"tpUnidCarga"`
+	TpUnidCarga  int            `json:"tpUnidCarga" enum:"TipoUnidadeCarga"`
 	IdUnidCarga  string         `json:"idUnidCarga"`
 	LacUnidCarga []LacUnidCarga `json:"lacUnidCarga,omitempty"`
 	QtdRat       float64        `json:"qtdRat,omitempty"`
@@ -423,7 +423,7 @@ type InfNFePrestParcial struct {
 type InfNFe struct {
 	ChNFe         string          `json:"chNFe"`
 	SegCodBarra   string          `json:"SegCodBarra,omitempty"`
-	IndReentrega  int             `json:"indReentrega,omitempty"`
+	IndReentrega  int             `json:"indReentrega,omitempty" enum:"Sim"`
 	InfUnidTransp []UnidadeTransp `json:"infUnidTransp,omitempty"`
 	Peri          []InfNFePeri    `json:"peri,omitempty"`
 }
@@ -441,7 +441,7 @@ type InfNFePeri struct {
 // InfMDFeTransp espelha MdfeSefazInfMDFeTransp.
 type InfMDFeTransp struct {
 	ChMDFe        string              `json:"chMDFe"`
-	IndReentrega  int                 `json:"indReentrega,omitempty"`
+	IndReentrega  int                 `json:"indReentrega,omitempty" enum:"Sim"`
 	InfUnidTransp []UnidadeTransp     `json:"infUnidTransp,omitempty"`
 	Peri          []InfMDFeTranspPeri `json:"peri,omitempty"`
 }
@@ -466,7 +466,7 @@ type Seg struct {
 
 // InfResp espelha MdfeSefazInfResp.
 type InfResp struct {
-	RespSeg int    `json:"respSeg"`
+	RespSeg int    `json:"respSeg" enum:"ResponsavelSeguro"`
 	CNPJ    string `json:"CNPJ,omitempty"`
 	CPF     string `json:"CPF,omitempty"`
 }
@@ -512,7 +512,7 @@ type Tot struct {
 	QNFe   int     `json:"qNFe,omitempty"`
 	QMDFe  int     `json:"qMDFe,omitempty"`
 	VCarga float64 `json:"vCarga"`
-	CUnid  string  `json:"cUnid"`
+	CUnid  string  `json:"cUnid" enum:"UnidadeMedidaPeso"`
 	QCarga float64 `json:"qCarga"`
 }
 
