@@ -114,16 +114,16 @@ func pedidoMinimo() map[string]any {
 	}
 }
 
-// --- fase 1 -----------------------------------------------------------------
+// --- gerar -----------------------------------------------------------------
 
-func TestFase1NaoRecebeCertificado(t *testing.T) {
+func TestGerarNaoRecebeCertificado(t *testing.T) {
 	f := &libFake{resMontar: acbr.Result{XML: xmlFixture("2")}}
 	rec := post(t, muxDe(f), "/mdfe/xml", pedidoMinimo())
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d: %s", rec.Code, rec.Body)
 	}
 	if f.tenantMontar.PFXBase64 != "" || f.tenantMontar.SenhaPFX != "" {
-		t.Errorf("a fase 1 montou tenant com certificado: %+v", f.tenantMontar)
+		t.Errorf("a geração montou tenant com certificado: %+v", f.tenantMontar)
 	}
 	var resp RespostaXML
 	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
@@ -152,16 +152,16 @@ func TestValidacaoUsaAResposta_NaoOCodigo(t *testing.T) {
 	}
 }
 
-func TestFase1ExigeCNPJDoEmitente(t *testing.T) {
+func TestGerarExigeCNPJDoEmitente(t *testing.T) {
 	rec := post(t, muxDe(&libFake{}), "/mdfe/xml", map[string]any{"ambiente": "homologacao"})
 	if rec.Code != http.StatusBadRequest {
 		t.Fatalf("status = %d, quero 400: %s", rec.Code, rec.Body)
 	}
 }
 
-// --- fase 2 -----------------------------------------------------------------
+// --- transmitir -----------------------------------------------------------------
 
-func TestFase2TransmiteOXMLDaFase1(t *testing.T) {
+func TestTransmiteOXMLGerado(t *testing.T) {
 	f := &libFake{resTransmitir: acbr.Result{
 		Resposta: "[MDFe]\ncStat=100\nxMotivo=Autorizado o uso do MDF-e\nchMDFe=" + chaveFixture + "\nnProt=135240000000002\n",
 		XML:      "<mdfeProc/>",

@@ -49,7 +49,7 @@ func (f Familia) LayoutBase() string {
 }
 
 // Suportada indica se a emissão dessa família já funciona ponta a ponta hoje.
-// Por ora, só o Padrão Nacional. As demais entram pelo plano por fases.
+// Por ora, só o Padrão Nacional.
 func (f Familia) Suportada() bool { return f == FamiliaPadraoNacional }
 
 // Rotulo devolve um nome curto e neutro da família (para UI/relatórios).

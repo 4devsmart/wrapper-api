@@ -4,8 +4,6 @@ import (
 	"html/template"
 	"io/fs"
 	"net/http"
-	"sort"
-	"strings"
 
 	"github.com/4devsmart/wrapper-api/api"
 	"github.com/4devsmart/wrapper-api/web"
@@ -41,19 +39,13 @@ func cacheLongo(h http.Handler) http.Handler {
 	})
 }
 
-// handleDocs serve o Swagger UI com um preâmbulo curto.
+// handleDocs serve a página do Swagger UI.
 //
-// O preâmbulo não é enfeite: o Swagger lista rotas, mas não explica por que
-// emitir são DUAS chamadas nem o que fazer quando a transmissão dá timeout — e
-// essas duas coisas são o que separa usar a API corretamente de duplicar
-// documento fiscal.
+// A página é só o container: a introdução (o que é, como gerar e transmitir, os
+// códigos de erro) mora no `info.description` da própria spec. Duplicá-la aqui
+// renderizaria tudo duas vezes — e o texto que vive na spec serve também quem
+// abre o contrato no Postman, no Redoc ou num gerador de SDK.
 func (s *Servidor) handleDocs(w http.ResponseWriter, _ *http.Request) {
-	mods := make([]moduloDoc, 0, len(s.capsJSON))
-	for nome, caps := range s.capsJSON {
-		mods = append(mods, moduloDoc{Nome: nome, Capacidades: strings.Join(caps, " · ")})
-	}
-	sort.Slice(mods, func(i, j int) bool { return mods[i].Nome < mods[j].Nome })
-
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	// O Swagger UI injeta estilo e script inline; 'unsafe-inline' é o mínimo que
 	// ele exige. Nada vem de fora: sem CDN em nenhuma diretiva.
@@ -61,16 +53,7 @@ func (s *Servidor) handleDocs(w http.ResponseWriter, _ *http.Request) {
 		"default-src 'self'; script-src 'self' 'unsafe-inline'; "+
 			"style-src 'self' 'unsafe-inline'; img-src 'self' data:; "+
 			"font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'")
-	_ = tmplDocs.Execute(w, struct {
-		Base    string
-		Modulos []moduloDoc
-		Versao  string
-	}{Base: Base, Modulos: mods, Versao: web.VersaoSwagger()})
-}
-
-type moduloDoc struct {
-	Nome        string
-	Capacidades string
+	_ = tmplDocs.Execute(w, struct{ Base string }{Base: Base})
 }
 
 var tmplDocs = template.Must(template.New("docs").Parse(`<!doctype html>
@@ -80,68 +63,48 @@ var tmplDocs = template.Must(template.New("docs").Parse(`<!doctype html>
 <title>wrapper-api · API</title>
 <link rel="stylesheet" href="/docs/swagger-ui.css">
 <style>
- /* TUDO daqui é escopado em .preambulo. Seletor de elemento solto (table, td,
-    pre, code) atropela o CSS do Swagger UI — que é construído justamente
-    desses elementos — e quebra a renderização abaixo. */
- body{margin:0;background:#fff;color:#1a1a1a;
-      font:15px/1.55 ui-sans-serif,system-ui,-apple-system,sans-serif}
- .preambulo{max-width:64rem;margin:0 auto;padding:2rem 1.5rem .5rem}
- .preambulo h1{font-size:1.35rem;margin:0 0 .15rem;letter-spacing:-.01em}
- .preambulo .sub{margin:0 0 1.5rem;color:#555;font-size:.95rem}
- .preambulo .sub a{color:#3b5bdb}
- .preambulo pre{margin:0;padding:1rem 1.1rem;overflow-x:auto;background:#1e1e28;
-                color:#e6e6ef;border-radius:.5rem;font-size:.82rem;line-height:1.5}
- .preambulo pre .c{color:#8b8ba7}
- .preambulo pre .k{color:#7fd3a0}
- .preambulo code{font-family:ui-monospace,SFMono-Regular,monospace;font-size:.85em}
- .preambulo .passos{display:grid;gap:.75rem;grid-template-columns:1fr 1fr;margin-bottom:1rem}
- .preambulo .nota{margin:1rem 0 1.6rem;padding:.75rem 1rem;font-size:.9rem;
-                  background:#fff6e5;border:1px solid #f0c674;border-radius:.5rem;color:#5c4300}
- .preambulo .nota code{background:#0000000d;padding:.05em .3em;border-radius:.2em}
- @media (max-width:52rem){.preambulo .passos{grid-template-columns:1fr}}
- #swagger-ui{max-width:64rem;margin:0 auto}
+ /* TUDO escopado. Seletor de elemento solto (table, td, pre, code) atropela o
+    CSS do Swagger UI — que é construído desses elementos — e quebra a
+    renderização. Há teste que reprova isso. */
+ body{margin:0}
  .swagger-ui .topbar{display:none}
- .swagger-ui .info{margin:1.5rem 0}
+ .swagger-ui .info{margin:2.5rem 0 1.5rem}
+ .swagger-ui .info hgroup.main a{display:none}
+ #swagger-ui{max-width:66rem;margin:0 auto;padding:0 1rem}
+
+ /* O padrão do Swagger para markdown é ruim de ler: código em roxo #9012fe
+    negrito, <pre> sem fundo nem padding, e word-break:break-all — que quebra
+    palavra no meio e embaralha exemplo de linha de comando. */
+ .swagger-ui .info .renderedMarkdown pre,
+ .swagger-ui .info .markdown pre{
+   background:#1e1f2b;border-radius:.5rem;padding:.85rem 1rem;margin:.9rem 0;
+   overflow-x:auto;white-space:pre;word-break:normal;line-height:1.55}
+ .swagger-ui .info .renderedMarkdown pre>code,
+ .swagger-ui .info .markdown pre>code{
+   background:none;color:#e8e8f0;font-weight:400;font-size:13px;padding:0}
+ .swagger-ui .info .renderedMarkdown code,
+ .swagger-ui .info .markdown code{
+   background:#11182714;color:#1f3d2b;font-weight:500;
+   padding:.1em .38em;border-radius:.25em}
+ .swagger-ui .info .renderedMarkdown p,
+ .swagger-ui .info .markdown p{word-break:normal;line-height:1.6}
+
+ /* Tabela de erros: sem borda o olho não acompanha a linha até a última coluna,
+    que é justamente a que importa ("pode repetir?"). */
+ .swagger-ui .info table{border-collapse:collapse;width:100%;margin:1rem 0}
+ .swagger-ui .info table th,
+ .swagger-ui .info table td{
+   padding:.45rem .7rem;text-align:left;vertical-align:top;
+   border-bottom:1px solid #0000001f;font-size:13.5px}
+ .swagger-ui .info table th{font-weight:600;border-bottom:2px solid #00000033}
+ .swagger-ui .info table tr:hover td{background:#00000006}
+
+ .swagger-ui .info h2{margin:2rem 0 .6rem;font-size:1.2rem}
+ .swagger-ui .info h3{margin:1.6rem 0 .5rem;font-size:1rem}
+ .swagger-ui .info blockquote{margin:1rem 0;padding:.1rem 1rem;
+   border-left:3px solid #f0c674;background:#fff8e6}
 </style>
-
-<div class=preambulo>
-  <h1>wrapper-api</h1>
-  <p class=sub>Documentos fiscais em duas fases, sem estado.
-     Spec: <a href="/openapi.yaml">/openapi.yaml</a> ·
-     Saúde: <a href="/healthz">/healthz</a>, <a href="/readyz">/readyz</a></p>
-
-  <div class=passos>
-    <pre><span class=c># 1. montar — devolve o XML e a chave. Sem certificado.</span>
-curl -X POST {{.Base}}/cte/xml \
-  -H <span class=k>&#39;Authorization: Bearer $TOKEN&#39;</span> \
-  -H <span class=k>&#39;Content-Type: application/json&#39;</span> \
-  -d @cte.json
-<span class=c># → { "chave": "3526…", "xml_b64": "…" }</span></pre>
-    <pre><span class=c># 2. transmitir — o certificado entra aqui, e só aqui.</span>
-curl -X POST {{.Base}}/cte/transmissao \
-  -H <span class=k>&#39;Authorization: Bearer $TOKEN&#39;</span> \
-  -H <span class=k>&#39;Content-Type: application/json&#39;</span> \
-  -d <span class=k>&#39;{"xml_b64":"…","certificado":{"pfx_b64":"…","senha":"…"}}&#39;</span>
-<span class=c># → { "protocolo": "135…", "xml_proc_b64": "…" }</span></pre>
-  </div>
-
-  <p class=sub style="margin-bottom:0">Guarde o <code>xml_proc_b64</code>: não há
-  segunda via. A fase 1 existe para você ter a chave <strong>antes</strong> de
-  transmitir — é ela que salva quando a resposta se perde.</p>
-
-  <div class=nota>
-    <strong>Timeout na transmissão não autoriza repetir.</strong>
-    <code>502 desfecho_indeterminado</code> significa que o documento pode ter
-    sido autorizado. Consulte pela chave (<code>{{.Base}}/cte/consulta</code>,
-    <code>{{.Base}}/nfse/consulta-dps</code>) — repetir duplica documento fiscal.
-  </div>
-
-  <p class=sub>Para experimentar abaixo: <strong>Authorize</strong> → seu
-  <code>API_TOKEN</code>.</p>
-</div>
-
 <div id="swagger-ui"></div>
-
 <script src="/docs/swagger-ui-bundle.js"></script>
 <script>
  window.ui = SwaggerUIBundle({

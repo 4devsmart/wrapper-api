@@ -12,7 +12,7 @@ make acbr-libs-baixar && make up   # o stack de verdade
 ```
 
 O domínio inteiro é testável **sem a lib nativa e sem certificado**. Isso não é
-sorte: a fase 1 do contrato não assina, e é justamente o que torna a camada de
+sorte: a geração não assina, e é justamente o que torna a camada de
 tradução JSON→INI — o ativo real do projeto — verificável por quem não tem um
 A1 na mão.
 
@@ -48,7 +48,8 @@ gate para isso, mas ele é a última linha, não a primeira. O log da ACBr em n�
 Antes de propor uma mudança estrutural, saiba o que está fechado e por quê:
 
 - **Nada é persistido.** O certificado vem no payload e morre com a requisição.
-- **Duas fases.** A fase 1 põe o documento nas mãos do cliente antes de qualquer
+- **Gerar e transmitir são chamadas separadas.** A geração põe o documento nas
+  mãos do cliente antes de qualquer
   byte sair; é isso que torna recuperável uma transmissão perdida. Não há atalho
   de uma chamada só.
 - **Um módulo não importa outro módulo**, não conhece o servidor, e `platform/`

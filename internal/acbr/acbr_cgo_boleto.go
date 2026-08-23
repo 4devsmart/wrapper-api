@@ -49,7 +49,7 @@ func (l *boletoLib) Version() (string, error) {
 
 // GerarPDF inclui os títulos do INI (config+títulos) e devolve o PDF do boleto.
 // tpSaida vazio em IncluirTitulos: só carrega; o PDF é gerado por SalvarPDF
-// (base64). Não transmite ao banco (Fase 1: offline).
+// (base64). Geração offline — não fala com o banco.
 func (l *boletoLib) GerarPDF(_ TenantConfig, ini string) (Result, error) {
 	return l.withSession(func(h C.LibHandle, _ string) (Result, error) {
 		cIni := C.CString(ini)
@@ -122,7 +122,7 @@ func (l *boletoLib) LerRetorno(_ TenantConfig, configINI, retornoConteudo string
 	})
 }
 
-// Registrar registra o(s) boleto(s) ONLINE via API do banco (Fase 3). operacao:
+// Registrar registra o(s) boleto(s) ONLINE via API do banco. operacao:
 // 0=incluir, 1=alterar, 2=baixar, 3/4=consultar. crt/key = certificado mTLS (ou
 // nil). Erro de credencial/conexão volta como Codigo!=0 + msg (não derruba a
 // API). NOTA: validação real exige credenciais de sandbox do banco.
@@ -143,7 +143,7 @@ func (l *boletoLib) Registrar(_ TenantConfig, op BoletoOnline) (Result, error) {
 	})
 }
 
-// Consultar consulta títulos por período na API do banco (Fase 3). configINI =
+// Consultar consulta títulos por período na API do banco. configINI =
 // config do banco (com credenciais WS); filtroINI = [BoletoConsulta] com o
 // período/filtros.
 func (l *boletoLib) ConsultarTitulos(_ TenantConfig, op BoletoOnline) (Result, error) {

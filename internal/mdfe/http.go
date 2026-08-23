@@ -32,11 +32,11 @@ func (m *Modulo) Capacidades() []string {
 }
 
 func (m *Modulo) Registrar(r modulo.Router) {
-	// Fase 1: monta e valida. Sem certificado, sem rede.
+	// Gerar: monta o XML e valida. Sem certificado, sem rede.
 	r.HandleFunc("POST /xml", m.handleXML)
-	// Fase 2: assina e transmite. É aqui que o certificado entra.
+	// Transmitir: assina e envia. É aqui que o certificado entra.
 	r.HandleFunc("POST /transmissao", m.handleTransmissao)
-	// Eventos: uma fase só (a lib não expõe o XML do evento antes de enviá-lo).
+	// Eventos: chamada única (a lib não expõe o XML do evento antes de enviá-lo).
 	r.HandleFunc("POST /eventos/{tipo}", m.handleEvento)
 	// Consultas ao webservice — POST porque levam o certificado no corpo.
 	r.HandleFunc("POST /consulta", m.handleConsulta)
@@ -51,9 +51,9 @@ func (m *Modulo) Registrar(r modulo.Router) {
 	// MDF-e devem ser enviados no modo síncrono").
 }
 
-// --- fase 1: montar e validar ----------------------------------------------
+// --- gerar o XML ----------------------------------------------
 
-// RespostaXML é o retorno da fase 1.
+// RespostaXML é o retorno da geração.
 type RespostaXML struct {
 	Chave     string           `json:"chave,omitempty"`
 	XMLBase64 string           `json:"xml_b64"`
@@ -99,9 +99,9 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 	httpx.JSON(w, http.StatusOK, resp)
 }
 
-// --- fase 2: transmitir -----------------------------------------------------
+// --- transmitir -----------------------------------------------------
 
-// PedidoTransmissao é o corpo da fase 2.
+// PedidoTransmissao é o corpo da transmissão.
 type PedidoTransmissao struct {
 	XMLBase64 string `json:"xml_b64"`
 	// Ambiente é FALLBACK. O ambiente sai do tpAmb do próprio XML; este campo
@@ -110,7 +110,7 @@ type PedidoTransmissao struct {
 	Certificado fiscal.Certificado `json:"certificado"`
 }
 
-// RespostaTransmissao é o retorno da fase 2.
+// RespostaTransmissao é o retorno da transmissão.
 type RespostaTransmissao struct {
 	Chave     string `json:"chave,omitempty"`
 	Protocolo string `json:"protocolo,omitempty"`

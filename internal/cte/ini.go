@@ -103,7 +103,7 @@ func (b *iniBuilder) identificacao(id Ide, ambiente string) {
 	// tpAmb precisa sair no INI. Sem ele a lib escreve o default (produção) no
 	// XML enquanto a sessão está configurada para o ambiente pedido — e o próprio
 	// ValidarRegrasdeNegocios acusa "252-Rejeição: Ambiente informado diverge do
-	// Ambiente de recebimento". Pior: como a fase 2 deriva o ambiente do tpAmb do
+	// Ambiente de recebimento". Pior: como a transmissão deriva o ambiente do tpAmb do
 	// XML, um documento pedido em homologação apontaria para produção.
 	//
 	// O campo explícito do cliente vence; na ausência, deriva do ambiente do

@@ -15,10 +15,10 @@ import (
 // Modulo expõe o boleto bancário sob /v1/boletos.
 //
 // É o único módulo que NÃO é fiscal: não fala com SEFAZ, não assina, não tem
-// chave de acesso e não tem duas fases. Não há transmissão a perder — gerar um
+// chave de acesso, e gerar já é transmitir. Não há envio a perder — gerar um
 // boleto é uma operação local, e registrá-lo no banco é uma chamada idempotente
-// do lado deles. Por isso o contrato aqui é de uma fase só, e isso não é
-// exceção à regra: é outra regra, para outro problema.
+// do lado deles. Por isso aqui é uma chamada só — o que não é exceção à regra
+// dos outros documentos: é outra regra, para outro problema.
 type Modulo struct{ svc acbr.BoletoServico }
 
 // NovoModulo liga o módulo ao binding.

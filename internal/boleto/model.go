@@ -60,7 +60,7 @@ type Conta struct {
 	// PIX (boleto híbrido).
 	PixTipoChave int    `json:"pixTipoChave,omitempty"`
 	PixChave     string `json:"pixChave,omitempty"`
-	// WS: credenciais para registro online (Fase 3). Opcional.
+	// WS: credenciais para registro online. Opcional.
 	WS *ContaWS `json:"ws,omitempty"`
 }
 

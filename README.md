@@ -3,8 +3,8 @@
 API REST para documentos fiscais brasileiros — **CT-e**, **MDF-e**, **NFS-e** e
 **boletos**. JSON puro, Docker, **sem estado**.
 
-Você manda o documento em JSON, a API devolve o XML. Você transmite esse XML por
-uma segunda chamada. Nada é guardado no servidor — nem o certificado.
+Você manda o documento em JSON, a API devolve o XML. Uma segunda chamada
+transmite esse XML ao fisco. Nada é guardado no servidor — nem o certificado.
 
 > **English** — Stateless JSON REST API (Go) wrapping the native ACBrLib for
 > Brazilian fiscal documents. Domain code and comments are in Portuguese: the
@@ -48,9 +48,9 @@ são oito.
 
 ---
 
-## Emitir: duas chamadas
+## Gerar e transmitir
 
-**1. Montar** — devolve o XML e a chave. Sem certificado, sem rede.
+**1. Gerar** — devolve o XML e a chave. Sem certificado, sem rede.
 
 ```bash
 curl -X POST localhost:8080/v1/cte/xml \
@@ -84,11 +84,11 @@ curl -X POST localhost:8080/v1/cte/transmissao \
 **Guarde o `xml_proc_b64`.** Não há segunda via: em CT-e e MDF-e, perder o XML é
 perder também o PDF.
 
-### Por que duas chamadas
+### Por que separado
 
-Porque a fase 1 põe a chave nas suas mãos **antes** de qualquer byte sair. Se a
-fase 2 der timeout, você não sabe se o documento foi autorizado — e é a chave
-que permite descobrir, em vez de reenviar e duplicar.
+Porque a geração põe a chave nas suas mãos **antes** de qualquer byte sair. Se
+a transmissão der timeout, você não sabe se o documento foi autorizado — e é a
+chave que permite descobrir, em vez de reenviar e duplicar.
 
 ```bash
 # depois de um 502 desfecho_indeterminado:
@@ -163,8 +163,8 @@ Leia **[docs/LIMITACOES.md](docs/LIMITACOES.md)**. O essencial:
 - **CT-e e MDF-e não recuperam o PDF pela chave**; só a NFS-e recupera;
 - **NFS-e é multi-provedor** e a capacidade é descoberta em runtime — consulte
   `/v1/nfse/municipios/{codigo}` antes de montar;
-- **a validação da fase 1 não é XSD** (o schema exige assinatura); o XSD roda na
-  fase 2, ainda antes de transmitir;
+- **a validação da geração não é XSD** (o schema exige assinatura); o XSD roda na
+  transmissão, ainda antes de o documento sair;
 - **não paralelize a distribuição DF-e do mesmo CNPJ** — o cursor é seu.
 
 ---
@@ -207,7 +207,7 @@ make help
 ```
 
 O domínio inteiro é testável **sem a lib e sem certificado** — consequência
-direta de a fase 1 não assinar.
+direta de a geração não assinar.
 
 Os schemas do `openapi.yaml` são **gerados dos modelos Go**, com as descrições
 vindas dos comentários do fonte: o contrato publicado é o contrato compilado, e

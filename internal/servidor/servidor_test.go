@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/4devsmart/wrapper-api/api"
 	"github.com/4devsmart/wrapper-api/internal/acbr"
 	"github.com/4devsmart/wrapper-api/internal/modulo"
 	"github.com/4devsmart/wrapper-api/internal/platform/config"
@@ -280,20 +281,35 @@ func TestPaginaDeDocsNaoBuscaNadaDeFora(t *testing.T) {
 	}
 }
 
-// O índice lista os módulos montados — se ele não acompanhar as capacidades,
-// vira documentação que mente.
-func TestIndiceDeDocsListaOsModulos(t *testing.T) {
-	h := servir(t, cfgTeste(),
-		&moduloFake{nome: "cte", caps: []string{"xml", "transmissao"}, rotas: []string{"POST /xml"}},
-		&moduloFake{nome: "boletos", caps: []string{"pdf"}, rotas: []string{"POST /pdf"}},
-	)
+// A introdução mora no info.description da spec, não na página: duplicá-la
+// renderizaria tudo duas vezes. A página é só o container do Swagger UI.
+func TestPaginaNaoDuplicaAIntroducaoDaSpec(t *testing.T) {
 	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/docs", nil))
-
+	servir(t, cfgTeste()).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/docs", nil))
 	corpo := rec.Body.String()
-	for _, quero := range []string{"/v1/cte/xml", "/v1/cte/transmissao", "desfecho_indeterminado"} {
-		if !strings.Contains(corpo, quero) {
-			t.Errorf("a página não menciona %q", quero)
+
+	// Estas frases vivem no info.description; se aparecerem também no HTML, o
+	// leitor lê tudo duas vezes — foi o que aconteceu na primeira versão.
+	for _, duplicata := range []string{"desfecho_indeterminado", "Gerar e transmitir", "xml_proc_b64"} {
+		if strings.Contains(corpo, duplicata) {
+			t.Errorf("a página repete %q, que já está no info.description da spec", duplicata)
+		}
+	}
+	if !strings.Contains(corpo, `url: "/openapi.yaml"`) {
+		t.Error("a página não monta o Swagger UI sobre a spec local")
+	}
+}
+
+// A introdução precisa existir na SPEC — é ela que vale em Postman, Redoc e
+// geradores de SDK, não só na nossa página.
+func TestSpecCarregaAIntroducao(t *testing.T) {
+	spec := string(api.OpenAPI())
+	for _, quero := range []string{
+		"Gerar e transmitir", "desfecho_indeterminado",
+		"Guarde o `xml_proc_b64`", "Não há `required`",
+	} {
+		if !strings.Contains(spec, quero) {
+			t.Errorf("info.description da spec não menciona %q", quero)
 		}
 	}
 }

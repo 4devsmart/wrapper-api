@@ -10,7 +10,7 @@ em memória e vai embora com ela.
 
 O que isso implica, e não é negociável:
 
-- **Guardar o documento é responsabilidade do cliente.** A fase 1 devolve o XML
+- **Guardar o documento é responsabilidade do cliente.** A geração devolve o XML
   e a identidade dele (chave, ou `id_dps` na NFS-e). Se você não gravar, não há
   segunda via aqui.
 - **O certificado trafega em toda transmissão.** Use TLS na borda. O PFX vai da
@@ -24,11 +24,11 @@ O que isso implica, e não é negociável:
 
 ## Transmissão: o que fazer quando a resposta se perde
 
-**Timeout na fase 2 não é falha — é desfecho desconhecido.** O documento pode ter
+**Timeout na transmissão não é falha — é desfecho desconhecido.** O documento pode ter
 sido autorizado. A API devolve `502 desfecho_indeterminado` justamente para não
 convidar você a repetir.
 
-O certo é **consultar pela identidade que a fase 1 devolveu**:
+O certo é **consultar pela identidade que a geração devolveu**:
 
 | Documento | Rota de recuperação |
 |---|---|
@@ -47,15 +47,15 @@ recusa lote com mais de um documento; o MDF-e força sem sequer olhar o parâmet
 **Janela de emissão.** XML gerado hoje e transmitido semanas depois é rejeitado
 por data de emissão atrasada. Gere e transmita no mesmo fluxo.
 
-## Validação: o que a fase 1 garante, e o que não
+## Validação: o que a geração garante, e o que não
 
-| Documento | Regras de negócio na fase 1 |
+| Documento | Regras de negócio ao gerar |
 |---|---|
 | CT-e, MDF-e | ✅ sim (`ValidarRegrasdeNegocios`) |
 | NFS-e | ❌ a lib não expõe — a resposta traz `validacao.suportada: false` |
 
 Em nenhum caso é **validação de XSD**: o schema exige a tag `Signature`, e o
-documento só é assinado no envio. O XSD é validado na fase 2, ainda **antes** de
+documento só é assinado no envio. O XSD é validado na transmissão, ainda **antes** de
 transmitir — falhou ali, nada saiu.
 
 ## Escopo fiscal
