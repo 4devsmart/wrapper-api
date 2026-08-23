@@ -1,6 +1,9 @@
 # Valores aceitos por campo da NFS-e (Padrão Nacional).
 #
-# Rótulos extraídos da documentação dos XSD oficiais (tiposComplexos_v1.01.xsd).
+# Rótulos extraídos da documentação dos XSD oficiais (tiposComplexos_v1.01.xsd),
+# exceto onde o campo é do padrão ABRASF, que não vem no pacote de schemas: ali
+# a fonte é o layout ABRASF 2.04, anotada na própria linha.
+#
 # Formato: enum <TAB> valor <TAB> rótulo
 TipoEmitente	1	Prestador
 TipoEmitente	2	Tomador
@@ -27,3 +30,13 @@ ISSRetido	1	Retido pelo tomador
 ISSRetido	2	Não retido
 Ambiente	homologacao	Ambiente de homologação, sem valor fiscal
 Ambiente	producao	Ambiente de produção
+TipoRetencaoISSQN	1	Não retido
+TipoRetencaoISSQN	2	Retido pelo tomador
+TipoRetencaoISSQN	3	Retido pelo intermediário
+ExigibilidadeISS	1	Exigível
+ExigibilidadeISS	2	Não incidência
+ExigibilidadeISS	3	Isenção
+ExigibilidadeISS	4	Exportação
+ExigibilidadeISS	5	Imunidade
+ExigibilidadeISS	6	Exigibilidade suspensa por decisão judicial
+ExigibilidadeISS	7	Exigibilidade suspensa por processo administrativo

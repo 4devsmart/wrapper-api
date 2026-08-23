@@ -205,8 +205,8 @@ paths:
               schema:
                 type: object
                 properties:
-                  status: { type: string, example: indisponivel }
-                  motivo: { type: string }
+                  status: { type: string, example: indisponivel, description: "Sempre indisponivel: o motor fiscal não está atendendo." }
+                  motivo: { type: string, description: "O que falta para o serviço ficar pronto, em texto." }
 
   /openapi.yaml:
     get:
@@ -230,13 +230,14 @@ paths:
               schema:
                 type: object
                 properties:
-                  status: { type: string }
+                  status: { type: string, description: "Sempre ok quando o processo responde." }
                   versao:
                     type: object
+                    description: "Carimbo do binário em execução, gravado no build."
                     properties:
-                      commit: { type: string }
-                      commit_curto: { type: string }
-                      build: { type: string }
+                      commit: { type: string, description: "SHA completo do commit que gerou este binário. Vazio em build local sem carimbo." }
+                      commit_curto: { type: string, description: "Os 7 primeiros caracteres do commit: é como a imagem é taggeada no registry." }
+                      build: { type: string, description: "Data e hora do build, em RFC 3339." }
 
   /v1/capacidades:
     get:
@@ -252,9 +253,10 @@ paths:
               schema:
                 type: object
                 properties:
-                  base: { type: string, example: /v1 }
+                  base: { type: string, example: /v1, description: "Prefixo das rotas versionadas." }
                   modulos:
                     type: object
+                    description: "Capacidades por módulo: a chave é o nome do módulo e o valor a lista do que ele atende nesta build."
                     additionalProperties:
                       type: array
                       items: { type: string }
@@ -571,9 +573,9 @@ paths:
                 - type: object
                   required: [uf, documento]
                   properties:
-                    uf: { type: string, example: SP }
+                    uf: { type: string, example: SP, description: "UF do cadastro a consultar, com duas letras." }
                     documento: { type: string, description: CNPJ/CPF, ou IE quando eh_ie=true }
-                    eh_ie: { type: boolean, default: false }
+                    eh_ie: { type: boolean, default: false, description: "true quando documento é uma Inscrição Estadual; false quando é CNPJ ou CPF." }
       responses:
         "200": { $ref: "#/components/responses/RespostaCrua" }
         "400": { $ref: "#/components/responses/Erro400" }
@@ -610,7 +612,7 @@ paths:
                 - type: object
                   required: [xml_evento_b64]
                   properties:
-                    xml_evento_b64: { type: string, format: byte }
+                    xml_evento_b64: { type: string, format: byte, description: "XML do evento autorizado, em base64. É o que a resposta do evento devolveu." }
       responses:
         "200": { $ref: "#/components/responses/RespostaPDF" }
         "400": { $ref: "#/components/responses/Erro400" }
@@ -886,7 +888,7 @@ paths:
                 - type: object
                   required: [xml_evento_b64]
                   properties:
-                    xml_evento_b64: { type: string, format: byte }
+                    xml_evento_b64: { type: string, format: byte, description: "XML do evento autorizado, em base64. É o que a resposta do evento devolveu." }
       responses:
         "200": { $ref: "#/components/responses/RespostaPDF" }
 
@@ -904,8 +906,8 @@ paths:
         autorização, enquanto o identificador da DPS é determinístico. É ele que
         recupera a transmissão perdida.
 
-        `validacao.suportada` vem **false**: o ACBrNFSeX não expõe validação de
-        regras de negócio, ao contrário de CT-e e MDF-e.
+        `validacao.suportada` vem **false**: a biblioteca fiscal não expõe
+        validação de regras de negócio para NFS-e, ao contrário de CT-e e MDF-e.
       requestBody:
         required: true
         content:
@@ -982,6 +984,10 @@ paths:
         - name: tipo
           in: path
           required: true
+          description: >-
+            Qual consulta fazer. Cada uma exige campos diferentes no corpo:
+            numero e faixa usam numero/numero_final, rps usa numero/serie/tipo,
+            situacao e lote-rps usam protocolo/numero_lote.
           schema: { type: string, enum: [numero, faixa, rps, situacao, lote-rps] }
       requestBody:
         required: true
@@ -992,14 +998,14 @@ paths:
                 - $ref: "#/components/schemas/PedidoConsultaNFSe"
                 - type: object
                   properties:
-                    numero: { type: string }
-                    numero_final: { type: string }
-                    serie: { type: string }
-                    tipo: { type: string }
-                    codigo_verificacao: { type: string }
-                    protocolo: { type: string }
-                    numero_lote: { type: string }
-                    pagina: { type: integer, default: 1 }
+                    numero: { type: string, description: "Número da NFS-e a consultar. Na consulta por faixa, é o início dela." }
+                    numero_final: { type: string, description: "Fim da faixa, na consulta por faixa." }
+                    serie: { type: string, description: "Série do RPS, na consulta por RPS." }
+                    tipo: { type: string, description: "Tipo do RPS, na consulta por RPS." }
+                    codigo_verificacao: { type: string, description: "Código de verificação da nota, na consulta por RPS." }
+                    protocolo: { type: string, description: "Protocolo devolvido no envio, nas consultas de situação e de lote." }
+                    numero_lote: { type: string, description: "Número do lote, nas consultas de situação e de lote." }
+                    pagina: { type: integer, default: 1, description: "Página do resultado, a partir de 1. O provedor pagina consultas por número e por faixa." }
       responses:
         "200": { $ref: "#/components/responses/RespostaCrua" }
         "404": { $ref: "#/components/responses/Erro404" }
@@ -1021,7 +1027,7 @@ paths:
                 - $ref: "#/components/schemas/PedidoConsultaNFSe"
                 - type: object
                   properties:
-                    nsu: { type: integer }
+                    nsu: { type: integer, description: "NSU a partir do qual buscar. 0 traz o início da fila do ADN." }
       responses:
         "200": { $ref: "#/components/responses/RespostaCrua" }
 
@@ -1103,9 +1109,9 @@ paths:
               type: object
               description: Informe `chave` (com certificado) OU `xml_b64`.
               properties:
-                chave: { type: string }
-                xml_b64: { type: string, format: byte }
-                municipio: { type: string }
+                chave: { type: string, description: "Chave de acesso da NFS-e. Alternativa ao xml_b64: com ela o PDF é buscado no provedor." }
+                xml_b64: { type: string, format: byte, description: "XML autorizado da NFS-e, em base64. Com ele o PDF sai localmente, sem falar com o provedor." }
+                municipio: { type: string, description: "Código IBGE do município, que é o que decide o provedor." }
                 ambiente: { $ref: "#/components/schemas/Ambiente" }
                 emitente: { $ref: "#/components/schemas/Emitente" }
                 certificado: { $ref: "#/components/schemas/Certificado" }
@@ -1125,7 +1131,8 @@ paths:
         - name: codigo
           in: path
           required: true
-          schema: { type: string, description: código IBGE de 7 dígitos }
+          description: "Código IBGE do município, com 7 dígitos."
+          schema: { type: string }
       responses:
         "200":
           description: OK
@@ -1134,10 +1141,10 @@ paths:
               schema:
                 type: object
                 properties:
-                  codigo: { type: string }
-                  provedor: { type: string }
-                  layout: { type: string, enum: [padrao_nacional, abrasf, proprio, ""] }
-                  suportado: { type: boolean }
+                  codigo: { type: string, description: "Código IBGE do município consultado." }
+                  provedor: { type: string, description: "Provedor que atende o município. Vazio quando não há provedor conhecido." }
+                  layout: { type: string, enum: [padrao_nacional, abrasf, proprio, ""], description: "Família de layout do provedor. Vazia quando o município não tem provedor." }
+                  suportado: { type: boolean, description: "true quando o município tem provedor conhecido e a emissão é possível." }
 
   # ---------------------------------------------------------------- boletos
   /v1/boletos/pdf:
@@ -1179,8 +1186,8 @@ paths:
               schema:
                 type: object
                 properties:
-                  remessa: { type: string }
-                  numero_arquivo: { type: integer }
+                  remessa: { type: string, description: "Conteúdo do arquivo de remessa CNAB, em texto." }
+                  numero_arquivo: { type: integer, description: "Sequencial do arquivo de remessa, ecoado do pedido." }
 
   /v1/boletos/retorno:
     post:
@@ -1238,8 +1245,8 @@ paths:
               schema:
                 type: object
                 properties:
-                  operacao: { type: integer }
-                  resposta: { type: string }
+                  operacao: { type: integer, description: "Operação executada no banco: 0 = incluir, 2 = baixar." }
+                  resposta: { type: string, description: "Retorno cru da API do banco, em texto. O formato varia por instituição." }
         "400": { $ref: "#/components/responses/Erro400" }
         "502": { $ref: "#/components/responses/Erro502" }
 
@@ -1499,28 +1506,28 @@ components:
     # >>> INÍCIO DOS SCHEMAS GERADOS, não edite à mão (make openapi)
     BoletoConta:
       type: object
-      description: 'Conta reúne o banco, a conta corrente e o cedente: quem cobra e por onde.'
+      description: 'O banco, a conta corrente e o cedente: quem cobra e por onde.'
       properties:
         banco:
           type: string
-          description: 'número do banco: 001 = BB, 237 = Bradesco, 341 = Itaú'
+          description: 'número do banco: 001 = BB, 237 = Bradesco, 341 = Itaú.'
         tipoCobranca:
           type: integer
           enum: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67]
-          description: 'TipoCobranca identifica o banco E o layout de arquivo. Não é o número do banco: uma instituição que emite no layout de outra tem valor próprio aqui. Confirme com o seu banco qual layout foi contratado. Valores: 1 = Banco do Brasil; 2 = Santander; 3 = Caixa Econômica; 4 = Caixa (SICOB); 5 = Bradesco; 6 = Itaú; 7 = Banco Mercantil; 8 = Sicredi; 9 = Bancoob (SICOOB); 10 = Banrisul; 11 = Banestes; 12 = HSBC; 13 = Banco do Nordeste; 14 = BRB; 15 = BicBanco; 16 = Bradesco (SICOOB); 17 = Banco Safra; 18 = Safra (layout Bradesco); 19 = CECRED; 20 = Banco da Amazônia; 21 = Banco do Brasil (SICOOB); 22 = Uniprime; 23 = Unicred RS; 24 = Banese; 25 = CrediSIS; 26 = Unicred ES; 27 = Cresol SC/RS; 28 = Citibank; 29 = ABC Brasil; 30 = Daycoval; 31 = Uniprime Norte do Paraná; 32 = Banco Pine; 33 = Banco Pine (layout Bradesco); 34 = Unicred SC; 35 = Banco Alfa; 36 = Banco do Brasil (API); 37 = Banco do Brasil (webservice); 38 = Cresol; 39 = MoneyPlus; 40 = Banco C6; 41 = Banco Rendimento; 42 = Banco Inter; 43 = Sofisa (layout Santander); 44 = BS2; 45 = PenseBank (API); 46 = BTG Pactual; 47 = Banco Original; 48 = Banco Votorantim; 49 = Pefisa; 50 = Banco Fibra; 51 = Sofisa (layout Itaú); 52 = Banco Industrial do Brasil; 53 = Athena (layout Bradesco); 54 = QI Tech SCD; 55 = UY3; 56 = Bocom BBM; 57 = Sicoob; 58 = Sisprime; 59 = Ailos; 60 = Cora; 61 = Sulcredi; 62 = Credisan; 63 = Banco Sofisa; 64 = Vórtx; 65 = Asaas; 66 = Multiplica (layout Bradesco); 67 = Petra (layout Bradesco).'
+          description: 'O banco E o layout de arquivo. Não é o número do banco: uma instituição que emite no layout de outra tem valor próprio aqui. Confirme com o seu banco qual layout foi contratado. Valores: 1 = Banco do Brasil; 2 = Santander; 3 = Caixa Econômica; 4 = Caixa (SICOB); 5 = Bradesco; 6 = Itaú; 7 = Banco Mercantil; 8 = Sicredi; 9 = Bancoob (SICOOB); 10 = Banrisul; 11 = Banestes; 12 = HSBC; 13 = Banco do Nordeste; 14 = BRB; 15 = BicBanco; 16 = Bradesco (SICOOB); 17 = Banco Safra; 18 = Safra (layout Bradesco); 19 = CECRED; 20 = Banco da Amazônia; 21 = Banco do Brasil (SICOOB); 22 = Uniprime; 23 = Unicred RS; 24 = Banese; 25 = CrediSIS; 26 = Unicred ES; 27 = Cresol SC/RS; 28 = Citibank; 29 = ABC Brasil; 30 = Daycoval; 31 = Uniprime Norte do Paraná; 32 = Banco Pine; 33 = Banco Pine (layout Bradesco); 34 = Unicred SC; 35 = Banco Alfa; 36 = Banco do Brasil (API); 37 = Banco do Brasil (webservice); 38 = Cresol; 39 = MoneyPlus; 40 = Banco C6; 41 = Banco Rendimento; 42 = Banco Inter; 43 = Sofisa (layout Santander); 44 = BS2; 45 = PenseBank (API); 46 = BTG Pactual; 47 = Banco Original; 48 = Banco Votorantim; 49 = Pefisa; 50 = Banco Fibra; 51 = Sofisa (layout Itaú); 52 = Banco Industrial do Brasil; 53 = Athena (layout Bradesco); 54 = QI Tech SCD; 55 = UY3; 56 = Bocom BBM; 57 = Sicoob; 58 = Sisprime; 59 = Ailos; 60 = Cora; 61 = Sulcredi; 62 = Credisan; 63 = Banco Sofisa; 64 = Vórtx; 65 = Asaas; 66 = Multiplica (layout Bradesco); 67 = Petra (layout Bradesco).'
         CNAB:
           type: string
           enum: ["1", "2"]
           description: 'Valores: 1 = CNAB 400; 2 = CNAB 240.'
         agencia:
           type: string
-          description: 'número da agência, sem o dígito'
+          description: 'número da agência, sem o dígito.'
         digitoAgencia:
           type: string
           description: 'Dígito verificador da agência.'
         conta:
           type: string
-          description: 'número da conta corrente, sem o dígito'
+          description: 'número da conta corrente, sem o dígito.'
         digitoConta:
           type: string
           description: 'Dígito verificador da conta.'
@@ -1536,7 +1543,7 @@ components:
         tipoInscricao:
           type: integer
           enum: [1, 2]
-          description: 'Valores: 1 = CNPJ; 2 = CPF.'
+          description: '. Valores: 1 = CNPJ; 2 = CPF.'
         tipoPessoa:
           type: integer
           description: 'Tipo de pessoa do cedente.'
@@ -1579,7 +1586,7 @@ components:
         tipoCarteira:
           type: integer
           enum: [0, 1, 2]
-          description: 'Valores: 0 = Simples; 1 = Registrada; 2 = Eletrônica.'
+          description: '. Valores: 0 = Simples; 1 = Registrada; 2 = Eletrônica.'
         tipoDocumento:
           type: integer
           description: 'Tipo do documento, conforme o banco.'
@@ -1601,12 +1608,12 @@ components:
             - $ref: "#/components/schemas/BoletoContaWS"
     BoletoContaWS:
       type: object
-      description: 'ContaWS são as credenciais de integração online com a API do banco: OAuth (ClientID/Secret/Scope) + certificado mTLS (CRT/KEY em base64). Como o certificado A1 dos documentos fiscais, elas viajam no payload e não são persistidas. Os métodos String/LogValue abaixo existem para que um %v ou um slog distraído não as despeje em log: num serviço sem estado, é a única forma realista de um segredo do cliente escapar do processo.'
+      description: 'As credenciais de integração online com a API do banco: OAuth (ClientID/Secret/Scope) + certificado mTLS (CRT/KEY em base64). Como o certificado A1 dos documentos fiscais, elas viajam no payload e não são persistidas. Os métodos String/LogValue abaixo existem para que um %v ou um slog distraído não as despeje em log: num serviço sem estado, é a única forma realista de um segredo do cliente escapar do processo.'
       properties:
         ambiente:
           type: integer
           enum: [1, 2]
-          description: 'Valores: 1 = Produção; 2 = Homologação.'
+          description: '. Valores: 1 = Produção; 2 = Homologação.'
         clientID:
           type: string
           description: 'Client ID do OAuth da API do banco.'
@@ -1624,13 +1631,13 @@ components:
           description: 'Indica se o boleto sai com PIX.'
         certCRT:
           type: string
-          description: 'base64 do.crt (mTLS)'
+          description: 'base64 do.crt (mTLS).'
         certKEY:
           type: string
-          description: 'base64 do.key (mTLS)'
+          description: 'base64 do.key (mTLS).'
     BoletoPedido:
       type: object
-      description: 'Pedido é o corpo de geração de boleto(s): a conta de cobrança (cedente + conta + banco) e a lista de títulos.'
+      description: 'O corpo de geração de boleto(s): a conta de cobrança (cedente + conta + banco) e a lista de títulos.'
       properties:
         conta:
           description: 'Número da conta corrente.'
@@ -1643,7 +1650,7 @@ components:
           description: 'Títulos a incluir no boleto ou na remessa.'
     BoletoSacado:
       type: object
-      description: 'Sacado é o pagador do boleto.'
+      description: 'O pagador do boleto.'
       properties:
         nome:
           type: string
@@ -1677,7 +1684,7 @@ components:
           description: 'Endereço de e-mail.'
     BoletoTitulo:
       type: object
-      description: 'Titulo é um boleto a ser cobrado. Um pedido pode trazer vários.'
+      description: 'Um boleto a ser cobrado. Um pedido pode trazer vários.'
       properties:
         numeroDocumento:
           type: string
@@ -1716,7 +1723,7 @@ components:
           type: array
           items:
             type: string
-          description: 'até 3 (Instrucao1-3)'
+          description: 'até 3 (Instrucao1-3).'
         valorMoraJuros:
           type: number
           description: 'Encargos.'
@@ -1872,7 +1879,7 @@ components:
           description: 'Percentual redutor aplicado em compra governamental.'
     CteCorrecao:
       type: object
-      description: 'Correcao é um item de correção da CC-e. grupoAlterado/campoAlterado/valorAlterado conforme o leiaute do CT-e; nroItemAlterado = nº do item quando o campo é de uma lista (0 se não se aplica).'
+      description: 'Um item de correção da CC-e. grupoAlterado/campoAlterado/valorAlterado conforme o leiaute do CT-e; nroItemAlterado = nº do item quando o campo é de uma lista (0 se não se aplica).'
       properties:
         grupoAlterado:
           type: string
@@ -1916,7 +1923,7 @@ components:
           description: 'Endereço de e-mail.'
     CteDet:
       type: object
-      description: 'Det é um trecho do detalhamento: origem/destino, valores e os documentos transportados (componentes, NF-e e documentos anteriores).'
+      description: 'Um trecho do detalhamento: origem/destino, valores e os documentos transportados (componentes, NF-e e documentos anteriores).'
       properties:
         cMunIni:
           type: string
@@ -1953,7 +1960,7 @@ components:
           description: 'Documentos de transporte anteriores.'
     CteDetDocAnt:
       type: object
-      description: 'DetDocAnt é um documento anterior dentro de um trecho do Simplificado.'
+      description: 'Um documento anterior dentro de um trecho do Simplificado.'
       properties:
         chCTe:
           type: string
@@ -1995,7 +2002,7 @@ components:
           description: 'Emitentes dos documentos anteriores.'
     CteDocumento:
       type: object
-      description: 'PedidoEmissao é o CT-e a ser gerado, no contrato da Nuvem Fiscal /.'
+      description: 'O CT-e a ser gerado.'
       properties:
         infCte:
           allOf:
@@ -2012,7 +2019,7 @@ components:
           description: 'Identificador externo seu. Devolvido como veio, não vai no XML.'
     CteDocumentoSimplificado:
       type: object
-      description: 'pedido de emissão do CT-e Simplificado, corpo simplificado).'
+      description: 'pedido de emissão do CT-e Simplificado.'
       properties:
         infCte:
           allOf:
@@ -2212,7 +2219,7 @@ components:
           description: 'Valor da CBS com estorno de crédito.'
     CteEventoCancelamento:
       type: object
-      description: 'PedidoCancelamento é o corpo de POST /v1/cte/eventos/cancelamento. A chave e o protocolo vêm no envelope do evento, não daqui: sem estado no servidor, quem os guarda é o cliente.'
+      description: 'O corpo de POST /v1/cte/eventos/cancelamento. A chave e o protocolo vêm no envelope do evento, não daqui: sem estado no servidor, quem os guarda é o cliente.'
       properties:
         justificativa:
           type: string
@@ -2222,7 +2229,7 @@ components:
           description: 'nSeqEvento é opcional (default 1).'
     CteEventoCartaCorrecao:
       type: object
-      description: 'PedidoCartaCorrecao é o corpo de POST /v1/cte/eventos/carta-correcao. A chave vem no envelope; o CNPJ é derivado dela. Aqui vão só os grupos de correção.'
+      description: 'O corpo de POST /v1/cte/eventos/carta-correcao. A chave vem no envelope; o CNPJ é derivado dela. Aqui vão só os grupos de correção.'
       properties:
         correcoes:
           type: array
@@ -2231,10 +2238,10 @@ components:
           description: 'Grupos a corrigir. Um por campo alterado.'
         nSeqEvento:
           type: integer
-          description: 'opcional (default 1)'
+          description: 'opcional (default 1).'
     CteEventoComprovanteEntrega:
       type: object
-      description: 'PedidoComprovanteEntrega é o corpo de POST /v1/cte/eventos/comprovante-entrega (tpEvento 110180). Registra a entrega da carga (com geolocalização opcional) e as NF-e entregues.'
+      description: 'O corpo de POST /v1/cte/eventos/comprovante-entrega (tpEvento 110180). Registra a entrega da carga (com geolocalização opcional) e as NF-e entregues.'
       properties:
         nProt:
           type: string
@@ -2269,13 +2276,13 @@ components:
           type: array
           items:
             type: string
-          description: 'chaves de NF-e entregues'
+          description: 'chaves de NF-e entregues.'
         nSeqEvento:
           type: integer
           description: 'Número sequencial do evento para a mesma chave. Começa em 1.'
     CteEventoEPEC:
       type: object
-      description: 'PedidoEPEC é o corpo de POST /v1/cte/eventos/epec (Evento Prévio de Emissão em Contingência, tpEvento 110113). Valores com vírgula decimal o documento.'
+      description: 'O corpo de POST /v1/cte/eventos/epec (Evento Prévio de Emissão em Contingência, tpEvento 110113). Valores com vírgula decimal o documento.'
       properties:
         vICMS:
           type: number
@@ -2292,7 +2299,7 @@ components:
         modal:
           type: string
           enum: ["01"]
-          description: 'default 01 Valores: 01 = Rodoviário. É o único modal que este serviço emite.'
+          description: 'default 01. Valores: 01 = Rodoviário. É o único modal que este serviço emite.'
         UFIni:
           type: string
           description: 'Sigla da UF de início da prestação.'
@@ -2311,7 +2318,7 @@ components:
           description: 'Número sequencial do evento para a mesma chave. Começa em 1.'
     CteEventoInsucessoEntrega:
       type: object
-      description: 'PedidoInsucessoEntrega é o corpo de POST /v1/cte/eventos/insucesso-entrega (tpEvento 110190). Registra a tentativa frustrada de entrega.'
+      description: 'O corpo de POST /v1/cte/eventos/insucesso-entrega (tpEvento 110190). Registra a tentativa frustrada de entrega.'
       properties:
         nProt:
           type: string
@@ -2326,7 +2333,7 @@ components:
         tpMotivo:
           type: string
           enum: ["1", "2", "3", "4"]
-          description: 'default 1 Valores: 1 = Recebedor não encontrado; 2 = Recusa do recebedor; 3 = Endereço inexistente; 4 = Outros. Exige informar a justificativa.'
+          description: 'default 1. Valores: 1 = Recebedor não encontrado; 2 = Recusa do recebedor; 3 = Endereço inexistente; 4 = Outros. Exige informar a justificativa.'
         xJustMotivo:
           type: string
           description: 'Justificativa do insucesso, quando o motivo exige.'
@@ -2347,13 +2354,13 @@ components:
           type: array
           items:
             type: string
-          description: 'chaves de NF-e não entregues'
+          description: 'chaves de NF-e não entregues.'
         nSeqEvento:
           type: integer
           description: 'Número sequencial do evento para a mesma chave. Começa em 1.'
     CteEventoPrestacaoDesacordo:
       type: object
-      description: 'PedidoDesacordo é o corpo de POST /v1/cte/eventos/prestacao-desacordo (tpEvento 610110). Registrado pelo TOMADOR quando a prestação está em desacordo; xObs descreve o motivo.'
+      description: 'O corpo de POST /v1/cte/eventos/prestacao-desacordo (tpEvento 610110). Registrado pelo TOMADOR quando a prestação está em desacordo; xObs descreve o motivo.'
       properties:
         xObs:
           type: string
@@ -2767,7 +2774,7 @@ components:
         tpCTe:
           type: integer
           enum: [0, 1, 3]
-          description: 'TpCTe não tem mais o valor 2 (Anulação): o CT-e de Anulação saiu do layout na versão 4.00, e a biblioteca fiscal só gera o grupo infCteAnu para VersaoDF <= 3.00 (pcteCTeW.pas:3309). Quem vem da 3.00 usa o CT-e Substituto (valor 3). Valores: 0 = Normal; 1 = Complemento de valores; 3 = Substituto.'
+          description: 'TpCTe não tem mais o valor 2 (Anulação): o CT-e de Anulação saiu do layout na versão 4.00, e a biblioteca fiscal só gera o grupo infCteAnu para VersaoDF <= 3.00. Quem vem da 3.00 usa o CT-e Substituto (valor 3). Valores: 0 = Normal; 1 = Complemento de valores; 3 = Substituto.'
         procEmi:
           type: integer
           enum: [0, 3, 4]
@@ -2996,7 +3003,7 @@ components:
           description: 'Chave de acesso do CT-e, 44 dígitos.'
     CteInfCteSimp:
       type: object
-      description: 'InfCteSimp é o corpo do CT-e Simplificado.'
+      description: 'O corpo do CT-e Simplificado.'
       properties:
         versao:
           type: string
@@ -3461,7 +3468,7 @@ components:
           description: 'Tipo de horário de entrega. Valores: 0 = Sem hora definida; 1 = No horário; 2 = Até o horário; 3 = A partir do horário; 4 = No intervalo de tempo.'
     CteToma:
       type: object
-      description: 'Toma é o tomador único do CT-e Simplificado/OS.'
+      description: 'O tomador único do CT-e Simplificado/OS.'
       properties:
         toma:
           type: integer
@@ -3500,20 +3507,20 @@ components:
             - $ref: "#/components/schemas/CteEndereco"
     CteToma3:
       type: object
-      description: 'Toma3 identifica o tomador quando ele JÁ é uma das partes do documento. Exclusivo com toma4: informe um ou outro, nunca os dois.'
+      description: 'O tomador quando ele JÁ é uma das partes do documento. Exclusivo com toma4: informe um ou outro, nunca os dois.'
       properties:
         toma:
           type: integer
           enum: [0, 1, 2, 3]
-          description: 'qual das partes do documento é o tomador Valores: 0 = Remetente; 1 = Expedidor; 2 = Recebedor; 3 = Destinatário.'
+          description: 'qual das partes do documento é o tomador. Valores: 0 = Remetente; 1 = Expedidor; 2 = Recebedor; 3 = Destinatário.'
     CteToma4:
       type: object
-      description: 'Toma4 identifica o tomador quando ele NÃO é nenhuma das partes do documento. Por isso toma é sempre 4 (Outros) e os dados dele vêm aqui. Exclusivo com toma3: informe um ou outro, nunca os dois.'
+      description: 'O tomador quando ele NÃO é nenhuma das partes do documento. Por isso toma é sempre 4 (Outros) e os dados dele vêm aqui. Exclusivo com toma3: informe um ou outro, nunca os dois.'
       properties:
         toma:
           type: integer
           enum: [4]
-          description: 'sempre 4; o tomador é um terceiro Valores: 4 = Outros.'
+          description: 'sempre 4; o tomador é um terceiro. Valores: 4 = Outros.'
         CNPJ:
           type: string
           description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
@@ -3540,12 +3547,12 @@ components:
           description: 'Endereço de e-mail.'
     CteTomadorEPEC:
       type: object
-      description: 'TomadorEPEC é a.'
+      description: 'A.'
       properties:
         toma:
           type: string
           enum: ["0", "1", "2", "3"]
-          description: 'default 1 Valores: 0 = Remetente; 1 = Expedidor; 2 = Recebedor; 3 = Destinatário.'
+          description: 'default 1. Valores: 0 = Remetente; 1 = Expedidor; 2 = Recebedor; 3 = Destinatário.'
         UF:
           type: string
           description: 'Sigla da unidade federativa, duas letras.'
@@ -3557,7 +3564,7 @@ components:
           description: 'Inscrição estadual. Use ISENTO quando isento.'
     CteTotal:
       type: object
-      description: 'Total são os totais do CT-e Simplificado.'
+      description: 'Os totais do CT-e Simplificado.'
       properties:
         vTPrest:
           type: number
@@ -3567,7 +3574,7 @@ components:
           description: 'Valor total recebido.'
     CteTranspParcial:
       type: object
-      description: 'TranspParcial é uma NF-e de transporte parcial vinculada a um doc anterior.'
+      description: 'Uma NF-e de transporte parcial vinculada a um doc anterior.'
       properties:
         chNFe:
           type: string
@@ -3781,7 +3788,7 @@ components:
           description: 'Tipo do vale-pedágio. Valores: 01 = TAG; 04 = Leitura da placa de identificação veicular.'
     MdfeDocInclusao:
       type: object
-      description: 'DocInclusao é uma NF-e a incluir.'
+      description: 'Uma NF-e a incluir.'
       properties:
         chNFe:
           type: string
@@ -3794,7 +3801,7 @@ components:
           description: 'Nome do município de descarregamento.'
     MdfeDocumento:
       type: object
-      description: 'PedidoEmissao é o MDF-e a ser gerado, no contrato da Nuvem Fiscal /.'
+      description: 'O MDF-e a ser gerado.'
       properties:
         infMDFe:
           allOf:
@@ -3867,25 +3874,25 @@ components:
           description: 'Endereço de e-mail.'
     MdfeEventoCancelamento:
       type: object
-      description: 'PedidoCancelamento é o corpo de POST /v1/mdfe/eventos/cancelamento.'
+      description: 'O corpo de POST /v1/mdfe/eventos/cancelamento.'
       properties:
         justificativa:
           type: string
           description: 'Justificativa. Mínimo de 15 caracteres.'
     MdfeEventoEncerramento:
       type: object
-      description: 'PedidoEncerramento é o corpo de POST /v1/mdfe/eventos/encerramento. chMDFe e nProt vêm do documento autorizado.'
+      description: 'O corpo de POST /v1/mdfe/eventos/encerramento. chMDFe e nProt vêm do documento autorizado.'
       properties:
         data_encerramento:
           type: string
           format: date
-          description: 'default hoje Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
+          description: 'default hoje. Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
         cUF:
           type: integer
-          description: 'UF do encerramento'
+          description: 'UF do encerramento.'
         cMun:
           type: string
-          description: 'município do encerramento'
+          description: 'município do encerramento.'
     MdfeEventoInclusaoCondutor:
       type: object
       description: 'PedidoInclusaoCondutor: POST /v1/mdfe/eventos/inclusao-condutor (evento 110114).'
@@ -3919,7 +3926,7 @@ components:
           description: 'Número sequencial do evento para a mesma chave. Começa em 1.'
     MdfeEventoPagamentoOperacao:
       type: object
-      description: 'PedidoPagamentoOperacao é o corpo de POST /v1/mdfe/eventos/pagamento-operacao (evento 110116). Registra o pagamento da operação de transporte. Reusa os tipos da emissão (InfPag/Comp/InfPrazo/InfBanc).'
+      description: 'O corpo de POST /v1/mdfe/eventos/pagamento-operacao (evento 110116). Registra o pagamento da operação de transporte. Reusa os tipos da emissão (InfPag/Comp/InfPrazo/InfBanc).'
       properties:
         infViagens:
           allOf:
@@ -4503,7 +4510,7 @@ components:
           description: 'Nome do solicitante.'
     MdfeInfViagens:
       type: object
-      description: 'InfViagens é a.'
+      description: 'A.'
       properties:
         qtdViagens:
           type: integer
@@ -4853,20 +4860,20 @@ components:
           description: 'Sigla da unidade federativa, duas letras.'
     NfseComExt:
       type: object
-      description: 'ComExt é o grupo de comércio exterior.'
+      description: 'O grupo de comércio exterior.'
       properties:
         mdPrestacao:
           type: string
-          description: 'modo de prestação'
+          description: 'modo de prestação.'
         vincPrest:
           type: string
-          description: 'vínculo da prestação'
+          description: 'vínculo da prestação.'
         tpMoeda:
           type: integer
-          description: 'código da moeda'
+          description: 'código da moeda.'
         vServMoeda:
           type: number
-          description: 'valor do serviço em moeda estrangeira'
+          description: 'valor do serviço em moeda estrangeira.'
         mecAFComexP:
           type: string
           description: 'Mecanismo de apoio ao comércio exterior do prestador.'
@@ -4878,16 +4885,16 @@ components:
           description: 'Movimentação temporária de bens.'
         nDI:
           type: string
-          description: 'nº da Declaração de Importação'
+          description: 'nº da Declaração de Importação.'
         nRE:
           type: string
-          description: 'nº do Registro de Exportação'
+          description: 'nº do Registro de Exportação.'
         mdic:
           type: integer
           description: 'Informações exigidas pelo MDIC.'
     NfseDestIBS:
       type: object
-      description: 'DestIBS é o destinatário da operação na Reforma.'
+      description: 'O destinatário da operação na Reforma.'
       properties:
         CNPJ:
           type: string
@@ -4939,7 +4946,7 @@ components:
           description: 'Telefone, só dígitos, com DDD.'
     NfseDocReeRep:
       type: object
-      description: 'DocReeRep é um documento de reembolso/representação/ressarcimento (gReeRepRes,. Identifica o doc por chave DFe, doc fiscal de outro município ou doc avulso, o fornecedor e o tipo/valor de reembolso.'
+      description: 'Um documento de reembolso/representação/ressarcimento. Identifica o doc por chave DFe, doc fiscal de outro município ou doc avulso, o fornecedor e o tipo/valor de reembolso.'
       properties:
         tipoChaveDFe:
           type: string
@@ -4991,7 +4998,7 @@ components:
           description: 'Valor do reembolso, repasse ou ressarcimento.'
     NfseDocumento:
       type: object
-      description: 'DPSPedido é o corpo de emissão (estilo Nuvem Fiscal: POST /v1/nfse/xml). NÃO existe campo para escolher o provedor. Quem o decide é o município (infDPS.cLocEmi, ou o cMun do prestador): a a biblioteca fiscal resolve o provedor lendo a própria tabela a partir do CodigoMunicipio, e não aceita override. Testado contra a lib: a biblioteca fiscal com a chave "Provedor" falha em todas as formas (PadraoNacional, proPadraoNacional). Para saber quem atende um município antes de montar, use GET /v1/nfse/municipios/{codigo}.'
+      description: 'O corpo de emissão. NÃO existe campo para escolher o provedor. Quem o decide é o município (infDPS.cLocEmi, ou o cMun do prestador): a biblioteca fiscal resolve o provedor lendo a própria tabela a partir do CodigoMunicipio, e não aceita override. Testado contra a lib: a biblioteca fiscal com a chave "Provedor" falha em todas as formas (PadraoNacional, proPadraoNacional). Para saber quem atende um município antes de montar, use GET /v1/nfse/municipios/{codigo}.'
       properties:
         ambiente:
           type: string
@@ -4999,41 +5006,41 @@ components:
           description: 'Ambiente de autorização. Omitir assume homologação; qualquer outro valor é recusado com 400. Valores: homologacao = Ambiente de homologação, sem valor fiscal; producao = Ambiente de produção.'
         referencia:
           type: string
-          description: 'id externo do cliente'
+          description: 'id externo do cliente.'
         infDPS:
           allOf:
             - $ref: "#/components/schemas/NfseInfDPS"
     NfseEventoCancelamento:
       type: object
-      description: 'CancelamentoPedido é o corpo do pedido de cancelamento (espelha o NfsePedidoCancelamento do. Códigos/motivos exigidos variam por prefeitura; no Padrão Nacional o código default é 1 (erro na emissão).'
+      description: 'O corpo do pedido de cancelamento. Códigos/motivos exigidos variam por prefeitura; no Padrão Nacional o código default é 1 (erro na emissão).'
       properties:
         codigo:
           type: string
-          description: 'CodCancelamento (default "1")'
+          description: 'CodCancelamento (default "1").'
         motivo:
           type: string
-          description: 'MotCancelamento'
+          description: 'MotCancelamento.'
     NfseEventoSubstituicao:
       type: object
-      description: 'SubstituicaoPedido é o corpo de POST /v1/nfse/eventos/substituicao: a DPS substituta (nova nota) + os identificadores da NFS-e antiga + o motivo do cancelamento. Espelha os parâmetros do a biblioteca fiscal (provedores que expõem o webservice SubstituiNFSe: o Padrão Nacional faz substituição via grupo subst na DPS, não por este método).'
+      description: 'O corpo de POST /v1/nfse/eventos/substituicao: a DPS substituta (nova nota) + os identificadores da NFS-e antiga + o motivo do cancelamento. Espelha os parâmetros do a biblioteca fiscal (provedores que expõem o webservice SubstituiNFSe: o Padrão Nacional faz substituição via grupo subst na DPS, não por este método).'
       properties:
         dps:
-          description: 'nota nova (substituta)'
+          description: 'nota nova (substituta).'
           allOf:
             - $ref: "#/components/schemas/NfseDocumento"
         substituida:
-          description: 'identifica a NFS-e antiga'
+          description: 'identifica a NFS-e antiga.'
           allOf:
             - $ref: "#/components/schemas/NfseNFSeSubstituidaRef"
         codigo:
           type: string
-          description: 'CodCancelamento, default "1"'
+          description: 'CodCancelamento, default "1".'
         motivo:
           type: string
           description: 'Descrição do status devolvido pelo fisco.'
     NfseGDifDPS:
       type: object
-      description: 'GDifDPS é o diferimento por ente.'
+      description: 'O diferimento por ente.'
       properties:
         pDifUF:
           type: number
@@ -5046,7 +5053,7 @@ components:
           description: 'Percentual de diferimento da CBS.'
     NfseGIBSCBSDPS:
       type: object
-      description: 'GIBSCBSDPS é a tributação IBS/CBS.'
+      description: 'A tributação IBS/CBS.'
       properties:
         CST:
           type: string
@@ -5065,7 +5072,7 @@ components:
             - $ref: "#/components/schemas/NfseGDifDPS"
     NfseGTribRegularDPS:
       type: object
-      description: 'GTribRegularDPS é a tributação regular de referência.'
+      description: 'A tributação regular de referência.'
       properties:
         CSTReg:
           type: string
@@ -5075,7 +5082,7 @@ components:
           description: 'Classificação tributária do regime específico (Reforma Tributária).'
     NfseIBSCBSDPS:
       type: object
-      description: 'IBSCBSDPS é o grupo da Reforma Tributária no DPS.'
+      description: 'O grupo da Reforma Tributária no DPS.'
       properties:
         finNFSe:
           type: string
@@ -5096,24 +5103,24 @@ components:
           type: string
           description: 'Indicador do destinatário.'
         dest:
-          description: 'destinatário'
+          description: 'destinatário.'
           allOf:
             - $ref: "#/components/schemas/NfseDestIBS"
         imovel:
-          description: 'imóvel'
+          description: 'imóvel.'
           allOf:
             - $ref: "#/components/schemas/NfseImovelIBS"
         documentos:
           type: array
           items:
             $ref: "#/components/schemas/NfseDocReeRep"
-          description: 'gReeRepRes'
+          description: 'gReeRepRes.'
         gIBSCBS:
           allOf:
             - $ref: "#/components/schemas/NfseGIBSCBSDPS"
     NfseImovelIBS:
       type: object
-      description: 'ImovelIBS identifica o imóvel da operação.'
+      description: 'O imóvel da operação.'
       properties:
         inscImobFisc:
           type: string
@@ -5138,32 +5145,32 @@ components:
           description: 'CEP, 8 dígitos, sem hífen.'
     NfseInfDPS:
       type: object
-      description: 'InfDPS são as informações da DPS (Declaração de Prestação de Serviços).'
+      description: 'As informações da DPS (Declaração de Prestação de Serviços).'
       properties:
         serie:
           type: string
           description: 'Série do documento.'
         nDPS:
           type: string
-          description: 'número do RPS/DPS'
+          description: 'número do RPS/DPS.'
         dCompet:
           type: string
           format: date
-          description: 'competência Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
+          description: 'competência. Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
         dhEmi:
           type: string
           format: date
-          description: 'emissão; vazio = hoje Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
+          description: 'emissão; vazio = hoje. Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
         tpEmit:
           type: integer
           enum: [1, 2, 3]
-          description: 'Valores: 1 = Prestador; 2 = Tomador; 3 = Intermediário.'
+          description: '. Valores: 1 = Prestador; 2 = Tomador; 3 = Intermediário.'
         verAplic:
           type: string
           description: 'Identificação do aplicativo que gerou o documento, até 20 caracteres. Omitir assume a identificação deste serviço; informe o nome do SEU aplicativo se é ele que o fisco deve ver.'
         cLocEmi:
           type: string
-          description: 'município emissor (IBGE); vazio = cMun do prestador'
+          description: 'município emissor (IBGE); vazio = cMun do prestador.'
         prest:
           allOf:
             - $ref: "#/components/schemas/NfsePessoa"
@@ -5171,7 +5178,7 @@ components:
           allOf:
             - $ref: "#/components/schemas/NfsePessoa"
         interm:
-          description: 'intermediário'
+          description: 'intermediário.'
           allOf:
             - $ref: "#/components/schemas/NfsePessoa"
         serv:
@@ -5181,12 +5188,12 @@ components:
           allOf:
             - $ref: "#/components/schemas/NfseValores"
         ibscbs:
-          description: 'Reforma Tributária (grupo IBSCBSDPS)'
+          description: 'Reforma Tributária (grupo IBSCBSDPS).'
           allOf:
             - $ref: "#/components/schemas/NfseIBSCBSDPS"
     NfseInfoCompl:
       type: object
-      description: 'InfoCompl são informações complementares.'
+      description: 'Informações complementares.'
       properties:
         idDocTec:
           type: string
@@ -5204,10 +5211,10 @@ components:
           type: array
           items:
             type: string
-          description: 'itens do pedido'
+          description: 'itens do pedido.'
     NfseNFSeSubstituidaRef:
       type: object
-      description: 'NFSeSubstituidaRef identifica a NFS-e que está sendo substituída. Os valores vêm da emissão original (número/série/cód. verificação retornados pelo provedor).'
+      description: 'A NFS-e que está sendo substituída. Os valores vêm da emissão original (número/série/cód. verificação retornados pelo provedor).'
       properties:
         numero:
           type: string
@@ -5223,7 +5230,7 @@ components:
           description: 'Número do lote da nota substituída.'
     NfsePessoa:
       type: object
-      description: 'Pessoa representa prestador ou tomador.'
+      description: 'Prestador ou tomador.'
       properties:
         CNPJ:
           type: string
@@ -5233,13 +5240,13 @@ components:
           description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
         IM:
           type: string
-          description: 'inscrição municipal'
+          description: 'inscrição municipal.'
         xNome:
           type: string
-          description: 'razão social / nome'
+          description: 'razão social / nome.'
         cMun:
           type: string
-          description: 'código do município (IBGE)'
+          description: 'código do município (IBGE).'
         UF:
           type: string
           description: 'Sigla da unidade federativa, duas letras.'
@@ -5251,7 +5258,7 @@ components:
           description: 'Endereço de e-mail.'
         logradouro:
           type: string
-          description: 'Endereço/contato (Padrão Nacional:.'
+          description: 'Endereço/contato.'
         numero:
           type: string
           description: 'Número do documento.'
@@ -5269,80 +5276,81 @@ components:
           description: 'CPais/XPais só precisam ser informados para endereço NO EXTERIOR. Endereço nacional (com cMun) recebe 1058 (Brasil) automaticamente: ver pessoaCommon.'
         xPais:
           type: string
-          description: 'nome do país'
+          description: 'nome do país.'
         regTrib:
           description: 'RegTrib (regime tributário) é obrigatório para o prestador no Padrão Nacional, sem ele a biblioteca fiscal falha ao montar o XML.'
           allOf:
             - $ref: "#/components/schemas/NfseRegTrib"
     NfseRegTrib:
       type: object
-      description: 'RegTrib é o regime tributário do prestador.'
+      description: 'O regime tributário do prestador.'
       properties:
         opSimpNac:
           type: integer
           enum: [1, 2, 3]
-          description: 'Valores: 1 = Não optante; 2 = Optante, MEI (Microempreendedor Individual); 3 = Optante, ME/EPP (Microempresa ou Empresa de Pequeno Porte).'
+          description: '. Valores: 1 = Não optante; 2 = Optante, MEI (Microempreendedor Individual); 3 = Optante, ME/EPP (Microempresa ou Empresa de Pequeno Porte).'
         regApTribSN:
           type: integer
           enum: [1, 2, 3]
-          description: 'regime de apuração do Simples Nacional Valores: 1 = Tributos federais e municipal pelo Simples Nacional; 2 = Federais pelo SN; ISSQN por fora do SN (legislação municipal); 3 = Tributos federais e municipal por fora do SN.'
+          description: 'regime de apuração do Simples Nacional. Valores: 1 = Tributos federais e municipal pelo Simples Nacional; 2 = Federais pelo SN; ISSQN por fora do SN (legislação municipal); 3 = Tributos federais e municipal por fora do SN.'
         regEspTrib:
           type: integer
           enum: [0, 1, 2, 3, 4, 5, 6, 9]
-          description: 'regime especial de tributação Valores: 0 = Nenhum; 1 = Ato cooperado (cooperativa); 2 = Estimativa; 3 = Microempresa municipal; 4 = Notário ou registrador; 5 = Profissional autônomo; 6 = Sociedade de profissionais; 9 = Outros.'
+          description: 'regime especial de tributação. Valores: 0 = Nenhum; 1 = Ato cooperado (cooperativa); 2 = Estimativa; 3 = Microempresa municipal; 4 = Notário ou registrador; 5 = Profissional autônomo; 6 = Sociedade de profissionais; 9 = Outros.'
         incentivadorCultural:
           type: integer
           description: 'Campos exclusivos ABRASF (municípios fora do Padrão Nacional): opcionais, ignorados na emissão Padrão Nacional.'
         dataOptanteSimplesNacional:
           type: string
           format: date
-          description: 'Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
+          description: '. Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
     NfseServico:
       type: object
-      description: 'Servico descreve o serviço prestado.'
+      description: 'O serviço prestado.'
       properties:
         cMunPrestacao:
           type: string
-          description: 'município da prestação (IBGE)'
+          description: 'município da prestação (IBGE).'
         cServ:
           type: string
-          description: 'item da lista (→ cTribNac no Padrão Nacional)'
+          description: 'item da lista (→ cTribNac no Padrão Nacional).'
         cTribMun:
           type: string
-          description: 'código de tributação municipal'
+          description: 'código de tributação municipal.'
         cNBS:
           type: string
-          description: 'código NBS'
+          description: 'código NBS.'
         codigoCnae:
           type: string
-          description: 'CNAE'
+          description: 'CNAE.'
         xDescServ:
           type: string
-          description: 'discriminação'
+          description: 'discriminação.'
         exigibilidadeISS:
           type: integer
-          description: '1=exigível, 2=não incidência...'
+          enum: [1, 2, 3, 4, 5, 6, 7]
+          description: 'Campo do padrão ABRASF: o Padrão Nacional usa tribMun.tribISSQN. Os provedores ABRASF esperam a tabela do layout 2.04. Valores: 1 = Exigível; 2 = Não incidência; 3 = Isenção; 4 = Exportação; 5 = Imunidade; 6 = Exigibilidade suspensa por decisão judicial; 7 = Exigibilidade suspensa por processo administrativo.'
         municipioIncidencia:
           type: string
-          description: 'município de incidência do ISS (IBGE)'
+          description: 'município de incidência do ISS (IBGE).'
         xMunicipioIncidencia:
           type: string
           description: 'Nome do município de incidência do ISSQN.'
         numeroProcesso:
           type: string
-          description: 'processo de suspensão/exigibilidade'
+          description: 'processo de suspensão/exigibilidade.'
         codigoPais:
           type: string
-          description: 'país da prestação (exterior)'
+          description: 'país da prestação (exterior).'
         xPais:
           type: string
           description: 'Nome do país.'
         comExt:
-          description: 'comércio exterior'
+          description: 'comércio exterior.'
           allOf:
             - $ref: "#/components/schemas/NfseComExt"
         infoCompl:
-          description: 'informações complementares'
+          description: 'informações complementares.'
           allOf:
             - $ref: "#/components/schemas/NfseInfoCompl"
         itemListaServico:
@@ -5353,10 +5361,10 @@ components:
           description: 'Responsável pela retenção do ISSQN.'
         naturezaOperacao:
           type: integer
-          description: 'ABRASF v1'
+          description: 'ABRASF v1.'
     NfseTotTrib:
       type: object
-      description: 'TotTrib são os totais aproximados de tributos.'
+      description: 'Os totais aproximados de tributos.'
       properties:
         indTotTrib:
           type: integer
@@ -5384,7 +5392,7 @@ components:
           description: 'Percentual total dos tributos municipais.'
     NfseTribFed:
       type: object
-      description: 'TribFed é a tributação federal: PIS/COFINS + retenções.'
+      description: 'A tributação federal: PIS/COFINS + retenções.'
       properties:
         CST:
           type: string
@@ -5418,69 +5426,70 @@ components:
           description: 'Valor retido de CSLL.'
     NfseTribMun:
       type: object
-      description: 'TribMun é a tributação municipal.'
+      description: 'A tributação municipal.'
       properties:
         tribISSQN:
           type: integer
           enum: [1, 2, 3, 4]
-          description: 'Valores: 1 = Operação tributável; 2 = Exportação de serviço; 3 = Não incidência; 4 = Imunidade.'
+          description: '. Valores: 1 = Operação tributável; 2 = Exportação de serviço; 3 = Não incidência; 4 = Imunidade.'
         tpRetISSQN:
           type: integer
-          description: '1=não retido, 2=retido tomador...'
+          enum: [1, 2, 3]
+          description: 'Valores: 1 = Não retido; 2 = Retido pelo tomador; 3 = Retido pelo intermediário.'
         pAliq:
           type: number
-          description: 'alíquota (%)'
+          description: 'alíquota (%).'
         tpImunidade:
           type: integer
-          description: 'tipo de imunidade'
+          description: 'tipo de imunidade.'
         tpSusp:
           type: integer
-          description: 'exigibilidade suspensa'
+          description: 'exigibilidade suspensa.'
         nProcesso:
           type: string
-          description: 'processo de suspensão'
+          description: 'processo de suspensão.'
         vRedBCBM:
           type: number
-          description: 'redução da BC (benefício)'
+          description: 'redução da BC (benefício).'
         pRedBCBM:
           type: number
           description: 'Percentual de redução da base de cálculo do benefício municipal.'
         nBM:
           type: string
-          description: 'nº do benefício municipal'
+          description: 'nº do benefício municipal.'
     NfseValores:
       type: object
-      description: 'Valores são os montantes e a tributação do serviço (ISSQN + federal + totais).'
+      description: 'Os montantes e a tributação do serviço (ISSQN + federal + totais).'
       properties:
         vServ:
           type: number
-          description: 'valor dos serviços'
+          description: 'valor dos serviços.'
         vReceb:
           type: number
-          description: 'valor recebido'
+          description: 'valor recebido.'
         vDescIncond:
           type: number
-          description: 'desconto incondicionado'
+          description: 'desconto incondicionado.'
         vDescCond:
           type: number
-          description: 'desconto condicionado'
+          description: 'desconto condicionado.'
         vDeducoes:
           type: number
-          description: 'valor das deduções'
+          description: 'valor das deduções.'
         pDeducoes:
           type: number
-          description: 'alíquota de deduções (%)'
+          description: 'alíquota de deduções (%).'
         tribISSQN:
           type: integer
           enum: [1, 2, 3, 4]
           description: 'ISSQN (atalhos comuns; o detalhe vai em tribMun). Valores: 1 = Operação tributável; 2 = Exportação de serviço; 3 = Não incidência; 4 = Imunidade.'
         pAliq:
           type: number
-          description: 'alíquota ISS (%)'
+          description: 'alíquota ISS (%).'
         iss_retido:
           type: integer
           enum: [1, 2]
-          description: 'default 2 Valores: 1 = Retido pelo tomador; 2 = Não retido.'
+          description: 'default 2. Valores: 1 = Retido pelo tomador; 2 = Não retido.'
         tribMun:
           description: 'Tributação detalhada (Padrão Nacional).'
           allOf:
@@ -5505,11 +5514,17 @@ components:
               description: |
                 Chave estável para tratar por máquina: `json_invalido`,
                 `campo_obrigatorio`, `certificado_invalido`, `chave_invalida`,
-                `regras_de_negocio`, `provedor_nao_suportado`,
-                `operacao_nao_suportada`, `desfecho_indeterminado`,
-                `lib_indisponivel`, `falha_na_lib`.
-            mensagem: { type: string }
-            detalhes: { description: contexto (rejeições, XML montado, retorno cru) }
+                `ambiente_invalido`, `ambiente_divergente`,
+                `modal_nao_suportado`, `regras_de_negocio`,
+                `provedor_nao_suportado`, `operacao_nao_suportada`,
+                `desfecho_indeterminado`, `lib_indisponivel`, `falha_na_lib`.
+            mensagem:
+              type: string
+              description: Texto legível do erro. Para tratar por máquina, use o codigo.
+            detalhes:
+              description: >-
+                Contexto do erro, quando existe: a lista de rejeições, o XML
+                montado, ou o retorno cru da biblioteca fiscal.
 
   responses:
     StatusOK:
@@ -5519,7 +5534,7 @@ components:
           schema:
             type: object
             properties:
-              status: { type: string, example: ok }
+              status: { type: string, example: ok, description: "Sempre ok." }
 
     RespostaCrua:
       description: |
@@ -5530,9 +5545,9 @@ components:
           schema:
             type: object
             properties:
-              codigo: { type: integer }
-              resposta: { type: string }
-              xml_b64: { type: string, format: byte }
+              codigo: { type: integer, description: "Código de retorno da biblioteca fiscal. 0 é sucesso." }
+              resposta: { type: string, description: "Retorno cru, no formato que o provedor devolveu." }
+              xml_b64: { type: string, format: byte, description: "XML da resposta, em base64, quando a operação produz um." }
 
     RespostaPDF:
       description: OK
@@ -5541,7 +5556,7 @@ components:
           schema:
             type: object
             properties:
-              pdf_b64: { type: string, format: byte }
+              pdf_b64: { type: string, format: byte, description: "PDF da representação gráfica, em base64." }
 
     Erro400:
       description: Pedido inválido
