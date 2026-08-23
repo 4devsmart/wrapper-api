@@ -26,6 +26,10 @@ info:
     A responsabilidade pelo conteúdo fiscal é de quem emite. Validamos o que a
     biblioteca fiscal valida e transmitimos o que você mandou.
 
+    **CT-e e MDF-e cobrem o modal rodoviário, e só ele.** Os demais modais estão
+    fora do contrato e são recusados na entrada, não ignorados em silêncio. Veja
+    a descrição de cada um em `cte` e `mdfe`.
+
     A biblioteca acompanha as **notas técnicas** do fisco e o ciclo de
     atualização de layout. Manter a versão em dia é responsabilidade de quem
     hospeda: prazo de nota técnica é obrigatório, e versão atrasada é rejeição
@@ -140,12 +144,24 @@ tags:
       **Conhecimento de Transporte eletrônico**, modelo 57, e o CT-e OS,
       modelo 67. Documenta a prestação de serviço de transporte.
 
+      **Modal rodoviário, e só ele.** Aéreo, aquaviário, ferroviário,
+      dutoviário e multimodal estão fora do contrato: `ide.modal` diferente de
+      `01` é `422 modal_nao_suportado`, e os grupos `infModal.aereo`, `.aquav`,
+      `.ferrov`, `.duto` e `.multimodal` não existem, então mandá-los é `400
+      campo desconhecido`. Aceitar e ignorar geraria um CT-e autorizado sem o
+      grupo do modal, e você só descobriria depois do fisco.
+
       Gere em `/cte/xml`, transmita em `/cte/transmissao`. O DACTE só sai do
       XML autorizado: guarde-o.
   - name: mdfe
     description: |
       **Manifesto Eletrônico de Documentos Fiscais**, modelo 58. Agrupa os
       documentos de uma viagem e acompanha o veículo.
+
+      **Modal rodoviário, e só ele.** Aéreo, aquaviário e ferroviário estão fora
+      do contrato: `ide.modal` diferente de `1` é `422 modal_nao_suportado`, e
+      os grupos `infModal.aereo`, `.aquav` e `.ferrov` não existem, então
+      mandá-los é `400 campo desconhecido`.
 
       Gere em `/mdfe/xml`, transmita em `/mdfe/transmissao`. Encerre a viagem
       pelo evento de encerramento: manifesto em aberto impede emitir o próximo.
@@ -1725,67 +1741,6 @@ components:
         chaveNFe:
           type: string
           description: 'Vínculo fiscal.'
-    CteAereo:
-      type: object
-      description: 'Modal aéreo.'
-      properties:
-        nMinu:
-          type: integer
-          description: 'Número da minuta.'
-        nOCA:
-          type: string
-          description: 'Número da Ordem de Coleta Aéreo.'
-        dPrevAereo:
-          type: string
-          description: 'Data prevista da entrega no modal aéreo.'
-        natCarga:
-          allOf:
-            - $ref: "#/components/schemas/CteNatCarga"
-        tarifa:
-          allOf:
-            - $ref: "#/components/schemas/CteTarifa"
-        peri:
-          type: array
-          items:
-            $ref: "#/components/schemas/CtePeri"
-          description: 'Produtos perigosos transportados, conforme a ONU.'
-    CteAquav:
-      type: object
-      description: 'Modal aquaviário.'
-      properties:
-        vPrest:
-          type: number
-          description: 'Grupo de valores da prestação de serviço.'
-        vAFRMM:
-          type: number
-          description: 'Valor do Adicional ao Frete para Renovação da Marinha Mercante.'
-        xNavio:
-          type: string
-          description: 'Nome do navio.'
-        balsa:
-          type: array
-          items:
-            $ref: "#/components/schemas/CteBalsa"
-          description: 'Balsas utilizadas no transporte aquaviário.'
-        nViag:
-          type: string
-          description: 'Número da viagem.'
-        direc:
-          type: string
-          enum: ["N", "L", "S", "O"]
-          description: 'Direção da navegação no modal aquaviário. Valores: N = Norte; L = Leste; S = Sul; O = Oeste.'
-        irin:
-          type: string
-          description: 'Número IRIN do navio.'
-        detCont:
-          type: array
-          items:
-            $ref: "#/components/schemas/CteDetCont"
-          description: 'Detalhamento dos contêineres transportados.'
-        tpNav:
-          type: integer
-          enum: [0, 1]
-          description: 'Tipo de navegação, no modal aquaviário. Valores: 0 = Interior; 1 = Cabotagem.'
     CteAutXML:
       type: object
       description: 'CNPJ ou CPF autorizado a baixar o XML do documento.'
@@ -1796,13 +1751,6 @@ components:
         CPF:
           type: string
           description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
-    CteBalsa:
-      type: object
-      description: 'Balsa utilizada no transporte aquaviário.'
-      properties:
-        xBalsa:
-          type: string
-          description: 'Identificação da balsa.'
     CteCIBS:
       type: object
       description: 'Grupo do IBS e da CBS (Reforma Tributária).'
@@ -2003,58 +1951,6 @@ components:
           items:
             $ref: "#/components/schemas/CteDetDocAnt"
           description: 'Documentos de transporte anteriores.'
-    CteDetCont:
-      type: object
-      description: 'Detalhamento do contêiner e dos documentos nele.'
-      properties:
-        nCont:
-          type: string
-          description: 'Número de identificação do contêiner.'
-        lacre:
-          type: array
-          items:
-            $ref: "#/components/schemas/CteLacre"
-          description: 'Lacres aplicados.'
-        infDoc:
-          allOf:
-            - $ref: "#/components/schemas/CteDetContInfDoc"
-    CteDetContInfDoc:
-      type: object
-      description: 'Documentos dentro do contêiner.'
-      properties:
-        infNF:
-          type: array
-          items:
-            $ref: "#/components/schemas/CteDetContInfNF"
-          description: 'Notas fiscais em papel vinculadas ao documento.'
-        infNFe:
-          type: array
-          items:
-            $ref: "#/components/schemas/CteDetContInfNFe"
-          description: 'Notas fiscais eletrônicas vinculadas ao documento.'
-    CteDetContInfNF:
-      type: object
-      description: 'Nota fiscal em papel dentro do contêiner.'
-      properties:
-        serie:
-          type: string
-          description: 'Série do documento.'
-        nDoc:
-          type: string
-          description: 'Número do documento.'
-        unidRat:
-          type: number
-          description: 'Unidade de medida do rateio.'
-    CteDetContInfNFe:
-      type: object
-      description: 'Nota fiscal eletrônica dentro do contêiner.'
-      properties:
-        chave:
-          type: string
-          description: 'Chave de acesso do documento, 44 dígitos.'
-        unidRat:
-          type: number
-          description: 'Unidade de medida do rateio.'
     CteDetDocAnt:
       type: object
       description: 'DetDocAnt é um documento anterior dentro de um trecho do Simplificado.'
@@ -2145,36 +2041,6 @@ components:
         vDup:
           type: number
           description: 'Valor da duplicata.'
-    CteDuto:
-      type: object
-      description: 'Modal dutoviário.'
-      properties:
-        vTar:
-          type: number
-          description: 'Valor da tarifa.'
-        dIni:
-          type: string
-          description: 'Data inicial do período.'
-        dFim:
-          type: string
-          description: 'Data final do período.'
-        classDuto:
-          type: integer
-          enum: [1, 2, 3]
-          description: 'Classificação no modal dutoviário. Valores: 1 = Gasoduto; 2 = Mineroduto; 3 = Oleoduto.'
-        tpContratacao:
-          type: integer
-          enum: [0, 1, 2]
-          description: 'Tipo de contratação no modal dutoviário. Valores: 0 = Ponta a ponto; 1 = Capacidade de entrada; 2 = Capacidade de saída.'
-        codPontoEntrada:
-          type: string
-          description: 'Código do ponto de entrada no duto.'
-        codPontoSaida:
-          type: string
-          description: 'Código do ponto de saída do duto.'
-        nContrato:
-          type: string
-          description: 'Número do contrato.'
     CteEmiDocAnt:
       type: object
       description: 'Emitente dos documentos anteriores.'
@@ -2278,34 +2144,6 @@ components:
         fone:
           type: string
           description: 'Telefone, só dígitos, com DDD.'
-    CteEnderFer:
-      type: object
-      description: 'Endereço no modal ferroviário.'
-      properties:
-        xLgr:
-          type: string
-          description: 'Logradouro.'
-        nro:
-          type: string
-          description: 'Número do endereço. Use SN quando não houver.'
-        xCpl:
-          type: string
-          description: 'Complemento do endereço.'
-        xBairro:
-          type: string
-          description: 'Bairro.'
-        cMun:
-          type: string
-          description: 'Código IBGE do município, 7 dígitos.'
-        xMun:
-          type: string
-          description: 'Nome do município.'
-        CEP:
-          type: string
-          description: 'CEP, 8 dígitos, sem hífen.'
-        UF:
-          type: string
-          description: 'Sigla da unidade federativa, duas letras.'
     CteEndereco:
       type: object
       description: 'Endereço. CodigoPais 1058 identifica endereço nacional.'
@@ -2453,8 +2291,8 @@ components:
           description: 'Valor total da carga.'
         modal:
           type: string
-          enum: ["01", "02", "03", "04", "05", "06"]
-          description: 'default 01 Valores: 01 = Rodoviário; 02 = Aéreo; 03 = Aquaviário; 04 = Ferroviário; 05 = Dutoviário; 06 = Multimodal.'
+          enum: ["01"]
+          description: 'default 01 Valores: 01 = Rodoviário. É o único modal que este serviço emite.'
         UFIni:
           type: string
           description: 'Sigla da UF de início da prestação.'
@@ -2564,39 +2402,6 @@ components:
         vLiq:
           type: number
           description: 'Valor líquido.'
-    CteFerroEnv:
-      type: object
-      description: 'Ferrovia envolvida no tráfego mútuo.'
-      properties:
-        CNPJ:
-          type: string
-          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
-        cInt:
-          type: string
-          description: 'Código interno de uso do emitente. Não vai no XML.'
-        IE:
-          type: string
-          description: 'Inscrição estadual. Use ISENTO quando isento.'
-        xNome:
-          type: string
-          description: 'Razão social ou nome.'
-        enderFerro:
-          allOf:
-            - $ref: "#/components/schemas/CteEnderFer"
-    CteFerrov:
-      type: object
-      description: 'Modal ferroviário.'
-      properties:
-        tpTraf:
-          type: integer
-          enum: [0, 1, 2, 3]
-          description: 'Tipo de tráfego no modal ferroviário. Valores: 0 = Próprio; 1 = Mútuo; 2 = Rodoferroviário; 3 = Rodoviário.'
-        trafMut:
-          allOf:
-            - $ref: "#/components/schemas/CteTrafMut"
-        fluxo:
-          type: string
-          description: 'Fluxo ferroviário: origem, passagens e destino.'
     CteFluxo:
       type: object
       description: 'Fluxo da carga: origem, passagens e destino.'
@@ -2985,8 +2790,8 @@ components:
           description: 'Sigla da UF de envio.'
         modal:
           type: string
-          enum: ["01", "02", "03", "04", "05", "06"]
-          description: 'Valores: 01 = Rodoviário; 02 = Aéreo; 03 = Aquaviário; 04 = Ferroviário; 05 = Dutoviário; 06 = Multimodal.'
+          enum: ["01"]
+          description: 'Valores: 01 = Rodoviário. É o único modal que este serviço emite.'
         tpServ:
           type: integer
           enum: [0, 1, 2, 6, 7, 8]
@@ -3297,21 +3102,6 @@ components:
         rodo:
           allOf:
             - $ref: "#/components/schemas/CteRodo"
-        aereo:
-          allOf:
-            - $ref: "#/components/schemas/CteAereo"
-        ferrov:
-          allOf:
-            - $ref: "#/components/schemas/CteFerrov"
-        aquav:
-          allOf:
-            - $ref: "#/components/schemas/CteAquav"
-        duto:
-          allOf:
-            - $ref: "#/components/schemas/CteDuto"
-        multimodal:
-          allOf:
-            - $ref: "#/components/schemas/CteMultimodal"
     CteInfNF:
       type: object
       description: 'Nota fiscal em papel vinculada.'
@@ -3451,16 +3241,6 @@ components:
         qCarga:
           type: number
           description: 'Quantidade da carga.'
-    CteInfSeg:
-      type: object
-      description: 'Dados da seguradora.'
-      properties:
-        xSeg:
-          type: string
-          description: 'Nome da seguradora.'
-        CNPJ:
-          type: string
-          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
     CteInfServVinc:
       type: object
       description: 'Serviços vinculados a um multimodal.'
@@ -3477,17 +3257,6 @@ components:
         xSolic:
           type: string
           description: 'Nome do solicitante.'
-    CteInfTotAP:
-      type: object
-      description: 'Total aproximado dos tributos.'
-      properties:
-        qTotProd:
-          type: number
-          description: 'Quantidade total do produto.'
-        uniAP:
-          type: integer
-          enum: [1, 2, 3, 4, 5]
-          description: 'Unidade do total aproximado de tributos. Valores: 1 = KG; 2 = KG G (quilograma bruto); 3 = Litros; 4 = TI (índice de transporte para radioativos); 5 = Unidades, para artigos perigosos que não se medem pelas anteriores (baterias, celulares, equipamentos, veículos).'
     CteLacUnidCarga:
       type: object
       description: 'Lacre da unidade de carga.'
@@ -3502,41 +3271,6 @@ components:
         nLacre:
           type: string
           description: 'Número do lacre.'
-    CteLacre:
-      type: object
-      description: 'Lacre aplicado à unidade.'
-      properties:
-        nLacre:
-          type: string
-          description: 'Número do lacre.'
-    CteMultimodal:
-      type: object
-      description: 'Modal multimodal.'
-      properties:
-        COTM:
-          type: string
-          description: 'Número do Conhecimento de Transporte Multimodal de Cargas.'
-        indNegociavel:
-          type: integer
-          enum: [0, 1]
-          description: 'Indica se o CT-e é negociável. Valores: 0 = Não negociável; 1 = Negociável.'
-        seg:
-          description: 'Seguros da carga.'
-          allOf:
-            - $ref: "#/components/schemas/CteSeg"
-    CteNatCarga:
-      type: object
-      description: 'Natureza da carga: peso, valor e características.'
-      properties:
-        xDime:
-          type: string
-          description: 'Dimensões da carga, no formato CxLxA em metros.'
-        cInfManu:
-          type: array
-          items:
-            type: string
-            enum: ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "99"]
-          description: 'Informações de manuseio da carga. Valores: 01 = Certificado do expedidor para embarque de animal vivo; 02 = Artigo perigoso conforme Declaração do Expedidor anexa; 03 = Somente em aeronave cargueira; 04 = Artigo perigoso, Declaração do Expedidor não requerida; 05 = Artigo perigoso em quantidade isenta; 06 = Gelo seco para refrigeração (informe a quantidade nas observações); 07 = Não restrito (informe a Disposição Especial nas observações); 08 = Artigo perigoso em carga consolidada (informe a quantidade nas observações); 09 = Autorização da autoridade governamental anexa (identifique nas observações); 10 = Baterias de íons de lítio conforme a Seção II da PI965, CAO; 11 = Baterias de íons de lítio conforme a Seção II da PI966; 12 = Baterias de íons de lítio conforme a Seção II da PI967; 13 = Baterias de metal lítio conforme a Seção II da PI968, CAO; 14 = Baterias de metal lítio conforme a Seção II da PI969; 15 = Baterias de metal lítio conforme a Seção II da PI970; 99 = Outro (descreva nas observações).'
     CteNoInter:
       type: object
       description: 'Entrega dentro de um intervalo de horas.'
@@ -3609,19 +3343,6 @@ components:
         xPass:
           type: string
           description: 'Sigla ou código do ponto de passagem.'
-    CtePeri:
-      type: object
-      description: 'Produtos perigosos, conforme a resolução da ANTT.'
-      properties:
-        nONU:
-          type: string
-          description: 'Número ONU do produto perigoso, 4 dígitos.'
-        qTotEmb:
-          type: string
-          description: 'Quantidade total de embalagens do produto perigoso.'
-        infTotAP:
-          allOf:
-            - $ref: "#/components/schemas/CteInfTotAP"
     CteReceb:
       type: object
       description: 'Recebedor da carga, quando diferente do destinatário.'
@@ -3722,19 +3443,6 @@ components:
           items:
             $ref: "#/components/schemas/CteOcc"
           description: 'Ordens de Coleta de Carga.'
-    CteSeg:
-      type: object
-      description: 'Seguro da carga.'
-      properties:
-        infSeg:
-          allOf:
-            - $ref: "#/components/schemas/CteInfSeg"
-        nApol:
-          type: string
-          description: 'Número da apólice de seguro.'
-        nAver:
-          type: string
-          description: 'Número da averbação do seguro.'
     CteSemData:
       type: object
       description: 'Entrega sem data definida.'
@@ -3751,19 +3459,6 @@ components:
           type: integer
           enum: [0, 1, 2, 3, 4]
           description: 'Tipo de horário de entrega. Valores: 0 = Sem hora definida; 1 = No horário; 2 = Até o horário; 3 = A partir do horário; 4 = No intervalo de tempo.'
-    CteTarifa:
-      type: object
-      description: 'Tarifa aplicada no modal aéreo.'
-      properties:
-        CL:
-          type: string
-          description: 'Classe da tarifa no modal aéreo.'
-        cTar:
-          type: string
-          description: 'Código da tarifa no modal aéreo.'
-        vTar:
-          type: number
-          description: 'Valor da tarifa.'
     CteToma:
       type: object
       description: 'Toma é o tomador único do CT-e Simplificado/OS.'
@@ -3870,29 +3565,6 @@ components:
         vTRec:
           type: number
           description: 'Valor total recebido.'
-    CteTrafMut:
-      type: object
-      description: 'Tráfego mútuo entre ferrovias.'
-      properties:
-        respFat:
-          type: integer
-          enum: [1, 2]
-          description: 'Ferrovia responsável pelo faturamento no tráfego mútuo. Valores: 1 = Ferrovia de origem; 2 = Ferrovia de destino.'
-        ferrEmi:
-          type: integer
-          enum: [1, 2]
-          description: 'Ferrovia emitente do CT-e. Valores: 1 = Ferrovia de origem; 2 = Ferrovia de destino.'
-        vFrete:
-          type: number
-          description: 'Valor do frete.'
-        chCTeFerroOrigem:
-          type: string
-          description: 'Chave do CT-e ferroviário de origem.'
-        ferroEnv:
-          type: array
-          items:
-            $ref: "#/components/schemas/CteFerroEnv"
-          description: 'Ferrovias envolvidas no tráfego mútuo.'
     CteTranspParcial:
       type: object
       description: 'TranspParcial é uma NF-e de transporte parcial vinculada a um doc anterior.'
@@ -4050,88 +3722,6 @@ components:
         vFrete:
           type: number
           description: 'Valor do frete.'
-    MdfeAereo:
-      type: object
-      description: 'Modal aéreo.'
-      properties:
-        nac:
-          type: string
-          description: 'Nacionalidade da aeronave.'
-        matr:
-          type: string
-          description: 'Matrícula da aeronave.'
-        nVoo:
-          type: string
-          description: 'Número do voo.'
-        cAerEmb:
-          type: string
-          description: 'Código do aeródromo de embarque.'
-        cAerDes:
-          type: string
-          description: 'Código do aeródromo de destino.'
-        dVoo:
-          type: string
-          description: 'Data do voo.'
-    MdfeAquav:
-      type: object
-      description: 'Modal aquaviário.'
-      properties:
-        irin:
-          type: string
-          description: 'Número IRIN do navio.'
-        tpEmb:
-          type: string
-          description: 'Tipo de embarcação.'
-        cEmbar:
-          type: string
-          description: 'Código da embarcação.'
-        xEmbar:
-          type: string
-          description: 'Nome da embarcação.'
-        nViag:
-          type: string
-          description: 'Número da viagem.'
-        cPrtEmb:
-          type: string
-          description: 'Código do porto de embarque.'
-        cPrtDest:
-          type: string
-          description: 'Código do porto de destino.'
-        prtTrans:
-          type: string
-          description: 'Porto de transbordo.'
-        tpNav:
-          type: integer
-          enum: [0, 1]
-          description: 'Tipo de navegação, no modal aquaviário. Valores: 0 = Interior; 1 = Cabotagem.'
-        infTermCarreg:
-          type: array
-          items:
-            $ref: "#/components/schemas/MdfeInfTermCarreg"
-          description: 'Terminais de carregamento no modal aquaviário.'
-        infTermDescarreg:
-          type: array
-          items:
-            $ref: "#/components/schemas/MdfeInfTermDescarreg"
-          description: 'Terminais de descarregamento no modal aquaviário.'
-        infEmbComb:
-          type: array
-          items:
-            $ref: "#/components/schemas/MdfeInfEmbComb"
-          description: 'Embarcações do comboio.'
-        infUnidCargaVazia:
-          type: array
-          items:
-            $ref: "#/components/schemas/MdfeInfUnidCargaVazia"
-          description: 'Unidades de carga que seguem vazias.'
-        infUnidTranspVazia:
-          type: array
-          items:
-            $ref: "#/components/schemas/MdfeInfUnidTranspVazia"
-          description: 'Unidades de transporte que seguem vazias.'
-        MMSI:
-          type: string
-          description: 'Identificação MMSI da embarcação.'
     MdfeAutXML:
       type: object
       description: 'CNPJ ou CPF autorizado a baixar o XML do documento.'
@@ -4342,18 +3932,6 @@ components:
         nSeqEvento:
           type: integer
           description: 'Número sequencial do evento para a mesma chave. Começa em 1.'
-    MdfeFerrov:
-      type: object
-      description: 'Modal ferroviário.'
-      properties:
-        trem:
-          allOf:
-            - $ref: "#/components/schemas/MdfeTrem"
-        vag:
-          type: array
-          items:
-            $ref: "#/components/schemas/MdfeVag"
-          description: 'Vagões da composição.'
     MdfeIde:
       type: object
       description: 'Identificação do documento: numeração, datas, tipo de emissão, municípios e modal.'
@@ -4391,8 +3969,8 @@ components:
           description: 'Dígito verificador da chave de acesso. A lib calcula se ausente.'
         modal:
           type: integer
-          enum: [1, 2, 3, 4]
-          description: 'Valores: 1 = Rodoviário; 2 = Aéreo; 3 = Aquaviário; 4 = Ferroviário.'
+          enum: [1]
+          description: 'Valores: 1 = Rodoviário. É o único modal que este serviço emite.'
         dhEmi:
           type: string
           format: date-time
@@ -4574,16 +4152,6 @@ components:
           items:
             $ref: "#/components/schemas/MdfeInfMunDescarga"
           description: 'Municípios de descarregamento e o que é entregue em cada um.'
-    MdfeInfEmbComb:
-      type: object
-      description: 'Embarcação de comboio no modal aquaviário.'
-      properties:
-        cEmbComb:
-          type: string
-          description: 'Código da embarcação do comboio.'
-        xBalsa:
-          type: string
-          description: 'Identificação da balsa.'
     MdfeInfEntregaParcial:
       type: object
       description: 'Entrega parcial da carga.'
@@ -4739,18 +4307,9 @@ components:
         versaoModal:
           type: string
           description: 'Versão do leiaute do grupo do modal.'
-        aereo:
-          allOf:
-            - $ref: "#/components/schemas/MdfeAereo"
         rodo:
           allOf:
             - $ref: "#/components/schemas/MdfeRodo"
-        aquav:
-          allOf:
-            - $ref: "#/components/schemas/MdfeAquav"
-        ferrov:
-          allOf:
-            - $ref: "#/components/schemas/MdfeFerrov"
     MdfeInfMunCarrega:
       type: object
       description: 'Município de carregamento.'
@@ -4942,48 +4501,6 @@ components:
         xSolic:
           type: string
           description: 'Nome do solicitante.'
-    MdfeInfTermCarreg:
-      type: object
-      description: 'Terminal de carregamento no modal aquaviário.'
-      properties:
-        cTermCarreg:
-          type: string
-          description: 'Código do terminal de carregamento.'
-        xTermCarreg:
-          type: string
-          description: 'Nome do terminal de carregamento.'
-    MdfeInfTermDescarreg:
-      type: object
-      description: 'Terminal de descarregamento no modal aquaviário.'
-      properties:
-        cTermDescarreg:
-          type: string
-          description: 'Código do terminal de descarregamento.'
-        xTermDescarreg:
-          type: string
-          description: 'Nome do terminal de descarregamento.'
-    MdfeInfUnidCargaVazia:
-      type: object
-      description: 'Unidade de carga que segue vazia.'
-      properties:
-        idUnidCargaVazia:
-          type: string
-          description: 'Identificação da unidade de carga que segue vazia.'
-        tpUnidCargaVazia:
-          type: integer
-          enum: [1, 2, 3, 4]
-          description: 'Tipo da unidade de carga que segue vazia. Valores: 1 = Contêiner; 2 = ULD (Unit Loading Device); 3 = Pallet; 4 = Outros.'
-    MdfeInfUnidTranspVazia:
-      type: object
-      description: 'Unidade de transporte que segue vazia.'
-      properties:
-        idUnidTranspVazia:
-          type: string
-          description: 'Identificação da unidade de transporte que segue vazia.'
-        tpUnidTranspVazia:
-          type: integer
-          enum: [1, 2]
-          description: 'Tipo da unidade de transporte que segue vazia. Valores: 1 = Rodoviário tração, do tipo caminhão; 2 = Rodoviário reboque, do tipo carreta.'
     MdfeInfViagens:
       type: object
       description: 'InfViagens é a.'
@@ -5179,25 +4696,6 @@ components:
         qCarga:
           type: number
           description: 'Quantidade da carga.'
-    MdfeTrem:
-      type: object
-      description: 'Trem no modal ferroviário.'
-      properties:
-        xPref:
-          type: string
-          description: 'Prefixo do trem.'
-        dhTrem:
-          type: string
-          description: 'Data e hora de liberação do trem na origem.'
-        xOri:
-          type: string
-          description: 'Estação de origem do trem.'
-        xDest:
-          type: string
-          description: 'Sigla ou código do destino do fluxo da carga.'
-        qVag:
-          type: integer
-          description: 'Quantidade de vagões da composição.'
     MdfeUnidCarga:
       type: object
       description: 'Unidade de carga: contêiner, pallet ou similar.'
@@ -5241,31 +4739,6 @@ components:
         qtdRat:
           type: number
           description: 'Quantidade rateada nesta unidade.'
-    MdfeVag:
-      type: object
-      description: 'Vagão no modal ferroviário.'
-      properties:
-        pesoBC:
-          type: number
-          description: 'Peso base de cálculo do frete no modal ferroviário.'
-        pesoR:
-          type: number
-          description: 'Peso real do vagão.'
-        tpVag:
-          type: string
-          description: 'Tipo do vagão.'
-        serie:
-          type: string
-          description: 'Série do documento.'
-        nVag:
-          type: integer
-          description: 'Número de identificação do vagão.'
-        nSeq:
-          type: integer
-          description: 'Sequência do vagão na composição.'
-        TU:
-          type: number
-          description: 'Tonelada útil, com três casas decimais.'
     MdfeValePed:
       type: object
       description: 'Vale-pedágio.'

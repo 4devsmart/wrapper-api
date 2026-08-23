@@ -2,10 +2,10 @@
 // ACBr.API (CtePedidoEmissao = layout SEFAZ COMPLETO): para o INI consumido
 // pela ACBrLibCTe (CTE_CarregarINI), e interpreta as respostas.
 //
-// Os DTOs abaixo cobrem 100% das tags do contrato (gerados do contrato oficial).
-// A tradução ToINI (ini.go) cobre o caminho rodoviário + grupos comuns; grupos
-// exóticos (outros modais, Reforma Tributária IBSCBS) existem no payload e têm
-// o ToINI marcado como pendente de verificação contra a lib.
+// Os DTOs cobrem o CT-e no MODAL RODOVIÁRIO: aéreo, aquaviário, ferroviário,
+// dutoviário e multimodal saíram do contrato, então os grupos não existem aqui
+// e o pedido que os traga recebe 400 campo desconhecido. O que está declarado
+// neste arquivo é o que a tradução ToINI (ini.go) escreve.
 package cte
 
 // PedidoEmissao é o CT-e a ser gerado, no contrato da Nuvem Fiscal / ACBr.API.
@@ -631,13 +631,8 @@ type IdDocAntEle struct {
 
 // InfModal espelha CteSefazInfModal.
 type InfModal struct {
-	VersaoModal string      `json:"versaoModal"`
-	Rodo        *Rodo       `json:"rodo,omitempty"`
-	Aereo       *Aereo      `json:"aereo,omitempty"`
-	Ferrov      *Ferrov     `json:"ferrov,omitempty"`
-	Aquav       *Aquav      `json:"aquav,omitempty"`
-	Duto        *Duto       `json:"duto,omitempty"`
-	Multimodal  *Multimodal `json:"multimodal,omitempty"`
+	VersaoModal string `json:"versaoModal"`
+	Rodo        *Rodo  `json:"rodo,omitempty"`
 }
 
 // Rodo espelha CteSefazRodo.
@@ -661,160 +656,6 @@ type EmiOcc struct {
 	IE   string `json:"IE"`
 	UF   string `json:"UF"`
 	Fone string `json:"fone,omitempty"`
-}
-
-// Aereo espelha CteSefazAereo.
-type Aereo struct {
-	NMinu      int      `json:"nMinu,omitempty"`
-	NOCA       string   `json:"nOCA,omitempty"`
-	DPrevAereo string   `json:"dPrevAereo"`
-	NatCarga   NatCarga `json:"natCarga"`
-	Tarifa     Tarifa   `json:"tarifa"`
-	Peri       []Peri   `json:"peri,omitempty"`
-}
-
-// NatCarga espelha CteSefazNatCarga.
-type NatCarga struct {
-	XDime    string   `json:"xDime,omitempty"`
-	CInfManu []string `json:"cInfManu,omitempty" enum:"InformacaoManuseio"`
-}
-
-// Tarifa espelha CteSefazTarifa.
-type Tarifa struct {
-	CL   string  `json:"CL"`
-	CTar string  `json:"cTar,omitempty"`
-	VTar float64 `json:"vTar"`
-}
-
-// Peri espelha CteSefazPeri.
-type Peri struct {
-	NONU     string   `json:"nONU"`
-	QTotEmb  string   `json:"qTotEmb"`
-	InfTotAP InfTotAP `json:"infTotAP"`
-}
-
-// InfTotAP espelha CteSefazInfTotAP.
-type InfTotAP struct {
-	QTotProd float64 `json:"qTotProd"`
-	UniAP    int     `json:"uniAP" enum:"UnidadeMedidaArtigoPerigoso"`
-}
-
-// Ferrov espelha CteSefazFerrov.
-type Ferrov struct {
-	TpTraf  int      `json:"tpTraf" enum:"TipoTrafego"`
-	TrafMut *TrafMut `json:"trafMut,omitempty"`
-	Fluxo   string   `json:"fluxo"`
-}
-
-// TrafMut espelha CteSefazTrafMut.
-type TrafMut struct {
-	RespFat          int        `json:"respFat" enum:"ResponsavelFaturamento"`
-	FerrEmi          int        `json:"ferrEmi" enum:"FerroviaEmitente"`
-	VFrete           float64    `json:"vFrete"`
-	ChCTeFerroOrigem string     `json:"chCTeFerroOrigem,omitempty"`
-	FerroEnv         []FerroEnv `json:"ferroEnv,omitempty"`
-}
-
-// FerroEnv espelha CteSefazFerroEnv.
-type FerroEnv struct {
-	CNPJ       string   `json:"CNPJ"`
-	CInt       string   `json:"cInt,omitempty"`
-	IE         string   `json:"IE,omitempty"`
-	XNome      string   `json:"xNome"`
-	EnderFerro EnderFer `json:"enderFerro"`
-}
-
-// EnderFer espelha CteSefazEnderFer.
-type EnderFer struct {
-	XLgr    string `json:"xLgr"`
-	Nro     string `json:"nro,omitempty"`
-	XCpl    string `json:"xCpl,omitempty"`
-	XBairro string `json:"xBairro,omitempty"`
-	CMun    string `json:"cMun"`
-	XMun    string `json:"xMun"`
-	CEP     string `json:"CEP"`
-	UF      string `json:"UF"`
-}
-
-// Aquav espelha CteSefazAquav.
-type Aquav struct {
-	VPrest  float64   `json:"vPrest"`
-	VAFRMM  float64   `json:"vAFRMM"`
-	XNavio  string    `json:"xNavio"`
-	Balsa   []Balsa   `json:"balsa,omitempty"`
-	NViag   string    `json:"nViag,omitempty"`
-	Direc   string    `json:"direc" enum:"DirecaoAquaviario"`
-	Irin    string    `json:"irin"`
-	DetCont []DetCont `json:"detCont,omitempty"`
-	TpNav   int       `json:"tpNav,omitempty" enum:"TipoNavegacao"`
-}
-
-// Balsa espelha CteSefazBalsa.
-type Balsa struct {
-	XBalsa string `json:"xBalsa"`
-}
-
-// DetCont espelha CteSefazDetCont.
-type DetCont struct {
-	NCont  string         `json:"nCont"`
-	Lacre  []Lacre        `json:"lacre,omitempty"`
-	InfDoc *DetContInfDoc `json:"infDoc,omitempty"`
-}
-
-// Lacre espelha CteSefazLacre.
-type Lacre struct {
-	NLacre string `json:"nLacre"`
-}
-
-// DetContInfDoc espelha CteSefazDetCont_InfDoc.
-type DetContInfDoc struct {
-	InfNF  []DetContInfNF  `json:"infNF,omitempty"`
-	InfNFe []DetContInfNFe `json:"infNFe,omitempty"`
-}
-
-// DetContInfNF espelha CteSefazDetCont_InfDoc_InfNF.
-type DetContInfNF struct {
-	Serie   string  `json:"serie"`
-	NDoc    string  `json:"nDoc"`
-	UnidRat float64 `json:"unidRat,omitempty"`
-}
-
-// DetContInfNFe espelha CteSefazDetCont_InfDoc_InfNFe.
-type DetContInfNFe struct {
-	Chave   string  `json:"chave"`
-	UnidRat float64 `json:"unidRat,omitempty"`
-}
-
-// Duto espelha CteSefazDuto.
-type Duto struct {
-	VTar            float64 `json:"vTar,omitempty"`
-	DIni            string  `json:"dIni"`
-	DFim            string  `json:"dFim"`
-	ClassDuto       int     `json:"classDuto,omitempty" enum:"ClassificacaoDutoviario"`
-	TpContratacao   int     `json:"tpContratacao,omitempty" enum:"TipoContratacaoDuto"`
-	CodPontoEntrada string  `json:"codPontoEntrada,omitempty"`
-	CodPontoSaida   string  `json:"codPontoSaida,omitempty"`
-	NContrato       string  `json:"nContrato,omitempty"`
-}
-
-// Multimodal espelha CteSefazMultimodal.
-type Multimodal struct {
-	COTM          string `json:"COTM"`
-	IndNegociavel int    `json:"indNegociavel" enum:"NaoNegociavelNegociavel"`
-	Seg           *Seg   `json:"seg,omitempty"`
-}
-
-// Seg espelha CteSefazSeg.
-type Seg struct {
-	InfSeg InfSeg `json:"infSeg"`
-	NApol  string `json:"nApol"`
-	NAver  string `json:"nAver"`
-}
-
-// InfSeg espelha CteSefazInfSeg.
-type InfSeg struct {
-	XSeg string `json:"xSeg"`
-	CNPJ string `json:"CNPJ"`
 }
 
 // VeicNovos espelha CteSefazVeicNovos.

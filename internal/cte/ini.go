@@ -14,13 +14,16 @@ import (
 // ACBrLibCTe (CTE_CarregarINI). Seções/chaves seguem o modelo oficial
 // (acbr.sourceforge.io/ACBrLib/ModeloCTeINI.html).
 //
-// Cobertura: CT-e Normal + grupos comuns (compl/obs/Entrega, componentes, todas
-// as variantes de ICMS, IBSCBS da Reforma Tributária, infNF/infNFe/infOutros/
-// infDCe, docAnt, occ, unidCarga/unidTransp, cobrança, respTec) e TODOS os modais
-// (rodoviário + aéreo/aquaviário/ferroviário/dutoviário). Para o CT-e
-// Simplificado (tpCTe=5) ver ToINISimp. Limitação conhecida: o peri aéreo e o
-// tarifa.CL têm divergência model↔INI (ver modalAereo); o modal multimodal
-// (COTM) não é lido por INI pela ACBrLibCTe (sem seção [multimodal]).
+// Cobertura: CT-e Normal no MODAL RODOVIÁRIO + grupos comuns (compl/obs/Entrega,
+// componentes, todas as variantes de ICMS, IBSCBS da Reforma Tributária,
+// infNF/infNFe/infOutros/infDCe, docAnt, occ, unidCarga/unidTransp, cobrança,
+// respTec). Para o CT-e Simplificado (tpCTe=5) ver ToINISimp.
+//
+// Os demais modais estão fora do contrato, e o handler recusa antes de chegar
+// aqui (ver modalSuportado, http.go). O recorte fechou três lacunas que a
+// cobertura anterior carregava: o peri aéreo e o tarifa.CL divergiam entre o
+// modelo e o INI, e o multimodal (COTM) nunca foi lido por INI pela lib. Os
+// três eram aceitos e descartados na montagem.
 func ToINI(p PedidoEmissao) string {
 	inf := p.InfCte
 	var b iniBuilder
@@ -77,10 +80,6 @@ func ToINI(p PedidoEmissao) string {
 		}
 		b.subst(n.InfCteSub)
 		b.modalRodo(n.InfModal.Rodo)
-		b.modalAereo(n.InfModal.Aereo)
-		b.modalAquav(n.InfModal.Aquav)
-		b.modalFerrov(n.InfModal.Ferrov)
-		b.modalDuto(n.InfModal.Duto)
 		for i, vn := range n.VeicNovos {
 			b.section("veicNovos" + seq(i+1))
 			b.kv("chassi", vn.Chassi)
@@ -90,8 +89,6 @@ func ToINI(p PedidoEmissao) string {
 			b.kvOpt("vUnit", moneyOpt(vn.VUnit))
 			b.kvOpt("vFrete", moneyOpt(vn.VFrete))
 		}
-		// Nota: o modal multimodal (COTM) NÃO é lido por INI pela ACBrLibCTe
-		// (não há seção [multimodal] no IniReader): fora de alcance via INI.
 	}
 
 	b.respTec(inf.InfRespTec)
@@ -446,100 +443,6 @@ func (b *iniBuilder) modalRodo(rodo *Rodo) {
 			b.kvOpt("UF", e.UF)
 			b.kvOpt("fone", e.Fone)
 		}
-	}
-}
-
-// modalDuto emite [duto] (modal dutoviário). Reader gateia por dIni.
-func (b *iniBuilder) modalDuto(d *Duto) {
-	if d == nil {
-		return
-	}
-	b.section("duto")
-	b.kvOpt("vTar", moneyOpt(d.VTar))
-	b.kvOpt("dIni", b.dataOpt(d.DIni))
-	b.kvOpt("dFim", b.dataOpt(d.DFim))
-	b.kvIntOpt("classDuto", d.ClassDuto)
-	b.kvIntOpt("tpContratacao", d.TpContratacao)
-	b.kvOpt("codPontoEntrada", d.CodPontoEntrada)
-	b.kvOpt("codPontoSaida", d.CodPontoSaida)
-	b.kvOpt("nContrato", d.NContrato)
-}
-
-// modalAquav emite [aquav] + [balsaNNN] (modal aquaviário). Reader gateia por
-// xNavio. detCont não é lido pelo reader do aquaviário (omitido).
-func (b *iniBuilder) modalAquav(a *Aquav) {
-	if a == nil {
-		return
-	}
-	b.section("aquav")
-	b.kvOpt("vPrest", moneyOpt(a.VPrest))
-	b.kvOpt("vAFRMM", moneyOpt(a.VAFRMM))
-	b.kv("xNavio", a.XNavio)
-	b.kvOpt("nViag", a.NViag)
-	b.kvOpt("direc", a.Direc)
-	b.kvInt("tpNav", a.TpNav) // obrigatório no aquaviário (v4.00); 0=interior é válido
-	b.kvOpt("irin", a.Irin)
-	for i, bl := range a.Balsa {
-		b.section("balsa" + seq(i+1))
-		b.kv("xBalsa", bl.XBalsa)
-	}
-}
-
-// modalFerrov emite [ferrov] + [ferroEnvNNN] (modal ferroviário). Reader gateia
-// por tpTraf; respFat/ferrEmi/vFrete/chCTeFerroOrigem ficam em [ferrov] (no
-// nosso model vêm de trafMut).
-func (b *iniBuilder) modalFerrov(f *Ferrov) {
-	if f == nil {
-		return
-	}
-	b.section("ferrov")
-	b.kv("tpTraf", strconv.Itoa(f.TpTraf))
-	b.kvOpt("fluxo", f.Fluxo)
-	if t := f.TrafMut; t != nil {
-		b.kvIntOpt("respFat", t.RespFat)
-		b.kvIntOpt("ferrEmi", t.FerrEmi)
-		b.kvOpt("vFrete", moneyOpt(t.VFrete))
-		b.kvOpt("chCTeFerroOrigem", t.ChCTeFerroOrigem)
-		for i, fe := range t.FerroEnv {
-			b.section("ferroEnv" + seq(i+1))
-			b.kvOpt("CNPJ", fe.CNPJ)
-			b.kvOpt("IE", fe.IE)
-			b.kvOpt("xNome", fe.XNome)
-			b.kvOpt("xLgr", fe.EnderFerro.XLgr)
-			b.kvOpt("nro", fe.EnderFerro.Nro)
-			b.kvOpt("xCpl", fe.EnderFerro.XCpl)
-			b.kvOpt("xBairro", fe.EnderFerro.XBairro)
-			b.kvOpt("cMun", fe.EnderFerro.CMun)
-			b.kvOpt("xMun", fe.EnderFerro.XMun)
-			b.kvOpt("CEP", fe.EnderFerro.CEP)
-			b.kvOpt("UF", fe.EnderFerro.UF)
-		}
-	}
-}
-
-// modalAereo emite [aereo] + [periNNN] (modal aéreo). O reader PROCESSA o aéreo
-// só se a chave 'CL' != ” (gate). LIMITAÇÃO conhecida: o reader do peri aéreo
-// espera campos flat (xNomeAE/xClaRisco/grEmb/qVolTipo/pontoFulgor) que NÃO
-// existem no nosso model (Peri tem InfTotAP aninhado, do contrato XML): só nONU
-// é emitido. Idem tarifa.CL (o reader a lê de 'nMinu', quirk do ACBr).
-func (b *iniBuilder) modalAereo(a *Aereo) {
-	if a == nil {
-		return
-	}
-	b.section("aereo")
-	b.kv("CL", defaultStr(a.Tarifa.CL, "0")) // gate do reader
-	b.kvIntOpt("nMinu", a.NMinu)
-	b.kvOpt("nOCA", a.NOCA)
-	b.kvOpt("dPrevAereo", b.dataOpt(a.DPrevAereo))
-	b.kvOpt("cTar", a.Tarifa.CTar)
-	b.kvOpt("vTar", moneyOpt(a.Tarifa.VTar))
-	b.kvOpt("xDime", a.NatCarga.XDime)
-	for i, c := range a.NatCarga.CInfManu {
-		b.kv("cInfManu"+seq(i+1), c)
-	}
-	for i, p := range a.Peri {
-		b.section("peri" + seq(i+1))
-		b.kv("nONU", p.NONU)
 	}
 }
 

@@ -63,7 +63,7 @@ def declarados():
     Devolve também o conjunto de campos que os modelos expõem, para separar o
     que é lacuna nossa do que é campo de layout que a API sequer aceita.
     """
-    enums, tags, nossos = {}, {}, set()
+    enums, tags, nossos, usados = {}, {}, set(), set()
     for doc in ("cte", "mdfe"):
         for l in pathlib.Path(f"internal/{doc}/enums.tsv").read_text(encoding="utf-8").split("\n"):
             if l and not l.startswith("#") and l.count("\t") >= 2:
@@ -74,15 +74,29 @@ def declarados():
                 continue
             fonte = p.read_text(encoding="utf-8")
             nossos |= {(doc, m) for m in re.findall(r'json:"(\w+)[",]', fonte)}
+            usados |= {(doc, e) for e in re.findall(r'enum:"(\w+)"', fonte)}
             for m in re.finditer(r'json:"(\w+)[",][^`]*enum:"(\w+)"', fonte):
                 tags[(doc, m.group(1))] = m.group(2)
-    return {k: enums.get((k[0], e), set()) for k, e in tags.items()}, tags, nossos
+    return {k: enums.get((k[0], e), set()) for k, e in tags.items()}, tags, nossos, usados
 
 def main() -> int:
     raiz = schemas(sys.argv[1] if len(sys.argv) > 1 else None)
-    xsd, (meus, tags, nossos) = do_xsd(raiz), declarados()
+    xsd, (meus, tags, nossos, usados) = do_xsd(raiz), declarados()
 
-    divergentes = 0
+    # Enum declarado e sem campo é peso morto: sobra de um campo que saiu do
+    # contrato. Vira ruído no arquivo e mentira no diff da próxima revisão.
+    orfaos = []
+    for doc in ("cte", "mdfe"):
+        no_codigo = {e for (d, e) in usados if d == doc}
+        na_tabela = {l.split("\t", 1)[0]
+                     for l in pathlib.Path(f"internal/{doc}/enums.tsv").read_text(encoding="utf-8").split("\n")
+                     if l and not l.startswith("#") and l.count("\t") >= 2}
+        orfaos += [f"{doc}.{n}" for n in sorted(na_tabela - no_codigo)]
+    if orfaos:
+        print(f"  {len(orfaos)} enum(s) declarado(s) e sem campo que os use:")
+        print("   ", ", ".join(orfaos))
+
+    divergentes = len(orfaos)
     for chave, publicados in sorted(meus.items()):
         oficiais = xsd.get(chave)
         if not oficiais:

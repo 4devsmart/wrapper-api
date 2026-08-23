@@ -126,47 +126,23 @@ func TestToINI_IBSCBS_ReformaTributaria(t *testing.T) {
 	}
 }
 
-func TestToINI_EntregaEModalAquav(t *testing.T) {
+// A entrega programada é do documento, não do modal: continua coberta depois
+// da poda dos modais não-rodoviários.
+func TestToINI_EntregaProgramada(t *testing.T) {
 	p := pedidoFixture()
-	p.InfCte.Ide.Modal = "03" // aquaviário
 	p.InfCte.Compl = &Compl{
 		Entrega: &Entrega{
 			ComData: &ComData{TpPer: 1, DProg: "2026-07-10"},
 			ComHora: &ComHora{TpHor: 1, HProg: "14:30:00"},
 		},
 	}
-	p.InfCte.InfCTeNorm.InfModal = InfModal{Aquav: &Aquav{
-		VPrest: 1500.50, XNavio: "NAVIO TESTE", NViag: "V01", Irin: "IRIN1",
-		Balsa: []Balsa{{XBalsa: "BALSA 1"}},
-	}}
 	ini := ToINI(p)
 	for _, frag := range []string{
 		"[compl]", "TipoData=1", "tpPer=1", "dProg=10/07/2026",
 		"TipoHora=1", "tpHor=1", "hProg=14:30:00",
-		"[aquav]", "xNavio=NAVIO TESTE", "[balsa001]", "xBalsa=BALSA 1",
 	} {
 		if !strings.Contains(ini, frag) {
 			t.Errorf("INI não contém %q\n---\n%s", frag, ini)
-		}
-	}
-}
-
-func TestToINI_ModalDutoFerrov(t *testing.T) {
-	p := pedidoFixture()
-	p.InfCte.InfCTeNorm.InfModal = InfModal{Duto: &Duto{
-		VTar: 100.50, DIni: "2026-07-01", DFim: "2026-07-31", NContrato: "CT-DUTO-1"}}
-	if ini := ToINI(p); !strings.Contains(ini, "[duto]") || !strings.Contains(ini, "dIni=01/07/2026") || !strings.Contains(ini, "nContrato=CT-DUTO-1") {
-		t.Errorf("duto não emitido corretamente\n---\n%s", ini)
-	}
-	p.InfCte.InfCTeNorm.InfModal = InfModal{Ferrov: &Ferrov{
-		TpTraf: 0, Fluxo: "FLX1",
-		TrafMut: &TrafMut{RespFat: 1, FerrEmi: 1, VFrete: 500.00,
-			FerroEnv: []FerroEnv{{CNPJ: "11222333000181", XNome: "Ferrovia X",
-				EnderFerro: EnderFer{XLgr: "Rua Trilho", CMun: "3550308", XMun: "Sao Paulo", CEP: "01001000", UF: "SP"}}}}}}
-	ini := ToINI(p)
-	for _, frag := range []string{"[ferrov]", "tpTraf=0", "fluxo=FLX1", "vFrete=500,00", "[ferroEnv001]", "xNome=Ferrovia X"} {
-		if !strings.Contains(ini, frag) {
-			t.Errorf("ferrov não contém %q\n---\n%s", frag, ini)
 		}
 	}
 }

@@ -101,3 +101,43 @@ func TestAmbiente_TpAmbExplicitoDeixaDeSerIgnorado(t *testing.T) {
 		}
 	})
 }
+
+// --- escopo: só o modal rodoviário ------------------------------------------
+
+// O contrato deixou de aceitar aéreo, aquaviário e ferroviário. Um pedido que
+// traga o grupo é 400 campo desconhecido; um que declare o modal sem o grupo é
+// 422, porque sairia um MDF-e com modal declarado e nenhum dado de modal.
+func TestEscopo_ApenasModalRodoviario(t *testing.T) {
+	mux := muxDe(&libFake{resMontar: acbr.Result{XML: xmlFixture("2")}})
+	for _, modal := range []int{2, 3, 4} {
+		p := pedidoMinimo()
+		p["infMDFe"].(map[string]any)["ide"].(map[string]any)["modal"] = modal
+		rec := post(t, mux, "/mdfe/xml", p)
+		if rec.Code != http.StatusUnprocessableEntity {
+			t.Errorf("modal=%d: HTTP %d, esperava 422", modal, rec.Code)
+		}
+		if !strings.Contains(rec.Body.String(), "modal_nao_suportado") {
+			t.Errorf("modal=%d: resposta sem código acionável: %s", modal, rec.Body)
+		}
+	}
+	if rec := post(t, mux, "/mdfe/xml", pedidoMinimo()); rec.Code != http.StatusOK {
+		t.Errorf("rodoviário recusado: HTTP %d %s", rec.Code, rec.Body)
+	}
+}
+
+func TestEscopo_GrupoDeModalForaDoContrato(t *testing.T) {
+	mux := muxDe(&libFake{resMontar: acbr.Result{XML: xmlFixture("2")}})
+	for _, grupo := range []string{"aereo", "aquav", "ferrov"} {
+		p := pedidoMinimo()
+		p["infMDFe"].(map[string]any)["infModal"] = map[string]any{
+			"versaoModal": "3.00", grupo: map[string]any{},
+		}
+		rec := post(t, mux, "/mdfe/xml", p)
+		if rec.Code != http.StatusBadRequest {
+			t.Errorf("infModal.%s: HTTP %d, esperava 400", grupo, rec.Code)
+		}
+		if !strings.Contains(rec.Body.String(), "campo desconhecido") {
+			t.Errorf("infModal.%s: resposta sem a explicação: %s", grupo, rec.Body)
+		}
+	}
+}

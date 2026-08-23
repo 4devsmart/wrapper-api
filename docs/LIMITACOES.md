@@ -66,11 +66,21 @@ transmitir: falhou ali, nada saiu.
 
 - **NF-e e NFC-e não são emitidas.** Distribuição DF-e e manifestação do
   destinatário estão portadas no binding mas ainda não expostas (etapa própria).
-- **MDF-e cobre apenas o modal rodoviário.** Aquaviário, ferroviário e aéreo,
-  `unidCarga`/`unidTransp` com produtos perigosos e `infANTT.infPag` não são
-  gerados.
-- **CT-e** cobre todos os modais, mas o `peri` aéreo e o `tarifa.CL` divergem
-  entre modelo e INI, e o multimodal (COTM) não é lido por INI pela lib.
+- **CT-e e MDF-e cobrem o modal rodoviário, e só ele.** Aéreo, aquaviário,
+  ferroviário, dutoviário e multimodal saíram do contrato. Não é campo aceito e
+  ignorado: `ide.modal` fora do rodoviário é `422 modal_nao_suportado`, e os
+  grupos `infModal.aereo`, `.aquav`, `.ferrov`, `.duto` e `.multimodal` não
+  existem no schema, então mandá-los é `400 campo desconhecido`.
+
+  A decisão fechou três lacunas que existiam antes: o `peri` aéreo e o
+  `tarifa.CL` do CT-e divergiam entre modelo e INI, e o multimodal (COTM) nunca
+  foi lido por INI pela biblioteca. Os três eram aceitos no contrato e
+  descartados na montagem, que é o pior desfecho: o documento saía autorizado
+  sem eles.
+
+  As chaves de INI dos modais fora de escopo estão listadas em
+  `internal/{cte,mdfe}/testdata/nao_enviadas.tsv`, para o lockstep não tratá-las
+  como lacuna nova a cada bump da biblioteca.
 - **NFS-e é multi-provedor e a capacidade é descoberta em runtime.** Não existe
   tabela do que cada município aceita: quando o provedor não implementa a
   operação, a resposta é `422 operacao_nao_suportada`. Cancelamento e

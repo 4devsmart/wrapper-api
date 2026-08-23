@@ -127,3 +127,54 @@ func TestAmbiente_TransmissaoSegueOXML(t *testing.T) {
 		t.Errorf("sessão com Ambiente=%s; o tpAmb do XML (produção) é que manda", got)
 	}
 }
+
+// --- escopo: só o modal rodoviário ------------------------------------------
+
+// O contrato deixou de aceitar aéreo, aquaviário, ferroviário, dutoviário e
+// multimodal. Um pedido que traga o grupo é 400 campo desconhecido; um que
+// declare o modal sem o grupo é 422, porque sairia um CT-e com modal declarado
+// e nenhum dado de modal.
+func TestEscopo_ApenasModalRodoviario(t *testing.T) {
+	f := &libFake{resMontar: acbr.Result{XML: xmlFixture("2")}}
+	mux := muxDe(f)
+	corpo := func(modal string) map[string]any {
+		return map[string]any{
+			"ambiente": "homologacao",
+			"infCte": map[string]any{
+				"emit": map[string]any{"CNPJ": "12345678000190"},
+				"ide":  map[string]any{"modal": modal, "CFOP": "5353", "natOp": "Transporte"},
+			},
+		}
+	}
+
+	for _, modal := range []string{"02", "03", "04", "05", "06"} {
+		rec := post(t, mux, "/cte/xml", corpo(modal))
+		if rec.Code != http.StatusUnprocessableEntity {
+			t.Errorf("modal=%s: HTTP %d, esperava 422", modal, rec.Code)
+		}
+		if !strings.Contains(rec.Body.String(), "modal_nao_suportado") {
+			t.Errorf("modal=%s: resposta sem código acionável: %s", modal, rec.Body)
+		}
+	}
+	if rec := post(t, mux, "/cte/xml", corpo("01")); rec.Code != http.StatusOK {
+		t.Errorf("rodoviário recusado: HTTP %d %s", rec.Code, rec.Body)
+	}
+}
+
+// TestEscopo_GrupoDeModalForaDoContrato: o campo sumiu do modelo, então quem
+// mandar recebe o 400 de campo desconhecido em vez de um documento gerado sem
+// ele. É o desfecho que o DisallowUnknownFields existe para dar.
+func TestEscopo_GrupoDeModalForaDoContrato(t *testing.T) {
+	mux := muxDe(&libFake{resMontar: acbr.Result{XML: xmlFixture("2")}})
+	for _, grupo := range []string{"aereo", "aquav", "ferrov", "duto", "multimodal"} {
+		corpo := `{"ambiente":"homologacao","infCte":{"emit":{"CNPJ":"12345678000190"},` +
+			`"infCTeNorm":{"infModal":{"versaoModal":"4.00","` + grupo + `":{}}}}}`
+		rec := postCru(t, mux, "/cte/xml", corpo)
+		if rec.Code != http.StatusBadRequest {
+			t.Errorf("infModal.%s: HTTP %d, esperava 400", grupo, rec.Code)
+		}
+		if !strings.Contains(rec.Body.String(), "campo desconhecido") {
+			t.Errorf("infModal.%s: resposta sem a explicação: %s", grupo, rec.Body)
+		}
+	}
+}

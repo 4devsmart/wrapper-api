@@ -27,6 +27,23 @@ biblioteca fiscal valida, que são as regras de negócio e o schema, e
 transmitimos o que você mandou. Se o CFOP está errado, o documento é autorizado
 errado.
 
+### Escopo: modal rodoviário
+
+**CT-e e MDF-e cobrem o modal rodoviário, e só ele.** Aéreo, aquaviário,
+ferroviário, dutoviário e multimodal estão fora: os grupos não existem no
+contrato, e o pedido que os traga é recusado na entrada.
+
+| Você manda | Recebe |
+|---|---|
+| `ide.modal` diferente de rodoviário | `422 modal_nao_suportado` |
+| `infModal.aereo`, `.aquav`, `.ferrov`, `.duto`, `.multimodal` | `400 campo desconhecido` |
+
+Recusar é a escolha deliberada. A alternativa, aceitar o campo e ignorá-lo,
+gera um documento autorizado sem o grupo do modal, e o erro só aparece depois
+de o fisco autorizar. Um 400 na hora custa menos.
+
+NFS-e e boletos não têm modal: o recorte não os afeta.
+
 ## Como ele roda
 
 **Como serviço Docker, dentro da sua stack.** São dois containers que você
@@ -217,8 +234,8 @@ Na NFS-e a identidade é o `id_dps` e a rota é `/v1/nfse/consulta-dps`.
 
 | Módulo | Rotas (sob `/v1`) |
 |---|---|
-| `cte` | `xml` · `simp/xml` · `transmissao` · `eventos/{6 tipos}` · `consulta` · `status-servico` · `cadastro` · `pdf` · `pdf/evento` |
-| `mdfe` | `xml` · `transmissao` · `eventos/{5 tipos}` · `consulta` · `status-servico` · `nao-encerrados` · `pdf` · `pdf/evento` |
+| `cte` | `xml` · `simp/xml` · `transmissao` · `eventos/{6 tipos}` · `consulta` · `status-servico` · `cadastro` · `pdf` · `pdf/evento` (rodoviário) |
+| `mdfe` | `xml` · `transmissao` · `eventos/{5 tipos}` · `consulta` · `status-servico` · `nao-encerrados` · `pdf` · `pdf/evento` (rodoviário) |
 | `nfse` | `xml` · `transmissao` · `eventos/{2 tipos}` · `consulta` · `consulta-dps` · `consultas/{5 tipos}` · `distribuicao` · `pdf` · `municipios/{codigo}` |
 | `boletos` | `pdf` · `remessa` · `retorno` · `registro` |
 

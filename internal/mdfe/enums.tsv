@@ -13,10 +13,7 @@ Modelo	58	MDF-e
 TipoEmitente	1	Prestador de serviço de transporte
 TipoEmitente	2	Transporte de carga própria
 TipoEmitente	3	Prestador de serviço de transporte, CT-e Globalizado
-Modal	1	Rodoviário
-Modal	2	Aéreo
-Modal	3	Aquaviário
-Modal	4	Ferroviário
+Modal	1	Rodoviário. É o único modal que este serviço emite
 TipoTransportador	1	ETC (Empresa de Transporte Rodoviário de Cargas)
 TipoTransportador	2	TAC (Transportador Autônomo de Cargas)
 TipoTransportador	3	CTC (Cooperativa de Transporte de Cargas)
@@ -78,12 +75,6 @@ TipoUnidadeCarga	2	ULD (Unit Loading Device)
 TipoUnidadeCarga	3	Pallet
 TipoUnidadeCarga	4	Outros
 Sim	1	Sim. Omitir o campo equivale a não.
-TipoUnidadeTransporteVazia	1	Rodoviário tração, do tipo caminhão
-TipoUnidadeTransporteVazia	2	Rodoviário reboque, do tipo carreta
-TipoUnidadeCargaVazia	1	Contêiner
-TipoUnidadeCargaVazia	2	ULD (Unit Loading Device)
-TipoUnidadeCargaVazia	3	Pallet
-TipoUnidadeCargaVazia	4	Outros
 TipoComponentePagamento	01	Vale-pedágio
 TipoComponentePagamento	02	Impostos, taxas e contribuições
 TipoComponentePagamento	03	Despesas bancárias, meios de pagamento e outras
@@ -96,7 +87,5 @@ UnidadeMedidaPeso	01	Quilograma (KG)
 UnidadeMedidaPeso	02	Tonelada (TON)
 ProcessoEmissao	0	Aplicativo do contribuinte
 ProcessoEmissao	4	Provedor de Assinatura e Autorização (PAA)
-TipoNavegacao	0	Interior
-TipoNavegacao	1	Cabotagem
 Ambiente	homologacao	Ambiente de homologação, sem valor fiscal
 Ambiente	producao	Ambiente de produção

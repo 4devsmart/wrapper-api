@@ -2,8 +2,6 @@
 #
 # Rótulos extraídos da documentação dos XSD oficiais (tiposComplexos_v1.01.xsd).
 # Formato: enum <TAB> valor <TAB> rótulo
-TipoAmbiente	1	Produção
-TipoAmbiente	2	Homologação
 TipoEmitente	1	Prestador
 TipoEmitente	2	Tomador
 TipoEmitente	3	Intermediário
