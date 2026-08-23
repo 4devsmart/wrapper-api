@@ -1,5 +1,5 @@
-// Package mdfe traduz o contrato JSON do MDF-e (modelo 58) — espelhando a
-// ACBr.API (MdfePedidoEmissao = layout SEFAZ COMPLETO) — para o INI consumido
+// Package mdfe traduz o contrato JSON do MDF-e (modelo 58): espelhando a
+// ACBr.API (MdfePedidoEmissao = layout SEFAZ COMPLETO): para o INI consumido
 // pela ACBrLibMDFe (MDFE_CarregarINI), e interpreta as respostas.
 //
 // Os DTOs cobrem 100% das tags do contrato (gerados do contrato oficial). O

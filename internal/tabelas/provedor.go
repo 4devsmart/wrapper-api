@@ -14,7 +14,7 @@ import (
 // (4.674 de 5.571); "PadraoNacional" é o Padrão Nacional ADN/SEFIN.
 //
 // Regenerar (em lockstep com a `.so`, ao bumpar a revisão): `make acbr-tabelas`
-// — ver scripts/gerar-tabelas-nfse.sh. Já é chamado por `make acbr-libs`.
+// : ver scripts/gerar-tabelas-nfse.sh. Já é chamado por `make acbr-libs`.
 //
 //go:embed municipios_provedor.tsv
 var municipiosProvedorTSV string
@@ -26,7 +26,7 @@ type MunicipioNFSe struct {
 	Nome     string `json:"nome"`
 	UF       string `json:"uf"`
 	Provedor string `json:"provedor"` // ex.: "PadraoNacional", "Betha", "Fiorilli"
-	// Versao é o layout que ESTE município usa dentro do provedor — vazio quando
+	// Versao é o layout que ESTE município usa dentro do provedor: vazio quando
 	// o provedor não versiona. Importa porque o mesmo provedor serve layouts
 	// diferentes por cidade: o fintelISS atende Juiz de Fora em 2.00 e Itatiba em
 	// 2.02, e só o 2.02 exige lista de itens. A superfície real do NFS-e são os
@@ -207,7 +207,7 @@ func ProvedoresNFSe() []ProvedorContagem {
 }
 
 // soDigitos remove tudo que não é dígito de um código IBGE. Morava em
-// postgres.go, que não veio no porte (não há banco) — é helper puro.
+// postgres.go, que não veio no porte (não há banco): é helper puro.
 func soDigitos(s string) string {
 	out := make([]rune, 0, len(s))
 	for _, r := range s {

@@ -1,5 +1,5 @@
 // Package config carrega a configuração do serviço a partir de variáveis de
-// ambiente — a única forma de configurar este wrapper.
+// ambiente: a única forma de configurar este wrapper.
 //
 // Não há banco, arquivo de configuração nem página de administração: o serviço
 // é sem estado, e o que antes seria "cadastro" (empresa, certificado, ambiente)
@@ -19,11 +19,11 @@ import (
 // Config agrega toda a configuração do serviço.
 type Config struct {
 	HTTPAddr string
-	// AuthToken é o Bearer aceito pela API. Obrigatório em produção — sem ele
+	// AuthToken é o Bearer aceito pela API. Obrigatório em produção, sem ele
 	// qualquer um transmite documentos com o certificado que enviar.
 	AuthToken string
 	// Modo distingue a implantação: "producao" endurece as validações do boot.
-	// NÃO é o tpAmb do documento — esse vai no payload, por requisição, e a
+	// NÃO é o tpAmb do documento: esse vai no payload, por requisição, e a
 	// mesma instância atende homologação e produção.
 	Modo string
 	// APIRatePerMin limita requisições por minuto por IP (0 = desligado).
@@ -45,7 +45,7 @@ type ACBr struct {
 	// não a API. Vazio = binding no próprio processo (só faz sentido no worker).
 	Workers []string
 	// WorkerSlots é quantas chamadas simultâneas cada worker aceita. O default 1
-	// dá o isolamento máximo — um crash da lib mata UMA requisição. Aumentar
+	// dá o isolamento máximo: um crash da lib mata UMA requisição. Aumentar
 	// eleva a vazão e, na mesma medida, quantas requisições um crash leva junto.
 	WorkerSlots int
 	// WorkerTimeout é o teto de uma chamada ao worker. Cobre o caso de a lib
@@ -62,7 +62,7 @@ type ACBr struct {
 
 	// IniBasePath é o diretório de RASCUNHO da lib nativa: cada sessão grava ali
 	// o seu arquivo de config antes de operar. Não guarda dado de cliente e pode
-	// ser efêmero (tmpfs serve) — o serviço não persiste nada.
+	// ser efêmero (tmpfs serve): o serviço não persiste nada.
 	IniBasePath     string
 	SchemasPath     string // XSD da NFS-e (por provedor)
 	SchemasPathCTe  string // XSD do CT-e
@@ -70,7 +70,7 @@ type ACBr struct {
 	SchemasPathNFe  string // XSD da NF-e (etapa futura: distribuição/manifestação)
 	// LogNivel/LogPath ligam o log de depuração da ACBr. PERIGOSO: a partir do
 	// nível 3 ela grava XML e CERTIFICADO em disco. Ligue só para depurar, e
-	// apague depois — num serviço que recebe o certificado por payload, isso é a
+	// apague depois: num serviço que recebe o certificado por payload, isso é a
 	// diferença entre não persistir nada e persistir o pior.
 	LogNivel string
 	LogPath  string
@@ -113,7 +113,7 @@ func Load() (Config, error) {
 		}
 		// O log de nível 3+ da ACBr grava XML e certificado em disco. Num serviço
 		// que recebe o certificado por payload, deixar isso ligado em produção
-		// transforma "não persistimos nada" em mentira — e sem aviso.
+		// transforma "não persistimos nada" em mentira, e sem aviso.
 		if n, _ := strconv.Atoi(cfg.ACBr.LogNivel); n >= 3 && cfg.ACBr.LogPath != "" {
 			return Config{}, fmt.Errorf("ACBR_LOG_NIVEL=%s grava XML e certificado em disco: proibido em produção", cfg.ACBr.LogNivel)
 		}

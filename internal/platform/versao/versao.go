@@ -2,7 +2,7 @@
 //
 // Por que existe: as versões que o painel mostrava vinham de variáveis de
 // ambiente (APP_VERSION/CLI_VERSION) escritas pelo instalador. Elas dizem o que
-// o instalador PRETENDIA subir — não o que subiu. Um APP_IMAGE apontando para o
+// o instalador PRETENDIA subir, não o que subiu. Um APP_IMAGE apontando para o
 // registry errado (ou um pull que não trocou a imagem) deixava o painel
 // anunciando uma versão nova com a imagem antiga rodando, sem nenhum sinal.
 //
@@ -35,7 +35,7 @@ func Atual() Info {
 	return Info{Commit: c, Curto: Curto(), Build: strings.TrimSpace(Build)}
 }
 
-// Curto é o commit abreviado — é o que se compara com a tag da imagem no
+// Curto é o commit abreviado: é o que se compara com a tag da imagem no
 // registry (o Deploy publica a imagem também com o sha como tag).
 func Curto() string {
 	c := strings.TrimSpace(Commit)

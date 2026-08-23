@@ -1,4 +1,4 @@
-# Stack completo: dois containers, um volume — e o volume só guarda o socket.
+# Stack completo: dois containers, um volume, e o volume só guarda o socket.
 #
 # Não há banco, bucket nem volume de dados: o serviço não persiste nada. O
 # certificado A1 chega no corpo da requisição que transmite e morre com ela.
@@ -26,8 +26,8 @@ services:
     restart: unless-stopped
 
   # Processo que carrega a lib fiscal nativa (mesma imagem, outro comando). Fica
-  # isolado de propósito: um SIGSEGV na lib mata este container — que o Docker
-  # reinicia — em vez de derrubar a API. Não expõe porta: só o socket unix.
+  # isolado de propósito: um SIGSEGV na lib mata este container, que o Docker
+  # reinicia: em vez de derrubar a API. Não expõe porta: só o socket unix.
   worker:
     build:
       context: .

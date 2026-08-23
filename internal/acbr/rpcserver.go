@@ -8,7 +8,7 @@ import (
 )
 
 // RPCHandler expõe os serviços do binding local como um servidor RPC (ver
-// rpc.go). É Go puro — funciona sobre qualquer implementação das interfaces,
+// rpc.go). É Go puro: funciona sobre qualquer implementação das interfaces,
 // então dá para testá-lo sem a lib nativa.
 //
 // slots limita quantas chamadas nativas correm em paralelo neste processo. É
@@ -80,7 +80,7 @@ func RPCHandlerReciclavel(s *Servicos, slots, maxCalls int) (http.Handler, <-cha
 }
 
 // Despachar executa o método pedido no serviço correspondente. conhecido=false
-// quando o par serviço/método não existe — erro de protocolo, não de operação.
+// quando o par serviço/método não existe: erro de protocolo, não de operação.
 func Despachar(s *Servicos, p Pedido) (resp Resposta, conhecido bool) {
 	switch p.Servico {
 	case ServicoNFSe:
@@ -264,7 +264,7 @@ func respostaVersao(v string, err error) Resposta {
 }
 
 // marcarErro registra a mensagem e as sentinelas que precisam sobreviver à
-// serialização. Um errors.Is não atravessa JSON — sem estes booleanos o cliente
+// serialização. Um errors.Is não atravessa JSON, sem estes booleanos o cliente
 // receberia só texto e teria de adivinhar o status HTTP pela mensagem.
 func marcarErro(resp *Resposta, err error) {
 	if err == nil {

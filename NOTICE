@@ -10,11 +10,11 @@ Componentes de terceiros redistribuídos
 
 Este projeto distribui, na imagem Docker e como anexos de release, binários
 nativos compilados (`acbr-libs/*.so`) que incorporam software de terceiros
-licenciado sob LGPL. Eles NÃO são versionados no repositório — o diretório
+licenciado sob LGPL. Eles NÃO são versionados no repositório: o diretório
 `acbr-libs/` é cache local. A atribuição e as obrigações da LGPL seguem abaixo.
 
 --------------------------------------------------------------------------------
-Projeto ACBr — ACBrLib (LGPL)
+Projeto ACBr: ACBrLib (LGPL)
 --------------------------------------------------------------------------------
 Os binários `libacbrnfse64.so`, `libacbrcte64.so`, `libacbrmdfe64.so`,
 `libacbrnfe64.so` e `libacbrboleto64.so` são compilados a partir do código-fonte
@@ -27,7 +27,7 @@ oficial do Projeto ACBr.
 - Site: https://projetoacbr.com.br/
 
 --------------------------------------------------------------------------------
-Fortes Report CE — frce (LGPL)
+Fortes Report CE: frce (LGPL)
 --------------------------------------------------------------------------------
 A geração dos PDFs (DANFSE / DACTE / DAMDFE / boleto) usa o Fortes Report CE,
 linkado nos `.so` acima.
@@ -42,7 +42,7 @@ Cumprimento da LGPL (relink)
 Os `.so` são bibliotecas dinâmicas, carregadas pela aplicação Go via cgo (dlopen).
 Conforme a LGPL, você pode obter o código-fonte correspondente nos endereços acima
 (na revisão pinada) e **substituir os `.so`** por uma versão modificada da
-ACBrLib/Fortes — basta recompilá-los (`make acbr-base`) ou trocar os arquivos em
+ACBrLib/Fortes: basta recompilá-los (`make acbr-base`) ou trocar os arquivos em
 `acbr-libs/` por binários próprios de mesma ABI.
 
 ================================================================================
@@ -51,4 +51,4 @@ Bibliotecas de sistema (NÃO redistribuídas aqui)
 
 Os `.so` linkam dinamicamente, em runtime, bibliotecas do sistema operacional
 (OpenSSL, libxml2/xmlsec1, GTK2, Cairo, Pango, etc.), fornecidas pela imagem
-base / pelo SO — elas NÃO são redistribuídas neste repositório.
+base / pelo SO: elas NÃO são redistribuídas neste repositório.

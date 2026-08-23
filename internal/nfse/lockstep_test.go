@@ -11,7 +11,7 @@ import (
 
 // Este arquivo é a rede contra a classe de bug que já apareceu três vezes
 // (CodigoPais, CodigoNBS, CodigoServicoNacional/NumeroProcesso): um campo que a
-// lib aceita — ou que um builder envia — e o outro caminho descarta em silêncio.
+// lib aceita, ou que um builder envia, e o outro caminho descarta em silêncio.
 // O cliente manda, a API aceita, e o dado some antes do XML.
 //
 // São duas comparações:
@@ -20,7 +20,7 @@ import (
 //     regenerado em lockstep com o .so por `make acbr-chaves`);
 //  2. campos do contrato consumidos por UM builder e ignorados pelo OUTRO.
 //
-// Falhar aqui não significa "corrija o código": significa "decida" — passar a
+// Falhar aqui não significa "corrija o código", significa "decida": passar a
 // enviar o campo, ou declará-lo nas listas abaixo com o motivo.
 
 // naoEnviadas complementa o baseline em testdata/nao_enviadas.tsv com os casos
@@ -35,31 +35,31 @@ var naoEnviadas = map[string]string{
 	"Tomador/xMunicipio":                 "descritivo devolvido pelo provedor",
 	"Intermediario/xMunicipio":           "descritivo devolvido pelo provedor",
 
-	// Prefixo do logradouro ("Rua", "Avenida"). O contrato — espelhando a Nuvem
-	// Fiscal — carrega o logradouro inteiro num campo só (xLgr), então não há o
+	// Prefixo do logradouro ("Rua", "Avenida"). O contrato: espelhando a Nuvem
+	// Fiscal: carrega o logradouro inteiro num campo só (xLgr), então não há o
 	// que separar. Prestador/ e Tomador/ já estavam no baseline; Servico/ apareceu
 	// no bump para r47859, quando o endereço do local da prestação ganhou seção
 	// própria no LerIni.
 	"Servico/TipoLogradouro": "o contrato usa um logradouro único (xLgr), sem prefixo separado",
 
 	// Endereço do TOMADOR no exterior: coberto por CodigoPais/xPais.
-	"Tomador/DocEstrangeiro":  "tomador no exterior — fora do escopo atual",
-	"Tomador/NIF":             "tomador no exterior — fora do escopo atual",
-	"Tomador/cNaoNIF":         "tomador no exterior — fora do escopo atual",
+	"Tomador/DocEstrangeiro":  "tomador no exterior: fora do escopo atual",
+	"Tomador/NIF":             "tomador no exterior: fora do escopo atual",
+	"Tomador/cNaoNIF":         "tomador no exterior: fora do escopo atual",
 	"Tomador/TomadorExterior": "derivado de CodigoPais; default da lib já é 'não'",
 	"Prestador/NIF":           "prestador é sempre nacional neste produto",
 	"Prestador/cNaoNIF":       "prestador é sempre nacional neste produto",
-	"Intermediario/NIF":       "intermediário no exterior — fora do escopo",
-	"Intermediario/cNaoNIF":   "intermediário no exterior — fora do escopo",
+	"Intermediario/NIF":       "intermediário no exterior: fora do escopo",
+	"Intermediario/cNaoNIF":   "intermediário no exterior: fora do escopo",
 }
 
 // gruposNaoSuportados são seções inteiras que o contrato não cobre. Aparecem no
 // snapshot da lib mas não são lacuna: são escopo que decidimos não atender.
 var gruposNaoSuportados = map[string]string{
-	"ConstrucaoCivil":            "obra/ART — sem demanda até agora",
-	"Evento":                     "atividade de evento — sem demanda",
-	"Rodoviaria":                 "pedágio/vale — sem demanda",
-	"LocacaoSubLocacao":          "locação de postes/dutos — sem demanda",
+	"ConstrucaoCivil":            "obra/ART, sem demanda até agora",
+	"Evento":                     "atividade de evento, sem demanda",
+	"Rodoviaria":                 "pedágio/vale, sem demanda",
+	"LocacaoSubLocacao":          "locação de postes/dutos, sem demanda",
 	"IdentificacaoNFSe":          "campos de RESPOSTA (cStat, dhProc, verAplic…)",
 	"NFSeSubstituicao":           "substituição usa endpoint próprio",
 	"RpsSubstituido":             "idem",
@@ -91,7 +91,7 @@ func TestLockstep_ChavesDaLibQueNaoEnviamos(t *testing.T) {
 	if len(novas) > 0 {
 		t.Errorf(`%d chave(s) NOVAS que a lib aceita e nós não enviamos.
 
-Não são todas as lacunas — só as que apareceram depois do último baseline
+Não são todas as lacunas: só as que apareceram depois do último baseline
 (normalmente após um bump do .so). Decida cada uma: emitir no builder, ou
 acrescentar a testdata/nao_enviadas.tsv (com 'make acbr-chaves' e revisão).
 
@@ -170,7 +170,7 @@ emitir nos dois, ou registrar em exclusivos com o motivo.
 
 // --- helpers ---------------------------------------------------------------
 
-// carregarBaseline lê as lacunas JÁ CONHECIDAS. O teste não cobra o passado —
+// carregarBaseline lê as lacunas JÁ CONHECIDAS. O teste não cobra o passado:
 // cobra o que aparecer depois, que é onde mora o campo silenciosamente
 // descartado. Regenerar exige revisão humana: cada linha nova é uma decisão.
 func carregarBaseline(t *testing.T) map[string]bool {

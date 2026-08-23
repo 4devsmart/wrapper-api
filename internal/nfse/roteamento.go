@@ -16,7 +16,7 @@ const (
 // NFS-e é o único documento multi-provedor: cada município escolhe o seu, e o
 // layout de entrada muda. A cadeia é município → provedor → família → layout
 // (internal/tabelas). Município sem provedor conhecido é recusado ANTES de
-// transmitir — mandar XML inválido para a prefeitura só troca um erro claro por
+// transmitir: mandar XML inválido para a prefeitura só troca um erro claro por
 // um obscuro.
 func LayoutDoMunicipio(cmun string) (Layout, bool) {
 	switch tabelas.FamiliaPorMunicipio(cmun).LayoutBase() {
@@ -53,6 +53,6 @@ func MunicipioDoPedido(p DPSPedido) string {
 }
 
 // provedorDoMunicipio devolve o nome do provedor de NFS-e do município (vazio se
-// desconhecido). Serve para a resposta dizer QUEM atende, não só se é atendido —
+// desconhecido). Serve para a resposta dizer QUEM atende, não só se é atendido:
 // é a informação que o cliente leva ao suporte da prefeitura.
 func provedorDoMunicipio(cmun string) string { return tabelas.ProvedorNFSe(cmun) }

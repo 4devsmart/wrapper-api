@@ -2,7 +2,7 @@
 //
 // A API (cmd/api) compila sem cgo e fala com ele por RPC sobre socket unix (ver
 // internal/acbr/rpc.go). O motivo é confiabilidade: um SIGSEGV dentro da lib
-// derruba o processo que a hospeda — aqui isso mata o worker e a requisição em
+// derruba o processo que a hospeda: aqui isso mata o worker e a requisição em
 // curso, não o servidor HTTP inteiro. O supervisor (Docker) reinicia o worker.
 //
 // Compile com CGO_ENABLED=1 -tags acbrlib; sem a tag ele sobe com o stub e
@@ -74,7 +74,7 @@ func main() {
 	defer stop()
 
 	// Reciclagem: atingido o teto de chamadas, o worker sai de forma limpa e o
-	// supervisor sobe um processo novo — memória corrompida por uma chamada não
+	// supervisor sobe um processo novo: memória corrompida por uma chamada não
 	// sobrevive indefinidamente. Não é sobre crash (isso o isolamento cobre), é
 	// sobre dado errado sem sintoma.
 	go func() {
@@ -98,7 +98,7 @@ func main() {
 	slog.Info("sinal recebido, encerrando o worker…")
 
 	// Prazo generoso: uma transmissão em curso está falando com a SEFAZ e não
-	// pode ser interrompida no meio — seria um documento em limbo.
+	// pode ser interrompida no meio: seria um documento em limbo.
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(shutdownCtx); err != nil {
@@ -111,7 +111,7 @@ func main() {
 // morreu sem limpar (é o caso normal quando o worker crasha e é reiniciado).
 func escutar(socket string) (net.Listener, error) {
 	// O kernel limita sun_path a 108 bytes e devolve "bind: invalid argument"
-	// quando estoura — mensagem que não diz nada sobre o tamanho do caminho.
+	// quando estoura: mensagem que não diz nada sobre o tamanho do caminho.
 	// Falhar aqui, nomeando o motivo, economiza a hora de depuração.
 	const maxSunPath = 108
 	if len(socket) >= maxSunPath {

@@ -3,22 +3,50 @@ info:
   title: wrapper-api
   version: "1"
   description: |
-    Gera o XML do documento fiscal a partir do seu JSON e transmite ao fisco.
-    **Nada é guardado no servidor** — nem o certificado.
+    Gera o XML do documento fiscal a partir do seu JSON, assina, transmite à
+    SEFAZ ou à prefeitura, e devolve o documento **protocolado**.
+
+    **Nada é guardado no servidor.** Nem o XML, nem o certificado.
+
+    | Fazemos | Não fazemos |
+    |---|---|
+    | traduzir seu JSON em XML fiscal e assinar | decidir o que preencher. CFOP, CST, alíquota e valores são seus |
+    | transmitir e devolver o retorno protocolado | controlar numeração e série, ou impedir duplicidade |
+    | enviar eventos: cancelamento, encerramento, CC-e | guardar o XML, nem o autorizado |
+    | gerar DACTE, DAMDFE, DANFSE a partir do XML | guardar o certificado. Ele vai na requisição |
+    | gerar boletos, remessa e retorno CNAB | fila, retry, agendamento ou histórico |
+
+    **Roda como serviço Docker dentro da sua stack**: dois containers no seu
+    compose, chamados pela sua aplicação na rede interna. Sem porta publicada,
+    sem tela, sem login. Quem chama é o seu código.
+
+    O seu sistema **guarda o XML protocolado**, o protocolo, a numeração e o
+    certificado. Este serviço não guarda nada.
+
+    A responsabilidade pelo conteúdo fiscal é de quem emite. Validamos o que a
+    biblioteca fiscal valida e transmitimos o que você mandou.
+
+    A biblioteca acompanha as **notas técnicas** do fisco e o ciclo de
+    atualização de layout. Manter a versão em dia é responsabilidade de quem
+    hospeda: prazo de nota técnica é obrigatório, e versão atrasada é rejeição
+    na data de virada.
+
+    Por que sem estado, e por que gerar e transmitir são separados:
+    [README](https://github.com/4devsmart/wrapper-api#por-que-foi-desenhado-assim).
 
     Autentique com `Authorization: Bearer <API_TOKEN>`. Para experimentar aqui,
     use **Authorize** acima.
 
     ## Gerar e transmitir
 
-    **1.** `POST /v1/{doc}/xml` — manda o documento em JSON, recebe o XML e a
+    **1.** `POST /v1/{doc}/xml`: manda o documento em JSON, recebe o XML e a
     chave. Não assina, não fala com o fisco, **não pede certificado**.
 
     ```
     { documento } → { "chave": "3526…", "xml_b64": "…", "validacao": { "ok": true } }
     ```
 
-    **2.** `POST /v1/{doc}/transmissao` — manda o XML de volta com o
+    **2.** `POST /v1/{doc}/transmissao`: manda o XML de volta com o
     certificado. Aqui ele assina e envia.
 
     ```
@@ -30,14 +58,14 @@ info:
 
     São duas chamadas porque a primeira põe a chave nas suas mãos **antes** de
     qualquer byte sair. Se a transmissão der timeout você não sabe se o
-    documento foi autorizado — e é a chave que permite descobrir.
+    documento foi autorizado, e é a chave que permite descobrir.
 
     ### ⚠️ Timeout na transmissão não autoriza repetir
 
     `502 desfecho_indeterminado` significa que o documento **pode** ter sido
     autorizado. Consulte pela chave (`POST /v1/cte/consulta`, ou
-    `POST /v1/nfse/consulta-dps` com o `id_dps`) — repetir duplica documento
-    fiscal. A API nunca reenvia sozinha.
+    `POST /v1/nfse/consulta-dps` com o `id_dps`). Repetir duplica documento
+    fiscal, e a API nunca reenvia sozinha.
 
     ## Erros
 
@@ -46,37 +74,33 @@ info:
 
     | Código | HTTP | Pode repetir? |
     |---|---|---|
-    | `json_invalido` — corpo malformado ou **campo com nome desconhecido** | 400 | corrija |
+    | `json_invalido`: corpo malformado ou **campo com nome desconhecido** | 400 | corrija |
     | `campo_obrigatorio` | 400 | corrija |
     | `certificado_invalido` | 400 | corrija |
-    | `regras_de_negocio` — a lib reprovou; nada foi transmitido | 422 | corrija |
-    | `provedor_nao_suportado` — município sem provedor de NFS-e | 422 | — |
-    | `operacao_nao_suportada` — o provedor não implementa | 422 | — |
-    | `desfecho_indeterminado` — **pode ter sido transmitido** | 502 | **não** — consulte |
-    | `lib_indisponivel` — a chamada **não** saiu | 503 | sim |
+    | `regras_de_negocio`: a biblioteca reprovou, nada foi transmitido | 422 | corrija |
+    | `provedor_nao_suportado`: município sem provedor de NFS-e | 422 | não |
+    | `operacao_nao_suportada`: o provedor não implementa | 422 | não |
+    | `desfecho_indeterminado`: **pode ter sido transmitido** | 502 | **não.** consulte |
+    | `lib_indisponivel`: a chamada **não** saiu | 503 | sim |
     | `falha_na_lib` | 502 | avalie |
 
     Rejeição do fisco não é erro de protocolo: volta `422` com o corpo completo
     (`status`, `cstat`, `motivo`, `erros[]`).
 
-    Campo com nome errado é `400`, não é ignorado — campo ignorado em silêncio
-    vira documento transmitido com dado faltando, e isso só aparece depois de o
-    fisco autorizar.
+    Campo com nome errado é `400`, não é ignorado. Campo ignorado em silêncio vira
+    documento transmitido com dado faltando, e isso só aparece depois de o fisco
+    autorizar.
 
-    ## Os schemas vêm do código
+    ## Campos sem `required`
 
-    Os corpos dos documentos e de todos os eventos são gerados a partir dos
-    modelos Go, com as descrições vindas dos comentários do fonte. O contrato
-    publicado é o contrato compilado.
+    Os schemas descrevem os campos e o que cada um significa, mas **não marcam
+    obrigatoriedade**. No fiscal ela é condicional: depende do modal, do
+    provedor do município, do tipo de emitente e do regime tributário. Nenhum
+    schema estático acerta isso.
 
-    **Não há `required`.** No domínio fiscal a obrigatoriedade é condicional —
-    depende do modal, do provedor do município, do tipo de emitente, do regime
-    tributário. Um `required` estático mentiria em metade dos casos. Quem valida
-    é a geração, que devolve as rejeições em `validacao.mensagens` antes de
-    qualquer coisa ser transmitida.
+    Quem valida é a geração. `POST /v1/{doc}/xml` devolve as rejeições em
+    `validacao.mensagens` antes de qualquer coisa ser transmitida.
 
-    Exemplos de `curl` completos, limitações e guia de contribuição:
-    [github.com/4devsmart/wrapper-api](https://github.com/4devsmart/wrapper-api).
   license:
     name: AGPL-3.0
     identifier: AGPL-3.0
@@ -98,7 +122,7 @@ paths:
   /healthz:
     get:
       tags: [sistema]
-      summary: Liveness — o processo está vivo
+      summary: "Liveness: o processo está vivo"
       security: []
       responses:
         "200": { $ref: "#/components/responses/StatusOK" }
@@ -106,10 +130,10 @@ paths:
   /readyz:
     get:
       tags: [sistema]
-      summary: Readiness — o motor fiscal atende
+      summary: "Readiness: o motor fiscal atende"
       description: |
         Responde `503` quando não há worker atendendo. É a diferença entre "o
-        processo subiu" e "dá para transmitir" — sem isto o orquestrador manda
+        processo subiu" e "dá para transmitir", sem isto o orquestrador manda
         tráfego para uma instância que só sabe errar.
       security: []
       responses:
@@ -229,12 +253,12 @@ paths:
       summary: Transmite o CT-e ao fisco
       description: |
         O ambiente sai do `tpAmb` do próprio XML; o campo `ambiente` só é usado
-        se a tag faltar. Divergir seria rejeição 252 — ou um documento de
+        se a tag faltar. Divergir seria rejeição 252, ou um documento de
         homologação indo para produção.
 
         **Timeout aqui não é falha: é desfecho desconhecido.** A resposta `502
         desfecho_indeterminado` significa que o documento PODE ter sido
-        autorizado. Não repita — use `POST /v1/cte/consulta`.
+        autorizado. Não repita: use `POST /v1/cte/consulta`.
       requestBody:
         required: true
         content:
@@ -263,7 +287,7 @@ paths:
         Cancela o CT-e. Exige o protocolo da autorização.
 
         Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
-        recuperação é consultar o documento — a chave dele você já tem.
+        recuperação é consultar o documento: a chave dele você já tem.
       requestBody:
         required: true
         content:
@@ -294,7 +318,7 @@ paths:
         Carta de Correção (CC-e). Um grupo por campo corrigido.
 
         Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
-        recuperação é consultar o documento — a chave dele você já tem.
+        recuperação é consultar o documento: a chave dele você já tem.
       requestBody:
         required: true
         content:
@@ -325,7 +349,7 @@ paths:
         Evento Prévio de Emissão em Contingência.
 
         Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
-        recuperação é consultar o documento — a chave dele você já tem.
+        recuperação é consultar o documento: a chave dele você já tem.
       requestBody:
         required: true
         content:
@@ -356,7 +380,7 @@ paths:
         Registra a entrega da carga, com as NF-e entregues.
 
         Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
-        recuperação é consultar o documento — a chave dele você já tem.
+        recuperação é consultar o documento: a chave dele você já tem.
       requestBody:
         required: true
         content:
@@ -387,7 +411,7 @@ paths:
         Registra tentativa frustrada de entrega.
 
         Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
-        recuperação é consultar o documento — a chave dele você já tem.
+        recuperação é consultar o documento: a chave dele você já tem.
       requestBody:
         required: true
         content:
@@ -418,7 +442,7 @@ paths:
         Registrado pelo TOMADOR quando a prestação está em desacordo.
 
         Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
-        recuperação é consultar o documento — a chave dele você já tem.
+        recuperação é consultar o documento: a chave dele você já tem.
       requestBody:
         required: true
         content:
@@ -580,7 +604,7 @@ paths:
         Encerra o manifesto. Exige o município de encerramento.
 
         Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
-        recuperação é consultar o documento — a chave dele você já tem.
+        recuperação é consultar o documento: a chave dele você já tem.
       requestBody:
         required: true
         content:
@@ -611,7 +635,7 @@ paths:
         Cancela o MDF-e. Exige o protocolo da autorização.
 
         Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
-        recuperação é consultar o documento — a chave dele você já tem.
+        recuperação é consultar o documento: a chave dele você já tem.
       requestBody:
         required: true
         content:
@@ -642,7 +666,7 @@ paths:
         Inclui condutor no manifesto em trânsito.
 
         Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
-        recuperação é consultar o documento — a chave dele você já tem.
+        recuperação é consultar o documento: a chave dele você já tem.
       requestBody:
         required: true
         content:
@@ -673,7 +697,7 @@ paths:
         Inclui documentos (NF-e) no manifesto em trânsito.
 
         Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
-        recuperação é consultar o documento — a chave dele você já tem.
+        recuperação é consultar o documento: a chave dele você já tem.
       requestBody:
         required: true
         content:
@@ -704,7 +728,7 @@ paths:
         Registra o pagamento da operação de transporte.
 
         Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
-        recuperação é consultar o documento — a chave dele você já tem.
+        recuperação é consultar o documento: a chave dele você já tem.
       requestBody:
         required: true
         content:
@@ -864,7 +888,7 @@ paths:
       summary: A DPS virou nota? (recuperação)
       description: |
         É o fecho do modelo sem estado para a NFS-e: depois de um desfecho
-        indeterminado, é ISTO que se chama — nunca reenviar a DPS.
+        indeterminado, é ISTO que se chama: nunca reenviar a DPS.
 
         Aceita o `id_dps` como a geração devolveu (com o prefixo `DPS`) ou a
         chave nua; o webservice quer sem prefixo, e essa diferença não é
@@ -926,7 +950,7 @@ paths:
       summary: Distribuição DF-e do ADN por NSU
       description: |
         O cursor (`nsu`) vai e volta no payload: sem estado, é você que guarda
-        onde parou. **Não paralelize a distribuição do mesmo CNPJ** — sem o lock
+        onde parou. **Não paralelize a distribuição do mesmo CNPJ**, sem o lock
         que existia com banco, chamadas simultâneas embaralham o cursor.
       requestBody:
         required: true
@@ -949,7 +973,7 @@ paths:
         Cancela a NFS-e. Nem todo provedor implementa.
 
         Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
-        recuperação é consultar o documento — a chave dele você já tem.
+        recuperação é consultar o documento: a chave dele você já tem.
       requestBody:
         required: true
         content:
@@ -980,7 +1004,7 @@ paths:
         Emite a DPS substituta identificando a nota antiga. Nem todo provedor implementa.
 
         Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
-        recuperação é consultar o documento — a chave dele você já tem.
+        recuperação é consultar o documento: a chave dele você já tem.
       requestBody:
         required: true
         content:
@@ -1009,7 +1033,7 @@ paths:
       summary: Gera o DANFSE, pela chave ou pelo XML
       description: |
         Diferente de CT-e e MDF-e, a NFS-e **recupera o PDF pela chave**
-        (`ObterDANFSE`) — perder o XML aqui não é definitivo. Por chave fala com
+        (`ObterDANFSE`): perder o XML aqui não é definitivo. Por chave fala com
         o provedor e exige certificado; por XML é render local e não exige.
       requestBody:
         required: true
@@ -1086,7 +1110,7 @@ paths:
                     numeroArquivo:
                       type: integer
                       default: 1
-                      description: sequencial da remessa — controle do cliente
+                      description: "sequencial da remessa: controle do cliente"
       responses:
         "200":
           description: OK
@@ -1112,7 +1136,7 @@ paths:
               properties:
                 conta:
                   type: object
-                  description: só a config do banco — títulos não entram aqui
+                  description: "só a config do banco: títulos não entram aqui"
                 arquivo: { type: string, description: conteúdo cru do retorno }
       responses:
         "200":
@@ -1131,7 +1155,7 @@ paths:
       summary: Registra ou baixa boleto(s) na API do banco
       description: |
         Exige `conta.ws` (OAuth + mTLS). Recusa do banco volta como `502` com o
-        detalhe — a falha é do outro lado.
+        detalhe: a falha é do outro lado.
       requestBody:
         required: true
         content:
@@ -1205,7 +1229,7 @@ components:
       type: object
       description: |
         `suportada: false` significa que a lib **não** expõe validação de regras
-        para este documento (é o caso da NFS-e) — e não que passou.
+        para este documento (é o caso da NFS-e), e não que passou.
       properties:
         ok: { type: boolean }
         suportada: { type: boolean }
@@ -1220,7 +1244,7 @@ components:
         xml_b64: { type: string, format: byte }
         assinado:
           type: boolean
-          description: sempre `false` — a ACBrLib assina no envio, não na montagem
+          description: "sempre `false`: a ACBrLib assina no envio, não na montagem"
         validacao: { $ref: "#/components/schemas/Validacao" }
 
     RespostaXMLNFSe:
@@ -1245,7 +1269,7 @@ components:
           description: o XML devolvido ao gerar
         ambiente:
           allOf: [{ $ref: "#/components/schemas/Ambiente" }]
-          description: FALLBACK — o ambiente sai do tpAmb do XML quando presente
+          description: "FALLBACK: o ambiente sai do tpAmb do XML quando presente"
         certificado: { $ref: "#/components/schemas/Certificado" }
 
     PedidoTransmissaoNFSe:
@@ -1253,7 +1277,7 @@ components:
       required: [xml_b64, municipio, emitente, certificado]
       properties:
         xml_b64: { type: string, format: byte }
-        municipio: { type: string, description: código IBGE — decide o provedor }
+        municipio: { type: string, description: "código IBGE: decide o provedor "}
         ambiente: { $ref: "#/components/schemas/Ambiente" }
         emitente: { $ref: "#/components/schemas/Emitente" }
         certificado: { $ref: "#/components/schemas/Certificado" }
@@ -1275,7 +1299,7 @@ components:
         motivo: { type: string }
         recibo:
           type: string
-          description: vestígio — o envio é síncrono e ele não vem
+          description: "vestígio: o envio é síncrono e ele não vem"
         xml_proc_b64:
           type: string
           format: byte
@@ -1395,15 +1419,14 @@ components:
       description: |
         Conta de cobrança (banco + cedente) e títulos. Ver
         `internal/boleto/model.go`. `conta.ws` carrega OAuth e mTLS quando o
-        registro é online — não é persistido.
+        registro é online, não é persistido.
       additionalProperties: true
       properties:
         conta: { type: object, additionalProperties: true }
         titulos:
           type: array
           items: { type: object, additionalProperties: true }
-
-    # >>> INÍCIO DOS SCHEMAS GERADOS — não edite à mão (make openapi)
+    # >>> INÍCIO DOS SCHEMAS GERADOS, não edite à mão (make openapi)
     BoletoConta:
       type: object
       description: 'Conta é a configuração da conta de cobrança ([Banco]+[Conta]+[Cedente]).'
@@ -1482,7 +1505,7 @@ components:
             - $ref: "#/components/schemas/BoletoContaWS"
     BoletoContaWS:
       type: object
-      description: 'ContaWS são as credenciais de integração online com a API do banco: OAuth (ClientID/Secret/Scope) + certificado mTLS (CRT/KEY em base64). Como o certificado A1 dos documentos fiscais, elas viajam no payload e não são persistidas. Os métodos String/LogValue abaixo existem para que um %v ou um slog distraído não as despeje em log — num serviço sem estado, é a única forma realista de um segredo do cliente escapar do processo.'
+      description: 'ContaWS são as credenciais de integração online com a API do banco: OAuth (ClientID/Secret/Scope) + certificado mTLS (CRT/KEY em base64). Como o certificado A1 dos documentos fiscais, elas viajam no payload e não são persistidas. Os métodos String/LogValue abaixo existem para que um %v ou um slog distraído não as despeje em log: num serviço sem estado, é a única forma realista de um segredo do cliente escapar do processo.'
       properties:
         ambiente:
           type: integer
@@ -1882,7 +1905,7 @@ components:
           type: string
     CteDocumentoSimplificado:
       type: object
-      description: 'PedidoSimp espelha o pedido de emissão do CT-e Simplificado (contrato ACBr.API — mesmo envelope do CT-e, corpo simplificado).'
+      description: 'PedidoSimp espelha o pedido de emissão do CT-e Simplificado (contrato ACBr.API: mesmo envelope do CT-e, corpo simplificado).'
       properties:
         infCte:
           $ref: "#/components/schemas/CteInfCteSimp"
@@ -4389,7 +4412,7 @@ components:
           description: 'MotCancelamento'
     NfseEventoSubstituicao:
       type: object
-      description: 'SubstituicaoPedido é o corpo de POST /v1/nfse/eventos/substituicao: a DPS substituta (nova nota) + os identificadores da NFS-e antiga + o motivo do cancelamento. Espelha os parâmetros do NFSE_SubstituirNFSe (provedores que expõem o webservice SubstituiNFSe — o Padrão Nacional faz substituição via grupo subst na DPS, não por este método).'
+      description: 'SubstituicaoPedido é o corpo de POST /v1/nfse/eventos/substituicao: a DPS substituta (nova nota) + os identificadores da NFS-e antiga + o motivo do cancelamento. Espelha os parâmetros do NFSE_SubstituirNFSe (provedores que expõem o webservice SubstituiNFSe: o Padrão Nacional faz substituição via grupo subst na DPS, não por este método).'
       properties:
         dps:
           description: 'nota nova (substituta)'
@@ -4589,12 +4612,12 @@ components:
           type: string
         cPais:
           type: integer
-          description: 'CPais/XPais só precisam ser informados para endereço NO EXTERIOR. Endereço nacional (com cMun) recebe 1058 (Brasil) automaticamente — ver pessoaCommon.'
+          description: 'CPais/XPais só precisam ser informados para endereço NO EXTERIOR. Endereço nacional (com cMun) recebe 1058 (Brasil) automaticamente: ver pessoaCommon.'
         xPais:
           type: string
           description: 'nome do país'
         regTrib:
-          description: 'RegTrib (regime tributário) é obrigatório para o prestador no Padrão Nacional — sem ele o ACBr falha ao montar o XML.'
+          description: 'RegTrib (regime tributário) é obrigatório para o prestador no Padrão Nacional, sem ele o ACBr falha ao montar o XML.'
           allOf:
             - $ref: "#/components/schemas/NfseRegTrib"
     NfseRegTrib:
@@ -4612,7 +4635,7 @@ components:
           description: 'regime especial de tributação'
         incentivadorCultural:
           type: integer
-          description: 'Campos exclusivos ABRASF (municípios fora do Padrão Nacional) — opcionais, ignorados na emissão Padrão Nacional.'
+          description: 'Campos exclusivos ABRASF (municípios fora do Padrão Nacional): opcionais, ignorados na emissão Padrão Nacional.'
         dataOptanteSimplesNacional:
           type: string
           description: 'YYYY-MM-DD'
@@ -4664,7 +4687,7 @@ components:
             - $ref: "#/components/schemas/NfseInfoCompl"
         itemListaServico:
           type: string
-          description: 'Campos exclusivos ABRASF (municípios fora do Padrão Nacional) — opcionais, ignorados na emissão Padrão Nacional. Onde houver equivalente PN (cServ, cTribMun, pAliq em valores), o builder ABRASF cai nele como fallback.'
+          description: 'Campos exclusivos ABRASF (municípios fora do Padrão Nacional): opcionais, ignorados na emissão Padrão Nacional. Onde houver equivalente PN (cServ, cTribMun, pAliq em valores), o builder ABRASF cai nele como fallback.'
         responsavelRetencao:
           type: integer
         naturezaOperacao:
@@ -4845,8 +4868,8 @@ components:
     Erro502:
       description: |
         A lib ou o webservice falhou. `desfecho_indeterminado` significa que a
-        operação PODE ter sido transmitida — consulte pela chave, não repita.
+        operação PODE ter sido transmitida: consulte pela chave, não repita.
       content: { application/json: { schema: { $ref: "#/components/schemas/Erro" } } }
     Erro503:
-      description: Motor fiscal indisponível — a chamada NÃO saiu; repetir é seguro
+      description: Motor fiscal indisponível. A chamada NÃO saiu, repetir é seguro
       content: { application/json: { schema: { $ref: "#/components/schemas/Erro" } } }

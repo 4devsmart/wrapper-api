@@ -1,16 +1,143 @@
 # wrapper-api
 
-API REST para documentos fiscais brasileiros — **CT-e**, **MDF-e**, **NFS-e** e
-**boletos**. JSON puro, Docker, **sem estado**.
+Gera o XML do documento fiscal a partir do seu JSON, assina, transmite à SEFAZ
+ou à prefeitura, e devolve o documento **protocolado**. CT-e, MDF-e, NFS-e e
+boletos.
 
-Você manda o documento em JSON, a API devolve o XML. Uma segunda chamada
-transmite esse XML ao fisco. Nada é guardado no servidor — nem o certificado.
+**Nada é guardado no servidor.** Nem o XML, nem o certificado.
 
-> **English** — Stateless JSON REST API (Go) wrapping the native ACBrLib for
-> Brazilian fiscal documents. Domain code and comments are in Portuguese: the
-> domain is Brazil-specific and the terms have no useful translation.
+> **English.** Stateless JSON REST API (Go) wrapping the native ACBrLib for
+> Brazilian fiscal documents. It generates, signs and transmits the XML, and
+> returns the authorized document. It stores nothing: your application owns the
+> data. Domain code and comments are in Portuguese, because the domain is
+> Brazil-specific and the terms have no useful translation.
 
----
+## O que fazemos, e o que não fazemos
+
+| Fazemos | Não fazemos |
+|---|---|
+| traduzir o seu JSON em XML fiscal e assinar | **decidir o que preencher.** CFOP, CST, alíquota, natureza da operação e valores são seus |
+| transmitir ao fisco e devolver o retorno protocolado, autorizado ou rejeitado com o motivo | **controlar numeração e série**, ou impedir duplicidade |
+| enviar os eventos: cancelamento, encerramento, carta de correção, EPEC | **guardar o XML.** Nem o autorizado. Não há histórico, listagem nem segunda via |
+| gerar DACTE, DAMDFE e DANFSE a partir do XML | **guardar o certificado.** Ele chega no corpo da requisição e morre com ela |
+| gerar boletos, arquivo de remessa e leitura de retorno CNAB | fila, retry, agendamento, tela de cadastro ou relatório |
+
+**A responsabilidade pelo conteúdo fiscal é de quem emite.** Validamos o que a
+biblioteca fiscal valida, que são as regras de negócio e o schema, e
+transmitimos o que você mandou. Se o CFOP está errado, o documento é autorizado
+errado.
+
+## Como ele roda
+
+**Como serviço Docker, dentro da sua stack.** São dois containers que você
+acrescenta ao `docker-compose.yml` da sua aplicação: a API e o worker que
+carrega a biblioteca fiscal.
+
+```yaml
+services:
+  minha-app:            # a sua aplicação
+    environment:
+      FISCAL_URL: http://fiscal-api:8080     # chamada interna, sem sair da rede
+
+  fiscal-api:
+    image: ghcr.io/4devsmart/wrapper-api/api:v1
+    environment:
+      API_TOKEN: ${FISCAL_API_TOKEN}
+      ACBR_WORKERS: /run/wrapper/fiscal.sock
+    volumes: [fiscal-run:/run/wrapper]
+
+  fiscal-worker:
+    image: ghcr.io/4devsmart/wrapper-api/api:v1
+    command: ["worker"]
+    volumes: [fiscal-run:/run/wrapper]
+
+volumes: { fiscal-run: }
+```
+
+Repare que **`fiscal-api` não publica porta**. A sua aplicação alcança o serviço
+pelo nome do container, na rede interna do Docker. Publicar a porta é opcional e
+serve só para você abrir o `/docs` durante o desenvolvimento.
+
+Não há interface para pessoa: nem tela, nem login, nem cadastro. Quem chama é o
+seu código.
+
+### Quem é responsável pelo quê
+
+```
+  sua aplicação  ────▶  wrapper-api  ────▶  SEFAZ / prefeitura / banco
+                HTTP                  HTTPS
+                interno               com o certificado que você enviou
+
+  sua aplicação guarda:          wrapper-api guarda:
+    o XML protocolado              nada
+    o protocolo e a chave
+    a numeração e a série
+    o certificado A1
+```
+
+O seu sistema decide o conteúdo do documento, controla a numeração, guarda o XML
+protocolado e trata os erros. Este serviço recebe o JSON, devolve o XML, e
+transmite quando você mandar.
+
+## Por que foi desenhado assim
+
+**O estado fiscal já vive no seu sistema.** Guardá-lo aqui também criaria duas
+fontes da verdade, que divergem no primeiro erro de rede. A sua é a que vale.
+Sem banco, não há o que sincronizar, migrar ou reconciliar.
+
+**Certificado de terceiro em repouso é um risco que ninguém quer.** Sem
+persistência, um comprometimento deste servidor não vaza certificado nenhum,
+porque não há o que vazar. O A1 chega na chamada que transmite, é usado em
+memória e some com ela.
+
+**Gerar e transmitir são chamadas separadas** para que o documento e a chave
+estejam nas suas mãos antes de qualquer byte sair. É isso que torna recuperável
+uma transmissão cuja resposta se perdeu: você consulta pela chave em vez de
+reenviar e duplicar. Sem essa separação, um timeout viraria documento fantasma,
+autorizado no fisco e desconhecido para você.
+
+### A biblioteca fiscal roda em outro processo
+
+Quem fala com a SEFAZ é a **ACBrLib**, uma biblioteca nativa. Ela pode falhar de
+um jeito que não dá para tratar em Go: um SIGSEGV, que é o sistema operacional
+matando o processo. Não existe `recover` para isso. Se ela rodasse dentro da
+API, uma falha dessas derrubaria o servidor inteiro e todas as requisições em
+andamento junto.
+
+Por isso ela roda num processo separado, o `fiscal-worker`. A API não carrega a
+biblioteca: conversa com o worker por um socket unix. Quando a biblioteca falha:
+
+1. o worker morre, e leva junto **apenas a requisição que estava atendendo**;
+2. o Docker reinicia o worker em segundos;
+3. a API continua de pé e responde `503` enquanto isso;
+4. a requisição afetada recebe erro tipado, não uma conexão cortada.
+
+Você configura quantas requisições um crash pode levar junto: é o número de
+workers vezes `ACBR_WORKER_SLOTS`, que por padrão é 1 × 1. Mais slots dão mais
+vazão e aumentam o estrago de uma falha, na mesma proporção.
+
+O mesmo raciocínio vale para o PDF. A geração da representação gráfica é o que
+mais falha na biblioteca, então ela fica **fora** do caminho da transmissão: o
+documento é transmitido primeiro, e o PDF é gerado depois, numa chamada
+separada. Assim o pior caso é você não conseguir o PDF, e não um documento
+autorizado no fisco que você nunca soube que existiu.
+
+### A biblioteca acompanha as notas técnicas
+
+A ACBrLib é mantida em cima das **notas técnicas** publicadas pelo fisco, e
+segue o ciclo de atualização de layout de CT-e, MDF-e e NFS-e. Quando uma nota
+técnica muda um campo, uma regra de validação ou uma URL de webservice, a
+mudança chega pela biblioteca.
+
+O que isso exige de você: **manter a versão em dia**. Atualizar a biblioteca é
+subir a revisão pinada, regenerar os artefatos e publicar uma imagem nova.
+Prazos de nota técnica são obrigatórios, e uma versão atrasada é rejeição na
+data de virada. Ver [docs/ACBRLIB.md](docs/ACBRLIB.md).
+
+Na NFS-e há um detalhe a mais: cada município escolhe o seu provedor, e a tabela
+que mapeia município para provedor muda com frequência, porque municípios vão
+migrando para o Padrão Nacional. Essa tabela também vem da biblioteca, e
+`GET /v1/nfse/municipios/{codigo}` diz o que a sua versão conhece.
 
 ## Subindo
 
@@ -22,35 +149,20 @@ docker compose up -d
 curl localhost:8080/healthz
 ```
 
-Abra **`http://localhost:8080/docs`** — Swagger UI com todos os campos de todos
-os documentos, servido do próprio binário.
+Abra **`http://localhost:8080/docs`**. É o Swagger UI, servido do próprio
+binário, com todos os campos de todos os documentos.
 
-Como serviço no compose de outro projeto, sem credencial de registry:
+Para embutir na stack de outro projeto, veja [Como ele roda](#como-ele-roda).
+A imagem é pública: não há `docker login`.
 
-```yaml
-services:
-  fiscal-api:
-    image: ghcr.io/4devsmart/wrapper-api/api:v1
-    environment:
-      API_TOKEN: ${FISCAL_API_TOKEN}
-      ACBR_WORKERS: /run/wrapper/fiscal.sock
-    ports: ["8080:8080"]
-    volumes: [fiscal-run:/run/wrapper]
-  fiscal-worker:
-    image: ghcr.io/4devsmart/wrapper-api/api:v1
-    command: ["worker"]
-    volumes: [fiscal-run:/run/wrapper]
-volumes: { fiscal-run: }
-```
-
-Configuração é **só por variável de ambiente**. Todas estão em `.env.example` —
-são oito.
+Configuração é **só por variável de ambiente**. São oito, todas em
+`.env.example`.
 
 ---
 
 ## Gerar e transmitir
 
-**1. Gerar** — devolve o XML e a chave. Sem certificado, sem rede.
+**1. Gerar.** Devolve o XML e a chave. Sem certificado, sem rede.
 
 ```bash
 curl -X POST localhost:8080/v1/cte/xml \
@@ -66,7 +178,7 @@ curl -X POST localhost:8080/v1/cte/xml \
 }
 ```
 
-**2. Transmitir** — o certificado entra aqui, e só aqui.
+**2. Transmitir.** O certificado entra aqui, e só aqui.
 
 ```bash
 curl -X POST localhost:8080/v1/cte/transmissao \
@@ -84,14 +196,12 @@ curl -X POST localhost:8080/v1/cte/transmissao \
 **Guarde o `xml_proc_b64`.** Não há segunda via: em CT-e e MDF-e, perder o XML é
 perder também o PDF.
 
-### Por que separado
+### Quando a resposta se perde
 
-Porque a geração põe a chave nas suas mãos **antes** de qualquer byte sair. Se
-a transmissão der timeout, você não sabe se o documento foi autorizado — e é a
-chave que permite descobrir, em vez de reenviar e duplicar.
+`502 desfecho_indeterminado` significa que o documento **pode** ter sido
+autorizado. Não repita: consulte pela chave que você guardou ao gerar.
 
 ```bash
-# depois de um 502 desfecho_indeterminado:
 curl -X POST localhost:8080/v1/cte/consulta \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
   -d '{"chave":"3526...","certificado":{...}}'
@@ -112,7 +222,7 @@ Na NFS-e a identidade é o `id_dps` e a rota é `/v1/nfse/consulta-dps`.
 | `nfse` | `xml` · `transmissao` · `eventos/{2 tipos}` · `consulta` · `consulta-dps` · `consultas/{5 tipos}` · `distribuicao` · `pdf` · `municipios/{codigo}` |
 | `boletos` | `pdf` · `remessa` · `retorno` · `registro` |
 
-Eventos — CT-e: `cancelamento`, `carta-correcao`, `epec`, `comprovante-entrega`,
+Eventos. CT-e: `cancelamento`, `carta-correcao`, `epec`, `comprovante-entrega`,
 `insucesso-entrega`, `prestacao-desacordo`. MDF-e: `encerramento`,
 `cancelamento`, `inclusao-condutor`, `inclusao-dfe`, `pagamento-operacao`.
 NFS-e: `cancelamento`, `substituicao`.
@@ -140,9 +250,9 @@ Trate por `codigo`, nunca pela mensagem:
 | `campo_obrigatorio` | 400 | falta um campo do envelope | corrija |
 | `certificado_invalido` | 400 | `pfx_b64`/`senha` ausente ou ilegível | corrija |
 | `regras_de_negocio` | 422 | a lib reprovou; nada foi transmitido | corrija |
-| `provedor_nao_suportado` | 422 | município sem provedor de NFS-e conhecido | — |
-| `operacao_nao_suportada` | 422 | o provedor não implementa esta operação | — |
-| `desfecho_indeterminado` | 502 | **pode ter sido transmitido** | **não** — consulte |
+| `provedor_nao_suportado` | 422 | município sem provedor de NFS-e conhecido | não |
+| `operacao_nao_suportada` | 422 | o provedor não implementa esta operação | não |
+| `desfecho_indeterminado` | 502 | **pode ter sido transmitido** | **não.** consulte |
 | `lib_indisponivel` | 503 | a chamada **não** saiu | sim |
 | `falha_na_lib` | 502 | erro conhecido da lib | avalie |
 
@@ -159,17 +269,18 @@ depois de a SEFAZ autorizar.
 
 Leia **[docs/LIMITACOES.md](docs/LIMITACOES.md)**. O essencial:
 
-- **não há proteção contra duplicidade** — número e série são sua disciplina;
+- **não há proteção contra duplicidade.** Número e série são sua disciplina;
 - **CT-e e MDF-e não recuperam o PDF pela chave**; só a NFS-e recupera;
-- **NFS-e é multi-provedor** e a capacidade é descoberta em runtime — consulte
+- **NFS-e é multi-provedor** e a capacidade é descoberta em tempo de execução.
+  Consulte
   `/v1/nfse/municipios/{codigo}` antes de montar;
 - **a validação da geração não é XSD** (o schema exige assinatura); o XSD roda na
   transmissão, ainda antes de o documento sair;
-- **não paralelize a distribuição DF-e do mesmo CNPJ** — o cursor é seu.
+- **não paralelize a distribuição DF-e do mesmo CNPJ.** O cursor é seu.
 
 ---
 
-## Como funciona
+## Por dentro
 
 ```
 Cliente ──HTTP/JSON──▶ api (Go, sem cgo)
@@ -182,38 +293,36 @@ Cliente ──HTTP/JSON──▶ api (Go, sem cgo)
                                               carrega a lib; é quem pode crashar
 ```
 
-A lib fiscal é nativa (ABI C, compilada do fonte oficial do ACBr) e um defeito
-nela derruba o processo que a hospeda — sinal do SO, sem `recover`. Por isso ela
-**não roda dentro da API**: o worker a carrega, e um crash mata a requisição em
-curso, não o servidor.
-
-**Nós não geramos XML.** O cliente manda JSON, traduzimos para o INI que a lib
-consome, e é ela que monta, assina e transmite. Essa tradução é o grosso do
-trabalho de domínio.
+**Nós não escrevemos o XML.** Traduzimos o seu JSON para o INI que a
+biblioteca consome, e é ela que monta, assina e transmite. Essa tradução, do
+contrato JSON até o layout que a biblioteca entende, é o grosso do trabalho de
+domínio deste repositório.
 
 Um módulo não importa outro módulo, não conhece o servidor, e `platform/` não
-conhece domínio fiscal — verificado por teste sobre o grafo de imports, não por
-convenção.
+conhece domínio fiscal. Isso é verificado por teste sobre o grafo de imports,
+não por convenção.
 
 ---
 
 ## Desenvolvendo
 
 ```bash
-make test        # unidade — sem lib nativa e sem certificado
+make test        # unidade, sem lib nativa e sem certificado
 make test-cgo    # type-check + link do binding contra as .so reais
 make openapi     # regenera os schemas da spec a partir dos modelos Go
 make help
 ```
 
-O domínio inteiro é testável **sem a lib e sem certificado** — consequência
-direta de a geração não assinar.
+O domínio inteiro é testável **sem a biblioteca e sem certificado**, que é
+consequência direta de a geração não assinar.
 
 Os schemas do `openapi.yaml` são **gerados dos modelos Go**, com as descrições
 vindas dos comentários do fonte: o contrato publicado é o contrato compilado, e
-o CI reprova se a spec envelhecer. Não há `required` — no domínio fiscal a
-obrigatoriedade é condicional (modal, provedor, tipo de emitente), e um
-`required` estático mentiria em metade dos casos.
+o CI reprova se a spec envelhecer.
+
+Não há `required`: no domínio fiscal a obrigatoriedade é condicional, porque
+depende do modal, do provedor e do tipo de emitente. Um `required` estático
+mentiria em metade dos casos.
 
 [CONTRIBUTING.md](CONTRIBUTING.md) tem as armadilhas que já custaram tempo.
 
@@ -221,5 +330,5 @@ obrigatoriedade é condicional (modal, provedor, tipo de emitente), e um
 
 ## Licença
 
-**[AGPL-3.0](LICENSE)** — núcleo público, sem porção fechada. A ACBrLib é
+**[AGPL-3.0](LICENSE)**, núcleo público, sem porção fechada. A ACBrLib é
 redistribuída sob LGPL; veja [NOTICE](NOTICE) para atribuição e recompilação.

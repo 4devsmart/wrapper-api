@@ -2,7 +2,7 @@ package cte
 
 import "strconv"
 
-// CT-e Simplificado (tpCTe=5) — modelo 57 com corpo próprio: tomador único
+// CT-e Simplificado (tpCTe=5): modelo 57 com corpo próprio, tomador único
 // ([toma]), detalhamento por trecho ([detNNN]) e totais ([total]), em vez de
 // rem/dest/vPrest do CT-e Normal. Ver ModeloCTeSimplificadoINI.html e o
 // Ler_CTeSimp do ACBrCTe.IniReader. A Reforma Tributária (IBSCBS) é a mesma do
@@ -13,7 +13,7 @@ const (
 )
 
 // PedidoSimp espelha o pedido de emissão do CT-e Simplificado (contrato
-// ACBr.API — mesmo envelope do CT-e, corpo simplificado).
+// ACBr.API: mesmo envelope do CT-e, corpo simplificado).
 type PedidoSimp struct {
 	InfCte     InfCteSimp  `json:"infCte"`
 	InfCTeSupl *InfCTeSupl `json:"infCTeSupl,omitempty"`

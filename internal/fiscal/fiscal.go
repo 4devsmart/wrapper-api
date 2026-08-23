@@ -25,7 +25,7 @@ import (
 //
 // Ele NÃO é persistido em lugar nenhum: vai para o worker por socket unix, é
 // usado na sessão nativa e morre com ela. Os métodos String/LogValue abaixo
-// existem para que um %v ou um slog distraído não o despeje em log — a única
+// existem para que um %v ou um slog distraído não o despeje em log: a única
 // forma realista de ele escapar deste processo.
 type Certificado struct {
 	PFXBase64 string `json:"pfx_b64"`
@@ -46,7 +46,7 @@ func (c Certificado) Informado() bool { return strings.TrimSpace(c.PFXBase64) !=
 // corpo absurdo antes de gastar CPU decodificando.
 const tamanhoMaxPFX = 512 << 10
 
-// Validar confere presença e forma. Não abre o PFX — quem valida senha e
+// Validar confere presença e forma. Não abre o PFX: quem valida senha e
 // conteúdo é a lib nativa, no worker; aqui é só a triagem barata.
 func (c Certificado) Validar() error {
 	if !c.Informado() {
@@ -70,7 +70,7 @@ func (c Certificado) Validar() error {
 
 // AmbienteOrdinal traduz o ambiente para o valor que a ACBrLib espera.
 // Produção = 0, homologação = 1 (é a ordem do enum do ACBr, não do tpAmb da
-// SEFAZ — invertê-los emitiria em produção achando que era homologação).
+// SEFAZ: invertê-los emitiria em produção achando que era homologação).
 func AmbienteOrdinal(ambiente string) string {
 	if strings.EqualFold(strings.TrimSpace(ambiente), "producao") {
 		return "0"
@@ -114,7 +114,7 @@ func SoDigitos(s string) string {
 }
 
 // ResponderErroDaLib traduz uma falha do binding em resposta HTTP. A distinção
-// entre os casos não é cosmética — ela diz ao cliente se pode repetir:
+// entre os casos não é cosmética. Ela diz ao cliente se pode repetir:
 //
 //   - indisponível: a chamada NÃO saiu; repetir é seguro (503);
 //   - não suportado: a lib está viva, a operação não existe para este documento (422);
@@ -131,7 +131,7 @@ func ResponderErroDaLib(w http.ResponseWriter, doc string, res acbr.Result, err 
 			"esta operação não existe para "+doc, detalhes)
 	case errors.Is(err, acbr.ErrIndeterminado):
 		httpx.ErroDetalhado(w, http.StatusBadGateway, "desfecho_indeterminado",
-			"a operação pode ter sido transmitida e a resposta se perdeu: NÃO repita — consulte pela chave para saber o desfecho",
+			"a operação pode ter sido transmitida e a resposta se perdeu: NÃO repita: consulte pela chave para saber o desfecho",
 			detalhes)
 	default:
 		httpx.ErroDetalhado(w, http.StatusBadGateway, "falha_na_lib",
@@ -150,7 +150,7 @@ func detalhesDaLib(res acbr.Result) any {
 
 // Validacao é o resultado das regras de negócio da lib.
 //
-// Suportada existe porque nem todo documento a expõe — a NFS-e não tem. Dizer
+// Suportada existe porque nem todo documento a expõe: a NFS-e não tem. Dizer
 // "ok: true" quando validação nenhuma rodou seria mentir sobre a garantia que o
 // cliente tem em mãos.
 type Validacao struct {
@@ -160,11 +160,11 @@ type Validacao struct {
 }
 
 // Montar gera o documento, e é comum a todos: monta o XML a partir do INI e roda
-// as regras de negócio. Não assina e não fala com a SEFAZ — por isso o Tenant
+// as regras de negócio. Não assina e não fala com a SEFAZ, por isso o Tenant
 // que chega aqui não precisa (nem deve) trazer certificado.
 //
 // São duas sessões nativas. É deliberado: sem certificado, abrir sessão é
-// barato — o custo real, carregar o PFX, só existe na transmissão. Juntar as duas num
+// barato: o custo real, carregar o PFX, só existe na transmissão. Juntar as duas num
 // método do binding é otimização a fazer depois de medir.
 func Montar(svc acbr.Servico, t acbr.TenantConfig, ini string) (xml string, val Validacao, res acbr.Result, err error) {
 	res, err = svc.MontarXML(t, ini)
@@ -177,7 +177,7 @@ func Montar(svc acbr.Servico, t acbr.TenantConfig, ini string) (xml string, val 
 // validarRegras roda a validação de regras de negócio da lib.
 //
 // ARMADILHA DA ABI, e ela vale para todo documento: a lib devolve SEMPRE código
-// 0 aqui, mesmo com rejeições — ACBrLibCTeBase.pas:554 faz
+// 0 aqui, mesmo com rejeições: ACBrLibCTeBase.pas:554 faz
 // SetRetorno(ErrOK, Erros) incondicionalmente, e o MDF-e faz igual. Quem diz que
 // passou é a RESPOSTA VIR VAZIA. Conferir o código daria "válido" para qualquer
 // documento.
@@ -237,7 +237,7 @@ func DecodarAninhado(rotulo string, bruto json.RawMessage, dst any) string {
 // --- status HTTP ------------------------------------------------------------
 
 // StatusDoDesfecho mapeia o desfecho de uma transmissão para HTTP. Rejeitado é
-// 422 (o documento do cliente não passou), não 200 — mas o corpo vai completo,
+// 422 (o documento do cliente não passou), não 200, mas o corpo vai completo,
 // com cStat e motivo, porque é isso que ele precisa para corrigir.
 func StatusDoDesfecho(status string) int {
 	switch status {

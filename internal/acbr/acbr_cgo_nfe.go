@@ -1,7 +1,7 @@
 //go:build acbrlib
 
 // Binding cgo da ACBrLibNFe (libacbrnfe64, variante MT), RESTRITO a Distribuição
-// DF-e + Manifestação do Destinatário — sem emissão. Reusa a máquina de sessão
+// DF-e + Manifestação do Destinatário, sem emissão. Reusa a máquina de sessão
 // de dfeSession (acbr_cgo.go), como CT-e/MDF-e.
 package acbr
 
@@ -53,7 +53,7 @@ func (l *nfeLib) Version() (string, error) {
 	return res.Resposta, nil
 }
 
-// DistribuicaoDFe — mesma forma do CT-e (NF-e também exige AcUFAutor = cUF do autor).
+// DistribuicaoDFe: mesma forma do CT-e (NF-e também exige AcUFAutor = cUF do autor).
 func (l *nfeLib) DistribuicaoDFe(t TenantConfig, p DistDFeParams) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		cCNPJ := C.CString(p.CNPJCPF)

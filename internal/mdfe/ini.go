@@ -12,7 +12,7 @@ import (
 // ACBrLibMDFe (MDFE_CarregarINI). Seções/chaves seguem o modelo oficial
 // (acbr.sourceforge.io/ACBrLib/ModeloMDFeINI.html).
 //
-// Cobertura: rodoviário completo — infANTT (CIOT/valePed/contratante/infPag),
+// Cobertura do rodoviário completo: infANTT (CIOT/valePed/contratante/infPag),
 // veicTracao/veicReboque/condutor/lacRodo, descarga (infNFe/infCTe/infMDFeTransp
 // com peri + unidCarga/unidTransp aninhados), seg, prodPred/infLotacao, infAdic,
 // infRespTec. Pendente: modais aquaviário/ferroviário/aéreo (não-rodoviário).
@@ -39,7 +39,7 @@ func ToINI(p PedidoEmissao) string {
 	b.kv("UFIni", id.UFIni)
 	b.kv("UFFim", id.UFFim)
 	// dhIniViagem pertence a [ide]: o leitor da lib faz ReadString(<ide>,
-	// 'dhIniViagem'). Era escrito dentro de [CARR001] e simplesmente ignorado —
+	// 'dhIniViagem'). Era escrito dentro de [CARR001] e simplesmente ignorado:
 	// o MDF-e saía sem data/hora de início da viagem. Achado pelo lockstep.
 	if id.DhIniViagem != "" {
 		b.kv("dhIniViagem", b.dataHora(id.DhIniViagem))
@@ -157,7 +157,7 @@ func ToINI(p PedidoEmissao) string {
 			b.kv("CPF", c.CPF)
 		}
 		for i, rb := range rodo.VeicReboque {
-			b.section("reboque" + seq2(i+1)) // [reboqueNN] — 2 dígitos
+			b.section("reboque" + seq2(i+1)) // [reboqueNN]: 2 dígitos
 			b.kvOpt("cInt", rb.CInt)
 			b.kv("placa", rb.Placa)
 			b.kvOpt("RENAVAM", rb.RENAVAM)
@@ -329,7 +329,7 @@ func ToINI(p PedidoEmissao) string {
 		b.kvOpt("hashCSRT", rt.HashCSRT)
 	}
 	// TODO: modais aquaviário/ferroviário/aéreo, unidCarga/unidTransp + peri,
-	// infANTT.infPag (pagamento) — indexação aninhada profunda, a confirmar.
+	// infANTT.infPag (pagamento): indexação aninhada profunda, a confirmar.
 
 	return b.String()
 }

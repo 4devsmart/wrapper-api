@@ -1,7 +1,7 @@
 // Package httpx são os utilitários HTTP compartilhados: leitura de JSON,
 // escrita de resposta e o envelope de erro.
 //
-// Não conhece domínio fiscal — o que é comum aos documentos mas específico do
+// Não conhece domínio fiscal, o que é comum aos documentos mas específico do
 // fisco (certificado, ambiente, tradução de erro da lib) mora em internal/fiscal.
 package httpx
 
@@ -46,7 +46,7 @@ func ErroDetalhado(w http.ResponseWriter, status int, codigo, mensagem string, d
 //
 // Rejeita CAMPO DESCONHECIDO de propósito. Num contrato fiscal, um campo com
 // nome errado que o servidor ignora em silêncio vira documento transmitido com
-// dado faltando — o pior desfecho possível, porque só aparece depois de a SEFAZ
+// dado faltando: o pior desfecho possível, porque só aparece depois de a SEFAZ
 // autorizar. Melhor um 400 dizendo qual campo o cliente errou. Cliente e
 // servidor deste wrapper versionam juntos, então não há compatibilidade
 // prospectiva a preservar.
@@ -85,7 +85,7 @@ func mensagemDeErroJSON(err error) string {
 	msg := err.Error()
 	// "json: unknown field \"x\"" é a mensagem mais útil da stdlib; traduz.
 	if campo, ok := strings.CutPrefix(msg, "json: unknown field "); ok {
-		return "campo desconhecido " + campo + " — confira o nome no contrato"
+		return "campo desconhecido " + campo + ": confira o nome no contrato"
 	}
 	return "corpo JSON inválido: " + msg
 }

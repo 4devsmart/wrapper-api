@@ -30,7 +30,7 @@ func ToINICancelamento(chave, cMun string, p CancelamentoPedido) string {
 	var b iniBuilder
 	b.section("CancelarNFSe")
 	b.kv("ChaveNFSe", chave)
-	// CodCancelamento: default 1 (erro na emissão) — código nacional mais comum.
+	// CodCancelamento: default 1 (erro na emissão), o código nacional mais comum.
 	codigo := p.Codigo
 	if codigo == "" {
 		codigo = "1"

@@ -22,13 +22,16 @@ jobs:
           if [ -n "$fora" ]; then
             echo "Arquivos fora do gofmt (rode 'make fmt'):"; echo "$fora"; exit 1
           fi
-      # CGO desligado: compila o binding stub. O domínio inteiro — que é o ativo
-      # do projeto — é testável sem a lib nativa E sem certificado, porque a fase
+      # CGO desligado: compila o binding stub. O domínio inteiro, que é o ativo
+      # do projeto: é testável sem a lib nativa E sem certificado, porque a fase
       # 1 do contrato não assina. É o que torna este job barato e honesto.
       - run: CGO_ENABLED=0 go vet ./...
       - run: CGO_ENABLED=0 go test ./...
       # A spec é gerada dos modelos Go. Este gate impede que ela envelheça: sem
       # ele, o campo que alguém adicionar hoje some da documentação amanhã.
+      # Regenera a spec e confere que ela é YAML válido. O segundo já pegou uma
+      # quebra: descrição com ": " sem aspas vira escalar inválido, e o Swagger
+      # deixa de renderizar sem erro nenhum no build.
       - run: make openapi-check
 
   cgo:
@@ -51,7 +54,7 @@ jobs:
         run: make acbr-libs-baixar
       # Este job pega o que o job acima NÃO pega: assinatura C errada no header.
       # Um argumento a menos desloca os registradores e vira corrupção de memória
-      # em runtime — já aconteceu com CTE_Enviar.
+      # em runtime, já aconteceu com CTE_Enviar.
       - run: make test-cgo
       - run: make build-cgo
 
@@ -82,7 +85,7 @@ jobs:
         with:
           version: v2.5.0
           # verify baixa o JSON Schema do site do golangci a cada run só para
-          # validar o .golangci.yml — dependência de rede externa que já derrubou
+          # validar o .golangci.yml: dependência de rede externa que já derrubou
           # CI por timeout, sem nada a ver com o código.
           verify: false
 
@@ -92,7 +95,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       # Este projeto recebe certificado alheio por payload. Um .pfx ou .env que
-      # escape para o repositório PÚBLICO é irreversível — vale um gate barato.
+      # escape para o repositório PÚBLICO é irreversível: vale um gate barato.
       - name: procura certificados, chaves e .env
         run: |
           # O -v '.example' é essencial: .env.example É para ser versionado, e
@@ -104,3 +107,13 @@ jobs:
             echo "::error::arquivos sensíveis rastreados:"; echo "$achados"; exit 1
           fi
           echo "nenhum arquivo sensível rastreado"
+      # Um `go build ./cmd/<x>` distraído deixa o binário na raiz e ele entra no
+      # commit seguinte. Aconteceu uma vez, com 3 MB.
+      - name: nenhum binário grande rastreado
+        run: |
+          grandes=$(git ls-files -z | xargs -0 -r du -k 2>/dev/null \
+            | awk '$1 > 500 {print $2}' | grep -vE 'testdata/|\.tsv$|^LICENSE$|swagger|openapi' || true)
+          if [ -n "$grandes" ]; then
+            echo "::error::arquivos acima de 500 KB rastreados:"; echo "$grandes"; exit 1
+          fi
+          echo "nenhum binário grande rastreado"

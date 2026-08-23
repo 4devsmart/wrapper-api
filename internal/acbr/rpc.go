@@ -7,7 +7,7 @@ package acbr
 // de linkar o .so e um crash mata apenas a requisição em curso.
 //
 // O transporte é HTTP/1.1 (stdlib nos dois lados, timeout e cancelamento
-// prontos, depurável com `curl --unix-socket`) sobre socket unix — assim o
+// prontos, depurável com `curl --unix-socket`) sobre socket unix: assim o
 // certificado A1 nunca sai do host. O corpo é JSON: TODOS os argumentos e
 // retornos das interfaces de serviço já são dados simples (nenhum handle,
 // ponteiro nativo ou callback atravessa a fronteira).
@@ -85,7 +85,7 @@ type Resposta struct {
 	// NaoSuportado preserva ErrNaoSuportado. Sem este campo a sentinela morreria
 	// na serialização (do outro lado sobraria uma string) e a API responderia 502
 	// a algo que é 422: a lib está viva, a operação é que não existe para aquele
-	// documento — ValidarRegras na NFS-e é o caso.
+	// documento: ValidarRegras na NFS-e é o caso.
 	NaoSuportado bool `json:"nao_suportado,omitempty"`
 }
 

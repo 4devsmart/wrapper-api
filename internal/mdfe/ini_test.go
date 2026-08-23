@@ -6,7 +6,7 @@ import (
 )
 
 // pedidoFixture monta um MDF-e rodoviário sintético (uma carga, uma descarga
-// com NF-e) — sem dados reais.
+// com NF-e), sem dados reais.
 func pedidoFixture() PedidoEmissao {
 	return PedidoEmissao{
 		Ambiente: "homologacao",

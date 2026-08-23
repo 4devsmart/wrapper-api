@@ -130,7 +130,7 @@ func TestGerarNaoRecebeCertificado(t *testing.T) {
 		t.Fatal(err)
 	}
 	if resp.Chave != chaveFixture {
-		t.Errorf("chave = %q, quero %q — sem ela o cliente não recupera transmissão perdida", resp.Chave, chaveFixture)
+		t.Errorf("chave = %q, quero %q, sem ela o cliente não recupera transmissão perdida", resp.Chave, chaveFixture)
 	}
 	if resp.Assinado {
 		t.Error("assinado = true; a ACBrLib assina no envio, não na montagem")
@@ -146,7 +146,7 @@ func TestGerarNaoRecebeCertificado(t *testing.T) {
 
 // A lib devolve SEMPRE código 0 em ValidarRegrasdeNegocios; quem denuncia a
 // rejeição é a resposta vir preenchida. Conferir o código daria "válido" para
-// qualquer documento — este teste tranca isso.
+// qualquer documento: este teste tranca isso.
 func TestValidacaoUsaAResposta_NaoOCodigo(t *testing.T) {
 	f := &libFake{
 		resMontar:  acbr.Result{XML: xmlFixture("2")},
@@ -202,7 +202,7 @@ func TestGerarExigeCNPJDoEmitente(t *testing.T) {
 }
 
 // Campo com nome errado que o servidor ignora vira documento transmitido com
-// dado faltando — só descoberto depois de a SEFAZ autorizar.
+// dado faltando: só descoberto depois de a SEFAZ autorizar.
 func TestCampoDesconhecidoEhRecusado(t *testing.T) {
 	rec := postCru(t, muxDe(&libFake{}), "/cte/xml", `{"ambienteX":"homologacao"}`)
 	if rec.Code != http.StatusBadRequest {

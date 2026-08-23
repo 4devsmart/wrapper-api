@@ -2,6 +2,10 @@
 
 Preferimos dizer o que **não** fazemos a deixar você descobrir em produção.
 
+O escopo, o que o serviço faz, o que não faz e por quê: está no
+[README](../README.md#o-que-fazemos-e-o-que-não-fazemos). Aqui ficam as
+consequências práticas, as que mordem em produção.
+
 ## O modelo: sem estado
 
 O serviço **não persiste nada**. Não há banco, bucket, volume de dados nem
@@ -15,7 +19,7 @@ O que isso implica, e não é negociável:
   segunda via aqui.
 - **O certificado trafega em toda transmissão.** Use TLS na borda. O PFX vai da
   API ao worker por socket unix e nunca sai do host, mas entre o seu sistema e a
-  API ele viaja — proteja esse trecho.
+  API ele viaja: proteja esse trecho.
 - **Não há proteção contra duplicidade.** O `409` que um banco local daria antes
   de transmitir não existe. Sobram a rejeição do próprio fisco e a sua disciplina
   com número e série.
@@ -24,7 +28,7 @@ O que isso implica, e não é negociável:
 
 ## Transmissão: o que fazer quando a resposta se perde
 
-**Timeout na transmissão não é falha — é desfecho desconhecido.** O documento pode ter
+**Timeout na transmissão não é falha: é desfecho desconhecido.** O documento pode ter
 sido autorizado. A API devolve `502 desfecho_indeterminado` justamente para não
 convidar você a repetir.
 
@@ -52,11 +56,11 @@ por data de emissão atrasada. Gere e transmita no mesmo fluxo.
 | Documento | Regras de negócio ao gerar |
 |---|---|
 | CT-e, MDF-e | ✅ sim (`ValidarRegrasdeNegocios`) |
-| NFS-e | ❌ a lib não expõe — a resposta traz `validacao.suportada: false` |
+| NFS-e | ❌ a lib não expõe: a resposta traz `validacao.suportada: false` |
 
 Em nenhum caso é **validação de XSD**: o schema exige a tag `Signature`, e o
 documento só é assinado no envio. O XSD é validado na transmissão, ainda **antes** de
-transmitir — falhou ali, nada saiu.
+transmitir: falhou ali, nada saiu.
 
 ## Escopo fiscal
 
@@ -74,26 +78,26 @@ transmitir — falhou ali, nada saiu.
   `GET /v1/nfse/municipios/{codigo}` antes.
 - **Boletos: `ConsultarTitulos` não é exposto.** O método existe no binding, mas
   a seção de filtro que ele exigiria (`[BoletoConsulta]`) não aparece no fonte
-  oficial do ACBr — o formato do INI seria chute.
+  oficial do ACBr: o formato do INI seria chute.
 
 ## Representação gráfica (PDF)
 
 | Documento | Recupera o PDF pela chave? |
 |---|---|
 | NFS-e | ✅ sim (`ObterDANFSE`) |
-| CT-e, MDF-e | ❌ **não** — só a partir do XML autorizado |
+| CT-e, MDF-e | ❌ **não**: só a partir do XML autorizado |
 
 **Perdeu o XML do CT-e ou do MDF-e, perdeu o DACTE/DAMDFE.** Não há como
 regenerá-lo de lugar nenhum. `POST /v1/{cte,mdfe}/pdf` aceita o XML e é a única
 via.
 
 O render exige ambiente gráfico (GTK2 sob Xvfb), já embutido na imagem. É o
-componente que mais crasha — por isso ele fica **fora** do caminho da emissão.
+componente que mais crasha, por isso ele fica **fora** do caminho da emissão.
 
 ## Distribuição DF-e
 
 O cursor (NSU) vai e volta no payload: sem estado, é o cliente que guarda onde
-parou. **Não paralelize a distribuição do mesmo CNPJ** — sem o lock que existia
+parou. **Não paralelize a distribuição do mesmo CNPJ**, sem o lock que existia
 com banco, chamadas simultâneas embaralham o cursor e você perde documentos sem
 perceber.
 
@@ -114,5 +118,5 @@ perceber.
 ## Modelo de acesso
 
 Um token (`API_TOKEN`) dá acesso a tudo. Não há OAuth2, escopo nem token por
-cliente final — o multi-tenant fino é do sistema que consome a API, que é o dono
+cliente final: o multi-tenant fino é do sistema que consome a API, que é o dono
 dos certificados.

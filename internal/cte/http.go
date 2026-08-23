@@ -16,7 +16,7 @@ import (
 const secaoACBr = "CTe"
 
 // Modulo expõe o CT-e sob /v1/cte. É a única parte deste pacote que conhece
-// HTTP — o resto é tradução JSON→INI e leitura de resposta.
+// HTTP: o resto é tradução JSON→INI e leitura de resposta.
 type Modulo struct{ svc acbr.CTeServico }
 
 // NovoModulo liga o módulo ao binding.
@@ -35,18 +35,18 @@ func (m *Modulo) Registrar(r modulo.Router) {
 	// Gerar: monta o XML e valida. Sem certificado, sem rede.
 	r.HandleFunc("POST /xml", m.handleXML)
 	r.HandleFunc("POST /simp/xml", m.handleXMLSimp)
-	// Transmitir: assina e envia. É aqui que o certificado entra — e o
+	// Transmitir: assina e envia. É aqui que o certificado entra, e o
 	// Simplificado NÃO tem rota própria: transmitir é a mesma operação, e o
 	// XML já diz o que é. Dois caminhos idênticos seriam dois para manter.
 	r.HandleFunc("POST /transmissao", m.handleTransmissao)
 	// Eventos: chamada única (a lib não expõe o XML do evento antes de enviá-lo).
 	r.HandleFunc("POST /eventos/{tipo}", m.handleEvento)
-	// Consultas ao webservice — todas POST porque levam o certificado no corpo.
+	// Consultas ao webservice: todas POST porque levam o certificado no corpo.
 	r.HandleFunc("POST /consulta", m.handleConsulta)
 	r.HandleFunc("POST /status-servico", m.handleStatusServico)
 	r.HandleFunc("POST /cadastro", m.handleCadastro)
 	// NÃO existe rota de recibo: a recepção assíncrona foi desativada pela
-	// SEFAZ. O CTE_ConsultarRecibo bate no CTeRetRecepcao, que não atende mais —
+	// SEFAZ. O CTE_ConsultarRecibo bate no CTeRetRecepcao, que não atende mais:
 	// expor a rota seria oferecer um caminho que só sabe falhar.
 	// Render local: não fala com a SEFAZ, então não pede certificado.
 	r.HandleFunc("POST /pdf", m.handlePDF)
@@ -112,7 +112,7 @@ func (m *Modulo) montar(w http.ResponseWriter, t acbr.TenantConfig, ini string) 
 		Validacao: val,
 	}
 	if !resp.Validacao.OK {
-		// 422 e não 200: o pedido está inválido. O XML vai junto de propósito —
+		// 422 e não 200: o pedido está inválido. O XML vai junto de propósito,
 		// é com ele na mão que o cliente enxerga o que a lib entendeu.
 		httpx.ErroDetalhado(w, http.StatusUnprocessableEntity, "regras_de_negocio",
 			"o CT-e não passou nas regras de negócio; nada foi transmitido", resp)
@@ -141,7 +141,7 @@ type RespostaTransmissao struct {
 	Motivo    string `json:"motivo,omitempty"`
 	// Recibo é vestígio: com a recepção síncrona ele não vem. Fica porque a
 	// própria lib ainda trata o caso de um autorizador responder cStat=103
-	// (ACBrLibCTeBase.pas:948) — se isso acontecer, o cliente vê em vez de
+	// (ACBrLibCTeBase.pas:948), se isso acontecer, o cliente vê em vez de
 	// receber uma resposta sem explicação.
 	Recibo        string     `json:"recibo,omitempty"`
 	XMLProcBase64 string     `json:"xml_proc_b64,omitempty"`
@@ -163,7 +163,7 @@ func (m *Modulo) handleTransmissao(w http.ResponseWriter, r *http.Request) {
 	}
 
 	chave := ChaveDoXML(xml)
-	// O ambiente vem do XML, não do cliente: divergir dá rejeição 252 — ou,
+	// O ambiente vem do XML, não do cliente. Divergir dá rejeição 252, ou,
 	// pior, manda um documento de homologação para o webservice de produção.
 	ambiente := fiscal.Primeiro(AmbienteDoXML(xml), p.Ambiente, "homologacao")
 	t := fiscal.Tenant(fiscal.CNPJDaChave(chave), secaoACBr, ambiente, p.Certificado)
@@ -191,7 +191,7 @@ func (m *Modulo) handleTransmissao(w http.ResponseWriter, r *http.Request) {
 // --- eventos ----------------------------------------------------------------
 
 // PedidoEvento é o envelope de qualquer evento do CT-e. Os campos próprios de
-// cada tipo vão aninhados em "evento" — assim os dois níveis podem recusar
+// cada tipo vão aninhados em "evento": assim os dois níveis podem recusar
 // campo desconhecido, que é como o cliente descobre que errou um nome.
 type PedidoEvento struct {
 	Chave       string             `json:"chave"`
@@ -341,7 +341,7 @@ type PedidoConsulta struct {
 }
 
 // handleConsulta é a recuperação de uma transmissão de desfecho desconhecido:
-// depois de um timeout, é ISTO que se chama — nunca repetir a transmissão.
+// depois de um timeout, é ISTO que se chama: nunca repetir a transmissão.
 func (m *Modulo) handleConsulta(w http.ResponseWriter, r *http.Request) {
 	var p PedidoConsulta
 	if !httpx.LerJSON(w, r, &p) {
@@ -435,7 +435,7 @@ func (m *Modulo) responderCru(w http.ResponseWriter, res acbr.Result, err error)
 // não pede certificado.
 //
 // É a rede de segurança do modelo sem estado: o CT-e não tem "obter PDF pela
-// chave" — se o cliente perder o XML, o DACTE não se regenera de lugar nenhum.
+// chave", se o cliente perder o XML, o DACTE não se regenera de lugar nenhum.
 type PedidoPDF struct {
 	XMLBase64       string `json:"xml_b64"`
 	XMLEventoBase64 string `json:"xml_evento_b64,omitempty"`

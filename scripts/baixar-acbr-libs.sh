@@ -4,7 +4,7 @@
 #
 # Por que assets de release e não Git LFS: são ~56 MB de binário. Versioná-los
 # faria todo mundo que clona para corrigir um bug de INI baixar 56 MB que não vai
-# nem abrir — e num repositório público o LFS ainda consumiria cota de banda do
+# nem abrir, e num repositório público o LFS ainda consumiria cota de banda do
 # dono a cada download de terceiro. Como o repositório é público, aqui não há
 # token: é uma URL simples.
 set -euo pipefail
@@ -25,7 +25,7 @@ mkdir -p "$DESTINO"
 # Cache quente: se tudo já bate com o SHA256SUMS local, não baixa nada.
 if [[ -f "$DESTINO/SHA256SUMS" ]]; then
   if quebrados="$(cd "$DESTINO" && sha256sum -c --quiet SHA256SUMS 2>/dev/null)"; then
-    echo "acbr-libs: cache já íntegro para $TAG — nada a baixar."
+    echo "acbr-libs: cache já íntegro para $TAG: nada a baixar."
     exit 0
   fi
   echo "acbr-libs: cache inválido, rebaixando:"
@@ -56,7 +56,7 @@ baixar SHA256SUMS
 # .so corrompido embutido na imagem e SIGSEGV em runtime, longe da causa.
 echo "acbr-libs: conferindo checksums"
 if ! (cd "$tmp" && sha256sum -c --quiet SHA256SUMS); then
-  echo "ERRO: checksum não confere — download corrompido ou release adulterado." >&2
+  echo "ERRO: checksum não confere: download corrompido ou release adulterado." >&2
   exit 1
 fi
 

@@ -11,7 +11,7 @@ import (
 const raizMod = "github.com/4devsmart/wrapper-api/"
 
 // modulos são os pacotes de documento fiscal. Ao adicionar um módulo novo
-// (MDF-e, NFS-e, boletos), acrescente-o aqui — é o que faz este teste valer.
+// (MDF-e, NFS-e, boletos), acrescente-o aqui: é o que faz este teste valer.
 var modulos = []string{"cte", "mdfe", "nfse", "boleto"}
 
 // Os quatro já estão portados; a lista acima é por PACOTE (o módulo boleto se
@@ -21,7 +21,7 @@ var modulos = []string{"cte", "mdfe", "nfse", "boleto"}
 //
 // O projeto de origem tinha um handlers.go de 45 KB atendendo todos os
 // documentos: mexer num campo de CT-e tocava dois pacotes e arriscava a NFS-e.
-// A regra aqui é o que impede isso de voltar — e uma regra sem teste é um
+// A regra aqui é o que impede isso de voltar, e uma regra sem teste é um
 // comentário. O que for comum sobe para platform/ (sem domínio fiscal) ou
 // fiscal/ (com domínio, sem documento).
 func TestModuloNaoImportaModulo(t *testing.T) {
@@ -36,7 +36,7 @@ func TestModuloNaoImportaModulo(t *testing.T) {
 					continue
 				}
 				if imp == raizMod+"internal/"+outro {
-					t.Errorf("internal/%s importa internal/%s — módulos não podem se conhecer; "+
+					t.Errorf("internal/%s importa internal/%s: módulos não podem se conhecer; "+
 						"mova o compartilhado para internal/fiscal ou internal/platform", m, outro)
 				}
 			}
@@ -58,7 +58,7 @@ func TestPlatformNaoConheceDominioFiscal(t *testing.T) {
 		for _, imp := range importsDe(t, caminho) {
 			for _, p := range proibidos {
 				if imp == raizMod+p {
-					t.Errorf("%s importa %s — platform/ não pode conhecer domínio fiscal", caminho, p)
+					t.Errorf("%s importa %s: platform/ não pode conhecer domínio fiscal", caminho, p)
 				}
 			}
 		}
@@ -71,7 +71,7 @@ func TestPlatformNaoConheceDominioFiscal(t *testing.T) {
 
 // TestModuloNaoImportaServidor impede a inversão: é o servidor que monta os
 // módulos, nunca o contrário. Um módulo que importa o servidor não é montável
-// isolado — e deixa de ser testável sem subir a API inteira.
+// isolado, e deixa de ser testável sem subir a API inteira.
 func TestModuloNaoImportaServidor(t *testing.T) {
 	for _, m := range modulos {
 		dir := filepath.Join("..", m)
@@ -80,7 +80,7 @@ func TestModuloNaoImportaServidor(t *testing.T) {
 		}
 		for _, imp := range importsDe(t, dir) {
 			if imp == raizMod+"internal/servidor" {
-				t.Errorf("internal/%s importa internal/servidor — a dependência é no sentido oposto", m)
+				t.Errorf("internal/%s importa internal/servidor: a dependência é no sentido oposto", m)
 			}
 		}
 	}

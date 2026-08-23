@@ -54,7 +54,7 @@ func ToINI(p Pedido) string {
 	}
 
 	// WS (registro online). ArquivoCRT/KEY (mTLS) são setados em runtime
-	// pelo binding (gravados a partir do base64) — não vão aqui.
+	// pelo binding (gravados a partir do base64), não vão aqui.
 	if ws := c.WS; ws != nil {
 		b.section("BoletoWebSevice") // (typo é da própria ACBrLib)
 		b.kvIntOpt("Ambiente", ws.Ambiente)

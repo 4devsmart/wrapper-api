@@ -14,7 +14,7 @@ import (
 const codigoPaisBrasil = 1058
 
 // nbs normaliza o código NBS para só dígitos. O campo tem 9 caracteres no
-// layout e a lib TRUNCA no tamanho máximo — então um "1.1103.22.00" formatado
+// layout e a lib TRUNCA no tamanho máximo, então um "1.1103.22.00" formatado
 // viraria "1.1103.22" (lixo) em vez do código. Tirar a pontuação aqui evita
 // esse corte silencioso.
 func nbs(s string) string {
@@ -56,7 +56,7 @@ func ToINI(p DPSPedido) string {
 	if rt := inf.Prest.RegTrib; rt != nil {
 		b.kv("opSimpNac", strconv.Itoa(defaultInt(rt.OpSimpNac, 1)))
 		b.kvOpt("RegimeApuracaoSN", optInt(rt.RegApTribSN))
-		// regEspTrib é obrigatório no XSD (TCRegTrib) — escrever sempre (0 = nenhum).
+		// regEspTrib é obrigatório no XSD (TCRegTrib): escrever sempre (0 = nenhum).
 		b.kv("Regime", strconv.Itoa(rt.RegEspTrib))
 	}
 
@@ -177,7 +177,7 @@ func (b *iniBuilder) ibscbs(g *IBSCBSDPS) {
 		return
 	}
 	b.section("IBSCBSDPS")
-	// finNFSe e indDest são obrigatórios quando o grupo existe — o leitor do
+	// finNFSe e indDest são obrigatórios quando o grupo existe: o leitor do
 	// ACBrNFSeX estoura no vazio (diferente de indFinal/tpOper, que aceitam ''):
 	// emitimos defaults neutros (0=regular / 0=tomador=adquirente=destinatário).
 	b.kv("finNFSe", defaultStr(g.FinNFSe, "0"))
@@ -271,7 +271,7 @@ func (b *iniBuilder) section(name string) {
 // ACBrLib consumiria (forjar Ambiente, Emitente, etc.). Trocamos por espaço.
 func sanitizeINIVal(s string) string { return inifmt.Sanitize(s) }
 
-// kv escreve sempre a chave (mesmo vazia) — útil para campos esperados pelo ACBr.
+// kv escreve sempre a chave (mesmo vazia): útil para campos esperados pelo ACBr.
 func (b *iniBuilder) kv(key, val string) {
 	b.sb.WriteString(key)
 	b.sb.WriteByte('=')
@@ -296,7 +296,7 @@ func (b *iniBuilder) kvIntOpt(key string, v int) {
 // pessoaCommon escreve os campos comuns de prestador/tomador.
 //
 // O documento vai na chave CNPJCPF: o leitor do ACBrNFSeX lê o Tomador SÓ por
-// CNPJCPF (sem fallback para CNPJ) — usar só CNPJ fazia o tomador sair como
+// CNPJCPF (sem fallback para CNPJ): usar só CNPJ fazia o tomador sair como
 // cNaoNIF=0. O Prestador aceita ambas (CNPJCPF tem prioridade), então CNPJCPF
 // serve para os dois. Mantemos CNPJ/CPF também por compatibilidade.
 func (b *iniBuilder) pessoaCommon(p Pessoa) {
@@ -356,7 +356,7 @@ func dateBR(s string) string {
 	return s
 }
 
-// money formata com 2 casas e separador decimal VÍRGULA — o ACBr lê floats do
+// money formata com 2 casas e separador decimal VÍRGULA: o ACBr lê floats do
 // INI no padrão brasileiro (vírgula); "1.00" seria interpretado como 0.
 func money(v float64) string    { return inifmt.Money(v) }
 func moneyOpt(v float64) string { return inifmt.MoneyOpt(v) }

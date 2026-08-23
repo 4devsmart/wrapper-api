@@ -1,6 +1,6 @@
 // Package boleto modela o boleto bancário (não-fiscal) e traduz o JSON para o
 // INI combinado consumido pela ACBrLibBoleto ([Banco]/[Conta]/[Cedente]/
-// [TituloN]). A geração é AGNÓSTICA ao banco — o banco é só config ([Banco]).
+// [TituloN]). A geração é AGNÓSTICA ao banco: o banco é só config ([Banco]).
 package boleto
 
 import "log/slog"
@@ -69,7 +69,7 @@ type Conta struct {
 //
 // Como o certificado A1 dos documentos fiscais, elas viajam no payload e não são
 // persistidas. Os métodos String/LogValue abaixo existem para que um %v ou um
-// slog distraído não as despeje em log — num serviço sem estado, é a única forma
+// slog distraído não as despeje em log: num serviço sem estado, é a única forma
 // realista de um segredo do cliente escapar do processo.
 type ContaWS struct {
 	Ambiente     int    `json:"ambiente,omitempty"` // 1=produção, 2=homologação

@@ -137,7 +137,7 @@ func TestCapacidadesAnunciaOsModulos(t *testing.T) {
 func TestReadyzSemWorkerEhIndisponivel(t *testing.T) {
 	// Sem motor fiscal a API sobe (healthz ok) mas não deve receber tráfego.
 	// O caso REAL não é um *Servicos zerado e sim o stub que acbr.New devolve
-	// quando não há ACBR_WORKERS — ele implementa tudo e responde "indisponível"
+	// quando não há ACBR_WORKERS: ele implementa tudo e responde "indisponível"
 	// a tudo. Testar com o zerado esconderia justamente esse caminho.
 	casos := map[string]*acbr.Servicos{
 		"stub (sem ACBR_WORKERS)": acbr.New(config.ACBr{}),
@@ -178,7 +178,7 @@ func TestCorpoAcimaDoTetoEhRecusado(t *testing.T) {
 	}
 }
 
-// moduloEco lê o corpo inteiro — é o que dispara o MaxBytesReader.
+// moduloEco lê o corpo inteiro: é o que dispara o MaxBytesReader.
 type moduloEco struct{ moduloFake }
 
 func (m *moduloEco) Registrar(r modulo.Router) {
@@ -211,7 +211,7 @@ func TestDocsNaoExigemToken(t *testing.T) {
 	}
 }
 
-// A spec precisa ser YAML de verdade e cobrir as rotas — servir um arquivo
+// A spec precisa ser YAML de verdade e cobrir as rotas: servir um arquivo
 // truncado ou vazio seria pior que não servir.
 func TestSpecEhServidaEIntegra(t *testing.T) {
 	rec := httptest.NewRecorder()
@@ -233,7 +233,7 @@ func TestSpecEhServidaEIntegra(t *testing.T) {
 }
 
 // O Swagger UI é servido do BINÁRIO, não de CDN. Se estes assets sumirem, a
-// página abre quebrada — e num serviço self-hosted não há CDN para socorrer.
+// página abre quebrada, e num serviço self-hosted não há CDN para socorrer.
 func TestAssetsDoSwaggerVemDoBinario(t *testing.T) {
 	h := servir(t, cfgTeste())
 	for caminho, tipo := range map[string]string{
@@ -247,7 +247,7 @@ func TestAssetsDoSwaggerVemDoBinario(t *testing.T) {
 			continue
 		}
 		if rec.Body.Len() < 10000 {
-			t.Errorf("GET %s devolveu %d bytes — asset truncado?", caminho, rec.Body.Len())
+			t.Errorf("GET %s devolveu %d bytes: asset truncado?", caminho, rec.Body.Len())
 		}
 		if ct := rec.Header().Get("Content-Type"); !strings.Contains(ct, tipo) {
 			t.Errorf("GET %s Content-Type = %q, quero %s", caminho, ct, tipo)
@@ -289,7 +289,7 @@ func TestPaginaNaoDuplicaAIntroducaoDaSpec(t *testing.T) {
 	corpo := rec.Body.String()
 
 	// Estas frases vivem no info.description; se aparecerem também no HTML, o
-	// leitor lê tudo duas vezes — foi o que aconteceu na primeira versão.
+	// leitor lê tudo duas vezes: foi o que aconteceu na primeira versão.
 	for _, duplicata := range []string{"desfecho_indeterminado", "Gerar e transmitir", "xml_proc_b64"} {
 		if strings.Contains(corpo, duplicata) {
 			t.Errorf("a página repete %q, que já está no info.description da spec", duplicata)
@@ -300,13 +300,13 @@ func TestPaginaNaoDuplicaAIntroducaoDaSpec(t *testing.T) {
 	}
 }
 
-// A introdução precisa existir na SPEC — é ela que vale em Postman, Redoc e
+// A introdução precisa existir na SPEC: é ela que vale em Postman, Redoc e
 // geradores de SDK, não só na nossa página.
 func TestSpecCarregaAIntroducao(t *testing.T) {
 	spec := string(api.OpenAPI())
 	for _, quero := range []string{
 		"Gerar e transmitir", "desfecho_indeterminado",
-		"Guarde o `xml_proc_b64`", "Não há `required`",
+		"Guarde o `xml_proc_b64`", "não marcam", "serviço Docker",
 	} {
 		if !strings.Contains(spec, quero) {
 			t.Errorf("info.description da spec não menciona %q", quero)
@@ -315,7 +315,7 @@ func TestSpecCarregaAIntroducao(t *testing.T) {
 }
 
 // Seletor de elemento solto (table, td, pre, code) no CSS da página atropela o
-// do Swagger UI, que é construído desses elementos — foi assim que a renderização
+// do Swagger UI, que é construído desses elementos: foi assim que a renderização
 // quebrou uma vez. Todo estilo próprio precisa estar escopado.
 func TestCSSDaPaginaNaoAtropelaOSwagger(t *testing.T) {
 	rec := httptest.NewRecorder()
@@ -339,7 +339,7 @@ func TestCSSDaPaginaNaoAtropelaOSwagger(t *testing.T) {
 		}
 		// Sobrou um seletor que começa por nome de elemento: só body é aceitável.
 		if sel != "body" {
-			t.Errorf("seletor de elemento sem escopo %q — vai atropelar o Swagger UI", sel)
+			t.Errorf("seletor de elemento sem escopo %q: vai atropelar o Swagger UI", sel)
 		}
 	}
 }

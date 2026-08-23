@@ -12,7 +12,7 @@ import (
 // É a base do roteamento: a família decide qual tradução JSON→layout aplicar.
 //
 // Regenerar (em lockstep com a `.so`, ao bumpar a revisão): `make acbr-tabelas`
-// — ver scripts/gerar-tabelas-nfse.sh. Já é chamado por `make acbr-libs`.
+// : ver scripts/gerar-tabelas-nfse.sh. Já é chamado por `make acbr-libs`.
 //
 //go:embed provedor_familia.tsv
 var provedorFamiliaTSV string

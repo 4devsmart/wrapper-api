@@ -1,5 +1,5 @@
-// Package cte traduz o contrato JSON do CT-e (modelo 57) — espelhando a
-// ACBr.API (CtePedidoEmissao = layout SEFAZ COMPLETO) — para o INI consumido
+// Package cte traduz o contrato JSON do CT-e (modelo 57): espelhando a
+// ACBr.API (CtePedidoEmissao = layout SEFAZ COMPLETO): para o INI consumido
 // pela ACBrLibCTe (CTE_CarregarINI), e interpreta as respostas.
 //
 // Os DTOs abaixo cobrem 100% das tags do contrato (gerados do contrato oficial).

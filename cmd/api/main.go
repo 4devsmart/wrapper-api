@@ -2,7 +2,7 @@
 //
 // Compila SEM cgo e NÃO abre a lib nativa: fala RPC com o fiscal-worker sobre
 // socket unix (ver internal/acbr/rpc.go). Um SIGSEGV dentro da lib mata o
-// worker e a requisição em curso — este processo continua de pé.
+// worker e a requisição em curso: este processo continua de pé.
 //
 // Não persiste nada. O certificado A1 chega no corpo da requisição que
 // transmite, é usado em memória e vai embora com ela.
@@ -38,7 +38,7 @@ func main() {
 		os.Exit(1)
 	}
 	if len(cfg.ACBr.Workers) == 0 {
-		// Sem worker a API sobe e responde 503 no /readyz — deliberado: é melhor
+		// Sem worker a API sobe e responde 503 no /readyz. É deliberado: melhor
 		// subir dizendo o que falta do que recusar o boot e não explicar nada.
 		slog.Warn("nenhum fiscal-worker configurado; nada será transmitido", "dica", "defina ACBR_WORKERS")
 	}

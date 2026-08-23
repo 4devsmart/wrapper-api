@@ -12,7 +12,7 @@ import (
 	"github.com/4devsmart/wrapper-api/internal/modulo"
 )
 
-// Municípios REAIS da tabela embutida, um por família — testar com código
+// Municípios REAIS da tabela embutida, um por família: testar com código
 // inventado esconderia justamente o roteamento, que é o que a NFS-e tem de
 // diferente.
 const (
@@ -213,7 +213,7 @@ func TestLayoutPorMunicipio(t *testing.T) {
 	}
 }
 
-// Município sem provedor conhecido é recusado ANTES de qualquer coisa sair —
+// Município sem provedor conhecido é recusado ANTES de qualquer coisa sair:
 // mandar XML que a prefeitura rejeitaria só troca um erro claro por um obscuro.
 func TestMunicipioSemProvedorEhRecusadoAntesDeMontar(t *testing.T) {
 	f := &libFake{}
@@ -266,7 +266,7 @@ func TestGerarNaoRecebeCertificadoEDevolveOIDdaDPS(t *testing.T) {
 		t.Fatal(err)
 	}
 	if resp.IDdps != idDPSFixture {
-		t.Errorf("id_dps = %q, quero %q — sem ele não há como recuperar transmissão perdida", resp.IDdps, idDPSFixture)
+		t.Errorf("id_dps = %q, quero %q, sem ele não há como recuperar transmissão perdida", resp.IDdps, idDPSFixture)
 	}
 	if resp.Assinado {
 		t.Error("assinado = true; na NFS-e quem assina é o provedor, dentro do envio")
@@ -385,7 +385,7 @@ func TestDesfechoIndeterminadoMandaConsultar(t *testing.T) {
 
 // É o fecho do modelo sem estado para a NFS-e: a geração devolve o id_dps, e é
 // com ele que se descobre se a DPS virou nota. O ADN atende GET /dps/{chave}
-// com a chave SEM o prefixo "DPS" — o cliente não precisa saber disso.
+// com a chave SEM o prefixo "DPS": o cliente não precisa saber disso.
 func TestConsultaDPSAceitaOIDComOuSemPrefixo(t *testing.T) {
 	chaveNua := strings.TrimPrefix(idDPSFixture, "DPS")
 	for _, entrada := range []string{idDPSFixture, chaveNua} {
@@ -413,7 +413,7 @@ func TestConsultaDPSExigeChave(t *testing.T) {
 
 // --- capacidade por provedor ------------------------------------------------
 
-// A capacidade de cada provedor é descoberta em RUNTIME — não há tabela dizendo
+// A capacidade de cada provedor é descoberta em RUNTIME, não há tabela dizendo
 // o que cada município aceita. O erro nativo vira 422 tipado em vez de 502.
 func TestOperacaoNaoImplementadaViraErroTipado(t *testing.T) {
 	f := &libFake{resCancelar: acbr.Result{
@@ -501,7 +501,7 @@ func TestEventoDesconhecidoEh404(t *testing.T) {
 
 // --- DANFSE -----------------------------------------------------------------
 
-// Diferente de CT-e e MDF-e, a NFS-e recupera o PDF pela CHAVE — perder o XML
+// Diferente de CT-e e MDF-e, a NFS-e recupera o PDF pela CHAVE: perder o XML
 // não é definitivo. Por chave fala com o provedor (pede certificado); por XML é
 // render local (não pede).
 func TestPDFPorChaveEPorXML(t *testing.T) {

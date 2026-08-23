@@ -1,11 +1,11 @@
-// Package web embute os assets estáticos servidos pela API — hoje, o Swagger UI.
+// Package web embute os assets estáticos servidos pela API: hoje, o Swagger UI.
 //
 // Eles são VENDORIZADOS, não carregados de CDN. O motivo é o mesmo que vale para
 // o resto do serviço: um wrapper fiscal self-hosted não deve depender de um host
 // de terceiros para a própria documentação abrir, e a política de CSP daqui é
 // estrita. O custo é ~1,7 MB no repositório e no binário.
 //
-// O go:embed exige que os arquivos estejam no diretório do pacote — daí este
+// O go:embed exige que os arquivos estejam no diretório do pacote: daí este
 // pacote de poucas linhas, como o api/.
 package web
 

@@ -16,7 +16,7 @@ import (
 
 // remoto implementa as cinco interfaces de serviço delegando a um processo
 // fiscal-worker (ver rpc.go). Um único tipo atende todas elas, como o stub
-// indisponivel — o que muda é o campo servico, que endereça o binding do outro
+// indisponivel, o que muda é o campo servico, que endereça o binding do outro
 // lado.
 type remoto struct {
 	servico string
@@ -49,13 +49,13 @@ func newRemotos(cfg config.ACBr) *Servicos {
 // poolWorkers distribui as chamadas entre os workers configurados. O canal de
 // destinos livres é, ao mesmo tempo, o roteador e o semáforo de concorrência: a
 // capacidade é len(workers)*slots, e é ela que limita quantas chamadas nativas
-// correm em paralelo — limite que NÃO existia com a lib no processo da API.
+// correm em paralelo: limite que NÃO existia com a lib no processo da API.
 type poolWorkers struct {
 	livres  chan *destino
 	timeout time.Duration
 	// quarentena é quanto tempo um worker que falhou o DIAL fica fora do rodízio.
 	// Sem isso ele devolve a vaga na hora, é reescolhido em microssegundos e passa
-	// a absorver a fila inteira servindo erro — enquanto um worker vivo está
+	// a absorver a fila inteira servindo erro: enquanto um worker vivo está
 	// ocupado. Vale só para falha de conexão (worker morto/reiniciando).
 	quarentena time.Duration
 }
@@ -97,7 +97,7 @@ func novoDestino(addr string) *destino {
 	tr := &http.Transport{
 		// SEM keep-alive, de propósito: com conexões reaproveitadas o
 		// net/http reenvia automaticamente o pedido quando encontra uma
-		// conexão ociosa que morreu — e um reenvio silencioso de Emitir é
+		// conexão ociosa que morreu, e um reenvio silencioso de Emitir é
 		// como se duplica um documento fiscal. Uma conexão nova por chamada
 		// custa microssegundos num socket unix.
 		DisableKeepAlives: true,

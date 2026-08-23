@@ -49,7 +49,7 @@ func (l *boletoLib) Version() (string, error) {
 
 // GerarPDF inclui os títulos do INI (config+títulos) e devolve o PDF do boleto.
 // tpSaida vazio em IncluirTitulos: só carrega; o PDF é gerado por SalvarPDF
-// (base64). Geração offline — não fala com o banco.
+// (base64). Geração offline, não fala com o banco.
 func (l *boletoLib) GerarPDF(_ TenantConfig, ini string) (Result, error) {
 	return l.withSession(func(h C.LibHandle, _ string) (Result, error) {
 		cIni := C.CString(ini)
@@ -228,7 +228,7 @@ func (l *boletoLib) cfgVal(h C.LibHandle, sec, key, val string) {
 }
 
 // callBuf/ultRet: convenção de buffer da ACBrLib, usando Boleto_UltimoRetorno
-// (NÃO a do NFSe — é outra .so).
+// (NÃO a do NFSe: é outra .so).
 func (l *boletoLib) callBuf(h C.LibHandle, call func(buf *C.char, size *C.int) C.int) (int, string) {
 	buf := make([]byte, bufferLen)
 	size := C.int(bufferLen)

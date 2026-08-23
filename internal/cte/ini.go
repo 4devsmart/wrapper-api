@@ -89,7 +89,7 @@ func ToINI(p PedidoEmissao) string {
 			b.kvOpt("vFrete", moneyOpt(vn.VFrete))
 		}
 		// Nota: o modal multimodal (COTM) NÃO é lido por INI pela ACBrLibCTe
-		// (não há seção [multimodal] no IniReader) — fora de alcance via INI.
+		// (não há seção [multimodal] no IniReader): fora de alcance via INI.
 	}
 
 	b.respTec(inf.InfRespTec)
@@ -101,7 +101,7 @@ func (b *iniBuilder) identificacao(id Ide, ambiente string) {
 	b.section("ide")
 	b.kvIntOpt("cUF", id.CUF)
 	// tpAmb precisa sair no INI. Sem ele a lib escreve o default (produção) no
-	// XML enquanto a sessão está configurada para o ambiente pedido — e o próprio
+	// XML enquanto a sessão está configurada para o ambiente pedido, e o próprio
 	// ValidarRegrasdeNegocios acusa "252-Rejeição: Ambiente informado diverge do
 	// Ambiente de recebimento". Pior: como a transmissão deriva o ambiente do tpAmb do
 	// XML, um documento pedido em homologação apontaria para produção.
@@ -145,7 +145,7 @@ func (b *iniBuilder) identificacao(id Ide, ambiente string) {
 	// O indicador do tomador vai na seção PRÓPRIA, não em [ide]: o leitor da lib
 	// faz Ide.toma03.Toma := ReadString('toma3','toma') e toma4.toma :=
 	// ReadString('toma4','toma'). Escrito em [ide], o valor era simplesmente
-	// ignorado e o CT-e saía com <toma>0</toma> — ou seja, tomador = Remetente,
+	// ignorado e o CT-e saía com <toma>0</toma>, ou seja, tomador = Remetente,
 	// qualquer que fosse o pedido. Achado pelo teste de lockstep.
 	if t3 := id.Toma3; t3 != nil {
 		b.section("toma3")
@@ -521,7 +521,7 @@ func (b *iniBuilder) modalFerrov(f *Ferrov) {
 // modalAereo emite [aereo] + [periNNN] (modal aéreo). O reader PROCESSA o aéreo
 // só se a chave 'CL' != ” (gate). LIMITAÇÃO conhecida: o reader do peri aéreo
 // espera campos flat (xNomeAE/xClaRisco/grEmb/qVolTipo/pontoFulgor) que NÃO
-// existem no nosso model (Peri tem InfTotAP aninhado, do contrato XML) — só nONU
+// existem no nosso model (Peri tem InfTotAP aninhado, do contrato XML): só nONU
 // é emitido. Idem tarifa.CL (o reader a lê de 'nMinu', quirk do ACBr).
 func (b *iniBuilder) modalAereo(a *Aereo) {
 	if a == nil {
@@ -621,7 +621,7 @@ type iniBuilder struct {
 }
 
 // tpAmb converte o ambiente para o tpAmb da SEFAZ (1=produção, 2=homologação).
-// Note a inversão em relação ao ordinal da ACBrLib (0=produção) — são duas
+// Note a inversão em relação ao ordinal da ACBrLib (0=produção): são duas
 // escalas diferentes, e trocá-las emite em produção achando que é homologação.
 func tpAmb(ambiente string) string {
 	if ambiente == "producao" {
@@ -654,7 +654,7 @@ func (b *iniBuilder) kvIntOpt(key string, v int) {
 }
 
 // kvInt emite sempre (inclusive 0). Para campos obrigatórios cujo zero é um valor
-// válido — ex.: tpNav=0 (navegação interior), obrigatório no aquaviário v4.00.
+// válido: ex.: tpNav=0 (navegação interior), obrigatório no aquaviário v4.00.
 func (b *iniBuilder) kvInt(key string, v int) { b.kv(key, strconv.Itoa(v)) }
 
 // pessoa escreve rem/exped/receb/Dest (CNPJCPF único + endereço inline).

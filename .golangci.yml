@@ -5,16 +5,16 @@ version: "2"
 linters:
   default: standard
   exclusions:
-    # Cache local do fonte ACBr (não versionado) — não é nosso código.
+    # Cache local do fonte ACBr (não versionado), não é nosso código.
     paths:
       - acbr-source
     rules:
-      # defer Close(): o erro é ignorado por convenção em Go — num Close de
+      # defer Close(): o erro é ignorado por convenção em Go: num Close de
       # leitura não há o que tratar.
       - linters: [errcheck]
         text: 'Error return value of `.*\.Close` is not checked'
       # ST1005: muitas mensagens de erro aqui são user-facing (pt-BR, renderizadas
-      # na UI/JSON), onde maiúscula e pontuação são corretas — a convenção Go
+      # na UI/JSON), onde maiúscula e pontuação são corretas: a convenção Go
       # (minúscula, sem pontuação) é para erros que serão encadeados.
       - linters: [staticcheck]
         text: 'ST1005'

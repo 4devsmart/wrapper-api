@@ -10,8 +10,8 @@ import (
 )
 
 // rotasDocs registra a documentação. Fora da autenticação de propósito: a spec
-// de uma API self-hosted não é segredo, e ter a referência à mão — inclusive
-// para experimentar — é o que torna o serviço consumível.
+// de uma API self-hosted não é segredo, e ter a referência à mão: inclusive
+// para experimentar: é o que torna o serviço consumível.
 func (s *Servidor) rotasDocs() {
 	s.mux.HandleFunc("GET /openapi.yaml", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/yaml; charset=utf-8")
@@ -43,7 +43,7 @@ func cacheLongo(h http.Handler) http.Handler {
 //
 // A página é só o container: a introdução (o que é, como gerar e transmitir, os
 // códigos de erro) mora no `info.description` da própria spec. Duplicá-la aqui
-// renderizaria tudo duas vezes — e o texto que vive na spec serve também quem
+// renderizaria tudo duas vezes, e o texto que vive na spec serve também quem
 // abre o contrato no Postman, no Redoc ou num gerador de SDK.
 func (s *Servidor) handleDocs(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -64,7 +64,7 @@ var tmplDocs = template.Must(template.New("docs").Parse(`<!doctype html>
 <link rel="stylesheet" href="/docs/swagger-ui.css">
 <style>
  /* TUDO escopado. Seletor de elemento solto (table, td, pre, code) atropela o
-    CSS do Swagger UI — que é construído desses elementos — e quebra a
+    CSS do Swagger UI, que é construído desses elementos, e quebra a
     renderização. Há teste que reprova isso. */
  body{margin:0}
  .swagger-ui .topbar{display:none}
@@ -73,7 +73,7 @@ var tmplDocs = template.Must(template.New("docs").Parse(`<!doctype html>
  #swagger-ui{max-width:66rem;margin:0 auto;padding:0 1rem}
 
  /* O padrão do Swagger para markdown é ruim de ler: código em roxo #9012fe
-    negrito, <pre> sem fundo nem padding, e word-break:break-all — que quebra
+    negrito, <pre> sem fundo nem padding, e word-break:break-all, que quebra
     palavra no meio e embaralha exemplo de linha de comando. */
  .swagger-ui .info .renderedMarkdown pre,
  .swagger-ui .info .markdown pre{

@@ -10,7 +10,7 @@ import (
 // O bug que motivou isto: o formatador antigo fazia time.Parse(RFC3339) e depois
 // formatava o relógio de parede, DESCARTANDO o offset. Um pedido em UTC
 // ("11:00Z", que é 08:00 em São Paulo) virava "11:00", e a lib carimbava o fuso
-// do estado — resultando em 11:00-03:00, três horas adiantado. Sem erro nenhum.
+// do estado: resultando em 11:00-03:00, três horas adiantado. Sem erro nenhum.
 func TestDataHoraNoFuso(t *testing.T) {
 	sp := LocalDaUF("SP") // -03:00
 	ac := LocalDaUF("AC") // -05:00

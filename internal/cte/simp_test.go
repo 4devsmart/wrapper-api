@@ -6,7 +6,7 @@ import (
 )
 
 // pedidoSimpFixture monta um CT-e Simplificado rodoviário sintético com um
-// trecho de detalhamento e NF-e vinculada — sem dados reais.
+// trecho de detalhamento e NF-e vinculada, sem dados reais.
 func pedidoSimpFixture() PedidoSimp {
 	return PedidoSimp{
 		Ambiente: "homologacao",

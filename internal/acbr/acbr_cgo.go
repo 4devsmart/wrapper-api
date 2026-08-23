@@ -9,7 +9,7 @@
 //
 // ATENÇÃO: o agendador do Go troca goroutines de thread; toda sequência de
 // chamadas nativas fixa a thread (runtime.LockOSThread) e opera sobre um
-// handle dedicado. Um pool de handles por empresa seria a otimização óbvia —
+// handle dedicado. Um pool de handles por empresa seria a otimização óbvia:
 // e continua não sendo feita, porque ninguém mediu que o custo importa.
 //
 // Build: CGO_ENABLED=1 go build -tags acbrlib ./...
@@ -57,7 +57,7 @@ type cgoLib struct {
 var _ NFSeServico = (*cgoLib)(nil)
 
 // newServicos (cgo) liga o binding real da NFSe. CTe/MDFe ainda usam o
-// placeholder indisponível — os bindings reais (libacbrcte64/libacbrmdfe64)
+// placeholder indisponível: os bindings reais (libacbrcte64/libacbrmdfe64)
 // (build dos .so + cgo CTE_*/MDFE_*).
 func newServicos(cfg config.ACBr) *Servicos {
 	return &Servicos{
@@ -149,7 +149,7 @@ func (s *dfeSession) applyConfig(h C.LibHandle, t TenantConfig, savePath string)
 		{"DFe", "SSLHttpLib", sslHttpOpenSSL},
 		{"DFe", "SSLXmlSignLib", sslXmlLibXml2},
 		// Fuso do documento pela UF do emitente, não pelo relógio do servidor.
-		// O default da lib (tzSistema) carimba o fuso do PROCESSO — e o container
+		// O default da lib (tzSistema) carimba o fuso do PROCESSO, e o container
 		// roda em UTC, então todo dhEmi saía com +00:00: um CT-e emitido às 08:00
 		// em São Paulo virava 08:00Z, três horas adiantado. Com tzPCN a lib usa a
 		// tabela oficial por UF (AC -05, AM/RR/RO/MT/MS -04, demais -03), com
@@ -274,7 +274,7 @@ func (l *cgoLib) Emitir(t TenantConfig, iniNFSe string) (Result, error) {
 			// crasha, e neste ponto o documento JÁ foi autorizado pela prefeitura:
 			// um SIGSEGV aqui deixava a nota emitida, o cliente com erro e nada
 			// persistido. Agora ele acontece sob demanda, a partir do XML
-			// autorizado — ver RenderizarPDF.
+			// autorizado: ver RenderizarPDF.
 		}
 		return res, nil
 	})
@@ -304,7 +304,7 @@ func (l *cgoLib) RenderizarPDF(t TenantConfig, xml string) (Result, error) {
 //
 // É o que fecha o modelo sem estado para a NFS-e: a geração devolve o
 // identificador da DPS antes de qualquer envio, e é com ele que o cliente
-// descobre o desfecho de uma transmissão cuja resposta se perdeu — em vez de
+// descobre o desfecho de uma transmissão cuja resposta se perdeu: em vez de
 // reenviar e arriscar duplicar.
 func (l *cgoLib) ConsultarDPSPorChave(t TenantConfig, chaveDPS string) (Result, error) {
 	return l.withSession(t, func(h C.LibHandle) (Result, error) {
@@ -345,7 +345,7 @@ func (l *cgoLib) ValidarRegras(TenantConfig, string) (Result, error) {
 }
 
 // Transmitir envia a DPS montada na geração (NFSE_CarregarXML → NFSE_Emitir). É
-// aqui que o provedor assina — a NFS-e não expõe assinatura separada, então a
+// aqui que o provedor assina: a NFS-e não expõe assinatura separada, então a
 // geração entrega a DPS crua e o certificado só é necessário neste ponto.
 func (l *cgoLib) Transmitir(t TenantConfig, xml string) (Result, error) {
 	return l.withSession(t, func(h C.LibHandle) (Result, error) {
@@ -603,7 +603,7 @@ func (l *cgoLib) withSession(t TenantConfig, fn func(h C.LibHandle) (Result, err
 	}
 	// Diretório efêmero por emissão: guarda o config (com o cert em texto puro)
 	// e os XMLs/JSONs que o ACBr salva (PathSalvar). Apagado por inteiro ao
-	// fim da sessão — nada sensível fica em repouso.
+	// fim da sessão: nada sensível fica em repouso.
 	sessionDir, err := os.MkdirTemp(base, "nfse-"+tenantSlug(t.CNPJ)+"-")
 	if err != nil {
 		return Result{}, fmt.Errorf("criando diretório de sessão: %w", err)
@@ -648,7 +648,7 @@ func applyConfig(h C.LibHandle, t TenantConfig, savePath, schemasPath string) er
 		{"DFe", "SSLHttpLib", sslHttpOpenSSL},
 		{"DFe", "SSLXmlSignLib", sslXmlLibXml2},
 		// Fuso do documento pela UF do emitente, não pelo relógio do servidor.
-		// O default da lib (tzSistema) carimba o fuso do PROCESSO — e o container
+		// O default da lib (tzSistema) carimba o fuso do PROCESSO, e o container
 		// roda em UTC, então todo dhEmi saía com +00:00: um CT-e emitido às 08:00
 		// em São Paulo virava 08:00Z, três horas adiantado. Com tzPCN a lib usa a
 		// tabela oficial por UF (AC -05, AM/RR/RO/MT/MS -04, demais -03), com
@@ -661,7 +661,7 @@ func applyConfig(h C.LibHandle, t TenantConfig, savePath, schemasPath string) er
 		// SalvarPDF devolve base64, mas a lib também grava no PathPDF.
 		{"DANFSe", "PathPDF", savePath},
 	}
-	// Schemas XSD por provedor (validação). Interno — o cliente não informa isso.
+	// Schemas XSD por provedor (validação). Interno: o cliente não informa isso.
 	if schemasPath != "" {
 		kvs = append(kvs, ConfigKV{"NFSe", "PathSchemas", schemasPath})
 	}
@@ -742,7 +742,7 @@ func ultimoRetorno(h C.LibHandle, hint int) string {
 
 // cstrFree aloca uma C string e devolve o ponteiro + a função que a libera (use
 // com `defer`). Encapsula o par C.CString / C.free(unsafe.Pointer(...)). Em código
-// NOVO do binding, prefira-o ao free manual — esquecer um free vaza memória nativa.
+// NOVO do binding, prefira-o ao free manual: esquecer um free vaza memória nativa.
 // Ver docs/BINDING-CGO.md.
 func cstrFree(s string) (*C.char, func()) {
 	c := C.CString(s)
