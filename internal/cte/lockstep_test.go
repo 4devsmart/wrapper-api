@@ -20,7 +20,9 @@ import (
 //  2. enviamos e a lib NÃO lê → chave morta: escrevemos no INI e a lib ignora
 //     em silêncio. Pior que a primeira, porque parece que funciona.
 //
-// O snapshot da lib é regenerado em lockstep com o .so por `make acbr-chaves`.
+// O snapshot sai do fonte do ACBr, na revisão fixada em docs/ACBRLIB.md, e
+// precisa ser refeito a cada bump do .so. Não há script neste repositório:
+// refazer exige o fonte, que não vem no clone.
 // Falhar aqui não é "conserte o código", é "decida": passar a enviar, ou
 // declarar com o motivo.
 
@@ -82,7 +84,7 @@ func TestLockstep_CTe_ChavesDaLibQueNaoEnviamos(t *testing.T) {
 	t.Errorf("%d chave(s) NOVAS que a lib aceita e não enviamos.\n\n"+
 		"Não são todas as lacunas: só as que apareceram depois do último baseline\n"+
 		"(normalmente após um bump do .so). Decida cada uma: emitir no builder, ou\n"+
-		"acrescentar a testdata/nao_enviadas.tsv (com 'make acbr-chaves' e revisão).\n\n  %s",
+		"acrescentar a testdata/nao_enviadas.tsv, com o motivo.\n\n  %s",
 		len(novas), strings.Join(novas, "\n  "))
 }
 
@@ -122,12 +124,12 @@ func TestLockstep_CTe_ChavesQueEnviamosEALibIgnora(t *testing.T) {
 
 // --- helpers ---------------------------------------------------------------
 
-// carregarSnapshot lê o TSV gerado por scripts/gerar-chaves-dfe.sh.
+// carregarSnapshot lê o TSV extraído do fonte da biblioteca.
 func carregarSnapshot(t *testing.T, arquivo string) map[string]bool {
 	t.Helper()
 	b, err := os.ReadFile(arquivo)
 	if err != nil {
-		t.Fatalf("snapshot ausente (rode 'make acbr-chaves'): %v", err)
+		t.Fatalf("snapshot ausente: %v", err)
 	}
 	out := map[string]bool{}
 	for _, l := range strings.Split(string(b), "\n") {
@@ -275,4 +277,30 @@ func chavesDoBuilder(t *testing.T, dir string) map[string]bool {
 		t.Fatalf("nenhuma chave extraída de %s: os helpers do builder mudaram de forma?", dir)
 	}
 	return out
+}
+
+// Baseline que acumula linha morta para de significar alguma coisa: o teste
+// deixa de cobrar sem ninguém perceber. Foi assim que a lista sobreviveu ao
+// conserto das lacunas que ela mesma registrava.
+func TestLockstep_CTE_BaselineSemLinhaMorta(t *testing.T) {
+	lib := carregarSnapshot(t, "testdata/lerini_chaves.tsv")
+	nosso := chavesDoBuilder(t, ".")
+	baseline := carregarBaselineDFe(t, "testdata/nao_enviadas.tsv")
+
+	var mortas []string
+	for p := range baseline {
+		switch {
+		case nosso[p]:
+			mortas = append(mortas, p+"\t(passamos a enviar)")
+		case !lib[p]:
+			mortas = append(mortas, p+"\t(a lib não aceita mais esta chave)")
+		}
+	}
+	if len(mortas) == 0 {
+		return
+	}
+	sort.Strings(mortas)
+	t.Errorf("%d linha(s) de testdata/nao_enviadas.tsv que não valem mais.\n"+
+		"Remova para travar o ganho, senão a lista vira depósito:\n  %s",
+		len(mortas), strings.Join(mortas, "\n  "))
 }

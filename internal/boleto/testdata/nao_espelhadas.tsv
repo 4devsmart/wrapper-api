@@ -1,0 +1,6 @@
+# Campos do contrato do boleto que NÃO aparecem no INI gerado, e o porquê de
+# cada um. Ver o cabeçalho de internal/cte/testdata/nao_espelhadas.tsv.
+#
+# Formato: <caminho no payload>  <TAB>  <motivo>
+conta.ws.certCRT	material de mTLS: vai para a sessão nativa em arquivo temporário, e um segredo no arquivo intermediário seria o oposto do que este serviço promete
+conta.ws.certKEY	material de mTLS: vai para a sessão nativa em arquivo temporário, e um segredo no arquivo intermediário seria o oposto do que este serviço promete

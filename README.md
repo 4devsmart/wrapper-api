@@ -285,6 +285,7 @@ Trate por `codigo`, nunca pela mensagem:
 | `regras_de_negocio` | 422 | a lib reprovou; nada foi transmitido | corrija |
 | `provedor_nao_suportado` | 422 | município sem provedor de NFS-e conhecido | não |
 | `operacao_nao_suportada` | 422 | o provedor não implementa esta operação | não |
+| `grupo_incompativel` | 400 | grupo que não existe no tipo de documento pedido (ex.: `infCteComp` fora do CT-e Complementar) | corrija |
 | `limite_de_requisicoes` | 429 | passou de `API_RATE_PER_MIN`; veja `Retry-After` | sim, depois |
 | `desfecho_indeterminado` | 502 | **pode ter sido transmitido** | **não.** consulte |
 | `lib_indisponivel` | 503 | a chamada **não** saiu | sim |

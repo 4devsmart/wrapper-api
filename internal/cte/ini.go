@@ -39,6 +39,8 @@ func ToINI(p PedidoEmissao) string {
 	if r := inf.Rem; r != nil {
 		b.section("rem")
 		b.pessoa(r.CNPJ, r.CPF, r.IE, r.XNome, r.Fone, r.Email, r.EnderReme)
+		// Só rem e toma4 têm xFant no layout: exped, receb e dest não.
+		b.kvOpt("xFant", r.XFant)
 	}
 	if e := inf.Exped; e != nil {
 		b.section("exped")
@@ -91,6 +93,22 @@ func ToINI(p PedidoEmissao) string {
 		}
 	}
 
+	// infCteComp e infCTeNorm são ESCOLHA no layout: o CT-e Complementar
+	// (tpCTe=1) traz um, o Normal traz o outro. Escrevemos o que vier, e quem
+	// decide qual vale é o tpCTe.
+	//
+	// A indexação aqui é de DUAS casas, não das três que o resto do arquivo
+	// usa: verificado contra a biblioteca, [infCteComp001] é ignorado em
+	// silêncio e [infCteComp01] é lido. O mesmo vale para autXML abaixo.
+	for i, c := range inf.InfCteComp {
+		b.section("infCteComp" + inifmt.Seq2(i+1))
+		b.kv("chCte", c.ChCTe)
+	}
+	for i, a := range inf.AutXML {
+		b.section("autXML" + inifmt.Seq2(i+1))
+		b.kvOpt("CNPJCPF", firstNonEmpty(a.CNPJ, a.CPF))
+	}
+
 	b.respTec(inf.InfRespTec)
 	return b.String()
 }
@@ -99,6 +117,7 @@ func ToINI(p PedidoEmissao) string {
 func (b *iniBuilder) identificacao(id Ide, ambiente string) {
 	b.section("ide")
 	b.kvIntOpt("cUF", id.CUF)
+	b.kvOpt("cCT", id.CCT)
 	// tpAmb precisa sair no INI. Sem ele a lib escreve o default (produção) no
 	// XML enquanto a sessão está configurada para o ambiente pedido, e o próprio
 	// ValidarRegrasdeNegocios acusa "252-Rejeição: Ambiente informado diverge do
@@ -138,6 +157,11 @@ func (b *iniBuilder) identificacao(id Ide, ambiente string) {
 	b.kv("indIEToma", strconv.Itoa(id.IndIEToma))
 	b.kvOpt("dhCont", b.dataHoraOpt(id.DhCont))
 	b.kvOpt("xJust", id.XJust)
+	// gCompraGov não tem seção própria: a lib lê tpEnteGov e pRedutor de [ide].
+	if g := id.GCompraGov; g != nil {
+		b.kvIntOpt("tpEnteGov", g.TpEnteGov)
+		b.kvOpt("pRedutor", moneyOpt(g.PRedutor))
+	}
 	// O indicador do tomador vai na seção PRÓPRIA, não em [ide]: o leitor da lib
 	// faz Ide.toma03.Toma := ReadString('toma3','toma') e toma4.toma :=
 	// ReadString('toma4','toma'). Escrito em [ide], o valor era simplesmente
@@ -153,6 +177,7 @@ func (b *iniBuilder) identificacao(id Ide, ambiente string) {
 		b.kvOpt("CNPJCPF", firstNonEmpty(t4.CNPJ, t4.CPF))
 		b.kvOpt("IE", t4.IE)
 		b.kvOpt("xNome", t4.XNome)
+		b.kvOpt("xFant", t4.XFant)
 		b.kvOpt("fone", t4.Fone)
 		b.kvOpt("email", t4.Email)
 		b.endereco(t4.EnderToma)
@@ -247,6 +272,7 @@ func (b *iniBuilder) emitente(e Emit) {
 func (b *iniBuilder) imposto(imp Imp) {
 	b.section("Imp")
 	b.kvOpt("vTotTrib", moneyOpt(imp.VTotTrib))
+	b.kvOpt("vTotDFe", moneyOpt(imp.VTotDFe))
 	b.kvOpt("infAdFisco", imp.InfAdFisco)
 	b.icms(imp.ICMS)
 	if u := imp.ICMSUFFim; u != nil {
@@ -490,6 +516,8 @@ func (b *iniBuilder) icms(ic ICMS) {
 		b.kv("vICMSSTRet", money(ic.ICMS60.VICMSSTRet))
 		b.kv("pICMSSTRet", money(ic.ICMS60.PICMSSTRet))
 		b.kvOpt("vCred", moneyOpt(ic.ICMS60.VCred))
+		b.kvOpt("vICMSDeson", moneyOpt(ic.ICMS60.VICMSDeson))
+		b.kvOpt("cBenef", ic.ICMS60.CBenef)
 	case ic.ICMS90 != nil:
 		b.section("ICMS90")
 		b.kv("CST", defaultStr(ic.ICMS90.CST, "90"))
@@ -498,6 +526,8 @@ func (b *iniBuilder) icms(ic ICMS) {
 		b.kv("pICMS", money(ic.ICMS90.PICMS))
 		b.kv("vICMS", money(ic.ICMS90.VICMS))
 		b.kvOpt("vCred", moneyOpt(ic.ICMS90.VCred))
+		b.kvOpt("vICMSDeson", moneyOpt(ic.ICMS90.VICMSDeson))
+		b.kvOpt("cBenef", ic.ICMS90.CBenef)
 	case ic.ICMSOutraUF != nil:
 		b.section("ICMSOutraUF")
 		b.kv("CST", defaultStr(ic.ICMSOutraUF.CST, "90"))
@@ -505,6 +535,8 @@ func (b *iniBuilder) icms(ic ICMS) {
 		b.kv("vBCOutraUF", money(ic.ICMSOutraUF.VBCOutraUF))
 		b.kv("pICMSOutraUF", money(ic.ICMSOutraUF.PICMSOutraUF))
 		b.kv("vICMSOutraUF", money(ic.ICMSOutraUF.VICMSOutraUF))
+		b.kvOpt("vICMSDeson", moneyOpt(ic.ICMSOutraUF.VICMSDeson))
+		b.kvOpt("cBenef", ic.ICMSOutraUF.CBenef)
 	case ic.ICMSSN != nil:
 		b.section("ICMSSN")
 		b.kv("CST", defaultStr(ic.ICMSSN.CST, "90"))

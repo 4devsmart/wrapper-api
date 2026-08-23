@@ -1,0 +1,22 @@
+# Campos do contrato da NFS-e que NÃO aparecem no INI do RPS (ABRASF e layouts
+# próprios), e o porquê de cada um. O contrato é único para os dois layouts, e
+# a Reforma Tributária e os grupos detalhados do Padrão Nacional não têm lugar
+# no RPS. Ver o cabeçalho de internal/cte/testdata/nao_espelhadas.tsv.
+#
+# Formato: <caminho no payload>  <TAB>  <motivo>
+ambiente	configura a sessão; não é campo da DPS
+referencia	correlação do cliente, volta na resposta e não entra no documento
+infDPS.prest.CPF	um CNPJ ou um CPF viaja no mesmo campo, nunca os dois
+infDPS.toma.CPF	um CNPJ ou um CPF viaja no mesmo campo, nunca os dois
+infDPS.interm.CPF	um CNPJ ou um CPF viaja no mesmo campo, nunca os dois
+infDPS.prest.regTrib.opSimpNac	convertido para o OptanteSimplesNacional do ABRASF, que é Sim ou Não: o código de três valores do Padrão Nacional não sobrevive à conversão
+infDPS.toma.regTrib.*	a biblioteca lê o regime tributário só do prestador: quem emite é quem declara o próprio regime
+infDPS.interm.regTrib.*	a biblioteca lê o regime tributário só do prestador: quem emite é quem declara o próprio regime
+infDPS.serv.cMunPrestacao	um município só vai em CodigoMunicipio, e o de incidência tem precedência
+infDPS.serv.comExt.*	grupo de comércio exterior do Padrão Nacional; o RPS do ABRASF não tem onde recebê-lo
+infDPS.serv.infoCompl.*	grupo de informações complementares do Padrão Nacional; no RPS o que existe é a discriminação do serviço, que já vai
+infDPS.ibscbs.*	Reforma Tributária: grupo exclusivo do Padrão Nacional, e o RPS do ABRASF é anterior a ela
+infDPS.valores.tribMun.*	grupo municipal detalhado do Padrão Nacional; no RPS o que existe são os atalhos de [Valores], que já vão
+infDPS.valores.tribFed.*	grupo federal detalhado do Padrão Nacional; no RPS as retenções federais vão como valores dentro de [Valores]
+infDPS.valores.totTrib.*	totalizador de tributos do Padrão Nacional, sem equivalente no RPS
+infDPS.valores.tribISSQN	a biblioteca só lê tribISSQN dentro de [tribMun], que é do Padrão Nacional; no RPS quem diz a tributação do ISS é o IssRetido

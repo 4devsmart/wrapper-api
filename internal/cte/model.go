@@ -5,7 +5,9 @@
 // Os DTOs cobrem o CT-e no MODAL RODOVIÁRIO: aéreo, aquaviário, ferroviário,
 // dutoviário e multimodal saíram do contrato, então os grupos não existem aqui
 // e o pedido que os traga recebe 400 campo desconhecido. O que está declarado
-// neste arquivo é o que a tradução ToINI (ini.go) escreve.
+// neste arquivo ou chega ao arquivo intermediário, ou está registrado em
+// testdata/nao_espelhadas.tsv com o motivo: o teste de espelho
+// (espelho_test.go) preenche o modelo inteiro e cobra cada folha na saída.
 package cte
 
 // PedidoEmissao é o CT-e a ser gerado, no contrato da Nuvem Fiscal / ACBr.API.
@@ -492,7 +494,6 @@ type InfCTeNorm struct {
 	Cobr           *Cobr           `json:"cobr,omitempty"`
 	InfCteSub      *InfCteSub      `json:"infCteSub,omitempty"`
 	InfGlobalizado *InfGlobalizado `json:"infGlobalizado,omitempty"`
-	InfServVinc    *InfServVinc    `json:"infServVinc,omitempty"`
 }
 
 // InfCarga espelha CteSefazInfCarga.
@@ -698,16 +699,6 @@ type InfCteSub struct {
 // InfGlobalizado espelha CteSefazInfGlobalizado.
 type InfGlobalizado struct {
 	XObs string `json:"xObs"`
-}
-
-// InfServVinc espelha CteSefazInfServVinc.
-type InfServVinc struct {
-	InfCTeMultimodal []InfCTeMultimodal `json:"infCTeMultimodal"`
-}
-
-// InfCTeMultimodal espelha CteSefazInfCTeMultimodal.
-type InfCTeMultimodal struct {
-	ChCTeMultimodal string `json:"chCTeMultimodal"`
 }
 
 // InfCteComp espelha CteSefazInfCteComp.

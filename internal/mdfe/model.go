@@ -2,11 +2,12 @@
 // ACBr.API (MdfePedidoEmissao = layout SEFAZ COMPLETO): para o INI consumido
 // pela ACBrLibMDFe (MDFE_CarregarINI), e interpreta as respostas.
 //
-// Os DTOs cobrem 100% das tags do contrato (gerados do contrato oficial). O
-// ToINI (ini.go) cobre o caminho rodoviário + grupos comuns; grupos exóticos
-// (aquaviário/ferroviário, unidCarga/transp, pagamento ANTT detalhado) existem
-// no payload com ToINI pendente de verificação. Grupos opcionais podem ser
-// omitidos (omitempty) sem erro de consumo.
+// O escopo é o MODAL RODOVIÁRIO. Todo campo declarado aqui ou chega ao arquivo
+// intermediário, ou está registrado em testdata/nao_espelhadas.tsv com o
+// motivo: o teste de espelho (espelho_test.go) preenche o modelo inteiro e
+// cobra cada folha na saída, então "existe no payload e não sei se sai" deixou
+// de ser um estado possível. Grupos opcionais podem ser omitidos (omitempty)
+// sem erro de consumo.
 package mdfe
 
 // PedidoEmissao é o MDF-e a ser gerado, no contrato da Nuvem Fiscal / ACBr.API.

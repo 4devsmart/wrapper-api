@@ -1,6 +1,6 @@
 # Lacunas CONHECIDAS: chaves que o leitor de INI do ACBr aceita e que os nossos
 # builders não enviam hoje. Serve de baseline para o teste de lockstep
-# (internal/nfse/lockstep_test.go): ele não cobra o que está aqui — cobra o que
+# (internal/nfse/lockstep_test.go): ele não cobra o que está aqui : cobra o que
 # aparecer DEPOIS, tipicamente após um bump do .so.
 #
 # A maioria são campos de provedores específicos fora do nosso contrato
@@ -8,9 +8,11 @@
 # dívida silenciosa: é escopo declarado.
 #
 # Ao passar a enviar uma dessas chaves, remova a linha. Ao aceitar uma nova
-# lacuna, acrescente — o diff do git é a revisão.
+# lacuna, acrescente : o diff do git é a revisão.
 #
-# Gerado com: sh scripts/gerar-chaves-nfse.sh + go test -run Lockstep
+# O snapshot vem do fonte do ACBr (os procedimentos de leitura de INI da
+# biblioteca), na revisão fixada em docs/ACBRLIB.md. Não há script neste
+# repositório: regenerar exige o fonte, que não vem no clone.
 IdentificacaoRps/cMotivoEmisTI
 IdentificacaoRps/DataEmissaoRPS
 IdentificacaoRps/DataFatoGerador

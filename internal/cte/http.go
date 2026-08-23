@@ -74,7 +74,8 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 		httpx.ErroJSON(w, http.StatusBadRequest, "campo_obrigatorio", "infCte.emit.CNPJ é obrigatório")
 		return
 	}
-	if !ambienteDoPedido(w, &p.Ambiente, p.InfCte.Ide.TpAmb) || !modalSuportado(w, p.InfCte.Ide.Modal) {
+	if !ambienteDoPedido(w, &p.Ambiente, p.InfCte.Ide.TpAmb) || !modalSuportado(w, p.InfCte.Ide.Modal) ||
+		!grupoDoTipoCoerente(w, p) {
 		return
 	}
 	m.montar(w, fiscal.Tenant(cnpj, secaoACBr, p.Ambiente, fiscal.Certificado{}), ToINI(p))
@@ -519,6 +520,34 @@ func modalSuportado(w http.ResponseWriter, modal string) bool {
 	}
 	httpx.ErroJSON(w, http.StatusUnprocessableEntity, "modal_nao_suportado",
 		"este serviço emite apenas o modal rodoviário (modal=01); recebido modal="+modal)
+	return false
+}
+
+// tipoCTeComplementar é o tpCTe do CT-e Complementar.
+const tipoCTeComplementar = 1
+
+// grupoDoTipoCoerente recusa o pedido que traz o grupo do tipo errado.
+//
+// No layout, infCTeNorm e infCteComp são ESCOLHA: o Complementar (tpCTe=1) traz
+// um, o Normal traz o outro. A biblioteca resolve pelo tpCTe e DESCARTA o grupo
+// que não corresponde, em silêncio. Quem mandou o complemento num CT-e Normal
+// recebia 200, um XML sem o grupo, e nenhuma pista de que faltava algo.
+func grupoDoTipoCoerente(w http.ResponseWriter, p PedidoEmissao) bool {
+	comp := len(p.InfCte.InfCteComp) > 0
+	norm := p.InfCte.InfCTeNorm != nil
+	complementar := p.InfCte.Ide.TpCTe == tipoCTeComplementar
+
+	switch {
+	case comp && !complementar:
+		httpx.ErroJSON(w, http.StatusBadRequest, "grupo_incompativel",
+			"infCte.infCteComp só existe no CT-e Complementar (ide.tpCTe=1); "+
+				"neste pedido tpCTe="+strconv.Itoa(p.InfCte.Ide.TpCTe))
+	case complementar && norm:
+		httpx.ErroJSON(w, http.StatusBadRequest, "grupo_incompativel",
+			"o CT-e Complementar (ide.tpCTe=1) traz infCte.infCteComp, não infCte.infCTeNorm")
+	default:
+		return true
+	}
 	return false
 }
 

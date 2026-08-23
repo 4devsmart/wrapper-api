@@ -1,5 +1,7 @@
 # Chaves de INI aceitas pelo leitor de NFS-e do ACBr (snapshot).
-# Gerado por scripts/gerar-chaves-nfse.sh — NÃO editar à mão.
+# NÃO editar à mão. O snapshot vem do fonte do ACBr (os procedimentos de leitura de INI da
+# biblioteca), na revisão fixada em docs/ACBRLIB.md. Não há script neste
+# repositório: regenerar exige o fonte, que não vem no clone.
 # Formato: <secao>\t<chave>
 ComercioExterior	mdic
 ComercioExterior	mdPrestacao
