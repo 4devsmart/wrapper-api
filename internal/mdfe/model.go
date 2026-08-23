@@ -13,7 +13,7 @@ package mdfe
 type PedidoEmissao struct {
 	InfMDFe     InfMDFe      `json:"infMDFe"`
 	InfMDFeSupl *InfMDFeSupl `json:"infMDFeSupl,omitempty"`
-	Ambiente    string       `json:"ambiente"`
+	Ambiente    string       `json:"ambiente" enum:"Ambiente"`
 	Referencia  string       `json:"referencia,omitempty"`
 }
 
@@ -37,7 +37,10 @@ type InfMDFe struct {
 
 // Ide espelha MdfeSefazIde.
 type Ide struct {
-	CUF                 int             `json:"cUF"`
+	CUF int `json:"cUF"`
+	// Redundante com o campo ambiente do pedido, e mantido para quem já monta o
+	// documento completo: informado, precisa CONCORDAR com ele, senão a
+	// requisição é recusada. Quem manda no XML e na sessão é o ambiente.
 	TpAmb               int             `json:"tpAmb,omitempty" enum:"TipoAmbiente"`
 	TpEmit              int             `json:"tpEmit" enum:"TipoEmitente"`
 	TpTransp            int             `json:"tpTransp,omitempty" enum:"TipoTransportador"`

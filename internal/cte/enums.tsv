@@ -183,3 +183,5 @@ InformacaoManuseio	13	Baterias de metal lítio conforme a Seção II da PI968, C
 InformacaoManuseio	14	Baterias de metal lítio conforme a Seção II da PI969
 InformacaoManuseio	15	Baterias de metal lítio conforme a Seção II da PI970
 InformacaoManuseio	99	Outro (descreva nas observações)
+Ambiente	homologacao	Ambiente de homologação, sem valor fiscal
+Ambiente	producao	Ambiente de produção

@@ -98,3 +98,5 @@ ProcessoEmissao	0	Aplicativo do contribuinte
 ProcessoEmissao	4	Provedor de Assinatura e Autorização (PAA)
 TipoNavegacao	0	Interior
 TipoNavegacao	1	Cabotagem
+Ambiente	homologacao	Ambiente de homologação, sem valor fiscal
+Ambiente	producao	Ambiente de produção

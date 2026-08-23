@@ -28,6 +28,30 @@ const (
 	RotaHealth = "/healthz"
 )
 
+// metodosLocais são os métodos que rodam INTEIRAMENTE dentro do worker: montam
+// XML, validam regras, convertem, renderizam PDF. Nenhum deles abre conexão com
+// a SEFAZ ou com o banco.
+//
+// A distinção decide o status HTTP quando o worker cai no meio de uma chamada.
+// Para quem transmite, a queda é indeterminada: o documento PODE estar na SEFAZ
+// e repetir duplicaria (502). Para estes, não havia nada em trânsito: repetir é
+// seguro (503). Sem a lista, uma falha ao GERAR o XML mandaria o cliente
+// "consultar pela chave" de um documento que nunca saiu, e cuja chave ele
+// justamente ainda não tem.
+var metodosLocais = map[string]bool{
+	"Version":         true,
+	"MontarXML":       true,
+	"ValidarRegras":   true,
+	"XmlParaIni":      true,
+	"RenderizarPDF":   true,
+	"SalvarEventoPDF": true,
+	// Boleto: a geração e a leitura de arquivo são offline; Registrar e
+	// ConsultarTitulos falam com a API do banco e ficam de fora.
+	"GerarPDF":     true,
+	"GerarRemessa": true,
+	"LerRetorno":   true,
+}
+
 // Pedido é uma chamada de método do binding.
 type Pedido struct {
 	Servico string       `json:"servico"`

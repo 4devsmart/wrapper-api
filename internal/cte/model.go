@@ -12,7 +12,7 @@ package cte
 type PedidoEmissao struct {
 	InfCte     InfCte      `json:"infCte"`
 	InfCTeSupl *InfCTeSupl `json:"infCTeSupl,omitempty"`
-	Ambiente   string      `json:"ambiente"`
+	Ambiente   string      `json:"ambiente" enum:"Ambiente"`
 	Referencia string      `json:"referencia,omitempty"`
 }
 
@@ -49,7 +49,10 @@ type Ide struct {
 	TpImp  int    `json:"tpImp" enum:"TipoImpressao"`
 	TpEmis int    `json:"tpEmis" enum:"TipoEmissao"`
 	CDV    int    `json:"cDV,omitempty"`
-	TpAmb  int    `json:"tpAmb,omitempty" enum:"TipoAmbiente"`
+	// Redundante com o campo ambiente do pedido, e mantido para quem já monta o
+	// documento completo: informado, precisa CONCORDAR com ele, senão a
+	// requisição é recusada. Quem manda no XML e na sessão é o ambiente.
+	TpAmb int `json:"tpAmb,omitempty" enum:"TipoAmbiente"`
 	// TpCTe não tem mais o valor 2 (Anulação): o CT-e de Anulação saiu do layout
 	// na versão 4.00, e o ACBr só gera o grupo infCteAnu para VersaoDF <= 3.00
 	// (pcteCTeW.pas:3309). Quem vem da 3.00 usa o CT-e Substituto (valor 3).

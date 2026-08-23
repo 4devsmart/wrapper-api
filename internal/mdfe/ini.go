@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/4devsmart/wrapper-api/internal/fiscal"
 	"github.com/4devsmart/wrapper-api/internal/platform/inifmt"
 )
 
@@ -24,7 +25,7 @@ func ToINI(p PedidoEmissao) string {
 
 	b.section("ide")
 	b.kvIntOpt("cUF", id.CUF)
-	b.kv("tpAmb", tpAmb(p.Ambiente))
+	b.kv("tpAmb", fiscal.TpAmb(p.Ambiente))
 	b.kv("tpEmit", strconv.Itoa(defaultInt(id.TpEmit, 1)))
 	b.kvIntOpt("tpTransp", id.TpTransp)
 	b.kv("mod", strconv.Itoa(defaultInt(id.Mod, 58)))
@@ -332,14 +333,6 @@ func ToINI(p PedidoEmissao) string {
 	// infANTT.infPag (pagamento): indexação aninhada profunda, a confirmar.
 
 	return b.String()
-}
-
-// tpAmb converte o ambiente para o tpAmb da SEFAZ (1=produção, 2=homologação).
-func tpAmb(ambiente string) string {
-	if ambiente == "producao" {
-		return "1"
-	}
-	return "2"
 }
 
 // --- builder de INI (local ao pacote mdfe) ----------------------------------

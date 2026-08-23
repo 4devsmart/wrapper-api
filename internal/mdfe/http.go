@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/4devsmart/wrapper-api/internal/acbr"
@@ -72,6 +73,9 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !ambienteDoPedido(w, &p.Ambiente, p.InfMDFe.Ide.TpAmb) {
+		return
+	}
 	t := fiscal.Tenant(cnpj, secaoACBr, p.Ambiente, fiscal.Certificado{})
 	xml, val, res, err := fiscal.Montar(m.svc, t, ToINI(p))
 	if err != nil {
@@ -139,10 +143,13 @@ func (m *Modulo) handleTransmissao(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !ambienteDoPedido(w, &p.Ambiente, 0) {
+		return
+	}
 	chave := ChaveDoXML(xml)
 	// O ambiente vem do XML, não do cliente. Divergir dá rejeição 252, ou,
 	// pior, manda um documento de homologação para o webservice de produção.
-	ambiente := fiscal.Primeiro(AmbienteDoXML(xml), p.Ambiente, "homologacao")
+	ambiente := fiscal.Primeiro(AmbienteDoXML(xml), p.Ambiente)
 	t := fiscal.Tenant(fiscal.CNPJDaChave(chave), secaoACBr, ambiente, p.Certificado)
 
 	res, err := m.svc.Transmitir(t, xml)
@@ -204,6 +211,9 @@ func (m *Modulo) handleEvento(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !ambienteDoPedido(w, &p.Ambiente, 0) {
+		return
+	}
 	cnpj := fiscal.CNPJDaChave(chave)
 	dh := fiscal.Primeiro(p.DhEvento, fiscal.AgoraLocal())
 
@@ -218,7 +228,7 @@ func (m *Modulo) handleEvento(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t := fiscal.Tenant(cnpj, secaoACBr, fiscal.Primeiro(p.Ambiente, "homologacao"), p.Certificado)
+	t := fiscal.Tenant(cnpj, secaoACBr, p.Ambiente, p.Certificado)
 	res, err := envia(t, ini)
 	if err != nil {
 		fiscal.ResponderErroDaLib(w, "MDF-e", res, err)
@@ -321,7 +331,10 @@ func (m *Modulo) handleConsulta(w http.ResponseWriter, r *http.Request) {
 		httpx.ErroJSON(w, http.StatusBadRequest, "certificado_invalido", err.Error())
 		return
 	}
-	t := fiscal.Tenant(fiscal.CNPJDaChave(chave), secaoACBr, fiscal.Primeiro(p.Ambiente, "homologacao"), p.Certificado)
+	if !ambienteDoPedido(w, &p.Ambiente, 0) {
+		return
+	}
+	t := fiscal.Tenant(fiscal.CNPJDaChave(chave), secaoACBr, p.Ambiente, p.Certificado)
 	res, err := m.svc.Consultar(t, chave)
 	if err != nil {
 		fiscal.ResponderErroDaLib(w, "MDF-e", res, err)
@@ -376,7 +389,10 @@ func (m *Modulo) lerPedidoSefaz(w http.ResponseWriter, r *http.Request) (PedidoS
 		httpx.ErroJSON(w, http.StatusBadRequest, "certificado_invalido", err.Error())
 		return p, acbr.TenantConfig{}, false
 	}
-	t := fiscal.Tenant(fiscal.SoDigitos(p.CNPJ), secaoACBr, fiscal.Primeiro(p.Ambiente, "homologacao"), p.Certificado)
+	if !ambienteDoPedido(w, &p.Ambiente, 0) {
+		return p, acbr.TenantConfig{}, false
+	}
+	t := fiscal.Tenant(fiscal.SoDigitos(p.CNPJ), secaoACBr, p.Ambiente, p.Certificado)
 	return p, t, true
 }
 
@@ -432,6 +448,27 @@ func (m *Modulo) handlePDFEvento(w http.ResponseWriter, r *http.Request) {
 	}
 	res, err := m.svc.SalvarEventoPDF(fiscal.Tenant("", secaoACBr, "", fiscal.Certificado{}), xml, evt)
 	m.responderPDF(w, res, err)
+}
+
+// ambienteDoPedido normaliza o ambiente NO PRÓPRIO pedido, para que a sessão
+// nativa e o INI leiam o mesmo valor, e confere o tpAmb explícito de infMDFe.ide
+// contra ele (tpAmb=0 quando o pedido não tem o campo).
+//
+// Antes o tpAmb informado pelo cliente era ignorado em silêncio e o INI saía
+// sempre do campo ambiente: quem pedisse produção pelo tpAmb recebia um
+// documento de homologação com resposta 200.
+func ambienteDoPedido(w http.ResponseWriter, ambiente *string, tpAmb int) bool {
+	amb, ok := fiscal.AmbienteValido(w, *ambiente)
+	if !ok {
+		return false
+	}
+	*ambiente = amb
+	if (tpAmb == 1 || tpAmb == 2) && fiscal.TpAmb(amb) != strconv.Itoa(tpAmb) {
+		httpx.ErroJSON(w, http.StatusBadRequest, "ambiente_divergente",
+			"infMDFe.ide.tpAmb contradiz o campo ambiente: informe um dos dois")
+		return false
+	}
+	return true
 }
 
 func (m *Modulo) responderPDF(w http.ResponseWriter, res acbr.Result, err error) {
