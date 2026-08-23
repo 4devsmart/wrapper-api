@@ -1,8 +1,12 @@
-# Valores aceitos por campo do MDF-e.
+# Valores aceitos por campo, extraídos dos SCHEMAS XSD OFICIAIS que acompanham
+# a biblioteca fiscal (a mesma fonte que a SEFAZ publica no MOC). Os rótulos são
+# o texto de <xs:documentation> do próprio schema, normalizado.
 #
-# Os VALORES vêm das tabelas de conversão da ACBrLib (pmdfeConversaoMDFe.pas),
-# que é o que a lib de fato aceita. Os RÓTULOS seguem o layout do MDF-e 3.00.
+# Ao bumpar ACBR_REV, confira as divergências:
+#     make enums-conferir
+#
 # Formato: enum <TAB> valor <TAB> rótulo
+# Layout do MDF-e 3.00.
 TipoAmbiente	1	Produção
 TipoAmbiente	2	Homologação
 Modelo	58	MDF-e
@@ -33,3 +37,64 @@ TipoEmissao	2	Contingência
 TipoEmissao	3	Regime Especial NFF
 IndicadorPagamento	0	Pagamento à vista
 IndicadorPagamento	1	Pagamento a prazo
+ResponsavelSeguro	1	Emitente do MDF-e
+ResponsavelSeguro	2	Responsável pela contratação do serviço de transporte
+TipoValePedagio	01	TAG
+TipoValePedagio	04	Leitura da placa de identificação veicular
+CategoriaCombinacaoVeicular	02	Veículo comercial de 2 eixos
+CategoriaCombinacaoVeicular	04	Veículo comercial de 3 eixos
+CategoriaCombinacaoVeicular	06	Veículo comercial de 4 eixos
+CategoriaCombinacaoVeicular	07	Veículo comercial de 5 eixos
+CategoriaCombinacaoVeicular	08	Veículo comercial de 6 eixos
+CategoriaCombinacaoVeicular	10	Veículo comercial de 7 eixos
+CategoriaCombinacaoVeicular	11	Veículo comercial de 8 eixos
+CategoriaCombinacaoVeicular	12	Veículo comercial de 9 eixos
+CategoriaCombinacaoVeicular	13	Veículo comercial de 10 eixos
+CategoriaCombinacaoVeicular	14	Veículo comercial acima de 10 eixos
+TipoRodado	01	Truck
+TipoRodado	02	Toco
+TipoRodado	03	Cavalo mecânico
+TipoRodado	04	VAN
+TipoRodado	05	Utilitário
+TipoRodado	06	Outros
+TipoCarroceria	00	Não aplicável
+TipoCarroceria	01	Aberta
+TipoCarroceria	02	Fechada ou baú
+TipoCarroceria	03	Graneleira
+TipoCarroceria	04	Porta-contêiner
+TipoCarroceria	05	Sider
+TipoPropriedadeVeiculo	0	TAC agregado
+TipoPropriedadeVeiculo	1	TAC independente
+TipoPropriedadeVeiculo	2	Outros
+TipoUnidadeTransporte	1	Rodoviário tração
+TipoUnidadeTransporte	2	Rodoviário reboque
+TipoUnidadeTransporte	3	Navio
+TipoUnidadeTransporte	4	Balsa
+TipoUnidadeTransporte	5	Aeronave
+TipoUnidadeTransporte	6	Vagão
+TipoUnidadeTransporte	7	Outros
+TipoUnidadeCarga	1	Contêiner
+TipoUnidadeCarga	2	ULD (Unit Loading Device)
+TipoUnidadeCarga	3	Pallet
+TipoUnidadeCarga	4	Outros
+Sim	1	Sim. Omitir o campo equivale a não.
+TipoUnidadeTransporteVazia	1	Rodoviário tração, do tipo caminhão
+TipoUnidadeTransporteVazia	2	Rodoviário reboque, do tipo carreta
+TipoUnidadeCargaVazia	1	Contêiner
+TipoUnidadeCargaVazia	2	ULD (Unit Loading Device)
+TipoUnidadeCargaVazia	3	Pallet
+TipoUnidadeCargaVazia	4	Outros
+TipoComponentePagamento	01	Vale-pedágio
+TipoComponentePagamento	02	Impostos, taxas e contribuições
+TipoComponentePagamento	03	Despesas bancárias, meios de pagamento e outras
+TipoComponentePagamento	04	Frete
+TipoComponentePagamento	99	Outros
+TipoAntecipacaoParcela	0	Não permite antecipar
+TipoAntecipacaoParcela	1	Permite antecipar as parcelas
+TipoAntecipacaoParcela	2	Permite antecipar mediante confirmação
+UnidadeMedidaPeso	01	Quilograma (KG)
+UnidadeMedidaPeso	02	Tonelada (TON)
+ProcessoEmissao	0	Aplicativo do contribuinte
+ProcessoEmissao	4	Provedor de Assinatura e Autorização (PAA)
+TipoNavegacao	0	Interior
+TipoNavegacao	1	Cabotagem

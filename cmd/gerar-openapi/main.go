@@ -411,7 +411,14 @@ func (g *gerador) escreverCampo(b *strings.Builder, pacote, jsonNome string, f *
 		// enum na spec faz o Swagger mostrar um seletor em vez de campo livre, e
 		// permite que gerador de SDK crie o tipo. O rótulo vai na descrição
 		// porque o enum do OpenAPI carrega só o valor.
-		fmt.Fprintf(b, "%senum: [%s]\n", ind, valoresYAML(opcoes, ehNumerico(f.Type)))
+		//
+		// Em campo de lista quem tem os valores é o item, não o array: o enum
+		// desce um nível, para dentro de items.
+		indEnum, alvo := ind, semPonteiro(f.Type)
+		if arr, ok := alvo.(*ast.ArrayType); ok && !ehListaDeBytes(arr) {
+			indEnum, alvo = ind+"  ", arr.Elt
+		}
+		fmt.Fprintf(b, "%senum: [%s]\n", indEnum, valoresYAML(opcoes, ehNumerico(alvo)))
 	}
 	if desc != "" {
 		fmt.Fprintf(b, "%sdescription: %s\n", ind, yamlStr(desc))
@@ -427,7 +434,7 @@ var reListaDeValores = regexp.MustCompile(`\(?"?\b\d+"?\s*=\s*[^;.]*(?:,\s*"?\d+
 // informação duas vezes, uma delas desatualizável.
 func semListaDeValores(desc string) string {
 	desc = reListaDeValores.ReplaceAllString(desc, "")
-	desc = strings.NewReplacer(" ,", ",", "  ", " ").Replace(desc)
+	desc = strings.NewReplacer(" ,", ",", " .", ".", "..", ".", "  ", " ").Replace(desc)
 	return strings.TrimSpace(strings.Trim(strings.TrimSpace(desc), ",;:-"))
 }
 
@@ -449,7 +456,11 @@ func descricaoDasOpcoes(opcoes []opcao) string {
 	for _, o := range opcoes {
 		partes = append(partes, o.Valor+" = "+o.Rotulo)
 	}
-	return "Valores: " + strings.Join(partes, "; ") + "."
+	txt := "Valores: " + strings.Join(partes, "; ")
+	if strings.HasSuffix(txt, ".") {
+		return txt
+	}
+	return txt + "."
 }
 
 func valoresYAML(opcoes []opcao, numerico bool) string {
@@ -465,6 +476,21 @@ func valoresYAML(opcoes []opcao, numerico bool) string {
 		partes = append(partes, `"`+o.Valor+`"`)
 	}
 	return strings.Join(partes, ", ")
+}
+
+// semPonteiro desembrulha *T, que na spec é o mesmo tipo (a diferença é só se
+// o campo pode ser omitido).
+func semPonteiro(t ast.Expr) ast.Expr {
+	if p, ok := t.(*ast.StarExpr); ok {
+		return semPonteiro(p.X)
+	}
+	return t
+}
+
+// ehListaDeBytes reconhece o []byte, que na spec vira string base64 e não array.
+func ehListaDeBytes(a *ast.ArrayType) bool {
+	id, ok := a.Elt.(*ast.Ident)
+	return ok && id.Name == "byte"
 }
 
 // ehNumerico decide se o enum sai como número ou string na spec: precisa casar

@@ -1772,7 +1772,8 @@ components:
           description: 'Número da viagem.'
         direc:
           type: string
-          description: 'Direção da navegação no modal aquaviário.'
+          enum: ["N", "L", "S", "O"]
+          description: 'Direção da navegação no modal aquaviário. Valores: N = Norte; L = Leste; S = Sul; O = Oeste.'
         irin:
           type: string
           description: 'Número IRIN do navio.'
@@ -1783,7 +1784,8 @@ components:
           description: 'Detalhamento dos contêineres transportados.'
         tpNav:
           type: integer
-          description: 'Tipo de navegação, no modal aquaviário.'
+          enum: [0, 1]
+          description: 'Tipo de navegação, no modal aquaviário. Valores: 0 = Interior; 1 = Cabotagem.'
     CteAutXML:
       type: object
       description: 'CNPJ ou CPF autorizado a baixar o XML do documento.'
@@ -1844,7 +1846,8 @@ components:
       properties:
         tpPer:
           type: integer
-          description: 'Tipo de período de entrega.'
+          enum: [0, 1, 2, 3, 4]
+          description: 'Tipo de período de entrega. Valores: 0 = Sem data definida; 1 = Na data; 2 = Até a data; 3 = A partir da data; 4 = No período.'
         dProg:
           type: string
           description: 'Data programada para a entrega.'
@@ -1854,7 +1857,8 @@ components:
       properties:
         tpHor:
           type: integer
-          description: 'Tipo de horário de entrega.'
+          enum: [0, 1, 2, 3, 4]
+          description: 'Tipo de horário de entrega. Valores: 0 = Sem hora definida; 1 = No horário; 2 = Até o horário; 3 = A partir do horário; 4 = No intervalo de tempo.'
         hProg:
           type: string
           description: 'Hora programada para a entrega.'
@@ -1913,7 +1917,8 @@ components:
       properties:
         tpEnteGov:
           type: integer
-          description: 'Tipo do ente governamental.'
+          enum: [1, 2, 3, 4, 5, 6]
+          description: 'Tipo do ente governamental. Valores: 1 = União; 2 = Estados; 3 = Distrito Federal; 4 = Municípios; 5 = Consórcio público; 6 = Comitê Gestor do IBS.'
         pRedutor:
           type: number
           description: 'Percentual redutor aplicado em compra governamental.'
@@ -2059,7 +2064,8 @@ components:
           description: 'Chave de acesso do CT-e, 44 dígitos.'
         tpPrest:
           type: integer
-          description: 'Tipo da prestação no documento anterior.'
+          enum: [1, 2]
+          description: 'Tipo da prestação no documento anterior. Valores: 1 = Total; 2 = Parcial.'
         infNFeTranspParcial:
           type: array
           items:
@@ -2152,10 +2158,12 @@ components:
           description: 'Data final do período.'
         classDuto:
           type: integer
-          description: 'Classificação no modal dutoviário.'
+          enum: [1, 2, 3]
+          description: 'Classificação no modal dutoviário. Valores: 1 = Gasoduto; 2 = Mineroduto; 3 = Oleoduto.'
         tpContratacao:
           type: integer
-          description: 'Tipo de contratação no modal dutoviário.'
+          enum: [0, 1, 2]
+          description: 'Tipo de contratação no modal dutoviário. Valores: 0 = Ponta a ponto; 1 = Capacidade de entrada; 2 = Capacidade de saída.'
         codPontoEntrada:
           type: string
           description: 'Código do ponto de entrada no duto.'
@@ -2477,7 +2485,8 @@ components:
           description: 'Número da tentativa de entrega.'
         tpMotivo:
           type: string
-          description: 'default 1'
+          enum: ["1", "2", "3", "4"]
+          description: 'default 1 Valores: 1 = Recebedor não encontrado; 2 = Recusa do recebedor; 3 = Endereço inexistente; 4 = Outros. Exige informar a justificativa.'
         xJustMotivo:
           type: string
           description: 'Justificativa do insucesso, quando o motivo exige.'
@@ -2578,7 +2587,8 @@ components:
       properties:
         tpTraf:
           type: integer
-          description: 'Tipo de tráfego no modal ferroviário.'
+          enum: [0, 1, 2, 3]
+          description: 'Tipo de tráfego no modal ferroviário. Valores: 0 = Próprio; 1 = Mútuo; 2 = Rodoferroviário; 3 = Rodoviário.'
         trafMut:
           allOf:
             - $ref: "#/components/schemas/CteTrafMut"
@@ -2691,7 +2701,8 @@ components:
       properties:
         CST:
           type: string
-          description: 'Código de Situação Tributária.'
+          enum: ["00"]
+          description: 'Código de Situação Tributária. Valores: 00 = Tributação normal do ICMS.'
         vBC:
           type: number
           description: 'Valor da base de cálculo.'
@@ -2707,7 +2718,8 @@ components:
       properties:
         CST:
           type: string
-          description: 'Código de Situação Tributária.'
+          enum: ["20"]
+          description: 'Código de Situação Tributária. Valores: 20 = Tributação com base de cálculo reduzida.'
         pRedBC:
           type: number
           description: 'Percentual de redução da base de cálculo.'
@@ -2732,7 +2744,8 @@ components:
       properties:
         CST:
           type: string
-          description: 'Código de Situação Tributária.'
+          enum: ["40", "41", "51"]
+          description: 'Código de Situação Tributária. Valores: 40 = ICMS isento; 41 = ICMS não tributado; 51 = ICMS diferido.'
         vICMSDeson:
           type: number
           description: 'Valor do ICMS desonerado.'
@@ -2745,7 +2758,8 @@ components:
       properties:
         CST:
           type: string
-          description: 'Código de Situação Tributária.'
+          enum: ["60"]
+          description: 'Código de Situação Tributária. Valores: 60 = ICMS cobrado por substituição tributária.'
         vBCSTRet:
           type: number
           description: 'Valor da base de cálculo do ICMS retido por substituição.'
@@ -2770,7 +2784,8 @@ components:
       properties:
         CST:
           type: string
-          description: 'Código de Situação Tributária.'
+          enum: ["90"]
+          description: 'Código de Situação Tributária. Valores: 90 = ICMS outros.'
         pRedBC:
           type: number
           description: 'Percentual de redução da base de cálculo.'
@@ -2798,7 +2813,8 @@ components:
       properties:
         CST:
           type: string
-          description: 'Código de Situação Tributária.'
+          enum: ["90"]
+          description: 'Código de Situação Tributária. Valores: 90 = ICMS devido a outra UF.'
         pRedBCOutraUF:
           type: number
           description: 'Percentual de redução da base de cálculo na outra UF.'
@@ -2823,10 +2839,12 @@ components:
       properties:
         CST:
           type: string
-          description: 'Código de Situação Tributária.'
+          enum: ["90"]
+          description: 'Código de Situação Tributária. Valores: 90 = Prestador enquadrado no Simples Nacional.'
         indSN:
           type: integer
-          description: 'Indica que o emitente é optante pelo Simples Nacional.'
+          enum: [1]
+          description: 'Indica que o emitente é optante pelo Simples Nacional. Valores: 1 = Sim. Omitir o campo equivale a não.'
     CteICMSUFFim:
       type: object
       description: 'Partilha do ICMS devido à UF de término da prestação (EC 87/15).'
@@ -2879,7 +2897,8 @@ components:
       properties:
         tpDoc:
           type: string
-          description: 'Tipo do documento.'
+          enum: ["00", "10", "59", "65", "99"]
+          description: 'Tipo do documento. Valores: 00 = Declaração; 10 = Dutoviário; 59 = CF-e SAT; 65 = NFC-e; 99 = Outros.'
         serie:
           type: string
           description: 'Série do documento.'
@@ -2929,8 +2948,8 @@ components:
           description: 'Valores: 1 = Retrato; 2 = Paisagem.'
         tpEmis:
           type: integer
-          enum: [1, 3, 4, 5, 7, 8]
-          description: 'Valores: 1 = Normal; 3 = Regime Especial NFF; 4 = EPEC pela SVC; 5 = Contingência FSDA; 7 = Autorização pela SVC-RS; 8 = Autorização pela SVC-SP.'
+          enum: [1, 3, 4, 7, 8]
+          description: 'Valores: 1 = Normal; 3 = Regime Especial NFF; 4 = EPEC pela SVC; 7 = Autorização pela SVC-RS; 8 = Autorização pela SVC-SP.'
         cDV:
           type: integer
           description: 'Dígito verificador da chave de acesso. A lib calcula se ausente.'
@@ -2944,13 +2963,15 @@ components:
           description: 'TpCTe não tem mais o valor 2 (Anulação): o CT-e de Anulação saiu do layout na versão 4.00, e a biblioteca fiscal só gera o grupo infCteAnu para VersaoDF <= 3.00 (pcteCTeW.pas:3309). Quem vem da 3.00 usa o CT-e Substituto (valor 3). Valores: 0 = Normal; 1 = Complemento de valores; 3 = Substituto.'
         procEmi:
           type: integer
-          description: 'Identificador do processo de emissão. 0 = aplicativo do contribuinte.'
+          enum: [0, 3, 4]
+          description: 'Identificador do processo de emissão do documento. Valores: 0 = Aplicativo do contribuinte; 3 = Aplicativo fornecido pelo SEBRAE (no CT-e OS, aplicativo fornecido pelo Fisco); 4 = Provedor de Assinatura e Autorização, PAA (não vale para o CT-e OS).'
         verProc:
           type: string
           description: 'Versão do aplicativo emissor.'
         indGlobalizado:
           type: integer
-          description: 'Indica CT-e Globalizado, sem detalhamento dos documentos.'
+          enum: [1]
+          description: 'Indica CT-e Globalizado, sem detalhamento dos documentos. Valores: 1 = Sim. Omitir o campo equivale a não.'
         cMunEnv:
           type: string
           description: 'Código IBGE do município de envio, 7 dígitos.'
@@ -2966,8 +2987,8 @@ components:
           description: 'Valores: 01 = Rodoviário; 02 = Aéreo; 03 = Aquaviário; 04 = Ferroviário; 05 = Dutoviário; 06 = Multimodal.'
         tpServ:
           type: integer
-          enum: [0, 1, 2, 3, 4, 6, 7, 8, 9]
-          description: 'Valores: 0 = Normal; 1 = Subcontratação; 2 = Redespacho; 3 = Redespacho intermediário; 4 = Serviço vinculado a multimodal; 6 = Transporte de pessoas; 7 = Transporte de valores; 8 = Excesso de bagagem; 9 = GTV.'
+          enum: [0, 1, 2, 6, 7, 8]
+          description: 'Valores: 0 = Normal; 1 = Subcontratação; 2 = Redespacho; 6 = Transporte de pessoas (só no CT-e OS, modelo 67); 7 = Transporte de valores (só no CT-e OS, modelo 67); 8 = Excesso de bagagem (só no CT-e OS, modelo 67).'
         cMunIni:
           type: string
           description: 'Código IBGE do município de início da prestação.'
@@ -2995,7 +3016,8 @@ components:
           description: 'Detalhes de onde a carga deve ser retirada.'
         indIEToma:
           type: integer
-          description: 'Indicador da inscrição estadual do tomador.'
+          enum: [1, 2, 9]
+          description: 'Indicador da inscrição estadual do tomador. Valores: 1 = Contribuinte do ICMS; 2 = Contribuinte isento de inscrição; 9 = Não contribuinte.'
         toma3:
           allOf:
             - $ref: "#/components/schemas/CteToma3"
@@ -3223,7 +3245,8 @@ components:
           description: 'Chave do CT-e referenciado.'
         indAlteraToma:
           type: integer
-          description: 'Indica que o CT-e substituto altera o tomador.'
+          enum: [1]
+          description: 'Indica que o CT-e substituto altera o tomador. Valores: 1 = Sim. Omitir o campo equivale a não.'
     CteInfDCe:
       type: object
       description: 'Declaração de Conteúdo eletrônica vinculada.'
@@ -3382,7 +3405,8 @@ components:
       properties:
         tpDoc:
           type: string
-          description: 'Tipo do documento.'
+          enum: ["00", "10", "59", "65", "99"]
+          description: 'Tipo do documento. Valores: 00 = Declaração; 10 = Dutoviário; 59 = CF-e SAT; 65 = NFC-e; 99 = Outros.'
         descOutros:
           type: string
           description: 'Descrição do outro documento transportado.'
@@ -3416,10 +3440,12 @@ components:
       properties:
         cUnid:
           type: string
-          description: 'Código da unidade de medida.'
+          enum: ["00", "01", "02", "03", "04", "05"]
+          description: 'Código da unidade de medida. Valores: 00 = Metro cúbico (M3); 01 = Quilograma (KG); 02 = Tonelada (TON); 03 = Unidade; 04 = Litros; 05 = MMBTU.'
         tpMed:
           type: string
-          description: 'Tipo da medida: peso bruto, cubagem, litragem.'
+          enum: ["00", "01", "02", "03", "04", "05", "06", "07", "08"]
+          description: 'Tipo da medida: peso bruto, cubagem, litragem. Valores: 00 = Cubagem da NF-e; 01 = Cubagem aferida pelo transportador; 02 = Peso bruto da NF-e; 03 = Peso bruto aferido pelo transportador; 04 = Peso cubado; 05 = Peso base do cálculo do frete; 06 = Peso para uso operacional; 07 = Caixas; 08 = Palete.'
         qCarga:
           type: number
           description: 'Quantidade da carga.'
@@ -3458,7 +3484,8 @@ components:
           description: 'Quantidade total do produto.'
         uniAP:
           type: integer
-          description: 'Unidade do total aproximado de tributos.'
+          enum: [1, 2, 3, 4, 5]
+          description: 'Unidade do total aproximado de tributos. Valores: 1 = KG; 2 = KG G (quilograma bruto); 3 = Litros; 4 = TI (índice de transporte para radioativos); 5 = Unidades, para artigos perigosos que não se medem pelas anteriores (baterias, celulares, equipamentos, veículos).'
     CteLacUnidCarga:
       type: object
       description: 'Lacre da unidade de carga.'
@@ -3489,7 +3516,8 @@ components:
           description: 'Número do Conhecimento de Transporte Multimodal de Cargas.'
         indNegociavel:
           type: integer
-          description: 'Indica se o CT-e é negociável.'
+          enum: [0, 1]
+          description: 'Indica se o CT-e é negociável. Valores: 0 = Não negociável; 1 = Negociável.'
         seg:
           description: 'Seguros da carga.'
           allOf:
@@ -3505,14 +3533,16 @@ components:
           type: array
           items:
             type: string
-          description: 'Informações de manuseio da carga.'
+            enum: ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "99"]
+          description: 'Informações de manuseio da carga. Valores: 01 = Certificado do expedidor para embarque de animal vivo; 02 = Artigo perigoso conforme Declaração do Expedidor anexa; 03 = Somente em aeronave cargueira; 04 = Artigo perigoso, Declaração do Expedidor não requerida; 05 = Artigo perigoso em quantidade isenta; 06 = Gelo seco para refrigeração (informe a quantidade nas observações); 07 = Não restrito (informe a Disposição Especial nas observações); 08 = Artigo perigoso em carga consolidada (informe a quantidade nas observações); 09 = Autorização da autoridade governamental anexa (identifique nas observações); 10 = Baterias de íons de lítio conforme a Seção II da PI965, CAO; 11 = Baterias de íons de lítio conforme a Seção II da PI966; 12 = Baterias de íons de lítio conforme a Seção II da PI967; 13 = Baterias de metal lítio conforme a Seção II da PI968, CAO; 14 = Baterias de metal lítio conforme a Seção II da PI969; 15 = Baterias de metal lítio conforme a Seção II da PI970; 99 = Outro (descreva nas observações).'
     CteNoInter:
       type: object
       description: 'Entrega dentro de um intervalo de horas.'
       properties:
         tpHor:
           type: integer
-          description: 'Tipo de horário de entrega.'
+          enum: [0, 1, 2, 3, 4]
+          description: 'Tipo de horário de entrega. Valores: 0 = Sem hora definida; 1 = No horário; 2 = Até o horário; 3 = A partir do horário; 4 = No intervalo de tempo.'
         hIni:
           type: string
           description: 'Hora inicial do intervalo de entrega.'
@@ -3525,7 +3555,8 @@ components:
       properties:
         tpPer:
           type: integer
-          description: 'Tipo de período de entrega.'
+          enum: [0, 1, 2, 3, 4]
+          description: 'Tipo de período de entrega. Valores: 0 = Sem data definida; 1 = Na data; 2 = Até a data; 3 = A partir da data; 4 = No período.'
         dIni:
           type: string
           description: 'Data inicial do período.'
@@ -3708,14 +3739,16 @@ components:
       properties:
         tpPer:
           type: integer
-          description: 'Tipo de período de entrega.'
+          enum: [0, 1, 2, 3, 4]
+          description: 'Tipo de período de entrega. Valores: 0 = Sem data definida; 1 = Na data; 2 = Até a data; 3 = A partir da data; 4 = No período.'
     CteSemHora:
       type: object
       description: 'Entrega sem hora definida.'
       properties:
         tpHor:
           type: integer
-          description: 'Tipo de horário de entrega.'
+          enum: [0, 1, 2, 3, 4]
+          description: 'Tipo de horário de entrega. Valores: 0 = Sem hora definida; 1 = No horário; 2 = Até o horário; 3 = A partir do horário; 4 = No intervalo de tempo.'
     CteTarifa:
       type: object
       description: 'Tarifa aplicada no modal aéreo.'
@@ -3739,7 +3772,8 @@ components:
           description: 'Valores: 0 = Remetente; 1 = Expedidor; 2 = Recebedor; 3 = Destinatário.'
         indIEToma:
           type: integer
-          description: 'Indicador da inscrição estadual do tomador.'
+          enum: [1, 2, 9]
+          description: 'Indicador da inscrição estadual do tomador. Valores: 1 = Contribuinte do ICMS; 2 = Contribuinte isento de inscrição; 9 = Não contribuinte.'
         CNPJ:
           type: string
           description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
@@ -3840,10 +3874,12 @@ components:
       properties:
         respFat:
           type: integer
-          description: 'Ferrovia responsável pelo faturamento no tráfego mútuo.'
+          enum: [1, 2]
+          description: 'Ferrovia responsável pelo faturamento no tráfego mútuo. Valores: 1 = Ferrovia de origem; 2 = Ferrovia de destino.'
         ferrEmi:
           type: integer
-          description: 'Ferrovia emitente do CT-e.'
+          enum: [1, 2]
+          description: 'Ferrovia emitente do CT-e. Valores: 1 = Ferrovia de origem; 2 = Ferrovia de destino.'
         vFrete:
           type: number
           description: 'Valor do frete.'
@@ -3874,7 +3910,8 @@ components:
           description: 'Código de classificação tributária (Reforma Tributária).'
         indDoacao:
           type: integer
-          description: 'Indica operação de doação.'
+          enum: [1]
+          description: 'Indica operação de doação. Valores: 1 = Sim. Omitir o campo equivale a não.'
         gIBSCBS:
           allOf:
             - $ref: "#/components/schemas/CteCIBS"
@@ -3937,7 +3974,8 @@ components:
       properties:
         tpUnidCarga:
           type: integer
-          description: 'Tipo da unidade de carga.'
+          enum: [1, 2, 3, 4]
+          description: 'Tipo da unidade de carga. Valores: 1 = Contêiner; 2 = ULD (Unit Loading Device); 3 = Pallet; 4 = Outros.'
         idUnidCarga:
           type: string
           description: 'Identificação da unidade de carga, normalmente o número do contêiner.'
@@ -3955,7 +3993,8 @@ components:
       properties:
         tpUnidTransp:
           type: integer
-          description: 'Tipo da unidade de transporte.'
+          enum: [1, 2, 3, 4, 5, 6, 7]
+          description: 'Tipo da unidade de transporte. Valores: 1 = Rodoviário tração; 2 = Rodoviário reboque; 3 = Navio; 4 = Balsa; 5 = Aeronave; 6 = Vagão; 7 = Outros.'
         idUnidTransp:
           type: string
           description: 'Identificação da unidade de transporte, normalmente a placa.'
@@ -4061,7 +4100,8 @@ components:
           description: 'Porto de transbordo.'
         tpNav:
           type: integer
-          description: 'Tipo de navegação, no modal aquaviário.'
+          enum: [0, 1]
+          description: 'Tipo de navegação, no modal aquaviário. Valores: 0 = Interior; 1 = Cabotagem.'
         infTermCarreg:
           type: array
           items:
@@ -4106,7 +4146,8 @@ components:
       properties:
         tpComp:
           type: string
-          description: 'Tipo do componente do valor.'
+          enum: ["01", "02", "03", "04", "99"]
+          description: 'Tipo do componente do valor. Valores: 01 = Vale-pedágio; 02 = Impostos, taxas e contribuições; 03 = Despesas bancárias, meios de pagamento e outras; 04 = Frete; 99 = Outros.'
         vComp:
           type: number
           description: 'Valor do componente.'
@@ -4144,7 +4185,8 @@ components:
           description: 'Valor do vale-pedágio.'
         tpValePed:
           type: string
-          description: 'Tipo do vale-pedágio.'
+          enum: ["01", "04"]
+          description: 'Tipo do vale-pedágio. Valores: 01 = TAG; 04 = Leitura da placa de identificação veicular.'
     MdfeDocInclusao:
       type: object
       description: 'DocInclusao é uma NF-e a incluir.'
@@ -4358,7 +4400,8 @@ components:
           description: 'Valores: 1 = Normal; 2 = Contingência; 3 = Regime Especial NFF.'
         procEmi:
           type: string
-          description: 'Identificador do processo de emissão. 0 = aplicativo do contribuinte.'
+          enum: ["0", "4"]
+          description: 'Identificador do processo de emissão do documento. Valores: 0 = Aplicativo do contribuinte; 4 = Provedor de Assinatura e Autorização (PAA).'
         verProc:
           type: string
           description: 'Versão do aplicativo emissor.'
@@ -4384,10 +4427,12 @@ components:
           description: 'Data e hora. COM offset (2026-08-23T14:05:00-03:00) a entrada é um instante e é convertida para o fuso do documento; SEM offset (2026-08-23T14:05:00) é lida como relógio de parede do emitente e não sofre conversão. Vazio usa o momento da chamada.'
         indCanalVerde:
           type: integer
-          description: 'Indica adesão ao Canal Verde Brasil.'
+          enum: [1]
+          description: 'Indica adesão ao Canal Verde Brasil. Valores: 1 = Sim. Omitir o campo equivale a não.'
         indCarregaPosterior:
           type: integer
-          description: 'Indica que o carregamento pode ocorrer após a emissão.'
+          enum: [1]
+          description: 'Indica que o carregamento pode ocorrer após a emissão. Valores: 1 = Sim. Omitir o campo equivale a não.'
     MdfeInfANTT:
       type: object
       description: 'Informações exigidas pela ANTT no transporte rodoviário de carga.'
@@ -4464,7 +4509,8 @@ components:
           description: 'Segundo código de barras, de uso da UF.'
         indReentrega:
           type: integer
-          description: 'Indicador de reentrega.'
+          enum: [1]
+          description: 'Indicador de reentrega. Valores: 1 = Sim. Omitir o campo equivale a não.'
         infUnidTransp:
           type: array
           items:
@@ -4480,7 +4526,8 @@ components:
             - $ref: "#/components/schemas/MdfeInfEntregaParcial"
         indPrestacaoParcial:
           type: integer
-          description: 'Indica prestação parcial do serviço.'
+          enum: [1]
+          description: 'Indica prestação parcial do serviço. Valores: 1 = Sim. Omitir o campo equivale a não.'
         infNFePrestParcial:
           type: array
           items:
@@ -4648,7 +4695,8 @@ components:
           description: 'Chave de acesso do MDF-e, 44 dígitos.'
         indReentrega:
           type: integer
-          description: 'Indicador de reentrega.'
+          enum: [1]
+          description: 'Indicador de reentrega. Valores: 1 = Sim. Omitir o campo equivale a não.'
         infUnidTransp:
           type: array
           items:
@@ -4747,7 +4795,8 @@ components:
           description: 'Segundo código de barras, de uso da UF.'
         indReentrega:
           type: integer
-          description: 'Indicador de reentrega.'
+          enum: [1]
+          description: 'Indicador de reentrega. Valores: 1 = Sim. Omitir o campo equivale a não.'
         infUnidTransp:
           type: array
           items:
@@ -4813,7 +4862,8 @@ components:
           description: 'Valor total do contrato de transporte.'
         indAltoDesemp:
           type: integer
-          description: 'Indica operação de transporte de alto desempenho.'
+          enum: [1]
+          description: 'Indica operação de transporte de alto desempenho. Valores: 1 = Sim. Omitir o campo equivale a não.'
         indPag:
           type: integer
           enum: [0, 1]
@@ -4823,7 +4873,8 @@ components:
           description: 'Valor do adiantamento.'
         indAntecipaAdiant:
           type: integer
-          description: 'Indica antecipação do adiantamento.'
+          enum: [1]
+          description: 'Indica antecipação do adiantamento. Valores: 1 = Sim. Omitir o campo equivale a não.'
         infPrazo:
           type: array
           items:
@@ -4831,7 +4882,8 @@ components:
           description: 'Parcelas, quando o pagamento é a prazo.'
         tpAntecip:
           type: integer
-          description: 'Tipo de antecipação da parcela.'
+          enum: [0, 1, 2]
+          description: 'Tipo de antecipação da parcela. Valores: 0 = Não permite antecipar; 1 = Permite antecipar as parcelas; 2 = Permite antecipar mediante confirmação.'
         infBanc:
           allOf:
             - $ref: "#/components/schemas/MdfeInfBanc"
@@ -4862,7 +4914,8 @@ components:
       properties:
         respSeg:
           type: integer
-          description: 'Responsável pelo seguro da carga.'
+          enum: [1, 2]
+          description: 'Responsável pelo seguro da carga. Valores: 1 = Emitente do MDF-e; 2 = Responsável pela contratação do serviço de transporte.'
         CNPJ:
           type: string
           description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
@@ -4915,7 +4968,8 @@ components:
           description: 'Identificação da unidade de carga que segue vazia.'
         tpUnidCargaVazia:
           type: integer
-          description: 'Tipo da unidade de carga que segue vazia.'
+          enum: [1, 2, 3, 4]
+          description: 'Tipo da unidade de carga que segue vazia. Valores: 1 = Contêiner; 2 = ULD (Unit Loading Device); 3 = Pallet; 4 = Outros.'
     MdfeInfUnidTranspVazia:
       type: object
       description: 'Unidade de transporte que segue vazia.'
@@ -4925,7 +4979,8 @@ components:
           description: 'Identificação da unidade de transporte que segue vazia.'
         tpUnidTranspVazia:
           type: integer
-          description: 'Tipo da unidade de transporte que segue vazia.'
+          enum: [1, 2]
+          description: 'Tipo da unidade de transporte que segue vazia. Valores: 1 = Rodoviário tração, do tipo caminhão; 2 = Rodoviário reboque, do tipo carreta.'
     MdfeInfViagens:
       type: object
       description: 'InfViagens é a.'
@@ -5030,7 +5085,8 @@ components:
           description: 'Sigla da unidade federativa, duas letras.'
         tpProp:
           type: integer
-          description: 'Tipo de propriedade do veículo.'
+          enum: [0, 1, 2]
+          description: 'Tipo de propriedade do veículo. Valores: 0 = TAC agregado; 1 = TAC independente; 2 = Outros.'
     MdfeRespTec:
       type: object
       description: 'Responsável técnico pelo sistema emissor.'
@@ -5115,7 +5171,8 @@ components:
           description: 'Valor total da carga.'
         cUnid:
           type: string
-          description: 'Código da unidade de medida.'
+          enum: ["01", "02"]
+          description: 'Código da unidade de medida. Valores: 01 = Quilograma (KG); 02 = Tonelada (TON).'
         qCarga:
           type: number
           description: 'Quantidade da carga.'
@@ -5144,7 +5201,8 @@ components:
       properties:
         tpUnidCarga:
           type: integer
-          description: 'Tipo da unidade de carga.'
+          enum: [1, 2, 3, 4]
+          description: 'Tipo da unidade de carga. Valores: 1 = Contêiner; 2 = ULD (Unit Loading Device); 3 = Pallet; 4 = Outros.'
         idUnidCarga:
           type: string
           description: 'Identificação da unidade de carga, normalmente o número do contêiner.'
@@ -5162,7 +5220,8 @@ components:
       properties:
         tpUnidTransp:
           type: integer
-          description: 'Tipo da unidade de transporte.'
+          enum: [1, 2, 3, 4, 5, 6, 7]
+          description: 'Tipo da unidade de transporte. Valores: 1 = Rodoviário tração; 2 = Rodoviário reboque; 3 = Navio; 4 = Balsa; 5 = Aeronave; 6 = Vagão; 7 = Outros.'
         idUnidTransp:
           type: string
           description: 'Identificação da unidade de transporte, normalmente a placa.'
@@ -5215,7 +5274,8 @@ components:
           description: 'Dispositivos de vale-pedágio.'
         categCombVeic:
           type: string
-          description: 'Categoria de combinação veicular, conforme a ANTT.'
+          enum: ["02", "04", "06", "07", "08", "10", "11", "12", "13", "14"]
+          description: 'Categoria de combinação veicular, conforme a ANTT. Valores: 02 = Veículo comercial de 2 eixos; 04 = Veículo comercial de 3 eixos; 06 = Veículo comercial de 4 eixos; 07 = Veículo comercial de 5 eixos; 08 = Veículo comercial de 6 eixos; 10 = Veículo comercial de 7 eixos; 11 = Veículo comercial de 8 eixos; 12 = Veículo comercial de 9 eixos; 13 = Veículo comercial de 10 eixos; 14 = Veículo comercial acima de 10 eixos.'
     MdfeVeicReboque:
       type: object
       description: 'Veículo reboque.'
@@ -5243,7 +5303,8 @@ components:
             - $ref: "#/components/schemas/MdfeVeicReboqueProp"
         tpCar:
           type: string
-          description: 'Tipo de carroceria do veículo.'
+          enum: ["00", "01", "02", "03", "04", "05"]
+          description: 'Tipo de carroceria do veículo. Valores: 00 = Não aplicável; 01 = Aberta; 02 = Fechada ou baú; 03 = Graneleira; 04 = Porta-contêiner; 05 = Sider.'
         UF:
           type: string
           description: 'Sigla da unidade federativa, duas letras.'
@@ -5271,7 +5332,8 @@ components:
           description: 'Sigla da unidade federativa, duas letras.'
         tpProp:
           type: integer
-          description: 'Tipo de propriedade do veículo.'
+          enum: [0, 1, 2]
+          description: 'Tipo de propriedade do veículo. Valores: 0 = TAC agregado; 1 = TAC independente; 2 = Outros.'
     MdfeVeicTracao:
       type: object
       description: 'Veículo de tração.'
@@ -5304,10 +5366,12 @@ components:
           description: 'Condutores do veículo.'
         tpRod:
           type: string
-          description: 'Tipo de rodado do veículo.'
+          enum: ["01", "02", "03", "04", "05", "06"]
+          description: 'Tipo de rodado do veículo. Valores: 01 = Truck; 02 = Toco; 03 = Cavalo mecânico; 04 = VAN; 05 = Utilitário; 06 = Outros.'
         tpCar:
           type: string
-          description: 'Tipo de carroceria do veículo.'
+          enum: ["00", "01", "02", "03", "04", "05"]
+          description: 'Tipo de carroceria do veículo. Valores: 00 = Não aplicável; 01 = Aberta; 02 = Fechada ou baú; 03 = Graneleira; 04 = Porta-contêiner; 05 = Sider.'
         UF:
           type: string
           description: 'Sigla da unidade federativa, duas letras.'
