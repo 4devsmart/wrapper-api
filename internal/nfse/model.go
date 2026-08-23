@@ -8,9 +8,15 @@
 package nfse
 
 // DPSPedido é o corpo de emissão (estilo Nuvem Fiscal: POST /v1/nfse/xml).
+//
+// NÃO existe campo para escolher o provedor. Quem o decide é o município
+// (infDPS.cLocEmi, ou o cMun do prestador): a ACBrLib resolve o provedor lendo
+// a própria tabela a partir do CodigoMunicipio, e não aceita override. Testado
+// contra a lib: NFSE_ConfigGravarValor com a chave "Provedor" falha em todas as
+// formas (PadraoNacional, proPadraoNacional). Para saber quem atende um
+// município antes de montar, use GET /v1/nfse/municipios/{codigo}.
 type DPSPedido struct {
 	Ambiente   string `json:"ambiente"`             // "homologacao" | "producao"
-	Provedor   string `json:"provedor,omitempty"`   // ex.: "padrao_nacional"
 	Referencia string `json:"referencia,omitempty"` // id externo do cliente
 	InfDPS     InfDPS `json:"infDPS"`
 }

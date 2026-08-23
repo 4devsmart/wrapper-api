@@ -76,6 +76,11 @@ transmitir: falhou ali, nada saiu.
   operação, a resposta é `422 operacao_nao_suportada`. Cancelamento e
   substituição não existem em todos. Consulte
   `GET /v1/nfse/municipios/{codigo}` antes.
+- **Não dá para escolher o provedor de NFS-e.** Quem decide é o município, pela
+  tabela embutida na biblioteca fiscal. Testado contra a lib: a chave de
+  configuração `Provedor` é recusada em todas as formas, então não há override
+  possível por aqui. Se um município migrou e a tabela da sua versão está
+  atrasada, o caminho é atualizar a biblioteca.
 - **Boletos: `ConsultarTitulos` não é exposto.** O método existe no binding, mas
   a seção de filtro que ele exigiria (`[BoletoConsulta]`) não aparece no fonte
   oficial do ACBr: o formato do INI seria chute.
