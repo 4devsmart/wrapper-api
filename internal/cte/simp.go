@@ -28,7 +28,7 @@ type InfCteSimp struct {
 	Ide        Ide        `json:"ide"`
 	Compl      *Compl     `json:"compl,omitempty"`
 	Emit       Emit       `json:"emit"`
-	Toma       Toma       `json:"toma"`
+	Toma       Toma       `json:"toma" enum:"Tomador"`
 	InfCarga   InfCarga   `json:"infCarga"`
 	Det        []Det      `json:"det"`
 	Imp        Imp        `json:"imp"`
@@ -41,7 +41,7 @@ type InfCteSimp struct {
 
 // Toma é o tomador único do CT-e Simplificado/OS (seção [toma]).
 type Toma struct {
-	Toma      int      `json:"toma"`
+	Toma      int      `json:"toma" enum:"Tomador"`
 	IndIEToma int      `json:"indIEToma,omitempty"`
 	CNPJ      string   `json:"CNPJ,omitempty"`
 	CPF       string   `json:"CPF,omitempty"`

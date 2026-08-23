@@ -1,0 +1,29 @@
+# Valores aceitos por campo da NFS-e (Padrão Nacional).
+#
+# Rótulos extraídos da documentação dos XSD oficiais (tiposComplexos_v1.01.xsd).
+# Formato: enum <TAB> valor <TAB> rótulo
+TipoAmbiente	1	Produção
+TipoAmbiente	2	Homologação
+TipoEmitente	1	Prestador
+TipoEmitente	2	Tomador
+TipoEmitente	3	Intermediário
+OpSimplesNacional	1	Não optante
+OpSimplesNacional	2	Optante, MEI (Microempreendedor Individual)
+OpSimplesNacional	3	Optante, ME/EPP (Microempresa ou Empresa de Pequeno Porte)
+RegimeApuracaoSN	1	Tributos federais e municipal pelo Simples Nacional
+RegimeApuracaoSN	2	Federais pelo SN; ISSQN por fora do SN (legislação municipal)
+RegimeApuracaoSN	3	Tributos federais e municipal por fora do SN
+RegimeEspecialTributacao	0	Nenhum
+RegimeEspecialTributacao	1	Ato cooperado (cooperativa)
+RegimeEspecialTributacao	2	Estimativa
+RegimeEspecialTributacao	3	Microempresa municipal
+RegimeEspecialTributacao	4	Notário ou registrador
+RegimeEspecialTributacao	5	Profissional autônomo
+RegimeEspecialTributacao	6	Sociedade de profissionais
+RegimeEspecialTributacao	9	Outros
+TributacaoISSQN	1	Operação tributável
+TributacaoISSQN	2	Exportação de serviço
+TributacaoISSQN	3	Não incidência
+TributacaoISSQN	4	Imunidade
+ISSRetido	1	Retido pelo tomador
+ISSRetido	2	Não retido

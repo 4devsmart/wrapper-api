@@ -147,7 +147,7 @@ func (m *Modulo) handleRetorno(w http.ResponseWriter, r *http.Request) {
 type PedidoRegistro struct {
 	Pedido
 	// Operacao: 0 = incluir (default), 2 = baixar.
-	Operacao int `json:"operacao,omitempty"`
+	Operacao int `json:"operacao,omitempty" enum:"OperacaoRegistro"`
 }
 
 func (m *Modulo) handleRegistro(w http.ResponseWriter, r *http.Request) {

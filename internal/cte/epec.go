@@ -7,17 +7,17 @@ type PedidoEPEC struct {
 	VICMSST    float64     `json:"vICMSST,omitempty"`
 	VTPrest    float64     `json:"vTPrest"`
 	VCarga     float64     `json:"vCarga"`
-	Modal      string      `json:"modal,omitempty"` // default 01
+	Modal      string      `json:"modal,omitempty" enum:"Modal"` // default 01
 	UFIni      string      `json:"UFIni,omitempty"`
 	UFFim      string      `json:"UFFim,omitempty"`
-	DhEmi      string      `json:"dhEmi,omitempty"`
+	DhEmi      string      `json:"dhEmi,omitempty" fmt:"data-hora"`
 	Tomador    TomadorEPEC `json:"tomador"`
 	NSeqEvento int         `json:"nSeqEvento,omitempty"`
 }
 
 // TomadorEPEC é a seção [TOMADOR] do EPEC.
 type TomadorEPEC struct {
-	Toma    string `json:"toma,omitempty"` // default 1
+	Toma    string `json:"toma,omitempty" enum:"Tomador"` // default 1
 	UF      string `json:"UF,omitempty"`
 	CNPJCPF string `json:"CNPJCPF,omitempty"`
 	IE      string `json:"IE,omitempty"`

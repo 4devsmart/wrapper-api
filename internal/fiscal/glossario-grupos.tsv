@@ -1,0 +1,190 @@
+# Descrição padrão dos GRUPOS (estruturas) do layout fiscal.
+#
+# Aplicada quando o tipo não tem doc própria no modelo. A chave é o nome do
+# schema publicado, sem o prefixo do documento: Ide vale para CteIde e MdfeIde.
+# Formato: nomeDoGrupo <TAB> descrição
+Ide	Identificação do documento: numeração, datas, tipo de emissão, municípios e modal.
+Emit	Emitente do documento.
+Rem	Remetente da carga.
+Exped	Expedidor da carga, quando diferente do remetente.
+Receb	Recebedor da carga, quando diferente do destinatário.
+Dest	Destinatário da carga.
+Toma	Tomador do serviço, quem paga o frete.
+Endereco	Endereço. CodigoPais 1058 identifica endereço nacional.
+EndeEmi	Endereço do emitente.
+EnderToma	Endereço do tomador.
+EnderReme	Endereço do remetente.
+EnderExped	Endereço do expedidor.
+EnderReceb	Endereço do recebedor.
+EnderDest	Endereço do destinatário.
+EnderFer	Endereço no modal ferroviário.
+Compl	Informações complementares do documento.
+Fluxo	Fluxo da carga: origem, passagens e destino.
+Pass	Ponto de passagem da carga.
+Entrega	Previsão de entrega: data, período ou horário combinado.
+SemData	Entrega sem data definida.
+ComData	Entrega em data definida.
+NoPeriodo	Entrega dentro de um período.
+SemHora	Entrega sem hora definida.
+ComHora	Entrega em hora definida.
+NoIntervalo	Entrega dentro de um intervalo de horas.
+ObsCont	Observação de uso livre do contribuinte. Não é validada pelo fisco.
+ObsFisco	Observação de interesse do fisco.
+Imp	Tributos incidentes sobre a prestação.
+ICMS	Grupo do ICMS. Preencha apenas o subgrupo que corresponde ao CST.
+ICMS00	ICMS tributado integralmente (CST 00).
+ICMS20	ICMS com redução de base de cálculo (CST 20).
+ICMS45	ICMS isento, não tributado ou diferido (CST 40, 41 ou 51).
+ICMS60	ICMS cobrado anteriormente por substituição tributária (CST 60).
+ICMS90	ICMS outros (CST 90).
+ICMSOutraUF	ICMS devido à UF de origem da prestação, quando diferente.
+ICMSSN	ICMS do Simples Nacional. Só indica a condição, sem cálculo.
+ICMSUFFim	Partilha do ICMS devido à UF de término da prestação (EC 87/15).
+VPrest	Valores da prestação de serviço.
+Comp	Componentes que somam o valor da prestação.
+InfCarga	Informações da carga transportada.
+InfQ	Quantidades da carga, por unidade de medida.
+InfDoc	Documentos fiscais vinculados à carga.
+InfNFe	Nota fiscal eletrônica vinculada.
+InfNF	Nota fiscal em papel vinculada.
+InfOutros	Outro documento vinculado.
+DocAnt	Documentos de transporte anteriores.
+EmiDocAnt	Emitente dos documentos anteriores.
+IdDocAnt	Identificação dos documentos anteriores.
+InfModal	Grupo do modal. Preencha apenas o modal declarado em ide.modal.
+Rodo	Modal rodoviário.
+Aereo	Modal aéreo.
+Aquav	Modal aquaviário.
+Ferrov	Modal ferroviário.
+Duto	Modal dutoviário.
+Multimodal	Modal multimodal.
+Occ	Ordem de Coleta de Carga.
+EmiOcc	Emitente da Ordem de Coleta de Carga.
+Veic	Veículo utilizado no transporte.
+Prop	Proprietário do veículo, quando não é o emitente.
+Cond	Condutores do veículo.
+Balsa	Balsa utilizada no transporte aquaviário.
+Cobr	Cobrança: fatura e duplicatas.
+Fat	Fatura.
+Dup	Duplicata.
+Seg	Seguro da carga.
+InfSeg	Dados da seguradora.
+AutXML	CNPJ ou CPF autorizado a baixar o XML do documento.
+RespTec	Responsável técnico pelo sistema emissor.
+InfSolicNFF	Dados da solicitação da Nota Fiscal Fácil.
+Peri	Produtos perigosos, conforme a resolução da ANTT.
+UnidCarga	Unidade de carga: contêiner, pallet ou similar.
+UnidTransp	Unidade de transporte: carreta, reboque ou vagão.
+Lacre	Lacre aplicado à unidade.
+InfANTT	Informações exigidas pela ANTT no transporte rodoviário de carga.
+InfPag	Pagamento da operação de transporte.
+InfPrazo	Parcelas, quando o pagamento é a prazo.
+InfBanc	Dados bancários para o pagamento: PIX ou banco e agência.
+ValePed	Vale-pedágio.
+InfContratante	Contratante do serviço de transporte.
+InfDescarga	Municípios de descarregamento e documentos entregues em cada um.
+Tot	Totalizadores do manifesto.
+InfDPS	Informações da DPS, a declaração que origina a NFS-e.
+Prest	Prestador do serviço.
+Interm	Intermediário do serviço, quando houver.
+Servico	Descrição e classificação do serviço prestado.
+Valores	Valores e tributação do serviço.
+RegTrib	Regime tributário do prestador. Obrigatório no Padrão Nacional.
+TribMun	Tributação municipal detalhada (ISSQN).
+TribFed	Tributação federal retida na fonte.
+Conta	Conta de cobrança: banco, agência, conta e cedente.
+ContaWS	Credenciais da API do banco para registro online. Não são persistidas.
+Titulo	Título a ser cobrado no boleto.
+Sacado	Pagador do boleto.
+Mensagem	Mensagem devolvida pelo fisco ou pelo provedor.
+Certificado	Certificado A1 em base64 e a senha. Não é persistido.
+Credenciais	Credenciais do webservice do provedor. Não são persistidas.
+Emitente	Identificação do emitente para a sessão. Vem no pedido porque o servidor não guarda cadastro.
+Ambiente	Ambiente do documento.
+Validacao	Resultado das regras de negócio da biblioteca fiscal.
+RespostaXML	Retorno da geração: o XML montado e a identidade do documento.
+RespostaXMLNFSe	Retorno da geração da DPS.
+RespostaTransmissao	Retorno da transmissão, com o protocolo do fisco.
+RespostaTransmissaoNFSe	Retorno da transmissão da DPS.
+RespostaEvento	Retorno do evento.
+RespostaEventoNFSe	Retorno do evento de NFS-e.
+PedidoTransmissao	Corpo da transmissão: o XML gerado mais o certificado.
+PedidoTransmissaoNFSe	Corpo da transmissão da DPS.
+PedidoEvento	Envelope do evento: identifica o documento e traz o certificado.
+PedidoEventoNFSe	Envelope do evento de NFS-e.
+PedidoConsultaChave	Consulta pela chave de acesso.
+PedidoConsultaNFSe	Consulta ao provedor de NFS-e.
+PedidoSefaz	Consulta ao webservice que não depende de chave.
+PedidoPDF	XML autorizado, para gerar a representação gráfica.
+InfCte	Corpo do CT-e: identificação, partes, valores, tributos e o grupo do tipo de CT-e.
+InfCTeNorm	Grupo do CT-e Normal. Preenchido quando ide.tpCTe = 0.
+InfCteComp	Grupo do CT-e de Complemento de valores. Preenchido quando ide.tpCTe = 1.
+InfCteSub	Grupo do CT-e Substituto. Preenchido quando ide.tpCTe = 3.
+InfCTeSupl	Informações suplementares: o QR Code, gerado pela biblioteca.
+InfCTeMultimodal	Dados do CT-e multimodal vinculado.
+InfServVinc	Serviços vinculados a um multimodal.
+InfGlobalizado	Informações do CT-e Globalizado.
+InfDCe	Declaração de Conteúdo eletrônica vinculada.
+NatCarga	Natureza da carga: peso, valor e características.
+DetCont	Detalhamento do contêiner e dos documentos nele.
+DetContInfDoc	Documentos dentro do contêiner.
+DetContInfNF	Nota fiscal em papel dentro do contêiner.
+DetContInfNFe	Nota fiscal eletrônica dentro do contêiner.
+IdDocAntEle	Documento anterior eletrônico, identificado pela chave.
+IdDocAntPap	Documento anterior em papel, identificado por série e número.
+UnidadeTransp	Unidade de transporte: carreta, reboque ou vagão.
+LacUnidTransp	Lacre da unidade de transporte.
+LacUnidCarga	Lacre da unidade de carga.
+VeicNovos	Veículos novos transportados, quando é o caso.
+Tarifa	Tarifa aplicada no modal aéreo.
+Red	Redespacho no modal ferroviário.
+TrafMut	Tráfego mútuo entre ferrovias.
+FerroEnv	Ferrovia envolvida no tráfego mútuo.
+NoInter	Entrega dentro de um intervalo de horas.
+Dif	Diferimento do ICMS.
+DevTrib	Devolução de tributo.
+EstornoCred	Estorno de crédito.
+InfTotAP	Total aproximado dos tributos.
+TribCTe	Tributação do CT-e na Reforma Tributária.
+TribRegular	Tributação regular, quando há regime diferenciado.
+TribCompraGov	Tributação em compra governamental.
+CompraGovReduzido	Redução aplicada em compra governamental.
+CIBS	Grupo do IBS e da CBS (Reforma Tributária).
+GCBS	Grupo da CBS (Reforma Tributária).
+GIBSUF	IBS devido à unidade federativa (Reforma Tributária).
+GIBSMun	IBS devido ao município (Reforma Tributária).
+InfMDFe	Corpo do MDF-e: identificação, emitente, modal, documentos e totais.
+InfMDFeSupl	Informações suplementares: o QR Code, gerado pela biblioteca.
+InfMDFeTransp	MDF-e de transporte vinculado.
+InfMDFeTranspPeri	Produtos perigosos no MDF-e vinculado.
+InfMunCarrega	Município de carregamento.
+InfPercurso	UFs de percurso entre a origem e o destino.
+InfMunDescarga	Município de descarregamento e os documentos entregues nele.
+InfCTe	CT-e transportado no manifesto.
+InfNFePeri	Produtos perigosos na NF-e transportada.
+InfNFePrestParcial	Prestação parcial da NF-e transportada.
+InfEntregaParcial	Entrega parcial da carga.
+InfUnidCargaVazia	Unidade de carga que segue vazia.
+InfUnidTranspVazia	Unidade de transporte que segue vazia.
+InfLocalCarrega	Local de carregamento.
+InfLocalDescarrega	Local de descarregamento.
+InfTermCarreg	Terminal de carregamento no modal aquaviário.
+InfTermDescarreg	Terminal de descarregamento no modal aquaviário.
+InfEmbComb	Embarcação de comboio no modal aquaviário.
+InfLotacao	Informações do transporte em lotação.
+InfContrato	Contrato entre o transportador e o contratante.
+InfCIOT	CIOT da operação de transporte.
+InfResp	Responsável pelo pagamento do vale-pedágio.
+InfAdic	Informações adicionais do manifesto.
+VeicTracao	Veículo de tração.
+VeicReboque	Veículo reboque.
+VeicReboqueProp	Proprietário do reboque, quando não é o emitente.
+Condutor	Condutor do veículo.
+Trem	Trem no modal ferroviário.
+Vag	Vagão no modal ferroviário.
+Disp	Dispositivo de rastreamento da carga.
+ProdPred	Produto predominante da carga.
+Lacres	Lacres do manifesto.
+LacRodo	Lacre no modal rodoviário.
+Erro	Envelope de erro. Trate pelo campo codigo, nunca pela mensagem.
+Documento	Documento fiscal a ser gerado, no contrato da Nuvem Fiscal.

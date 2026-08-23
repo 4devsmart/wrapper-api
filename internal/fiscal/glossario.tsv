@@ -1,0 +1,278 @@
+# Glossário dos nomes de campo do layout fiscal, usados nos três documentos.
+#
+# Serve de descrição PADRÃO quando o campo não tem comentário próprio no modelo.
+# Um comentário no modelo sempre vence: ele é específico daquele contexto.
+#
+# Formato: nomeJSON <TAB> descrição
+CNPJ	CNPJ, 14 dígitos. Aceita com ou sem máscara.
+CPF	CPF, 11 dígitos. Aceita com ou sem máscara.
+CNPJCPF	CNPJ (14 dígitos) ou CPF (11 dígitos). Aceita com ou sem máscara.
+idEstrangeiro	Identificador do estrangeiro, quando não há CNPJ nem CPF.
+IE	Inscrição estadual. Use ISENTO quando isento.
+IEST	Inscrição estadual do substituto tributário.
+IM	Inscrição municipal.
+xNome	Razão social ou nome.
+xFant	Nome fantasia.
+email	Endereço de e-mail.
+fone	Telefone, só dígitos, com DDD.
+CEP	CEP, 8 dígitos, sem hífen.
+UF	Sigla da unidade federativa, duas letras.
+cUF	Código IBGE da unidade federativa, 2 dígitos.
+cMun	Código IBGE do município, 7 dígitos.
+xMun	Nome do município.
+cMunEnv	Código IBGE do município de envio, 7 dígitos.
+xMunEnv	Nome do município de envio.
+UFEnv	Sigla da UF de envio.
+cMunIni	Código IBGE do município de início da prestação.
+xMunIni	Nome do município de início da prestação.
+UFIni	Sigla da UF de início da prestação.
+cMunFim	Código IBGE do município de fim da prestação.
+xMunFim	Nome do município de fim da prestação.
+UFFim	Sigla da UF de fim da prestação.
+cMunCarrega	Código IBGE do município de carregamento.
+xMunCarrega	Nome do município de carregamento.
+cMunDescarga	Código IBGE do município de descarregamento.
+xMunDescarga	Nome do município de descarregamento.
+logradouro	Logradouro.
+xLgr	Logradouro.
+numero	Número do endereço. Use SN quando não houver.
+nro	Número do endereço. Use SN quando não houver.
+complemento	Complemento do endereço.
+xCpl	Complemento do endereço.
+bairro	Bairro.
+xBairro	Bairro.
+cidade	Nome do município.
+cPais	Código do país conforme a tabela do BACEN. 1058 = Brasil.
+xPais	Nome do país.
+CFOP	Código Fiscal de Operações e Prestações, 4 dígitos.
+natOp	Natureza da operação, em texto livre.
+serie	Série do documento.
+cDV	Dígito verificador da chave de acesso. A lib calcula se ausente.
+procEmi	Identificador do processo de emissão. 0 = aplicativo do contribuinte.
+verProc	Versão do aplicativo emissor.
+versao	Versão do layout do documento.
+Id	Identificador do grupo, montado pela lib a partir da chave.
+chave	Chave de acesso do documento, 44 dígitos.
+chCTe	Chave de acesso do CT-e, 44 dígitos.
+chMDFe	Chave de acesso do MDF-e, 44 dígitos.
+chNFe	Chave de acesso da NF-e, 44 dígitos.
+chaveDFe	Chave de acesso do documento fiscal referenciado.
+nProt	Número do protocolo de autorização.
+protocolo	Número do protocolo devolvido pelo fisco.
+nRec	Número do recibo do lote.
+cStat	Código de status devolvido pelo fisco.
+xMotivo	Descrição do status devolvido pelo fisco.
+nSeqEvento	Número sequencial do evento para a mesma chave. Começa em 1.
+tpEvento	Código do tipo de evento.
+xJust	Justificativa. Mínimo de 15 caracteres.
+xObs	Observação, em texto livre.
+xCaracAd	Característica adicional do transporte.
+xCaracSer	Característica adicional do serviço.
+xEmi	Nome do emissor.
+nDoc	Número do documento.
+nDocFiscal	Número do documento fiscal.
+nRoma	Número do romaneio.
+nPed	Número do pedido.
+CST	Código de Situação Tributária.
+vBC	Valor da base de cálculo.
+pICMS	Alíquota do ICMS, em percentual.
+vICMS	Valor do ICMS.
+vICMSDeson	Valor do ICMS desonerado.
+cBenef	Código do benefício fiscal na UF.
+pRedBC	Percentual de redução da base de cálculo.
+vBCSTRet	Valor da base de cálculo do ICMS retido por substituição.
+vICMSSTRet	Valor do ICMS retido por substituição tributária.
+pICMSSTRet	Alíquota do ICMS retido por substituição tributária.
+vCred	Valor do crédito presumido.
+vTPrest	Valor total da prestação do serviço.
+vRec	Valor a receber pela prestação.
+vCarga	Valor total da carga.
+vTotTrib	Valor total dos tributos.
+infAdFisco	Informações adicionais de interesse do fisco.
+infCpl	Informações complementares.
+vServ	Valor do serviço.
+nome	Nome ou razão social.
+CPFCNPJ	CPF ou CNPJ, só dígitos.
+placa	Placa do veículo, sem hífen.
+RENAVAM	RENAVAM do veículo.
+tara	Tara do veículo, em quilos.
+capKG	Capacidade em quilos.
+capM3	Capacidade em metros cúbicos.
+condutor	Condutores do veículo.
+nLacre	Número do lacre.
+qCarga	Quantidade da carga.
+cUnid	Código da unidade de medida.
+qUnid	Quantidade na unidade de medida.
+latitude	Latitude em graus decimais. Ex.: -23.5505.
+longitude	Longitude em graus decimais. Ex.: -46.6333.
+CIOT	Código Identificador da Operação de Transporte.
+RNTRC	Registro Nacional de Transportadores Rodoviários de Carga.
+nCIOT	Número do CIOT.
+xDescServ	Descrição do serviço prestado.
+cServ	Código do serviço na lista da LC 116.
+cTribNac	Código de tributação nacional do serviço.
+cTribMun	Código de tributação municipal do serviço.
+cNBS	Código NBS do serviço.
+pAliq	Alíquota, em percentual.
+vLiq	Valor líquido.
+vDesc	Valor do desconto.
+status	Desfecho da operação.
+motivo	Motivo, em texto livre.
+xml_b64	XML em base64.
+pdf_b64	PDF em base64.
+nCT	Número do CT-e.
+nMDF	Número do MDF-e.
+nNF	Número da nota fiscal.
+nDPS	Número da DPS.
+cCT	Código numérico aleatório que compõe a chave. A lib gera se ausente.
+cMDF	Código numérico aleatório que compõe a chave. A lib gera se ausente.
+infUnidTransp	Unidades de transporte (carreta, reboque, vagão) que compõem o veículo.
+infUnidCarga	Unidades de carga (contêiner, pallet) transportadas.
+tpUnidTransp	Tipo da unidade de transporte.
+idUnidTransp	Identificação da unidade de transporte, normalmente a placa.
+lacUnidTransp	Lacres da unidade de transporte.
+tpUnidCarga	Tipo da unidade de carga.
+idUnidCarga	Identificação da unidade de carga, normalmente o número do contêiner.
+lacUnidCarga	Lacres da unidade de carga.
+qtdRat	Quantidade rateada nesta unidade.
+unidRat	Unidade de medida do rateio.
+peri	Produtos perigosos transportados, conforme a ONU.
+nONU	Número ONU do produto perigoso, 4 dígitos.
+xNomeAE	Nome apropriado para embarque do produto perigoso.
+xClaRisco	Classe ou subclasse de risco do produto perigoso.
+grEmb	Grupo de embalagem do produto perigoso.
+qTotProd	Quantidade total do produto.
+qVolTipo	Quantidade e tipo de volumes transportados.
+infNFe	Notas fiscais eletrônicas vinculadas ao documento.
+infNF	Notas fiscais em papel vinculadas ao documento.
+cInt	Código interno de uso do emitente. Não vai no XML.
+indReentrega	Indicador de reentrega.
+indIEToma	Indicador da inscrição estadual do tomador.
+tpPer	Tipo de período de entrega.
+tpHor	Tipo de horário de entrega.
+dIni	Data inicial do período.
+dFim	Data final do período.
+vFrete	Valor do frete.
+vComp	Valor do componente.
+vTar	Valor da tarifa.
+vPrest	Grupo de valores da prestação de serviço.
+nApol	Número da apólice de seguro.
+nAver	Número da averbação do seguro.
+xSeg	Nome da seguradora.
+respSeg	Responsável pelo seguro da carga.
+tpProp	Tipo de propriedade do veículo.
+tpCar	Tipo de carroceria do veículo.
+tpNav	Tipo de navegação, no modal aquaviário.
+nViag	Número da viagem.
+irin	Número IRIN do navio.
+xBalsa	Identificação da balsa.
+xDest	Nome do destinatário.
+xSolic	Nome do solicitante.
+xContato	Nome da pessoa de contato.
+xCampo	Nome do campo de informação adicional.
+xTexto	Conteúdo do campo de informação adicional.
+tpDoc	Tipo do documento.
+tpEnteGov	Tipo do ente governamental.
+ISUF	Inscrição na SUFRAMA.
+autXML	CNPJ ou CPF autorizados a baixar o XML do documento.
+versaoModal	Versão do leiaute do grupo do modal.
+PIN	PIN SUFRAMA, quando aplicável.
+idCSRT	Identificador do Código de Segurança do Responsável Técnico.
+CSRT	Código de Segurança do Responsável Técnico.
+hashCSRT	Hash do CSRT, calculado pela lib.
+SegCodBarra	Segundo código de barras, de uso da UF.
+cClassTrib	Código de classificação tributária (Reforma Tributária).
+CSTReg	CST do regime específico (Reforma Tributária).
+cClassTribReg	Classificação tributária do regime específico (Reforma Tributária).
+Comp	Componentes que somam o valor.
+justificativa	Justificativa. Mínimo de 15 caracteres.
+ambiente	Ambiente do documento. Vazio assume homologação.
+referencia	Identificador externo seu. Devolvido como veio, não vai no XML.
+municipio	Código IBGE do município, 7 dígitos. Decide o provedor de NFS-e.
+cnpj	CNPJ, 14 dígitos. Aceita com ou sem máscara.
+senha	Senha do certificado.
+pfx_b64	Certificado A1 (.pfx) em base64.
+usuario	Usuário do webservice do provedor.
+token	Token do webservice do provedor.
+inscricao_municipal	Inscrição municipal do emitente.
+razao_social	Razão social do emitente.
+codigo	Código devolvido pelo fisco ou pelo provedor.
+descricao	Descrição da mensagem.
+mensagens	Mensagens devolvidas pelo fisco ou pelo provedor.
+erros	Erros devolvidos pelo fisco ou pelo provedor.
+cstat	Código de status devolvido pelo fisco.
+motivo	Descrição do status devolvido pelo fisco.
+codigo_verificacao	Código de verificação da NFS-e, devolvido pelo provedor.
+titulos	Títulos a incluir no boleto ou na remessa.
+conta	Conta de cobrança: banco, agência, conta e cedente.
+telefone	Telefone, só dígitos, com DDD.
+tipo	Tipo da operação ou do documento.
+numero	Número do documento.
+status	Desfecho da operação: autorizado, rejeitado ou erro.
+ok	Indica se a validação passou.
+suportada	Indica se a validação de regras existe para este documento.
+assinado	Indica se o XML devolvido já está assinado.
+layout	Família de layout do provedor de NFS-e.
+provedor	Nome do provedor de NFS-e do município.
+digitoAgencia	Dígito verificador da agência.
+digitoConta	Dígito verificador da conta.
+fantasia	Nome fantasia do cedente.
+tipoPessoa	Tipo de pessoa do cedente.
+codigoCedente	Código do cedente no banco.
+modalidade	Modalidade da carteira, conforme o banco.
+convenio	Número do convênio com o banco.
+codTransmissao	Código de transmissão, exigido por alguns bancos.
+tipoDocumento	Tipo do documento, conforme o banco.
+respEmis	Responsável pela emissão do boleto.
+layoutBol	Layout de impressão do boleto.
+pixTipoChave	Tipo da chave PIX do boleto híbrido.
+pixChave	Chave PIX do boleto híbrido.
+clientID	Client ID do OAuth da API do banco.
+clientSecret	Client secret do OAuth da API do banco. Não é persistido.
+keyUser	Chave do usuário na API do banco.
+scope	Escopo do OAuth da API do banco.
+indicadorPix	Indica se o boleto sai com PIX.
+certCRT	Certificado mTLS (.crt) em base64, exigido por alguns bancos.
+certKEY	Chave privada mTLS (.key) em base64. Não é persistida.
+numeroDocumento	Número do documento no boleto, seu controle.
+seuNumero	Seu número, campo livre de controle interno.
+nossoNumero	Nosso número, o identificador do título no banco.
+carteira	Carteira de cobrança, conforme o banco.
+especie	Espécie do título. DM = duplicata mercantil.
+valorDocumento	Valor do título.
+vencimento	Data de vencimento do título.
+dataDocumento	Data de emissão do título.
+aceite	Aceite do título. A = aceito, N = não aceito.
+mensagem	Mensagem impressa no boleto.
+instrucoes	Instruções impressas no boleto. Até três linhas.
+valorMoraJuros	Valor ou percentual de juros de mora ao dia.
+codigoMora	Código do tipo de mora, conforme o banco.
+percentualMulta	Percentual de multa após o vencimento.
+multaValorFixo	Valor fixo de multa após o vencimento.
+valorDesconto	Valor do desconto concedido.
+dataDesconto	Data limite para o desconto.
+valorAbatimento	Valor do abatimento concedido.
+numeroArquivo	Sequencial do arquivo de remessa. Seu controle.
+arquivo	Conteúdo do arquivo de retorno, como veio do banco.
+operacao	Operação no registro online.
+nMinu	Número da minuta.
+nOCA	Número da Ordem de Coleta Aéreo.
+dPrevAereo	Data prevista da entrega no modal aéreo.
+vAFRMM	Valor do Adicional ao Frete para Renovação da Marinha Mercante.
+nBooking	Número do booking no modal aquaviário.
+nCtrl	Número do controle.
+xNavio	Nome do navio.
+tpEmb	Tipo de embarcação.
+cEmbar	Código da embarcação.
+xEmbar	Nome da embarcação.
+cPrtEmb	Código do porto de embarque.
+cPrtDest	Código do porto de destino.
+prtTrans	Porto de transbordo.
+tpDoc	Tipo do documento.
+situacao	Situação do documento no provedor.
+alertas	Alertas devolvidos pelo provedor. Não impedem a emissão.
+evento	Campos próprios do tipo de evento.
+xml_evento_b64	XML do evento em base64.
+xml_proc_b64	XML do documento autorizado, com o protocolo. Guarde: não há segunda via.
+data_hora	Data e hora do processamento, como devolvida pelo provedor.
+id_dps	Identificador da DPS. Use em /nfse/consulta-dps para recuperar a transmissão.

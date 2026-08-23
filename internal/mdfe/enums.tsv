@@ -1,0 +1,35 @@
+# Valores aceitos por campo do MDF-e.
+#
+# Os VALORES vêm das tabelas de conversão da ACBrLib (pmdfeConversaoMDFe.pas),
+# que é o que a lib de fato aceita. Os RÓTULOS seguem o layout do MDF-e 3.00.
+# Formato: enum <TAB> valor <TAB> rótulo
+TipoAmbiente	1	Produção
+TipoAmbiente	2	Homologação
+Modelo	58	MDF-e
+TipoEmitente	1	Prestador de serviço de transporte
+TipoEmitente	2	Transporte de carga própria
+TipoEmitente	3	Prestador de serviço de transporte, CT-e Globalizado
+Modal	1	Rodoviário
+Modal	2	Aéreo
+Modal	3	Aquaviário
+Modal	4	Ferroviário
+TipoTransportador	1	ETC (Empresa de Transporte Rodoviário de Cargas)
+TipoTransportador	2	TAC (Transportador Autônomo de Cargas)
+TipoTransportador	3	CTC (Cooperativa de Transporte de Cargas)
+TipoCarga	01	Granel sólido
+TipoCarga	02	Granel líquido
+TipoCarga	03	Frigorificada
+TipoCarga	04	Conteinerizada
+TipoCarga	05	Carga geral
+TipoCarga	06	Neogranel
+TipoCarga	07	Perigosa (granel sólido)
+TipoCarga	08	Perigosa (granel líquido)
+TipoCarga	09	Perigosa (frigorificada)
+TipoCarga	10	Perigosa (conteinerizada)
+TipoCarga	11	Perigosa (carga geral)
+TipoCarga	12	Granel pressurizada
+TipoEmissao	1	Normal
+TipoEmissao	2	Contingência
+TipoEmissao	3	Regime Especial NFF
+IndicadorPagamento	0	Pagamento à vista
+IndicadorPagamento	1	Pagamento a prazo

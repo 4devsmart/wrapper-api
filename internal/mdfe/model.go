@@ -9,7 +9,7 @@
 // omitidos (omitempty) sem erro de consumo.
 package mdfe
 
-// PedidoEmissao espelha MdfePedidoEmissao.
+// PedidoEmissao é o MDF-e a ser gerado, no contrato da Nuvem Fiscal / ACBr.API.
 type PedidoEmissao struct {
 	InfMDFe     InfMDFe      `json:"infMDFe"`
 	InfMDFeSupl *InfMDFeSupl `json:"infMDFeSupl,omitempty"`
@@ -38,24 +38,24 @@ type InfMDFe struct {
 // Ide espelha MdfeSefazIde.
 type Ide struct {
 	CUF                 int             `json:"cUF"`
-	TpAmb               int             `json:"tpAmb,omitempty"`
-	TpEmit              int             `json:"tpEmit"`
-	TpTransp            int             `json:"tpTransp,omitempty"`
-	Mod                 int             `json:"mod,omitempty"`
+	TpAmb               int             `json:"tpAmb,omitempty" enum:"TipoAmbiente"`
+	TpEmit              int             `json:"tpEmit" enum:"TipoEmitente"`
+	TpTransp            int             `json:"tpTransp,omitempty" enum:"TipoTransportador"`
+	Mod                 int             `json:"mod,omitempty" enum:"Modelo"`
 	Serie               int             `json:"serie"`
 	NMDF                int             `json:"nMDF"`
 	CMDF                string          `json:"cMDF,omitempty"`
 	CDV                 int             `json:"cDV,omitempty"`
-	Modal               int             `json:"modal"`
-	DhEmi               string          `json:"dhEmi"`
-	TpEmis              int             `json:"tpEmis"`
+	Modal               int             `json:"modal" enum:"Modal"`
+	DhEmi               string          `json:"dhEmi" fmt:"data-hora"`
+	TpEmis              int             `json:"tpEmis" enum:"TipoEmissao"`
 	ProcEmi             string          `json:"procEmi"`
 	VerProc             string          `json:"verProc"`
 	UFIni               string          `json:"UFIni"`
 	UFFim               string          `json:"UFFim"`
 	InfMunCarrega       []InfMunCarrega `json:"infMunCarrega"`
 	InfPercurso         []InfPercurso   `json:"infPercurso,omitempty"`
-	DhIniViagem         string          `json:"dhIniViagem,omitempty"`
+	DhIniViagem         string          `json:"dhIniViagem,omitempty" fmt:"data-hora"`
 	IndCanalVerde       int             `json:"indCanalVerde,omitempty"`
 	IndCarregaPosterior int             `json:"indCarregaPosterior,omitempty"`
 }
@@ -179,7 +179,7 @@ type InfPag struct {
 	Comp              []Comp     `json:"Comp"`
 	VContrato         float64    `json:"vContrato"`
 	IndAltoDesemp     int        `json:"indAltoDesemp,omitempty"`
-	IndPag            int        `json:"indPag"`
+	IndPag            int        `json:"indPag" enum:"IndicadorPagamento"`
 	VAdiant           float64    `json:"vAdiant,omitempty"`
 	IndAntecipaAdiant int        `json:"indAntecipaAdiant,omitempty"`
 	InfPrazo          []InfPrazo `json:"infPrazo,omitempty"`
@@ -197,7 +197,7 @@ type Comp struct {
 // InfPrazo espelha MdfeSefazInfPrazo.
 type InfPrazo struct {
 	NParcela int     `json:"nParcela"`
-	DVenc    string  `json:"dVenc"`
+	DVenc    string  `json:"dVenc" fmt:"data"`
 	VParcela float64 `json:"vParcela"`
 }
 
@@ -479,7 +479,7 @@ type InfSeg struct {
 
 // ProdPred espelha MdfeSefazProdPred.
 type ProdPred struct {
-	TpCarga    string      `json:"tpCarga"`
+	TpCarga    string      `json:"tpCarga" enum:"TipoCarga"`
 	XProd      string      `json:"xProd"`
 	CEAN       string      `json:"cEAN,omitempty"`
 	NCM        string      `json:"NCM,omitempty"`

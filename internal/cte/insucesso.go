@@ -4,14 +4,14 @@ package cte
 // (tpEvento 110190). Registra a tentativa frustrada de entrega.
 type PedidoInsucessoEntrega struct {
 	NProt                  string   `json:"nProt,omitempty"`
-	DhTentativaEntrega     string   `json:"dhTentativaEntrega,omitempty"`
+	DhTentativaEntrega     string   `json:"dhTentativaEntrega,omitempty" fmt:"data-hora"`
 	NTentativa             int      `json:"nTentativa,omitempty"`
 	TpMotivo               string   `json:"tpMotivo,omitempty"` // default 1
 	XJustMotivo            string   `json:"xJustMotivo,omitempty"`
 	Latitude               float64  `json:"latitude,omitempty"`
 	Longitude              float64  `json:"longitude,omitempty"`
 	HashTentativaEntrega   string   `json:"hashTentativaEntrega,omitempty"`
-	DhHashTentativaEntrega string   `json:"dhHashTentativaEntrega,omitempty"`
+	DhHashTentativaEntrega string   `json:"dhHashTentativaEntrega,omitempty" fmt:"data-hora"`
 	Documentos             []string `json:"documentos"` // chaves de NF-e não entregues
 	NSeqEvento             int      `json:"nSeqEvento,omitempty"`
 }

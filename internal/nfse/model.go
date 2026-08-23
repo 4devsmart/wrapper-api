@@ -18,10 +18,10 @@ type DPSPedido struct {
 // InfDPS são as informações da DPS (Declaração de Prestação de Serviços).
 type InfDPS struct {
 	Serie    string     `json:"serie"`
-	NDPS     string     `json:"nDPS"`             // número do RPS/DPS
-	DCompet  string     `json:"dCompet"`          // competência (YYYY-MM-DD)
-	DhEmi    string     `json:"dhEmi,omitempty"`  // emissão (YYYY-MM-DD); vazio = hoje
-	TpEmit   int        `json:"tpEmit,omitempty"` // 1 = prestador
+	NDPS     string     `json:"nDPS"`                                 // número do RPS/DPS
+	DCompet  string     `json:"dCompet" fmt:"data"`                   // competência (YYYY-MM-DD)
+	DhEmi    string     `json:"dhEmi,omitempty" fmt:"data"`           // emissão; vazio = hoje
+	TpEmit   int        `json:"tpEmit,omitempty" enum:"TipoEmitente"` // 1 = prestador
 	VerAplic string     `json:"verAplic,omitempty"`
 	CLocEmi  string     `json:"cLocEmi,omitempty"` // município emissor (IBGE); vazio = cMun do prestador
 	Prest    Pessoa     `json:"prest"`
@@ -59,13 +59,13 @@ type Pessoa struct {
 
 // RegTrib é o regime tributário do prestador.
 type RegTrib struct {
-	OpSimpNac   int `json:"opSimpNac,omitempty"`   // 1=não optante, 2=MEI, 3=ME/EPP
-	RegApTribSN int `json:"regApTribSN,omitempty"` // regime de apuração do Simples Nacional
-	RegEspTrib  int `json:"regEspTrib,omitempty"`  // regime especial de tributação
+	OpSimpNac   int `json:"opSimpNac,omitempty" enum:"OpSimplesNacional"`         // 1=não optante, 2=MEI, 3=ME/EPP
+	RegApTribSN int `json:"regApTribSN,omitempty" enum:"RegimeApuracaoSN"`        // regime de apuração do Simples Nacional
+	RegEspTrib  int `json:"regEspTrib,omitempty" enum:"RegimeEspecialTributacao"` // regime especial de tributação
 	// Campos exclusivos ABRASF (municípios fora do Padrão Nacional): opcionais,
 	// ignorados na emissão Padrão Nacional.
-	IncentCultural int    `json:"incentivadorCultural,omitempty"`       // 1=Sim, 2=Não
-	DataOpSimpNac  string `json:"dataOptanteSimplesNacional,omitempty"` // YYYY-MM-DD
+	IncentCultural int    `json:"incentivadorCultural,omitempty"`                  // 1=Sim, 2=Não
+	DataOpSimpNac  string `json:"dataOptanteSimplesNacional,omitempty" fmt:"data"` // YYYY-MM-DD
 }
 
 // Servico descreve o serviço prestado.
@@ -124,9 +124,9 @@ type Valores struct {
 	VDeducoes   float64 `json:"vDeducoes,omitempty"`   // valor das deduções
 	PDeducoes   float64 `json:"pDeducoes,omitempty"`   // alíquota de deduções (%)
 	// ISSQN (atalhos comuns; o detalhe vai em tribMun).
-	TribISSQN int     `json:"tribISSQN,omitempty"`  // 1=tributável,2=não incidência,...
-	PAliq     float64 `json:"pAliq,omitempty"`      // alíquota ISS (%)
-	IssRetido int     `json:"iss_retido,omitempty"` // 1=Sim, 2=Não (ABRASF); default 2
+	TribISSQN int     `json:"tribISSQN,omitempty" enum:"TributacaoISSQN"` // 1=tributável,2=não incidência,...
+	PAliq     float64 `json:"pAliq,omitempty"`                            // alíquota ISS (%)
+	IssRetido int     `json:"iss_retido,omitempty" enum:"ISSRetido"`      // 1=Sim, 2=Não (ABRASF); default 2
 	// Tributação detalhada (Padrão Nacional).
 	TribMun *TribMun `json:"tribMun,omitempty"`
 	TribFed *TribFed `json:"tribFed,omitempty"`
@@ -135,13 +135,13 @@ type Valores struct {
 
 // TribMun é a tributação municipal (seção [tribMun]).
 type TribMun struct {
-	TribISSQN   int     `json:"tribISSQN,omitempty"`   // 1=operação tributável
-	TpRetISSQN  int     `json:"tpRetISSQN,omitempty"`  // 1=não retido, 2=retido tomador...
-	PAliq       float64 `json:"pAliq,omitempty"`       // alíquota (%)
-	TpImunidade int     `json:"tpImunidade,omitempty"` // tipo de imunidade
-	TpSusp      int     `json:"tpSusp,omitempty"`      // exigibilidade suspensa
-	NProcesso   string  `json:"nProcesso,omitempty"`   // processo de suspensão
-	VRedBCBM    float64 `json:"vRedBCBM,omitempty"`    // redução da BC (benefício)
+	TribISSQN   int     `json:"tribISSQN,omitempty" enum:"TributacaoISSQN"` // 1=operação tributável
+	TpRetISSQN  int     `json:"tpRetISSQN,omitempty"`                       // 1=não retido, 2=retido tomador...
+	PAliq       float64 `json:"pAliq,omitempty"`                            // alíquota (%)
+	TpImunidade int     `json:"tpImunidade,omitempty"`                      // tipo de imunidade
+	TpSusp      int     `json:"tpSusp,omitempty"`                           // exigibilidade suspensa
+	NProcesso   string  `json:"nProcesso,omitempty"`                        // processo de suspensão
+	VRedBCBM    float64 `json:"vRedBCBM,omitempty"`                         // redução da BC (benefício)
 	PRedBCBM    float64 `json:"pRedBCBM,omitempty"`
 	NBM         string  `json:"nBM,omitempty"` // nº do benefício municipal
 }

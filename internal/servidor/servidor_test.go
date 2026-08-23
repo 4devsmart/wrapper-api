@@ -343,3 +343,36 @@ func TestCSSDaPaginaNaoAtropelaOSwagger(t *testing.T) {
 		}
 	}
 }
+
+// Os enums e os formatos de data são o que separa "integrar em uma hora" de
+// "descobrir por tentativa". Se a tag sair de um campo, ou o enums.tsv sumir, a
+// spec volta a dizer só "integer" e ninguém percebe.
+func TestSpecPublicaEnumsEFormatos(t *testing.T) {
+	spec := string(api.OpenAPI())
+	for _, quero := range []string{
+		"1 = Produção; 2 = Homologação",          // tpAmb
+		"0 = Normal; 1 = Subcontratação",         // tpServ do CT-e
+		"01 = Rodoviário",                        // modal
+		"1 = Prestador de serviço de transporte", // tpEmit do MDF-e
+		"format: date-time",                      // dhEmi
+		"format: date",                           // dCompet
+		"a entrada é um instante e é convertida", // semântica do offset
+	} {
+		if !strings.Contains(spec, quero) {
+			t.Errorf("a spec não publica %q", quero)
+		}
+	}
+}
+
+// A legenda do enum não pode aparecer duas vezes: o comentário do modelo já
+// trazia a lista à mão em vários campos, e sem limpeza o dev lê tudo em dobro.
+func TestSpecNaoRepeteAListaDeValores(t *testing.T) {
+	spec := string(api.OpenAPI())
+	for _, duplicata := range []string{
+		"1=não optante", "1=CNPJ, 2=CPF", "1=produção, 2=homologação",
+	} {
+		if strings.Contains(spec, duplicata) {
+			t.Errorf("a spec repete a lista de valores escrita à mão: %q", duplicata)
+		}
+	}
+}

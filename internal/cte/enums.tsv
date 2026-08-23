@@ -1,0 +1,60 @@
+# Valores aceitos por campo do CT-e.
+#
+# Os VALORES vêm das tabelas de conversão da ACBrLib (pcteConversaoCTe.pas), que
+# é o que a lib de fato aceita. Os RÓTULOS seguem o layout do CT-e 4.00.
+# Formato: enum <TAB> valor <TAB> rótulo
+#
+# Regenerar os valores ao bumpar ACBR_REV: scripts/conferir-enums.sh
+TipoAmbiente	1	Produção
+TipoAmbiente	2	Homologação
+Modelo	57	CT-e
+Modelo	64	GTV-e
+Modelo	67	CT-e OS (Outros Serviços)
+TipoCTe	0	Normal
+TipoCTe	1	Complemento de valores
+TipoCTe	3	Substituto
+TipoServico	0	Normal
+TipoServico	1	Subcontratação
+TipoServico	2	Redespacho
+TipoServico	3	Redespacho intermediário
+TipoServico	4	Serviço vinculado a multimodal
+TipoServico	6	Transporte de pessoas
+TipoServico	7	Transporte de valores
+TipoServico	8	Excesso de bagagem
+TipoServico	9	GTV
+TipoImpressao	1	Retrato
+TipoImpressao	2	Paisagem
+TipoEmissao	1	Normal
+TipoEmissao	3	Regime Especial NFF
+TipoEmissao	4	EPEC pela SVC
+TipoEmissao	5	Contingência FSDA
+TipoEmissao	7	Autorização pela SVC-RS
+TipoEmissao	8	Autorização pela SVC-SP
+Modal	01	Rodoviário
+Modal	02	Aéreo
+Modal	03	Aquaviário
+Modal	04	Ferroviário
+Modal	05	Dutoviário
+Modal	06	Multimodal
+Tomador	0	Remetente
+Tomador	1	Expedidor
+Tomador	2	Recebedor
+Tomador	3	Destinatário
+TomadorOutros	4	Outros
+FormaPagamento	0	Pago
+FormaPagamento	1	A pagar
+FormaPagamento	2	Outros
+Retira	0	Sim
+Retira	1	Não
+Lotacao	0	Não
+Lotacao	1	Sim
+CRT	1	Simples Nacional
+CRT	2	Simples Nacional, excesso de sublimite de receita bruta
+CRT	3	Regime Normal
+CRT	4	Simples Nacional, Microempreendedor Individual (MEI)
+TipoPropriedade	P	Próprio
+TipoPropriedade	T	Terceiro
+Direcao	N	Norte
+Direcao	L	Leste
+Direcao	S	Sul
+Direcao	O	Oeste

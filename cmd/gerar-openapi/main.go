@@ -17,6 +17,7 @@ import (
 	"go/parser"
 	"go/token"
 	"os"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -72,12 +73,25 @@ func main() {
 }
 
 func executar() error {
-	tipos, err := carregarTipos([]string{"cte", "mdfe", "nfse", "boleto"})
+	pacotes := []string{"cte", "mdfe", "nfse", "boleto"}
+	tipos, err := carregarTipos(pacotes)
+	if err != nil {
+		return err
+	}
+	enums, err := carregarEnums(pacotes)
+	if err != nil {
+		return err
+	}
+	glossario, err := carregarGlossario("internal/fiscal/glossario.tsv")
+	if err != nil {
+		return err
+	}
+	grupos, err := carregarGlossario("internal/fiscal/glossario-grupos.tsv")
 	if err != nil {
 		return err
 	}
 
-	g := &gerador{tipos: tipos, feitos: map[string]bool{}, saida: map[string]string{}, apelidos: map[string]string{}}
+	g := &gerador{tipos: tipos, enums: enums, glossario: glossario, grupos: grupos, feitos: map[string]bool{}, saida: map[string]string{}, apelidos: map[string]string{}}
 	for _, r := range raizes {
 		if _, ok := tipos[chave(r.Pacote, r.Tipo)]; !ok {
 			return fmt.Errorf("raiz %s.%s não encontrada", r.Pacote, r.Tipo)
@@ -135,9 +149,9 @@ func carregarTipos(pacotes []string) (map[string]tipoInfo, error) {
 						if !ok {
 							continue
 						}
-						doc := textoDoc(ts.Doc)
+						doc := semReferenciaInterna(textoDoc(ts.Doc))
 						if doc == "" {
-							doc = textoDoc(gd.Doc)
+							doc = semReferenciaInterna(textoDoc(gd.Doc))
 						}
 						out[chave(p, ts.Name.Name)] = tipoInfo{pacote: p, spec: ts, doc: doc}
 					}
@@ -148,15 +162,103 @@ func carregarTipos(pacotes []string) (map[string]tipoInfo, error) {
 	return out, nil
 }
 
+// reEspelha casa "Ide espelha CteSefazIde.", que é referência ao tipo do
+// contrato de origem.
+var reEspelha = regexp.MustCompile(`(?i)\b\w+ espelha \w+\.?\s*`)
+
+// semReferenciaInterna tira a nota de correspondência com o contrato de origem.
+// Ela ajuda quem mantém o modelo e não diz nada a quem integra: saber que Toma3
+// espelha CteSefazToma3 não ensina o que preencher.
+func semReferenciaInterna(doc string) string {
+	return strings.TrimSpace(reEspelha.ReplaceAllString(doc, ""))
+}
+
 func semTestes(fi os.FileInfo) bool { return !strings.HasSuffix(fi.Name(), "_test.go") }
+
+// opcao é um valor aceito por um campo, com o rótulo do layout fiscal.
+type opcao struct{ Valor, Rotulo string }
+
+// carregarEnums lê os internal/<pacote>/enums.tsv. Os valores vêm das tabelas de
+// conversão da ACBrLib (é o que a lib aceita de fato) e os rótulos, do layout do
+// documento. Ficam em TSV, e não em Go, porque são DADO: assim o gerador os lê
+// direto e não há uma cópia em código para divergir da tabela.
+func carregarEnums(pacotes []string) (map[string][]opcao, error) {
+	out := map[string][]opcao{}
+	for _, p := range pacotes {
+		b, err := os.ReadFile("internal/" + p + "/enums.tsv")
+		if os.IsNotExist(err) {
+			continue
+		}
+		if err != nil {
+			return nil, err
+		}
+		for _, l := range strings.Split(string(b), "\n") {
+			l = strings.TrimRight(l, "\r")
+			if l == "" || strings.HasPrefix(l, "#") {
+				continue
+			}
+			c := strings.Split(l, "\t")
+			if len(c) < 3 {
+				return nil, fmt.Errorf("internal/%s/enums.tsv: linha inválida: %q", p, l)
+			}
+			k := chave(p, c[0])
+			out[k] = append(out[k], opcao{Valor: c[1], Rotulo: c[2]})
+		}
+	}
+	return out, nil
+}
+
+// carregarGlossario lê internal/fiscal/glossario.tsv: a descrição padrão dos
+// nomes de campo do layout fiscal.
+//
+// Existe porque os mesmos nomes se repetem nos três documentos (CNPJ, xNome,
+// cMun, vBC aparecem dezenas de vezes) e comentá-los um a um seria copiar a
+// mesma frase em dezenas de lugares, para desatualizar em alguns deles. Um
+// comentário no modelo sempre vence o glossário: ele é específico do contexto.
+func carregarGlossario(arquivo string) (map[string]string, error) {
+	out := map[string]string{}
+	b, err := os.ReadFile(arquivo)
+	if os.IsNotExist(err) {
+		return out, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	for _, l := range strings.Split(string(b), "\n") {
+		l = strings.TrimRight(l, "\r")
+		if l == "" || strings.HasPrefix(l, "#") {
+			continue
+		}
+		c := strings.SplitN(l, "\t", 2)
+		if len(c) != 2 {
+			return nil, fmt.Errorf("%s: linha inválida: %q", arquivo, l)
+		}
+		out[c[0]] = c[1]
+	}
+	return out, nil
+}
+
+// formatos descreve o que a API espera em campos de data e hora. É o detalhe que
+// mais custa tempo numa integração, e não está no tipo: "string" não diz nada.
+var formatos = map[string]struct{ Formato, Descricao string }{
+	"data": {"date", "Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e " +
+		"RFC 3339, caso em que a hora é descartada."},
+	"data-hora": {"date-time", "Data e hora. COM offset (2026-08-23T14:05:00-03:00) " +
+		"a entrada é um instante e é convertida para o fuso do documento; SEM offset " +
+		"(2026-08-23T14:05:00) é lida como relógio de parede do emitente e não sofre " +
+		"conversão. Vazio usa o momento da chamada."},
+}
 
 // --- geração ----------------------------------------------------------------
 
 type gerador struct {
-	tipos    map[string]tipoInfo
-	feitos   map[string]bool
-	saida    map[string]string
-	apelidos map[string]string
+	tipos     map[string]tipoInfo
+	enums     map[string][]opcao
+	glossario map[string]string
+	grupos    map[string]string
+	feitos    map[string]bool
+	saida     map[string]string
+	apelidos  map[string]string
 }
 
 func (g *gerador) nome(pacote, tipo string) string {
@@ -183,10 +285,16 @@ func (g *gerador) emitir(pacote, tipo string) {
 	}
 
 	nome := g.nome(pacote, tipo)
+	doc := info.doc
+	if doc == "" {
+		// O glossário de grupos é indexado pelo nome do TIPO, sem o prefixo do
+		// documento: "Ide" descreve CteIde e MdfeIde, que são o mesmo conceito.
+		doc = g.grupos[tipo]
+	}
 	var b strings.Builder
 	fmt.Fprintf(&b, "    %s:\n      type: object\n", nome)
-	if info.doc != "" {
-		fmt.Fprintf(&b, "      description: %s\n", yamlStr(info.doc))
+	if doc != "" {
+		fmt.Fprintf(&b, "      description: %s\n", yamlStr(doc))
 	}
 	fmt.Fprintf(&b, "      properties:\n")
 
@@ -205,7 +313,7 @@ func (g *gerador) emitir(pacote, tipo string) {
 		}
 		vazio = false
 		fmt.Fprintf(&b, "        %s:\n", jsonNome)
-		g.escreverCampo(&b, pacote, f.Type, descricaoCampo(f), "          ")
+		g.escreverCampo(&b, pacote, jsonNome, f, "          ")
 	}
 	if vazio {
 		// properties: {} vazio é YAML inválido no contexto; usa objeto livre.
@@ -232,29 +340,130 @@ func (g *gerador) achatar(b *strings.Builder, pacote, tipo string) {
 			continue
 		}
 		fmt.Fprintf(b, "        %s:\n", jsonNome)
-		g.escreverCampo(b, pacote, f.Type, descricaoCampo(f), "          ")
+		g.escreverCampo(b, pacote, jsonNome, f, "          ")
 	}
 }
 
-// escreverCampo emite o tipo do campo mais a descrição.
+// escreverCampo emite o tipo do campo, os valores aceitos e a descrição.
 //
 // Quando o tipo é uma referência, embrulha em allOf: $ref com irmãos é legal em
 // OpenAPI 3.1, mas parte das ferramentas (inclusive versões do Swagger UI)
-// simplesmente descarta o irmão, e a descrição, que é o valor deste gerador,
-// sumiria justamente nos campos que apontam para outra estrutura.
-func (g *gerador) escreverCampo(b *strings.Builder, pacote string, t ast.Expr, desc, ind string) {
+// descarta o irmão, e a descrição sumiria justamente nos campos que apontam
+// para outra estrutura.
+func (g *gerador) escreverCampo(b *strings.Builder, pacote, jsonNome string, f *ast.Field, ind string) {
+	desc := descricaoCampo(f)
 	if desc == "" {
-		g.escreverTipo(b, pacote, t, ind)
-		return
+		desc = g.glossario[jsonNome]
 	}
+	opcoes := g.enums[chave(pacote, valorTagCampo(f, "enum"))]
+	if len(opcoes) > 0 {
+		desc = strings.TrimSpace(semListaDeValores(desc) + " " + descricaoDasOpcoes(opcoes))
+	}
+	if fo, ok := formatos[valorTagCampo(f, "fmt")]; ok {
+		desc = strings.TrimSpace(semDicaDeFormato(desc) + " " + fo.Descricao)
+	}
+
 	var tipo strings.Builder
-	g.escreverTipo(&tipo, pacote, t, ind+"    ")
+	g.escreverTipo(&tipo, pacote, f.Type, ind+"    ")
 	if ref := strings.TrimSpace(tipo.String()); strings.HasPrefix(ref, "$ref:") {
-		fmt.Fprintf(b, "%sdescription: %s\n%sallOf:\n%s  - %s\n", ind, yamlStr(desc), ind, ind, ref)
+		if desc != "" {
+			fmt.Fprintf(b, "%sdescription: %s\n", ind, yamlStr(desc))
+		}
+		fmt.Fprintf(b, "%sallOf:\n%s  - %s\n", ind, ind, ref)
 		return
 	}
-	g.escreverTipo(b, pacote, t, ind)
-	fmt.Fprintf(b, "%sdescription: %s\n", ind, yamlStr(desc))
+
+	g.escreverTipo(b, pacote, f.Type, ind)
+	if fo, ok := formatos[valorTagCampo(f, "fmt")]; ok {
+		fmt.Fprintf(b, "%sformat: %s\n", ind, fo.Formato)
+	}
+	if len(opcoes) > 0 {
+		// enum na spec faz o Swagger mostrar um seletor em vez de campo livre, e
+		// permite que gerador de SDK crie o tipo. O rótulo vai na descrição
+		// porque o enum do OpenAPI carrega só o valor.
+		fmt.Fprintf(b, "%senum: [%s]\n", ind, valoresYAML(opcoes, ehNumerico(f.Type)))
+	}
+	if desc != "" {
+		fmt.Fprintf(b, "%sdescription: %s\n", ind, yamlStr(desc))
+	}
+}
+
+// reListaDeValores casa a enumeração informal que muitos comentários trazem
+// ("1=não optante, 2=MEI, 3=ME/EPP"), inclusive quando ela é o comentário todo.
+var reListaDeValores = regexp.MustCompile(`\(?"?\b\d+"?\s*=\s*[^;.]*(?:,\s*"?\d+"?\s*=\s*[^;.]*)*\)?`)
+
+// semListaDeValores tira do comentário a lista de valores escrita à mão. Com o
+// enum na spec ela vira repetição, e o campo passaria a exibir a mesma
+// informação duas vezes, uma delas desatualizável.
+func semListaDeValores(desc string) string {
+	desc = reListaDeValores.ReplaceAllString(desc, "")
+	desc = strings.NewReplacer(" ,", ",", "  ", " ").Replace(desc)
+	return strings.TrimSpace(strings.Trim(strings.TrimSpace(desc), ",;:-"))
+}
+
+// reDicaDeFormato casa a dica de formato escrita à mão no comentário, como
+// "(YYYY-MM-DD)" ou "; ISO".
+var reDicaDeFormato = regexp.MustCompile(`\(?\b(?i:[AY]{4}-MM-DD|DD/MM/[AY]{4}|ISO ?8601|ISO|RFC ?3339)\b[^);.]*\)?`)
+
+// semDicaDeFormato tira do comentário a dica de formato: com o campo `format` e
+// a descrição canônica na spec, ela vira repetição, e repetição desatualiza.
+func semDicaDeFormato(desc string) string {
+	desc = reDicaDeFormato.ReplaceAllString(desc, "")
+	desc = strings.NewReplacer(" ,", ",", " ;", ";", "  ", " ", "()", "").Replace(desc)
+	return strings.TrimSpace(strings.Trim(strings.TrimSpace(desc), ",;:-"))
+}
+
+// descricaoDasOpcoes rende os valores legíveis: "1 = Produção; 2 = Homologação".
+func descricaoDasOpcoes(opcoes []opcao) string {
+	partes := make([]string, 0, len(opcoes))
+	for _, o := range opcoes {
+		partes = append(partes, o.Valor+" = "+o.Rotulo)
+	}
+	return "Valores: " + strings.Join(partes, "; ") + "."
+}
+
+func valoresYAML(opcoes []opcao, numerico bool) string {
+	partes := make([]string, 0, len(opcoes))
+	for _, o := range opcoes {
+		if numerico {
+			partes = append(partes, strings.TrimLeft(o.Valor, "0")+"")
+			if strings.TrimLeft(o.Valor, "0") == "" {
+				partes[len(partes)-1] = "0"
+			}
+			continue
+		}
+		partes = append(partes, `"`+o.Valor+`"`)
+	}
+	return strings.Join(partes, ", ")
+}
+
+// ehNumerico decide se o enum sai como número ou string na spec: precisa casar
+// com o tipo do campo, senão a validação do cliente rejeita o próprio exemplo.
+func ehNumerico(t ast.Expr) bool {
+	if p, ok := t.(*ast.StarExpr); ok {
+		return ehNumerico(p.X)
+	}
+	id, ok := t.(*ast.Ident)
+	if !ok {
+		return false
+	}
+	switch id.Name {
+	case "int", "int8", "int16", "int32", "int64", "float32", "float64":
+		return true
+	}
+	return false
+}
+
+// valorTagCampo lê uma tag arbitrária do campo (enum, fmt).
+func valorTagCampo(f *ast.Field, chave string) string {
+	if f.Tag == nil {
+		return ""
+	}
+	tag, err := strconv.Unquote(f.Tag.Value)
+	if err != nil {
+		return ""
+	}
+	return valorTag(tag, chave)
 }
 
 func (g *gerador) escreverTipo(b *strings.Builder, pacote string, t ast.Expr, ind string) {

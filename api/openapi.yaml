@@ -91,6 +91,26 @@ info:
     documento transmitido com dado faltando, e isso só aparece depois de o fisco
     autorizar.
 
+    ## Convenções
+
+    **Datas.** Campos de data usam `AAAA-MM-DD`. Campos de data e hora aceitam
+    RFC 3339, e o offset muda o significado: **com** offset
+    (`2026-08-23T14:05:00-03:00`) a entrada é um instante e é convertida para o
+    fuso do documento; **sem** offset (`2026-08-23T14:05:00`) é lida como
+    relógio de parede do emitente e vai para o XML como está. Vazio usa o
+    momento da chamada. Cada campo diz qual dos dois é.
+
+    **Valores monetários** são números JSON, com ponto decimal: `1500.5`. A
+    conversão para o formato que o fisco espera é nossa.
+
+    **Códigos de município** são o IBGE de 7 dígitos.
+
+    **CNPJ, CPF e chaves** podem ir com ou sem máscara: só os dígitos são
+    considerados.
+
+    **Campos com lista de valores** trazem `enum` no schema e a legenda na
+    descrição, no formato `1 = Produção; 2 = Homologação`.
+
     ## Campos sem `required`
 
     Os schemas descrevem os campos e o que cada um significa, mas **não marcam
@@ -1193,6 +1213,7 @@ components:
   schemas:
     Ambiente:
       type: string
+      description: "Ambiente do documento. Vazio assume homologação."
       enum: [homologacao, producao]
       default: homologacao
 
@@ -1203,8 +1224,8 @@ components:
         Certificado A1 (.pfx) em base64 e a senha. **Não é persistido**: vai ao
         worker por socket unix, é usado na sessão nativa e morre com ela.
       properties:
-        pfx_b64: { type: string, format: byte }
-        senha: { type: string, format: password }
+        pfx_b64: { type: string, format: byte , description: "Certificado A1 (.pfx) em base64." }
+        senha: { type: string, format: password , description: "Senha do certificado." }
 
     Credenciais:
       type: object
@@ -1212,18 +1233,18 @@ components:
         Login/token de prefeitura, exigidos por provedores de NFS-e fora do
         Padrão Nacional. Como o certificado, não são persistidos.
       properties:
-        usuario: { type: string }
-        senha: { type: string, format: password }
-        token: { type: string, format: password }
+        usuario: { type: string , description: "Usuário do webservice da prefeitura." }
+        senha: { type: string, format: password , description: "Senha do webservice da prefeitura." }
+        token: { type: string, format: password , description: "Token ou chave de acesso do webservice." }
 
     Emitente:
       type: object
       description: Sem cadastro no servidor, o emitente vem no pedido.
       required: [cnpj]
       properties:
-        cnpj: { type: string }
-        inscricao_municipal: { type: string }
-        razao_social: { type: string }
+        cnpj: { type: string , description: "CNPJ do emitente, 14 dígitos." }
+        inscricao_municipal: { type: string , description: "Inscrição municipal do emitente." }
+        razao_social: { type: string , description: "Razão social do emitente." }
 
     Validacao:
       type: object
@@ -1231,17 +1252,19 @@ components:
         `suportada: false` significa que a lib **não** expõe validação de regras
         para este documento (é o caso da NFS-e), e não que passou.
       properties:
-        ok: { type: boolean }
-        suportada: { type: boolean }
+        ok: { type: boolean , description: "Indica se o documento passou nas regras de negócio." }
+        suportada: { type: boolean , description: "Indica se a validação existe para este documento. False na NFS-e, cuja biblioteca não a expõe: ali ok não é garantia." }
         mensagens:
+          description: 'Rejeições encontradas, uma por linha, como a biblioteca devolveu.'
           type: array
           items: { type: string }
 
     RespostaXML:
       type: object
+      description: "Retorno da geração: o XML montado e a chave, antes de qualquer transmissão."
       properties:
         chave: { type: string, description: chave de acesso (44 dígitos) }
-        xml_b64: { type: string, format: byte }
+        xml_b64: { type: string, format: byte , description: "O XML montado, em base64. É este que você devolve em /transmissao." }
         assinado:
           type: boolean
           description: "sempre `false`: a ACBrLib assina no envio, não na montagem"
@@ -1249,11 +1272,12 @@ components:
 
     RespostaXMLNFSe:
       type: object
+      description: "Retorno da geração da DPS: o XML e o identificador, antes de qualquer transmissão."
       properties:
         id_dps:
           type: string
           description: identificador determinístico da DPS; use em /consulta-dps
-        xml_b64: { type: string, format: byte }
+        xml_b64: { type: string, format: byte , description: "A DPS montada, em base64." }
         assinado: { type: boolean }
         layout: { type: string, enum: [padrao_nacional, abrasf, proprio] }
         provedor: { type: string }
@@ -1261,6 +1285,7 @@ components:
 
     PedidoTransmissao:
       type: object
+      description: "Corpo da transmissão: o XML gerado mais o certificado."
       required: [xml_b64, certificado]
       properties:
         xml_b64:
@@ -1274,6 +1299,7 @@ components:
 
     PedidoTransmissaoNFSe:
       type: object
+      description: "Corpo da transmissão da DPS. Leva município e emitente porque o servidor não guarda cadastro."
       required: [xml_b64, municipio, emitente, certificado]
       properties:
         xml_b64: { type: string, format: byte }
@@ -1285,18 +1311,20 @@ components:
 
     Mensagem:
       type: object
+      description: "Mensagem devolvida pelo fisco ou pelo provedor."
       properties:
-        codigo: { type: string }
-        descricao: { type: string }
+        codigo: { type: string , description: "Código devolvido pelo fisco ou pelo provedor." }
+        descricao: { type: string , description: "Texto da mensagem." }
 
     RespostaTransmissao:
       type: object
+      description: "Retorno da transmissão, com o protocolo e o documento autorizado."
       properties:
-        chave: { type: string }
-        protocolo: { type: string }
-        status: { type: string, enum: [autorizado, rejeitado, erro] }
-        cstat: { type: string }
-        motivo: { type: string }
+        chave: { type: string , description: "Chave de acesso do documento." }
+        protocolo: { type: string , description: "Número do protocolo de autorização." }
+        status: { type: string, enum: [autorizado, rejeitado, erro] , description: "Desfecho: autorizado, rejeitado ou erro." }
+        cstat: { type: string , description: "Código de status do fisco. 100 = autorizado." }
+        motivo: { type: string , description: "Descrição do status devolvida pelo fisco." }
         recibo:
           type: string
           description: "vestígio: o envio é síncrono e ele não vem"
@@ -1305,28 +1333,33 @@ components:
           format: byte
           description: "o documento autorizado. **Guarde**: é a sua única via."
         erros:
+          description: 'Rejeições devolvidas pelo fisco.'
           type: array
           items: { $ref: "#/components/schemas/Mensagem" }
 
     RespostaTransmissaoNFSe:
       type: object
+      description: "Retorno da transmissão da DPS, com a nota autorizada."
       properties:
-        numero: { type: string }
-        chave: { type: string }
-        codigo_verificacao: { type: string }
-        protocolo: { type: string }
-        status: { type: string, enum: [autorizado, rejeitado, erro] }
-        situacao: { type: string }
-        xml_b64: { type: string, format: byte }
+        numero: { type: string , description: "Número da NFS-e atribuído pelo provedor." }
+        chave: { type: string , description: "Chave de acesso da NFS-e." }
+        codigo_verificacao: { type: string , description: "Código de verificação da nota, usado na consulta pública." }
+        protocolo: { type: string , description: "Protocolo do provedor." }
+        status: { type: string, enum: [autorizado, rejeitado, erro] , description: "Desfecho: autorizado, rejeitado ou erro." }
+        situacao: { type: string , description: "Situação da nota no provedor." }
+        xml_b64: { type: string, format: byte , description: "XML da NFS-e autorizada. Guarde: não há segunda via." }
         erros:
+          description: 'Rejeições devolvidas pelo provedor.'
           type: array
           items: { $ref: "#/components/schemas/Mensagem" }
         alertas:
+          description: 'Alertas do provedor. Não impedem a emissão.'
           type: array
           items: { $ref: "#/components/schemas/Mensagem" }
 
     PedidoEvento:
       type: object
+      description: "Envelope do evento: identifica o documento e traz o certificado. Os campos do tipo vão em evento."
       required: [chave, certificado]
       properties:
         chave: { type: string, description: 44 dígitos }
@@ -1341,59 +1374,67 @@ components:
 
     PedidoEventoNFSe:
       type: object
+      description: "Envelope do evento de NFS-e. Os campos do tipo vão em evento."
       required: [municipio, certificado]
       properties:
         chave: { type: string, description: exigida no cancelamento }
-        municipio: { type: string }
+        municipio: { type: string , description: "Código IBGE do município, 7 dígitos." }
         ambiente: { $ref: "#/components/schemas/Ambiente" }
         emitente: { $ref: "#/components/schemas/Emitente" }
         certificado: { $ref: "#/components/schemas/Certificado" }
         credenciais: { $ref: "#/components/schemas/Credenciais" }
         evento:
+          description: 'Campos próprios do tipo de evento.'
           type: object
           additionalProperties: true
 
     RespostaEvento:
       type: object
+      description: "Retorno do evento, com o protocolo e o XML processado."
       properties:
-        tipo: { type: string }
-        chave: { type: string }
-        status: { type: string, enum: [concluido, rejeitado, erro] }
-        cstat: { type: string }
-        motivo: { type: string }
-        protocolo: { type: string }
-        xml_evento_b64: { type: string, format: byte }
+        tipo: { type: string , description: "Tipo do evento enviado." }
+        chave: { type: string , description: "Chave do documento." }
+        status: { type: string, enum: [concluido, rejeitado, erro] , description: "Desfecho: concluido, rejeitado ou erro." }
+        cstat: { type: string , description: "Código de status do fisco. 135 = evento registrado." }
+        motivo: { type: string , description: "Descrição do status." }
+        protocolo: { type: string , description: "Protocolo do evento." }
+        xml_evento_b64: { type: string, format: byte , description: "XML do evento processado, em base64." }
         erros:
+          description: 'Rejeições devolvidas pelo fisco.'
           type: array
           items: { $ref: "#/components/schemas/Mensagem" }
 
     RespostaEventoNFSe:
       type: object
+      description: "Retorno do evento de NFS-e."
       properties:
-        tipo: { type: string }
-        chave: { type: string }
-        status: { type: string }
-        protocolo: { type: string }
-        data_hora: { type: string }
-        xml_b64: { type: string, format: byte }
+        tipo: { type: string , description: "Tipo do evento enviado." }
+        chave: { type: string , description: "Chave da nota." }
+        status: { type: string , description: "Desfecho do evento." }
+        protocolo: { type: string , description: "Protocolo do provedor." }
+        data_hora: { type: string , description: "Data e hora do processamento." }
+        xml_b64: { type: string, format: byte , description: "XML do evento, em base64." }
         mensagens:
+          description: 'Mensagens do provedor.'
           type: array
           items: { $ref: "#/components/schemas/Mensagem" }
 
     PedidoConsultaChave:
       type: object
+      description: "Consulta do documento pela chave de acesso. É o que se chama após um desfecho indeterminado."
       required: [chave, certificado]
       properties:
-        chave: { type: string }
+        chave: { type: string , description: "Chave de acesso do documento, 44 dígitos." }
         ambiente: { $ref: "#/components/schemas/Ambiente" }
         certificado: { $ref: "#/components/schemas/Certificado" }
 
     PedidoConsultaNFSe:
       type: object
+      description: "Consulta ao provedor de NFS-e."
       required: [municipio, certificado]
       properties:
-        chave: { type: string }
-        municipio: { type: string }
+        chave: { type: string , description: "Chave da nota, ou o id_dps na consulta de DPS." }
+        municipio: { type: string , description: "Código IBGE do município, 7 dígitos." }
         ambiente: { $ref: "#/components/schemas/Ambiente" }
         emitente: { $ref: "#/components/schemas/Emitente" }
         certificado: { $ref: "#/components/schemas/Certificado" }
@@ -1401,17 +1442,19 @@ components:
 
     PedidoSefaz:
       type: object
+      description: "Consulta ao webservice que não depende de chave, como status do serviço."
       required: [certificado]
       properties:
         ambiente: { $ref: "#/components/schemas/Ambiente" }
-        cnpj: { type: string }
+        cnpj: { type: string , description: "CNPJ do interessado, 14 dígitos." }
         certificado: { $ref: "#/components/schemas/Certificado" }
 
     PedidoPDF:
       type: object
+      description: "XML autorizado, para gerar a representação gráfica. Não fala com o fisco, logo não pede certificado."
       required: [xml_b64]
       properties:
-        xml_b64: { type: string, format: byte }
+        xml_b64: { type: string, format: byte , description: "XML autorizado do documento, em base64." }
 
     PedidoBoleto:
       type: object
@@ -1439,66 +1482,91 @@ components:
           description: 'enum ACBr (BB=1, Santander=2, Caixa=3, Bradesco=5, Itau=6...)'
         CNAB:
           type: string
-          description: '"1"=400, "2"=240'
+          enum: ["1", "2"]
+          description: 'Valores: 1 = CNAB 400; 2 = CNAB 240.'
         agencia:
           type: string
           description: 'Conta ([Conta]).'
         digitoAgencia:
           type: string
+          description: 'Dígito verificador da agência.'
         conta:
           type: string
+          description: 'Conta de cobrança: banco, agência, conta e cedente.'
         digitoConta:
           type: string
+          description: 'Dígito verificador da conta.'
         nome:
           type: string
           description: 'Cedente ([Cedente]).'
         fantasia:
           type: string
+          description: 'Nome fantasia do cedente.'
         CNPJCPF:
           type: string
+          description: 'CNPJ (14 dígitos) ou CPF (11 dígitos). Aceita com ou sem máscara.'
         tipoInscricao:
           type: integer
-          description: '1=CNPJ, 2=CPF'
+          enum: [1, 2]
+          description: 'Valores: 1 = CNPJ; 2 = CPF.'
         tipoPessoa:
           type: integer
+          description: 'Tipo de pessoa do cedente.'
         logradouro:
           type: string
+          description: 'Logradouro.'
         numero:
           type: string
+          description: 'Número do documento.'
         bairro:
           type: string
+          description: 'Bairro.'
         cidade:
           type: string
+          description: 'Nome do município.'
         CEP:
           type: string
+          description: 'CEP, 8 dígitos, sem hífen.'
         complemento:
           type: string
+          description: 'Complemento do endereço.'
         UF:
           type: string
+          description: 'Sigla da unidade federativa, duas letras.'
         telefone:
           type: string
+          description: 'Telefone, só dígitos, com DDD.'
         codigoCedente:
           type: string
+          description: 'Código do cedente no banco.'
         modalidade:
           type: string
+          description: 'Modalidade da carteira, conforme o banco.'
         convenio:
           type: string
+          description: 'Número do convênio com o banco.'
         codTransmissao:
           type: string
+          description: 'Código de transmissão, exigido por alguns bancos.'
         tipoCarteira:
           type: integer
-          description: '0=simples,1=registrada,2=eletronica'
+          enum: [0, 1, 2]
+          description: 'Valores: 0 = Simples; 1 = Registrada; 2 = Eletrônica.'
         tipoDocumento:
           type: integer
+          description: 'Tipo do documento, conforme o banco.'
         respEmis:
           type: integer
+          description: 'Responsável pela emissão do boleto.'
         layoutBol:
           type: integer
+          description: 'Layout de impressão do boleto.'
         pixTipoChave:
           type: integer
           description: 'PIX (boleto híbrido).'
         pixChave:
           type: string
+          description: 'Chave PIX do boleto híbrido.'
         ws:
           description: 'WS: credenciais para registro online. Opcional.'
           allOf:
@@ -1509,17 +1577,23 @@ components:
       properties:
         ambiente:
           type: integer
-          description: '1=produção, 2=homologação'
+          enum: [1, 2]
+          description: 'Valores: 1 = Produção; 2 = Homologação.'
         clientID:
           type: string
+          description: 'Client ID do OAuth da API do banco.'
         clientSecret:
           type: string
+          description: 'Client secret do OAuth da API do banco. Não é persistido.'
         keyUser:
           type: string
+          description: 'Chave do usuário na API do banco.'
         scope:
           type: string
+          description: 'Escopo do OAuth da API do banco.'
         indicadorPix:
           type: string
+          description: 'Indica se o boleto sai com PIX.'
         certCRT:
           type: string
           description: 'base64 do .crt (mTLS)'
@@ -1531,61 +1605,85 @@ components:
       description: 'Pedido é o corpo de geração de boleto(s): a conta de cobrança (cedente + conta + banco) e a lista de títulos.'
       properties:
         conta:
-          $ref: "#/components/schemas/BoletoConta"
+          description: 'Conta de cobrança: banco, agência, conta e cedente.'
+          allOf:
+            - $ref: "#/components/schemas/BoletoConta"
         titulos:
           type: array
           items:
             $ref: "#/components/schemas/BoletoTitulo"
+          description: 'Títulos a incluir no boleto ou na remessa.'
     BoletoSacado:
       type: object
       description: 'Sacado é o pagador do boleto (chaves Sacado.* no [TituloN]).'
       properties:
         nome:
           type: string
+          description: 'Nome ou razão social.'
         CNPJCPF:
           type: string
+          description: 'CNPJ (14 dígitos) ou CPF (11 dígitos). Aceita com ou sem máscara.'
         logradouro:
           type: string
+          description: 'Logradouro.'
         numero:
           type: string
+          description: 'Número do documento.'
         bairro:
           type: string
+          description: 'Bairro.'
         cidade:
           type: string
+          description: 'Nome do município.'
         UF:
           type: string
+          description: 'Sigla da unidade federativa, duas letras.'
         CEP:
           type: string
+          description: 'CEP, 8 dígitos, sem hífen.'
         complemento:
           type: string
+          description: 'Complemento do endereço.'
         email:
           type: string
+          description: 'Endereço de e-mail.'
     BoletoTitulo:
       type: object
       description: 'Titulo é um boleto da lista ([TituloN]).'
       properties:
         numeroDocumento:
           type: string
+          description: 'Número do documento no boleto, seu controle.'
         seuNumero:
           type: string
+          description: 'Seu número, campo livre de controle interno.'
         nossoNumero:
           type: string
+          description: 'Nosso número, o identificador do título no banco.'
         carteira:
           type: string
+          description: 'Carteira de cobrança, conforme o banco.'
         especie:
           type: string
+          description: 'Espécie do título. DM = duplicata mercantil.'
         valorDocumento:
           type: number
+          description: 'Valor do título.'
         vencimento:
           type: string
+          description: 'Data de vencimento do título.'
         dataDocumento:
           type: string
+          description: 'Data de emissão do título.'
         aceite:
           type: string
+          description: 'Aceite do título. A = aceito, N = não aceito.'
         sacado:
-          $ref: "#/components/schemas/BoletoSacado"
+          allOf:
+            - $ref: "#/components/schemas/BoletoSacado"
         mensagem:
           type: string
+          description: 'Mensagem impressa no boleto.'
         instrucoes:
           type: array
           items:
@@ -1596,149 +1694,187 @@ components:
           description: 'Encargos.'
         codigoMora:
           type: string
+          description: 'Código do tipo de mora, conforme o banco.'
         percentualMulta:
           type: number
+          description: 'Percentual de multa após o vencimento.'
         multaValorFixo:
           type: number
+          description: 'Valor fixo de multa após o vencimento.'
         valorDesconto:
           type: number
+          description: 'Valor do desconto concedido.'
         dataDesconto:
           type: string
+          description: 'Data limite para o desconto.'
         valorAbatimento:
           type: number
+          description: 'Valor do abatimento concedido.'
         chaveNFe:
           type: string
           description: 'Vínculo fiscal.'
     CteAereo:
       type: object
-      description: 'Aereo espelha CteSefazAereo.'
+      description: 'Modal aéreo.'
       properties:
         nMinu:
           type: integer
+          description: 'Número da minuta.'
         nOCA:
           type: string
+          description: 'Número da Ordem de Coleta Aéreo.'
         dPrevAereo:
           type: string
+          description: 'Data prevista da entrega no modal aéreo.'
         natCarga:
-          $ref: "#/components/schemas/CteNatCarga"
+          allOf:
+            - $ref: "#/components/schemas/CteNatCarga"
         tarifa:
-          $ref: "#/components/schemas/CteTarifa"
+          allOf:
+            - $ref: "#/components/schemas/CteTarifa"
         peri:
           type: array
           items:
             $ref: "#/components/schemas/CtePeri"
+          description: 'Produtos perigosos transportados, conforme a ONU.'
     CteAquav:
       type: object
-      description: 'Aquav espelha CteSefazAquav.'
+      description: 'Modal aquaviário.'
       properties:
         vPrest:
           type: number
+          description: 'Grupo de valores da prestação de serviço.'
         vAFRMM:
           type: number
+          description: 'Valor do Adicional ao Frete para Renovação da Marinha Mercante.'
         xNavio:
           type: string
+          description: 'Nome do navio.'
         balsa:
           type: array
           items:
             $ref: "#/components/schemas/CteBalsa"
         nViag:
           type: string
+          description: 'Número da viagem.'
         direc:
           type: string
         irin:
           type: string
+          description: 'Número IRIN do navio.'
         detCont:
           type: array
           items:
             $ref: "#/components/schemas/CteDetCont"
         tpNav:
           type: integer
+          description: 'Tipo de navegação, no modal aquaviário.'
     CteAutXML:
       type: object
-      description: 'AutXML espelha CteSefazAutXML.'
+      description: 'CNPJ ou CPF autorizado a baixar o XML do documento.'
       properties:
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
         CPF:
           type: string
+          description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
     CteBalsa:
       type: object
-      description: 'Balsa espelha CteSefazBalsa.'
+      description: 'Balsa utilizada no transporte aquaviário.'
       properties:
         xBalsa:
           type: string
+          description: 'Identificação da balsa.'
     CteCIBS:
       type: object
-      description: 'CIBS espelha CteSefazCIBS.'
+      description: 'Grupo do IBS e da CBS (Reforma Tributária).'
       properties:
         vBC:
           type: number
+          description: 'Valor da base de cálculo.'
         gIBSUF:
-          $ref: "#/components/schemas/CteGIBSUF"
+          allOf:
+            - $ref: "#/components/schemas/CteGIBSUF"
         gIBSMun:
-          $ref: "#/components/schemas/CteGIBSMun"
+          allOf:
+            - $ref: "#/components/schemas/CteGIBSMun"
         vIBS:
           type: number
         gCBS:
-          $ref: "#/components/schemas/CteGCBS"
+          allOf:
+            - $ref: "#/components/schemas/CteGCBS"
         gTribRegular:
-          $ref: "#/components/schemas/CteTribRegular"
+          allOf:
+            - $ref: "#/components/schemas/CteTribRegular"
         gTribCompraGov:
-          $ref: "#/components/schemas/CteTribCompraGov"
+          allOf:
+            - $ref: "#/components/schemas/CteTribCompraGov"
     CteCobr:
       type: object
-      description: 'Cobr espelha CteSefazCobr.'
+      description: 'Cobrança: fatura e duplicatas.'
       properties:
         fat:
-          $ref: "#/components/schemas/CteFat"
+          allOf:
+            - $ref: "#/components/schemas/CteFat"
         dup:
           type: array
           items:
             $ref: "#/components/schemas/CteDup"
     CteComData:
       type: object
-      description: 'ComData espelha CteSefazComData.'
+      description: 'Entrega em data definida.'
       properties:
         tpPer:
           type: integer
+          description: 'Tipo de período de entrega.'
         dProg:
           type: string
     CteComHora:
       type: object
-      description: 'ComHora espelha CteSefazComHora.'
+      description: 'Entrega em hora definida.'
       properties:
         tpHor:
           type: integer
+          description: 'Tipo de horário de entrega.'
         hProg:
           type: string
     CteComp:
       type: object
-      description: 'Comp espelha CteSefazComp.'
+      description: 'Componentes que somam o valor da prestação.'
       properties:
         xNome:
           type: string
+          description: 'Razão social ou nome.'
         vComp:
           type: number
+          description: 'Valor do componente.'
     CteCompl:
       type: object
-      description: 'Compl espelha CteSefazCompl.'
+      description: 'Informações complementares do documento.'
       properties:
         xCaracAd:
           type: string
+          description: 'Característica adicional do transporte.'
         xCaracSer:
           type: string
+          description: 'Característica adicional do serviço.'
         xEmi:
           type: string
+          description: 'Nome do emissor.'
         fluxo:
-          $ref: "#/components/schemas/CteFluxo"
+          allOf:
+            - $ref: "#/components/schemas/CteFluxo"
         Entrega:
-          $ref: "#/components/schemas/CteEntrega"
+          allOf:
+            - $ref: "#/components/schemas/CteEntrega"
         origCalc:
           type: string
         destCalc:
           type: string
         xObs:
           type: string
+          description: 'Observação, em texto livre.'
         ObsCont:
           type: array
           items:
@@ -1749,10 +1885,11 @@ components:
             $ref: "#/components/schemas/CteObsFisco"
     CteCompraGovReduzido:
       type: object
-      description: 'CompraGovReduzido espelha CteSefazCompraGovReduzido.'
+      description: 'Redução aplicada em compra governamental.'
       properties:
         tpEnteGov:
           type: integer
+          description: 'Tipo do ente governamental.'
         pRedutor:
           type: number
     CteCorrecao:
@@ -1769,40 +1906,54 @@ components:
           type: integer
     CteDest:
       type: object
-      description: 'Dest espelha CteSefazDest.'
+      description: 'Destinatário da carga.'
       properties:
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
         CPF:
           type: string
+          description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
         IE:
           type: string
+          description: 'Inscrição estadual. Use ISENTO quando isento.'
         xNome:
           type: string
+          description: 'Razão social ou nome.'
         fone:
           type: string
+          description: 'Telefone, só dígitos, com DDD.'
         ISUF:
           type: string
+          description: 'Inscrição na SUFRAMA.'
         enderDest:
-          $ref: "#/components/schemas/CteEndereco"
+          allOf:
+            - $ref: "#/components/schemas/CteEndereco"
         email:
           type: string
+          description: 'Endereço de e-mail.'
     CteDet:
       type: object
       description: 'Det é um trecho do detalhamento ([detNNN]): origem/destino, valores e os documentos transportados (componentes, NF-e e documentos anteriores).'
       properties:
         cMunIni:
           type: string
+          description: 'Código IBGE do município de início da prestação.'
         xMunIni:
           type: string
+          description: 'Nome do município de início da prestação.'
         cMunFim:
           type: string
+          description: 'Código IBGE do município de fim da prestação.'
         xMunFim:
           type: string
+          description: 'Nome do município de fim da prestação.'
         vPrest:
           type: number
+          description: 'Grupo de valores da prestação de serviço.'
         vRec:
           type: number
+          description: 'Valor a receber pela prestação.'
         comp:
           type: array
           items:
@@ -1811,13 +1962,14 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CteInfNFe"
+          description: 'Notas fiscais eletrônicas vinculadas ao documento.'
         infDocAnt:
           type: array
           items:
             $ref: "#/components/schemas/CteDetDocAnt"
     CteDetCont:
       type: object
-      description: 'DetCont espelha CteSefazDetCont.'
+      description: 'Detalhamento do contêiner e dos documentos nele.'
       properties:
         nCont:
           type: string
@@ -1826,43 +1978,52 @@ components:
           items:
             $ref: "#/components/schemas/CteLacre"
         infDoc:
-          $ref: "#/components/schemas/CteDetContInfDoc"
+          allOf:
+            - $ref: "#/components/schemas/CteDetContInfDoc"
     CteDetContInfDoc:
       type: object
-      description: 'DetContInfDoc espelha CteSefazDetCont_InfDoc.'
+      description: 'Documentos dentro do contêiner.'
       properties:
         infNF:
           type: array
           items:
             $ref: "#/components/schemas/CteDetContInfNF"
+          description: 'Notas fiscais em papel vinculadas ao documento.'
         infNFe:
           type: array
           items:
             $ref: "#/components/schemas/CteDetContInfNFe"
+          description: 'Notas fiscais eletrônicas vinculadas ao documento.'
     CteDetContInfNF:
       type: object
-      description: 'DetContInfNF espelha CteSefazDetCont_InfDoc_InfNF.'
+      description: 'Nota fiscal em papel dentro do contêiner.'
       properties:
         serie:
           type: string
+          description: 'Série do documento.'
         nDoc:
           type: string
+          description: 'Número do documento.'
         unidRat:
           type: number
+          description: 'Unidade de medida do rateio.'
     CteDetContInfNFe:
       type: object
-      description: 'DetContInfNFe espelha CteSefazDetCont_InfDoc_InfNFe.'
+      description: 'Nota fiscal eletrônica dentro do contêiner.'
       properties:
         chave:
           type: string
+          description: 'Chave de acesso do documento, 44 dígitos.'
         unidRat:
           type: number
+          description: 'Unidade de medida do rateio.'
     CteDetDocAnt:
       type: object
       description: 'DetDocAnt é um documento anterior dentro de um trecho do Simplificado.'
       properties:
         chCTe:
           type: string
+          description: 'Chave de acesso do CT-e, 44 dígitos.'
         tpPrest:
           type: integer
         infNFeTranspParcial:
@@ -1871,13 +2032,13 @@ components:
             $ref: "#/components/schemas/CteTranspParcial"
     CteDevTrib:
       type: object
-      description: 'DevTrib espelha CteSefazDevTrib.'
+      description: 'Devolução de tributo.'
       properties:
         vDevTrib:
           type: number
     CteDif:
       type: object
-      description: 'Dif espelha CteSefazDif.'
+      description: 'Diferimento do ICMS.'
       properties:
         pDif:
           type: number
@@ -1885,7 +2046,7 @@ components:
           type: number
     CteDocAnt:
       type: object
-      description: 'DocAnt espelha CteSefazDocAnt.'
+      description: 'Documentos de transporte anteriores.'
       properties:
         emiDocAnt:
           type: array
@@ -1893,48 +2054,61 @@ components:
             $ref: "#/components/schemas/CteEmiDocAnt"
     CteDocumento:
       type: object
-      description: 'PedidoEmissao espelha CtePedidoEmissao.'
+      description: 'PedidoEmissao é o CT-e a ser gerado, no contrato da Nuvem Fiscal / ACBr.API.'
       properties:
         infCte:
-          $ref: "#/components/schemas/CteInfCte"
+          allOf:
+            - $ref: "#/components/schemas/CteInfCte"
         infCTeSupl:
-          $ref: "#/components/schemas/CteInfCTeSupl"
+          allOf:
+            - $ref: "#/components/schemas/CteInfCTeSupl"
         ambiente:
           type: string
+          description: 'Ambiente do documento. Vazio assume homologação.'
         referencia:
           type: string
+          description: 'Identificador externo seu. Devolvido como veio, não vai no XML.'
     CteDocumentoSimplificado:
       type: object
-      description: 'PedidoSimp espelha o pedido de emissão do CT-e Simplificado (contrato ACBr.API: mesmo envelope do CT-e, corpo simplificado).'
+      description: 'pedido de emissão do CT-e Simplificado (contrato ACBr.API: mesmo envelope do CT-e, corpo simplificado).'
       properties:
         infCte:
-          $ref: "#/components/schemas/CteInfCteSimp"
+          allOf:
+            - $ref: "#/components/schemas/CteInfCteSimp"
         infCTeSupl:
-          $ref: "#/components/schemas/CteInfCTeSupl"
+          allOf:
+            - $ref: "#/components/schemas/CteInfCTeSupl"
         ambiente:
           type: string
+          description: 'Ambiente do documento. Vazio assume homologação.'
         referencia:
           type: string
+          description: 'Identificador externo seu. Devolvido como veio, não vai no XML.'
     CteDup:
       type: object
-      description: 'Dup espelha CteSefazDup.'
+      description: 'Duplicata.'
       properties:
         nDup:
           type: string
         dVenc:
           type: string
+          format: date
+          description: 'Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
         vDup:
           type: number
     CteDuto:
       type: object
-      description: 'Duto espelha CteSefazDuto.'
+      description: 'Modal dutoviário.'
       properties:
         vTar:
           type: number
+          description: 'Valor da tarifa.'
         dIni:
           type: string
+          description: 'Data inicial do período.'
         dFim:
           type: string
+          description: 'Data final do período.'
         classDuto:
           type: integer
         tpContratacao:
@@ -1947,141 +2121,193 @@ components:
           type: string
     CteEmiDocAnt:
       type: object
-      description: 'EmiDocAnt espelha CteSefazEmiDocAnt.'
+      description: 'Emitente dos documentos anteriores.'
       properties:
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
         CPF:
           type: string
+          description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
         IE:
           type: string
+          description: 'Inscrição estadual. Use ISENTO quando isento.'
         UF:
           type: string
+          description: 'Sigla da unidade federativa, duas letras.'
         xNome:
           type: string
+          description: 'Razão social ou nome.'
         idDocAnt:
           type: array
           items:
             $ref: "#/components/schemas/CteIdDocAnt"
     CteEmiOcc:
       type: object
-      description: 'EmiOcc espelha CteSefazEmiOcc.'
+      description: 'Emitente da Ordem de Coleta de Carga.'
       properties:
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
         cInt:
           type: string
+          description: 'Código interno de uso do emitente. Não vai no XML.'
         IE:
           type: string
+          description: 'Inscrição estadual. Use ISENTO quando isento.'
         UF:
           type: string
+          description: 'Sigla da unidade federativa, duas letras.'
         fone:
           type: string
+          description: 'Telefone, só dígitos, com DDD.'
     CteEmit:
       type: object
-      description: 'Emit espelha CteSefazEmit.'
+      description: 'Emitente do documento.'
       properties:
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
         CPF:
           type: string
+          description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
         IE:
           type: string
+          description: 'Inscrição estadual. Use ISENTO quando isento.'
         IEST:
           type: string
+          description: 'Inscrição estadual do substituto tributário.'
         xNome:
           type: string
+          description: 'Razão social ou nome.'
         xFant:
           type: string
+          description: 'Nome fantasia.'
         enderEmit:
-          $ref: "#/components/schemas/CteEndeEmi"
+          allOf:
+            - $ref: "#/components/schemas/CteEndeEmi"
         CRT:
           type: integer
+          enum: [1, 2, 3, 4]
+          description: 'Valores: 1 = Simples Nacional; 2 = Simples Nacional, excesso de sublimite de receita bruta; 3 = Regime Normal; 4 = Simples Nacional, Microempreendedor Individual (MEI).'
     CteEndeEmi:
       type: object
-      description: 'EndeEmi espelha CteSefazEndeEmi.'
+      description: 'Endereço do emitente.'
       properties:
         xLgr:
           type: string
+          description: 'Logradouro.'
         nro:
           type: string
+          description: 'Número do endereço. Use SN quando não houver.'
         xCpl:
           type: string
+          description: 'Complemento do endereço.'
         xBairro:
           type: string
+          description: 'Bairro.'
         cMun:
           type: string
+          description: 'Código IBGE do município, 7 dígitos.'
         xMun:
           type: string
+          description: 'Nome do município.'
         CEP:
           type: string
+          description: 'CEP, 8 dígitos, sem hífen.'
         UF:
           type: string
+          description: 'Sigla da unidade federativa, duas letras.'
         fone:
           type: string
+          description: 'Telefone, só dígitos, com DDD.'
     CteEnderFer:
       type: object
-      description: 'EnderFer espelha CteSefazEnderFer.'
+      description: 'Endereço no modal ferroviário.'
       properties:
         xLgr:
           type: string
+          description: 'Logradouro.'
         nro:
           type: string
+          description: 'Número do endereço. Use SN quando não houver.'
         xCpl:
           type: string
+          description: 'Complemento do endereço.'
         xBairro:
           type: string
+          description: 'Bairro.'
         cMun:
           type: string
+          description: 'Código IBGE do município, 7 dígitos.'
         xMun:
           type: string
+          description: 'Nome do município.'
         CEP:
           type: string
+          description: 'CEP, 8 dígitos, sem hífen.'
         UF:
           type: string
+          description: 'Sigla da unidade federativa, duas letras.'
     CteEndereco:
       type: object
-      description: 'Endereco espelha CteSefazEndereco.'
+      description: 'Endereço. CodigoPais 1058 identifica endereço nacional.'
       properties:
         xLgr:
           type: string
+          description: 'Logradouro.'
         nro:
           type: string
+          description: 'Número do endereço. Use SN quando não houver.'
         xCpl:
           type: string
+          description: 'Complemento do endereço.'
         xBairro:
           type: string
+          description: 'Bairro.'
         cMun:
           type: string
+          description: 'Código IBGE do município, 7 dígitos.'
         xMun:
           type: string
+          description: 'Nome do município.'
         CEP:
           type: string
+          description: 'CEP, 8 dígitos, sem hífen.'
         UF:
           type: string
+          description: 'Sigla da unidade federativa, duas letras.'
         cPais:
           type: string
+          description: 'Código do país conforme a tabela do BACEN. 1058 = Brasil.'
         xPais:
           type: string
+          description: 'Nome do país.'
     CteEntrega:
       type: object
-      description: 'Entrega espelha CteSefazEntrega.'
+      description: 'Previsão de entrega: data, período ou horário combinado.'
       properties:
         semData:
-          $ref: "#/components/schemas/CteSemData"
+          allOf:
+            - $ref: "#/components/schemas/CteSemData"
         comData:
-          $ref: "#/components/schemas/CteComData"
+          allOf:
+            - $ref: "#/components/schemas/CteComData"
         noPeriodo:
-          $ref: "#/components/schemas/CteNoPeriodo"
+          allOf:
+            - $ref: "#/components/schemas/CteNoPeriodo"
         semHora:
-          $ref: "#/components/schemas/CteSemHora"
+          allOf:
+            - $ref: "#/components/schemas/CteSemHora"
         comHora:
-          $ref: "#/components/schemas/CteComHora"
+          allOf:
+            - $ref: "#/components/schemas/CteComHora"
         noInter:
-          $ref: "#/components/schemas/CteNoInter"
+          allOf:
+            - $ref: "#/components/schemas/CteNoInter"
     CteEstornoCred:
       type: object
-      description: 'EstornoCred espelha CteSefazEstornoCred.'
+      description: 'Estorno de crédito.'
       properties:
         vIBSEstCred:
           type: number
@@ -2093,6 +2319,7 @@ components:
       properties:
         justificativa:
           type: string
+          description: 'Justificativa. Mínimo de 15 caracteres.'
         nSeqEvento:
           type: integer
           description: 'nSeqEvento é opcional (default 1).'
@@ -2113,22 +2340,32 @@ components:
       properties:
         nProt:
           type: string
+          description: 'Número do protocolo de autorização.'
         UF:
           type: string
+          description: 'Sigla da unidade federativa, duas letras.'
         dhEntrega:
           type: string
+          format: date-time
+          description: 'Data e hora. COM offset (2026-08-23T14:05:00-03:00) a entrada é um instante e é convertida para o fuso do documento; SEM offset (2026-08-23T14:05:00) é lida como relógio de parede do emitente e não sofre conversão. Vazio usa o momento da chamada.'
         nDoc:
           type: string
+          description: 'Número do documento.'
         xNome:
           type: string
+          description: 'Razão social ou nome.'
         latitude:
           type: number
+          description: 'Latitude em graus decimais. Ex.: -23.5505.'
         longitude:
           type: number
+          description: 'Longitude em graus decimais. Ex.: -46.6333.'
         hashEntrega:
           type: string
         dhHashEntrega:
           type: string
+          format: date-time
+          description: 'Data e hora. COM offset (2026-08-23T14:05:00-03:00) a entrada é um instante e é convertida para o fuso do documento; SEM offset (2026-08-23T14:05:00) é lida como relógio de parede do emitente e não sofre conversão. Vazio usa o momento da chamada.'
         documentos:
           type: array
           items:
@@ -2136,39 +2373,53 @@ components:
           description: 'chaves de NF-e entregues'
         nSeqEvento:
           type: integer
+          description: 'Número sequencial do evento para a mesma chave. Começa em 1.'
     CteEventoEPEC:
       type: object
       description: 'PedidoEPEC é o corpo de POST /v1/cte/eventos/epec (Evento Prévio de Emissão em Contingência, tpEvento 110113). Valores com vírgula decimal no INI.'
       properties:
         vICMS:
           type: number
+          description: 'Valor do ICMS.'
         vICMSST:
           type: number
         vTPrest:
           type: number
+          description: 'Valor total da prestação do serviço.'
         vCarga:
           type: number
+          description: 'Valor total da carga.'
         modal:
           type: string
-          description: 'default 01'
+          enum: ["01", "02", "03", "04", "05", "06"]
+          description: 'default 01 Valores: 01 = Rodoviário; 02 = Aéreo; 03 = Aquaviário; 04 = Ferroviário; 05 = Dutoviário; 06 = Multimodal.'
         UFIni:
           type: string
+          description: 'Sigla da UF de início da prestação.'
         UFFim:
           type: string
+          description: 'Sigla da UF de fim da prestação.'
         dhEmi:
           type: string
+          format: date-time
+          description: 'Data e hora. COM offset (2026-08-23T14:05:00-03:00) a entrada é um instante e é convertida para o fuso do documento; SEM offset (2026-08-23T14:05:00) é lida como relógio de parede do emitente e não sofre conversão. Vazio usa o momento da chamada.'
         tomador:
-          $ref: "#/components/schemas/CteTomadorEPEC"
+          allOf:
+            - $ref: "#/components/schemas/CteTomadorEPEC"
         nSeqEvento:
           type: integer
+          description: 'Número sequencial do evento para a mesma chave. Começa em 1.'
     CteEventoInsucessoEntrega:
       type: object
       description: 'PedidoInsucessoEntrega é o corpo de POST /v1/cte/eventos/insucesso-entrega (tpEvento 110190). Registra a tentativa frustrada de entrega.'
       properties:
         nProt:
           type: string
+          description: 'Número do protocolo de autorização.'
         dhTentativaEntrega:
           type: string
+          format: date-time
+          description: 'Data e hora. COM offset (2026-08-23T14:05:00-03:00) a entrada é um instante e é convertida para o fuso do documento; SEM offset (2026-08-23T14:05:00) é lida como relógio de parede do emitente e não sofre conversão. Vazio usa o momento da chamada.'
         nTentativa:
           type: integer
         tpMotivo:
@@ -2178,12 +2429,16 @@ components:
           type: string
         latitude:
           type: number
+          description: 'Latitude em graus decimais. Ex.: -23.5505.'
         longitude:
           type: number
+          description: 'Longitude em graus decimais. Ex.: -46.6333.'
         hashTentativaEntrega:
           type: string
         dhHashTentativaEntrega:
           type: string
+          format: date-time
+          description: 'Data e hora. COM offset (2026-08-23T14:05:00-03:00) a entrada é um instante e é convertida para o fuso do documento; SEM offset (2026-08-23T14:05:00) é lida como relógio de parede do emitente e não sofre conversão. Vazio usa o momento da chamada.'
         documentos:
           type: array
           items:
@@ -2191,35 +2446,45 @@ components:
           description: 'chaves de NF-e não entregues'
         nSeqEvento:
           type: integer
+          description: 'Número sequencial do evento para a mesma chave. Começa em 1.'
     CteEventoPrestacaoDesacordo:
       type: object
       description: 'PedidoDesacordo é o corpo de POST /v1/cte/eventos/prestacao-desacordo (tpEvento 610110). Registrado pelo TOMADOR quando a prestação está em desacordo; xObs descreve o motivo.'
       properties:
         xObs:
           type: string
+          description: 'Observação, em texto livre.'
         nSeqEvento:
           type: integer
+          description: 'Número sequencial do evento para a mesma chave. Começa em 1.'
     CteExped:
       type: object
-      description: 'Exped espelha CteSefazExped.'
+      description: 'Expedidor da carga, quando diferente do remetente.'
       properties:
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
         CPF:
           type: string
+          description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
         IE:
           type: string
+          description: 'Inscrição estadual. Use ISENTO quando isento.'
         xNome:
           type: string
+          description: 'Razão social ou nome.'
         fone:
           type: string
+          description: 'Telefone, só dígitos, com DDD.'
         enderExped:
-          $ref: "#/components/schemas/CteEndereco"
+          allOf:
+            - $ref: "#/components/schemas/CteEndereco"
         email:
           type: string
+          description: 'Endereço de e-mail.'
     CteFat:
       type: object
-      description: 'Fat espelha CteSefazFat.'
+      description: 'Fatura.'
       properties:
         nFat:
           type: string
@@ -2227,35 +2492,43 @@ components:
           type: number
         vDesc:
           type: number
+          description: 'Valor do desconto.'
         vLiq:
           type: number
+          description: 'Valor líquido.'
     CteFerroEnv:
       type: object
-      description: 'FerroEnv espelha CteSefazFerroEnv.'
+      description: 'Ferrovia envolvida no tráfego mútuo.'
       properties:
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
         cInt:
           type: string
+          description: 'Código interno de uso do emitente. Não vai no XML.'
         IE:
           type: string
+          description: 'Inscrição estadual. Use ISENTO quando isento.'
         xNome:
           type: string
+          description: 'Razão social ou nome.'
         enderFerro:
-          $ref: "#/components/schemas/CteEnderFer"
+          allOf:
+            - $ref: "#/components/schemas/CteEnderFer"
     CteFerrov:
       type: object
-      description: 'Ferrov espelha CteSefazFerrov.'
+      description: 'Modal ferroviário.'
       properties:
         tpTraf:
           type: integer
         trafMut:
-          $ref: "#/components/schemas/CteTrafMut"
+          allOf:
+            - $ref: "#/components/schemas/CteTrafMut"
         fluxo:
           type: string
     CteFluxo:
       type: object
-      description: 'Fluxo espelha CteSefazFluxo.'
+      description: 'Fluxo da carga: origem, passagens e destino.'
       properties:
         xOrig:
           type: string
@@ -2265,152 +2538,199 @@ components:
             $ref: "#/components/schemas/CtePass"
         xDest:
           type: string
+          description: 'Nome do destinatário.'
         xRota:
           type: string
     CteGCBS:
       type: object
-      description: 'GCBS espelha CteSefazGCBS.'
+      description: 'Grupo da CBS (Reforma Tributária).'
       properties:
         pCBS:
           type: number
         gDif:
-          $ref: "#/components/schemas/CteDif"
+          allOf:
+            - $ref: "#/components/schemas/CteDif"
         gDevTrib:
-          $ref: "#/components/schemas/CteDevTrib"
+          allOf:
+            - $ref: "#/components/schemas/CteDevTrib"
         gRed:
-          $ref: "#/components/schemas/CteRed"
+          allOf:
+            - $ref: "#/components/schemas/CteRed"
         vCBS:
           type: number
     CteGIBSMun:
       type: object
-      description: 'GIBSMun espelha CteSefazGIBSMun.'
+      description: 'IBS devido ao município (Reforma Tributária).'
       properties:
         pIBSMun:
           type: number
         gDif:
-          $ref: "#/components/schemas/CteDif"
+          allOf:
+            - $ref: "#/components/schemas/CteDif"
         gDevTrib:
-          $ref: "#/components/schemas/CteDevTrib"
+          allOf:
+            - $ref: "#/components/schemas/CteDevTrib"
         gRed:
-          $ref: "#/components/schemas/CteRed"
+          allOf:
+            - $ref: "#/components/schemas/CteRed"
         vIBSMun:
           type: number
     CteGIBSUF:
       type: object
-      description: 'GIBSUF espelha CteSefazGIBSUF.'
+      description: 'IBS devido à unidade federativa (Reforma Tributária).'
       properties:
         pIBSUF:
           type: number
         gDif:
-          $ref: "#/components/schemas/CteDif"
+          allOf:
+            - $ref: "#/components/schemas/CteDif"
         gDevTrib:
-          $ref: "#/components/schemas/CteDevTrib"
+          allOf:
+            - $ref: "#/components/schemas/CteDevTrib"
         gRed:
-          $ref: "#/components/schemas/CteRed"
+          allOf:
+            - $ref: "#/components/schemas/CteRed"
         vIBSUF:
           type: number
     CteICMS:
       type: object
-      description: 'ICMS espelha CteSefazImp.'
+      description: 'Grupo do ICMS. Preencha apenas o subgrupo que corresponde ao CST.'
       properties:
         ICMS00:
-          $ref: "#/components/schemas/CteICMS00"
+          allOf:
+            - $ref: "#/components/schemas/CteICMS00"
         ICMS20:
-          $ref: "#/components/schemas/CteICMS20"
+          allOf:
+            - $ref: "#/components/schemas/CteICMS20"
         ICMS45:
-          $ref: "#/components/schemas/CteICMS45"
+          allOf:
+            - $ref: "#/components/schemas/CteICMS45"
         ICMS60:
-          $ref: "#/components/schemas/CteICMS60"
+          allOf:
+            - $ref: "#/components/schemas/CteICMS60"
         ICMS90:
-          $ref: "#/components/schemas/CteICMS90"
+          allOf:
+            - $ref: "#/components/schemas/CteICMS90"
         ICMSOutraUF:
-          $ref: "#/components/schemas/CteICMSOutraUF"
+          allOf:
+            - $ref: "#/components/schemas/CteICMSOutraUF"
         ICMSSN:
-          $ref: "#/components/schemas/CteICMSSN"
+          allOf:
+            - $ref: "#/components/schemas/CteICMSSN"
     CteICMS00:
       type: object
-      description: 'ICMS00 espelha CteSefazICMS00.'
+      description: 'ICMS tributado integralmente (CST 00).'
       properties:
         CST:
           type: string
+          description: 'Código de Situação Tributária.'
         vBC:
           type: number
+          description: 'Valor da base de cálculo.'
         pICMS:
           type: number
+          description: 'Alíquota do ICMS, em percentual.'
         vICMS:
           type: number
+          description: 'Valor do ICMS.'
     CteICMS20:
       type: object
-      description: 'ICMS20 espelha CteSefazICMS20.'
+      description: 'ICMS com redução de base de cálculo (CST 20).'
       properties:
         CST:
           type: string
+          description: 'Código de Situação Tributária.'
         pRedBC:
           type: number
+          description: 'Percentual de redução da base de cálculo.'
         vBC:
           type: number
+          description: 'Valor da base de cálculo.'
         pICMS:
           type: number
+          description: 'Alíquota do ICMS, em percentual.'
         vICMS:
           type: number
+          description: 'Valor do ICMS.'
         vICMSDeson:
           type: number
+          description: 'Valor do ICMS desonerado.'
         cBenef:
           type: string
+          description: 'Código do benefício fiscal na UF.'
     CteICMS45:
       type: object
-      description: 'ICMS45 espelha CteSefazICMS45.'
+      description: 'ICMS isento, não tributado ou diferido (CST 40, 41 ou 51).'
       properties:
         CST:
           type: string
+          description: 'Código de Situação Tributária.'
         vICMSDeson:
           type: number
+          description: 'Valor do ICMS desonerado.'
         cBenef:
           type: string
+          description: 'Código do benefício fiscal na UF.'
     CteICMS60:
       type: object
-      description: 'ICMS60 espelha CteSefazICMS60.'
+      description: 'ICMS cobrado anteriormente por substituição tributária (CST 60).'
       properties:
         CST:
           type: string
+          description: 'Código de Situação Tributária.'
         vBCSTRet:
           type: number
+          description: 'Valor da base de cálculo do ICMS retido por substituição.'
         vICMSSTRet:
           type: number
+          description: 'Valor do ICMS retido por substituição tributária.'
         pICMSSTRet:
           type: number
+          description: 'Alíquota do ICMS retido por substituição tributária.'
         vCred:
           type: number
+          description: 'Valor do crédito presumido.'
         vICMSDeson:
           type: number
+          description: 'Valor do ICMS desonerado.'
         cBenef:
           type: string
+          description: 'Código do benefício fiscal na UF.'
     CteICMS90:
       type: object
-      description: 'ICMS90 espelha CteSefazICMS90.'
+      description: 'ICMS outros (CST 90).'
       properties:
         CST:
           type: string
+          description: 'Código de Situação Tributária.'
         pRedBC:
           type: number
+          description: 'Percentual de redução da base de cálculo.'
         vBC:
           type: number
+          description: 'Valor da base de cálculo.'
         pICMS:
           type: number
+          description: 'Alíquota do ICMS, em percentual.'
         vICMS:
           type: number
+          description: 'Valor do ICMS.'
         vCred:
           type: number
+          description: 'Valor do crédito presumido.'
         vICMSDeson:
           type: number
+          description: 'Valor do ICMS desonerado.'
         cBenef:
           type: string
+          description: 'Código do benefício fiscal na UF.'
     CteICMSOutraUF:
       type: object
-      description: 'ICMSOutraUF espelha CteSefazICMSOutraUF.'
+      description: 'ICMS devido à UF de origem da prestação, quando diferente.'
       properties:
         CST:
           type: string
+          description: 'Código de Situação Tributária.'
         pRedBCOutraUF:
           type: number
         vBCOutraUF:
@@ -2421,19 +2741,22 @@ components:
           type: number
         vICMSDeson:
           type: number
+          description: 'Valor do ICMS desonerado.'
         cBenef:
           type: string
+          description: 'Código do benefício fiscal na UF.'
     CteICMSSN:
       type: object
-      description: 'ICMSSN espelha CteSefazICMSSN.'
+      description: 'ICMS do Simples Nacional. Só indica a condição, sem cálculo.'
       properties:
         CST:
           type: string
+          description: 'Código de Situação Tributária.'
         indSN:
           type: integer
     CteICMSUFFim:
       type: object
-      description: 'ICMSUFFim espelha CteSefazICMSUFFim.'
+      description: 'Partilha do ICMS devido à UF de término da prestação (EC 87/15).'
       properties:
         vBCUFFim:
           type: number
@@ -2451,7 +2774,7 @@ components:
           type: number
     CteIdDocAnt:
       type: object
-      description: 'IdDocAnt espelha CteSefazIdDocAnt.'
+      description: 'Identificação dos documentos anteriores.'
       properties:
         idDocAntPap:
           type: array
@@ -2463,156 +2786,217 @@ components:
             $ref: "#/components/schemas/CteIdDocAntEle"
     CteIdDocAntEle:
       type: object
-      description: 'IdDocAntEle espelha CteSefazIdDocAntEle.'
+      description: 'Documento anterior eletrônico, identificado pela chave.'
       properties:
         chCTe:
           type: string
+          description: 'Chave de acesso do CT-e, 44 dígitos.'
     CteIdDocAntPap:
       type: object
-      description: 'IdDocAntPap espelha CteSefazIdDocAntPap.'
+      description: 'Documento anterior em papel, identificado por série e número.'
       properties:
         tpDoc:
           type: string
+          description: 'Tipo do documento.'
         serie:
           type: string
+          description: 'Série do documento.'
         subser:
           type: string
         nDoc:
           type: string
+          description: 'Número do documento.'
         dEmi:
           type: string
+          format: date
+          description: 'Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
     CteIde:
       type: object
-      description: 'Ide espelha CteSefazIde.'
+      description: 'Identificação do documento: numeração, datas, tipo de emissão, municípios e modal.'
       properties:
         cUF:
           type: integer
+          description: 'Código IBGE da unidade federativa, 2 dígitos.'
         cCT:
           type: string
+          description: 'Código numérico aleatório que compõe a chave. A lib gera se ausente.'
         CFOP:
           type: string
+          description: 'Código Fiscal de Operações e Prestações, 4 dígitos.'
         natOp:
           type: string
+          description: 'Natureza da operação, em texto livre.'
         mod:
           type: integer
+          enum: [57, 64, 67]
+          description: 'Valores: 57 = CT-e; 64 = GTV-e; 67 = CT-e OS (Outros Serviços).'
         serie:
           type: integer
+          description: 'Série do documento.'
         nCT:
           type: integer
+          description: 'Número do CT-e.'
         dhEmi:
           type: string
+          format: date-time
+          description: 'Data e hora. COM offset (2026-08-23T14:05:00-03:00) a entrada é um instante e é convertida para o fuso do documento; SEM offset (2026-08-23T14:05:00) é lida como relógio de parede do emitente e não sofre conversão. Vazio usa o momento da chamada.'
         tpImp:
           type: integer
+          enum: [1, 2]
+          description: 'Valores: 1 = Retrato; 2 = Paisagem.'
         tpEmis:
           type: integer
+          enum: [1, 3, 4, 5, 7, 8]
+          description: 'Valores: 1 = Normal; 3 = Regime Especial NFF; 4 = EPEC pela SVC; 5 = Contingência FSDA; 7 = Autorização pela SVC-RS; 8 = Autorização pela SVC-SP.'
         cDV:
           type: integer
+          description: 'Dígito verificador da chave de acesso. A lib calcula se ausente.'
         tpAmb:
           type: integer
+          enum: [1, 2]
+          description: 'Valores: 1 = Produção; 2 = Homologação.'
         tpCTe:
           type: integer
+          enum: [0, 1, 3]
+          description: 'TpCTe não tem mais o valor 2 (Anulação): o CT-e de Anulação saiu do layout na versão 4.00, e o ACBr só gera o grupo infCteAnu para VersaoDF <= 3.00 (pcteCTeW.pas:3309). Quem vem da 3.00 usa o CT-e Substituto (valor 3). Valores: 0 = Normal; 1 = Complemento de valores; 3 = Substituto.'
         procEmi:
           type: integer
+          description: 'Identificador do processo de emissão. 0 = aplicativo do contribuinte.'
         verProc:
           type: string
+          description: 'Versão do aplicativo emissor.'
         indGlobalizado:
           type: integer
         cMunEnv:
           type: string
+          description: 'Código IBGE do município de envio, 7 dígitos.'
         xMunEnv:
           type: string
+          description: 'Nome do município de envio.'
         UFEnv:
           type: string
+          description: 'Sigla da UF de envio.'
         modal:
           type: string
+          enum: ["01", "02", "03", "04", "05", "06"]
+          description: 'Valores: 01 = Rodoviário; 02 = Aéreo; 03 = Aquaviário; 04 = Ferroviário; 05 = Dutoviário; 06 = Multimodal.'
         tpServ:
           type: integer
+          enum: [0, 1, 2, 3, 4, 6, 7, 8, 9]
+          description: 'Valores: 0 = Normal; 1 = Subcontratação; 2 = Redespacho; 3 = Redespacho intermediário; 4 = Serviço vinculado a multimodal; 6 = Transporte de pessoas; 7 = Transporte de valores; 8 = Excesso de bagagem; 9 = GTV.'
         cMunIni:
           type: string
+          description: 'Código IBGE do município de início da prestação.'
         xMunIni:
           type: string
+          description: 'Nome do município de início da prestação.'
         UFIni:
           type: string
+          description: 'Sigla da UF de início da prestação.'
         cMunFim:
           type: string
+          description: 'Código IBGE do município de fim da prestação.'
         xMunFim:
           type: string
+          description: 'Nome do município de fim da prestação.'
         UFFim:
           type: string
+          description: 'Sigla da UF de fim da prestação.'
         retira:
           type: integer
+          enum: [0, 1]
+          description: 'Valores: 0 = Sim; 1 = Não.'
         xDetRetira:
           type: string
         indIEToma:
           type: integer
+          description: 'Indicador da inscrição estadual do tomador.'
         toma3:
-          $ref: "#/components/schemas/CteToma3"
+          allOf:
+            - $ref: "#/components/schemas/CteToma3"
         toma4:
-          $ref: "#/components/schemas/CteToma4"
+          allOf:
+            - $ref: "#/components/schemas/CteToma4"
         dhCont:
           type: string
         xJust:
           type: string
+          description: 'Justificativa. Mínimo de 15 caracteres.'
         gCompraGov:
-          $ref: "#/components/schemas/CteCompraGovReduzido"
+          allOf:
+            - $ref: "#/components/schemas/CteCompraGovReduzido"
     CteImp:
       type: object
-      description: 'Imp espelha CteSefazInfCte_Imp.'
+      description: 'Tributos incidentes sobre a prestação.'
       properties:
         ICMS:
-          $ref: "#/components/schemas/CteICMS"
+          allOf:
+            - $ref: "#/components/schemas/CteICMS"
         vTotTrib:
           type: number
+          description: 'Valor total dos tributos.'
         infAdFisco:
           type: string
+          description: 'Informações adicionais de interesse do fisco.'
         ICMSUFFim:
-          $ref: "#/components/schemas/CteICMSUFFim"
+          allOf:
+            - $ref: "#/components/schemas/CteICMSUFFim"
         IBSCBS:
-          $ref: "#/components/schemas/CteTribCTe"
+          allOf:
+            - $ref: "#/components/schemas/CteTribCTe"
         vTotDFe:
           type: number
     CteInfCTeMultimodal:
       type: object
-      description: 'InfCTeMultimodal espelha CteSefazInfCTeMultimodal.'
+      description: 'Dados do CT-e multimodal vinculado.'
       properties:
         chCTeMultimodal:
           type: string
     CteInfCTeNorm:
       type: object
-      description: 'InfCTeNorm espelha CteSefazInfCTeNorm.'
+      description: 'Grupo do CT-e Normal. Preenchido quando ide.tpCTe = 0.'
       properties:
         infCarga:
-          $ref: "#/components/schemas/CteInfCarga"
+          allOf:
+            - $ref: "#/components/schemas/CteInfCarga"
         infDoc:
-          $ref: "#/components/schemas/CteInfDoc"
+          allOf:
+            - $ref: "#/components/schemas/CteInfDoc"
         docAnt:
-          $ref: "#/components/schemas/CteDocAnt"
+          allOf:
+            - $ref: "#/components/schemas/CteDocAnt"
         infModal:
-          $ref: "#/components/schemas/CteInfModal"
+          allOf:
+            - $ref: "#/components/schemas/CteInfModal"
         veicNovos:
           type: array
           items:
             $ref: "#/components/schemas/CteVeicNovos"
         cobr:
-          $ref: "#/components/schemas/CteCobr"
+          allOf:
+            - $ref: "#/components/schemas/CteCobr"
         infCteSub:
-          $ref: "#/components/schemas/CteInfCteSub"
+          allOf:
+            - $ref: "#/components/schemas/CteInfCteSub"
         infGlobalizado:
-          $ref: "#/components/schemas/CteInfGlobalizado"
+          allOf:
+            - $ref: "#/components/schemas/CteInfGlobalizado"
         infServVinc:
-          $ref: "#/components/schemas/CteInfServVinc"
+          allOf:
+            - $ref: "#/components/schemas/CteInfServVinc"
     CteInfCTeSupl:
       type: object
-      description: 'InfCTeSupl espelha CteSefazInfCTeSupl.'
+      description: 'Informações suplementares: o QR Code, gerado pela biblioteca.'
       properties:
         qrCodCTe:
           type: string
     CteInfCarga:
       type: object
-      description: 'InfCarga espelha CteSefazInfCarga.'
+      description: 'Informações da carga transportada.'
       properties:
         vCarga:
           type: number
+          description: 'Valor total da carga.'
         proPred:
           type: string
         xOutCat:
@@ -2625,32 +3009,45 @@ components:
           type: number
     CteInfCte:
       type: object
-      description: 'InfCte espelha CteSefazInfCte.'
+      description: 'Corpo do CT-e: identificação, partes, valores, tributos e o grupo do tipo de CT-e.'
       properties:
         versao:
           type: string
+          description: 'Versão do layout do documento.'
         Id:
           type: string
+          description: 'Identificador do grupo, montado pela lib a partir da chave.'
         ide:
-          $ref: "#/components/schemas/CteIde"
+          allOf:
+            - $ref: "#/components/schemas/CteIde"
         compl:
-          $ref: "#/components/schemas/CteCompl"
+          allOf:
+            - $ref: "#/components/schemas/CteCompl"
         emit:
-          $ref: "#/components/schemas/CteEmit"
+          allOf:
+            - $ref: "#/components/schemas/CteEmit"
         rem:
-          $ref: "#/components/schemas/CteRem"
+          allOf:
+            - $ref: "#/components/schemas/CteRem"
         exped:
-          $ref: "#/components/schemas/CteExped"
+          allOf:
+            - $ref: "#/components/schemas/CteExped"
         receb:
-          $ref: "#/components/schemas/CteReceb"
+          allOf:
+            - $ref: "#/components/schemas/CteReceb"
         dest:
-          $ref: "#/components/schemas/CteDest"
+          allOf:
+            - $ref: "#/components/schemas/CteDest"
         vPrest:
-          $ref: "#/components/schemas/CteVPrest"
+          description: 'Grupo de valores da prestação de serviço.'
+          allOf:
+            - $ref: "#/components/schemas/CteVPrest"
         imp:
-          $ref: "#/components/schemas/CteImp"
+          allOf:
+            - $ref: "#/components/schemas/CteImp"
         infCTeNorm:
-          $ref: "#/components/schemas/CteInfCTeNorm"
+          allOf:
+            - $ref: "#/components/schemas/CteInfCTeNorm"
         infCteComp:
           type: array
           items:
@@ -2659,53 +3056,71 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CteAutXML"
+          description: 'CNPJ ou CPF autorizados a baixar o XML do documento.'
         infRespTec:
-          $ref: "#/components/schemas/CteRespTec"
+          allOf:
+            - $ref: "#/components/schemas/CteRespTec"
         infSolicNFF:
-          $ref: "#/components/schemas/CteInfSolicNFF"
+          allOf:
+            - $ref: "#/components/schemas/CteInfSolicNFF"
     CteInfCteComp:
       type: object
-      description: 'InfCteComp espelha CteSefazInfCteComp.'
+      description: 'Grupo do CT-e de Complemento de valores. Preenchido quando ide.tpCTe = 1.'
       properties:
         chCTe:
           type: string
+          description: 'Chave de acesso do CT-e, 44 dígitos.'
     CteInfCteSimp:
       type: object
       description: 'InfCteSimp é o corpo do CT-e Simplificado.'
       properties:
         versao:
           type: string
+          description: 'Versão do layout do documento.'
         Id:
           type: string
+          description: 'Identificador do grupo, montado pela lib a partir da chave.'
         ide:
-          $ref: "#/components/schemas/CteIde"
+          allOf:
+            - $ref: "#/components/schemas/CteIde"
         compl:
-          $ref: "#/components/schemas/CteCompl"
+          allOf:
+            - $ref: "#/components/schemas/CteCompl"
         emit:
-          $ref: "#/components/schemas/CteEmit"
+          allOf:
+            - $ref: "#/components/schemas/CteEmit"
         toma:
-          $ref: "#/components/schemas/CteToma"
+          description: 'Valores: 0 = Remetente; 1 = Expedidor; 2 = Recebedor; 3 = Destinatário.'
+          allOf:
+            - $ref: "#/components/schemas/CteToma"
         infCarga:
-          $ref: "#/components/schemas/CteInfCarga"
+          allOf:
+            - $ref: "#/components/schemas/CteInfCarga"
         det:
           type: array
           items:
             $ref: "#/components/schemas/CteDet"
         imp:
-          $ref: "#/components/schemas/CteImp"
+          allOf:
+            - $ref: "#/components/schemas/CteImp"
         infModal:
-          $ref: "#/components/schemas/CteInfModal"
+          allOf:
+            - $ref: "#/components/schemas/CteInfModal"
         cobr:
-          $ref: "#/components/schemas/CteCobr"
+          allOf:
+            - $ref: "#/components/schemas/CteCobr"
         infCteSub:
-          $ref: "#/components/schemas/CteInfCteSub"
+          allOf:
+            - $ref: "#/components/schemas/CteInfCteSub"
         total:
-          $ref: "#/components/schemas/CteTotal"
+          allOf:
+            - $ref: "#/components/schemas/CteTotal"
         infRespTec:
-          $ref: "#/components/schemas/CteRespTec"
+          allOf:
+            - $ref: "#/components/schemas/CteRespTec"
     CteInfCteSub:
       type: object
-      description: 'InfCteSub espelha CteSefazInfCteSub.'
+      description: 'Grupo do CT-e Substituto. Preenchido quando ide.tpCTe = 3.'
       properties:
         chCte:
           type: string
@@ -2713,22 +3128,25 @@ components:
           type: integer
     CteInfDCe:
       type: object
-      description: 'InfDCe espelha CteSefazInfDCe.'
+      description: 'Declaração de Conteúdo eletrônica vinculada.'
       properties:
         chave:
           type: string
+          description: 'Chave de acesso do documento, 44 dígitos.'
     CteInfDoc:
       type: object
-      description: 'InfDoc espelha CteSefazInfDoc.'
+      description: 'Documentos fiscais vinculados à carga.'
       properties:
         infNF:
           type: array
           items:
             $ref: "#/components/schemas/CteInfNF"
+          description: 'Notas fiscais em papel vinculadas ao documento.'
         infNFe:
           type: array
           items:
             $ref: "#/components/schemas/CteInfNFe"
+          description: 'Notas fiscais eletrônicas vinculadas ao documento.'
         infOutros:
           type: array
           items:
@@ -2739,48 +3157,66 @@ components:
             $ref: "#/components/schemas/CteInfDCe"
     CteInfGlobalizado:
       type: object
-      description: 'InfGlobalizado espelha CteSefazInfGlobalizado.'
+      description: 'Informações do CT-e Globalizado.'
       properties:
         xObs:
           type: string
+          description: 'Observação, em texto livre.'
     CteInfModal:
       type: object
-      description: 'InfModal espelha CteSefazInfModal.'
+      description: 'Grupo do modal. Preencha apenas o modal declarado em ide.modal.'
       properties:
         versaoModal:
           type: string
+          description: 'Versão do leiaute do grupo do modal.'
         rodo:
-          $ref: "#/components/schemas/CteRodo"
+          allOf:
+            - $ref: "#/components/schemas/CteRodo"
         aereo:
-          $ref: "#/components/schemas/CteAereo"
+          allOf:
+            - $ref: "#/components/schemas/CteAereo"
         ferrov:
-          $ref: "#/components/schemas/CteFerrov"
+          allOf:
+            - $ref: "#/components/schemas/CteFerrov"
         aquav:
-          $ref: "#/components/schemas/CteAquav"
+          allOf:
+            - $ref: "#/components/schemas/CteAquav"
         duto:
-          $ref: "#/components/schemas/CteDuto"
+          allOf:
+            - $ref: "#/components/schemas/CteDuto"
         multimodal:
-          $ref: "#/components/schemas/CteMultimodal"
+          allOf:
+            - $ref: "#/components/schemas/CteMultimodal"
     CteInfNF:
       type: object
-      description: 'InfNF espelha CteSefazInfNF.'
+      description: 'Nota fiscal em papel vinculada.'
       properties:
         nRoma:
           type: string
+          description: 'Número do romaneio.'
         nPed:
           type: string
+          description: 'Número do pedido.'
         mod:
           type: string
+          enum: ["57", "64", "67"]
+          description: 'Valores: 57 = CT-e; 64 = GTV-e; 67 = CT-e OS (Outros Serviços).'
         serie:
           type: string
+          description: 'Série do documento.'
         nDoc:
           type: string
+          description: 'Número do documento.'
         dEmi:
           type: string
+          format: date
+          description: 'Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
         vBC:
           type: number
+          description: 'Valor da base de cálculo.'
         vICMS:
           type: number
+          description: 'Valor do ICMS.'
         vBCST:
           type: number
         vST:
@@ -2795,79 +3231,102 @@ components:
           type: number
         PIN:
           type: string
+          description: 'PIN SUFRAMA, quando aplicável.'
         dPrev:
           type: string
+          format: date
+          description: 'Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
         infUnidCarga:
           type: array
           items:
             $ref: "#/components/schemas/CteUnidCarga"
+          description: 'Unidades de carga (contêiner, pallet) transportadas.'
         infUnidTransp:
           type: array
           items:
             $ref: "#/components/schemas/CteUnidadeTransp"
+          description: 'Unidades de transporte (carreta, reboque, vagão) que compõem o veículo.'
     CteInfNFe:
       type: object
-      description: 'InfNFe espelha CteSefazInfNFe.'
+      description: 'Nota fiscal eletrônica vinculada.'
       properties:
         chave:
           type: string
+          description: 'Chave de acesso do documento, 44 dígitos.'
         PIN:
           type: string
+          description: 'PIN SUFRAMA, quando aplicável.'
         dPrev:
           type: string
+          format: date
+          description: 'Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
         infUnidCarga:
           type: array
           items:
             $ref: "#/components/schemas/CteUnidCarga"
+          description: 'Unidades de carga (contêiner, pallet) transportadas.'
         infUnidTransp:
           type: array
           items:
             $ref: "#/components/schemas/CteUnidadeTransp"
+          description: 'Unidades de transporte (carreta, reboque, vagão) que compõem o veículo.'
     CteInfOutros:
       type: object
-      description: 'InfOutros espelha CteSefazInfOutros.'
+      description: 'Outro documento vinculado.'
       properties:
         tpDoc:
           type: string
+          description: 'Tipo do documento.'
         descOutros:
           type: string
         nDoc:
           type: string
+          description: 'Número do documento.'
         dEmi:
           type: string
+          format: date
+          description: 'Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
         vDocFisc:
           type: number
         dPrev:
           type: string
+          format: date
+          description: 'Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
         infUnidCarga:
           type: array
           items:
             $ref: "#/components/schemas/CteUnidCarga"
+          description: 'Unidades de carga (contêiner, pallet) transportadas.'
         infUnidTransp:
           type: array
           items:
             $ref: "#/components/schemas/CteUnidadeTransp"
+          description: 'Unidades de transporte (carreta, reboque, vagão) que compõem o veículo.'
     CteInfQ:
       type: object
-      description: 'InfQ espelha CteSefazInfQ.'
+      description: 'Quantidades da carga, por unidade de medida.'
       properties:
         cUnid:
           type: string
+          description: 'Código da unidade de medida.'
         tpMed:
           type: string
         qCarga:
           type: number
+          description: 'Quantidade da carga.'
     CteInfSeg:
       type: object
-      description: 'InfSeg espelha CteSefazInfSeg.'
+      description: 'Dados da seguradora.'
       properties:
         xSeg:
           type: string
+          description: 'Nome da seguradora.'
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
     CteInfServVinc:
       type: object
-      description: 'InfServVinc espelha CteSefazInfServVinc.'
+      description: 'Serviços vinculados a um multimodal.'
       properties:
         infCTeMultimodal:
           type: array
@@ -2875,49 +3334,55 @@ components:
             $ref: "#/components/schemas/CteInfCTeMultimodal"
     CteInfSolicNFF:
       type: object
-      description: 'InfSolicNFF espelha CteSefazInfSolicNFF.'
+      description: 'Dados da solicitação da Nota Fiscal Fácil.'
       properties:
         xSolic:
           type: string
+          description: 'Nome do solicitante.'
     CteInfTotAP:
       type: object
-      description: 'InfTotAP espelha CteSefazInfTotAP.'
+      description: 'Total aproximado dos tributos.'
       properties:
         qTotProd:
           type: number
+          description: 'Quantidade total do produto.'
         uniAP:
           type: integer
     CteLacUnidCarga:
       type: object
-      description: 'LacUnidCarga espelha CteSefazLacUnidCarga.'
+      description: 'Lacre da unidade de carga.'
       properties:
         nLacre:
           type: string
+          description: 'Número do lacre.'
     CteLacUnidTransp:
       type: object
-      description: 'LacUnidTransp espelha CteSefazLacUnidTransp.'
+      description: 'Lacre da unidade de transporte.'
       properties:
         nLacre:
           type: string
+          description: 'Número do lacre.'
     CteLacre:
       type: object
-      description: 'Lacre espelha CteSefazLacre.'
+      description: 'Lacre aplicado à unidade.'
       properties:
         nLacre:
           type: string
+          description: 'Número do lacre.'
     CteMultimodal:
       type: object
-      description: 'Multimodal espelha CteSefazMultimodal.'
+      description: 'Modal multimodal.'
       properties:
         COTM:
           type: string
         indNegociavel:
           type: integer
         seg:
-          $ref: "#/components/schemas/CteSeg"
+          allOf:
+            - $ref: "#/components/schemas/CteSeg"
     CteNatCarga:
       type: object
-      description: 'NatCarga espelha CteSefazNatCarga.'
+      description: 'Natureza da carga: peso, valor e características.'
       properties:
         xDime:
           type: string
@@ -2927,89 +3392,110 @@ components:
             type: string
     CteNoInter:
       type: object
-      description: 'NoInter espelha CteSefazNoInter.'
+      description: 'Entrega dentro de um intervalo de horas.'
       properties:
         tpHor:
           type: integer
+          description: 'Tipo de horário de entrega.'
         hIni:
           type: string
         hFim:
           type: string
     CteNoPeriodo:
       type: object
-      description: 'NoPeriodo espelha CteSefazNoPeriodo.'
+      description: 'Entrega dentro de um período.'
       properties:
         tpPer:
           type: integer
+          description: 'Tipo de período de entrega.'
         dIni:
           type: string
+          description: 'Data inicial do período.'
         dFim:
           type: string
+          description: 'Data final do período.'
     CteObsCont:
       type: object
-      description: 'ObsCont espelha CteSefazObsCont.'
+      description: 'Observação de uso livre do contribuinte. Não é validada pelo fisco.'
       properties:
         xCampo:
           type: string
+          description: 'Nome do campo de informação adicional.'
         xTexto:
           type: string
+          description: 'Conteúdo do campo de informação adicional.'
     CteObsFisco:
       type: object
-      description: 'ObsFisco espelha CteSefazObsFisco.'
+      description: 'Observação de interesse do fisco.'
       properties:
         xCampo:
           type: string
+          description: 'Nome do campo de informação adicional.'
         xTexto:
           type: string
+          description: 'Conteúdo do campo de informação adicional.'
     CteOcc:
       type: object
-      description: 'Occ espelha CteSefazOcc.'
+      description: 'Ordem de Coleta de Carga.'
       properties:
         serie:
           type: string
+          description: 'Série do documento.'
         nOcc:
           type: integer
         dEmi:
           type: string
+          format: date
+          description: 'Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
         emiOcc:
-          $ref: "#/components/schemas/CteEmiOcc"
+          allOf:
+            - $ref: "#/components/schemas/CteEmiOcc"
     CtePass:
       type: object
-      description: 'Pass espelha CteSefazPass.'
+      description: 'Ponto de passagem da carga.'
       properties:
         xPass:
           type: string
     CtePeri:
       type: object
-      description: 'Peri espelha CteSefazPeri.'
+      description: 'Produtos perigosos, conforme a resolução da ANTT.'
       properties:
         nONU:
           type: string
+          description: 'Número ONU do produto perigoso, 4 dígitos.'
         qTotEmb:
           type: string
         infTotAP:
-          $ref: "#/components/schemas/CteInfTotAP"
+          allOf:
+            - $ref: "#/components/schemas/CteInfTotAP"
     CteReceb:
       type: object
-      description: 'Receb espelha CteSefazReceb.'
+      description: 'Recebedor da carga, quando diferente do destinatário.'
       properties:
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
         CPF:
           type: string
+          description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
         IE:
           type: string
+          description: 'Inscrição estadual. Use ISENTO quando isento.'
         xNome:
           type: string
+          description: 'Razão social ou nome.'
         fone:
           type: string
+          description: 'Telefone, só dígitos, com DDD.'
         enderReceb:
-          $ref: "#/components/schemas/CteEndereco"
+          allOf:
+            - $ref: "#/components/schemas/CteEndereco"
         email:
           type: string
+          description: 'Endereço de e-mail.'
     CteRed:
       type: object
-      description: 'Red espelha CteSefazRed.'
+      description: 'Redespacho no modal ferroviário.'
       properties:
         pRedAliq:
           type: number
@@ -3017,77 +3503,98 @@ components:
           type: number
     CteRem:
       type: object
-      description: 'Rem espelha CteSefazRem.'
+      description: 'Remetente da carga.'
       properties:
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
         CPF:
           type: string
+          description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
         IE:
           type: string
+          description: 'Inscrição estadual. Use ISENTO quando isento.'
         xNome:
           type: string
+          description: 'Razão social ou nome.'
         xFant:
           type: string
+          description: 'Nome fantasia.'
         fone:
           type: string
+          description: 'Telefone, só dígitos, com DDD.'
         enderReme:
-          $ref: "#/components/schemas/CteEndereco"
+          allOf:
+            - $ref: "#/components/schemas/CteEndereco"
         email:
           type: string
+          description: 'Endereço de e-mail.'
     CteRespTec:
       type: object
-      description: 'RespTec espelha CteSefazRespTec.'
+      description: 'Responsável técnico pelo sistema emissor.'
       properties:
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
         xContato:
           type: string
+          description: 'Nome da pessoa de contato.'
         email:
           type: string
+          description: 'Endereço de e-mail.'
         fone:
           type: string
+          description: 'Telefone, só dígitos, com DDD.'
         idCSRT:
           type: integer
+          description: 'Identificador do Código de Segurança do Responsável Técnico.'
         CSRT:
           type: string
+          description: 'Código de Segurança do Responsável Técnico.'
         hashCSRT:
           type: string
+          description: 'Hash do CSRT, calculado pela lib.'
     CteRodo:
       type: object
-      description: 'Rodo espelha CteSefazRodo.'
+      description: 'Modal rodoviário.'
       properties:
         RNTRC:
           type: string
+          description: 'Registro Nacional de Transportadores Rodoviários de Carga.'
         occ:
           type: array
           items:
             $ref: "#/components/schemas/CteOcc"
     CteSeg:
       type: object
-      description: 'Seg espelha CteSefazSeg.'
+      description: 'Seguro da carga.'
       properties:
         infSeg:
-          $ref: "#/components/schemas/CteInfSeg"
+          allOf:
+            - $ref: "#/components/schemas/CteInfSeg"
         nApol:
           type: string
+          description: 'Número da apólice de seguro.'
         nAver:
           type: string
+          description: 'Número da averbação do seguro.'
     CteSemData:
       type: object
-      description: 'SemData espelha CteSefazSemData.'
+      description: 'Entrega sem data definida.'
       properties:
         tpPer:
           type: integer
+          description: 'Tipo de período de entrega.'
     CteSemHora:
       type: object
-      description: 'SemHora espelha CteSefazSemHora.'
+      description: 'Entrega sem hora definida.'
       properties:
         tpHor:
           type: integer
+          description: 'Tipo de horário de entrega.'
     CteTarifa:
       type: object
-      description: 'Tarifa espelha CteSefazTarifa.'
+      description: 'Tarifa aplicada no modal aéreo.'
       properties:
         CL:
           type: string
@@ -3095,84 +3602,114 @@ components:
           type: string
         vTar:
           type: number
+          description: 'Valor da tarifa.'
     CteToma:
       type: object
       description: 'Toma é o tomador único do CT-e Simplificado/OS (seção [toma]).'
       properties:
         toma:
           type: integer
+          enum: [0, 1, 2, 3]
+          description: 'Valores: 0 = Remetente; 1 = Expedidor; 2 = Recebedor; 3 = Destinatário.'
         indIEToma:
           type: integer
+          description: 'Indicador da inscrição estadual do tomador.'
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
         CPF:
           type: string
+          description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
         IE:
           type: string
+          description: 'Inscrição estadual. Use ISENTO quando isento.'
         xNome:
           type: string
+          description: 'Razão social ou nome.'
         xFant:
           type: string
+          description: 'Nome fantasia.'
         ISUF:
           type: string
+          description: 'Inscrição na SUFRAMA.'
         email:
           type: string
+          description: 'Endereço de e-mail.'
         fone:
           type: string
+          description: 'Telefone, só dígitos, com DDD.'
         enderToma:
-          $ref: "#/components/schemas/CteEndereco"
+          allOf:
+            - $ref: "#/components/schemas/CteEndereco"
     CteToma3:
       type: object
-      description: 'Toma3 espelha CteSefazToma3.'
+      description: 'Toma3 identifica o tomador quando ele JÁ é uma das partes do documento. Exclusivo com toma4: informe um ou outro, nunca os dois.'
       properties:
         toma:
           type: integer
+          enum: [0, 1, 2, 3]
+          description: 'qual das partes do documento é o tomador Valores: 0 = Remetente; 1 = Expedidor; 2 = Recebedor; 3 = Destinatário.'
     CteToma4:
       type: object
-      description: 'Toma4 espelha CteSefazToma4.'
+      description: 'Toma4 identifica o tomador quando ele NÃO é nenhuma das partes do documento. Por isso toma é sempre 4 (Outros) e os dados dele vêm aqui. Exclusivo com toma3: informe um ou outro, nunca os dois.'
       properties:
         toma:
           type: integer
+          enum: [4]
+          description: 'sempre 4; o tomador é um terceiro Valores: 4 = Outros.'
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
         CPF:
           type: string
+          description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
         IE:
           type: string
+          description: 'Inscrição estadual. Use ISENTO quando isento.'
         xNome:
           type: string
+          description: 'Razão social ou nome.'
         xFant:
           type: string
+          description: 'Nome fantasia.'
         fone:
           type: string
+          description: 'Telefone, só dígitos, com DDD.'
         enderToma:
-          $ref: "#/components/schemas/CteEndereco"
+          allOf:
+            - $ref: "#/components/schemas/CteEndereco"
         email:
           type: string
+          description: 'Endereço de e-mail.'
     CteTomadorEPEC:
       type: object
       description: 'TomadorEPEC é a seção [TOMADOR] do EPEC.'
       properties:
         toma:
           type: string
-          description: 'default 1'
+          enum: ["0", "1", "2", "3"]
+          description: 'default 1 Valores: 0 = Remetente; 1 = Expedidor; 2 = Recebedor; 3 = Destinatário.'
         UF:
           type: string
+          description: 'Sigla da unidade federativa, duas letras.'
         CNPJCPF:
           type: string
+          description: 'CNPJ (14 dígitos) ou CPF (11 dígitos). Aceita com ou sem máscara.'
         IE:
           type: string
+          description: 'Inscrição estadual. Use ISENTO quando isento.'
     CteTotal:
       type: object
       description: 'Total são os totais do CT-e Simplificado (seção [total]).'
       properties:
         vTPrest:
           type: number
+          description: 'Valor total da prestação do serviço.'
         vTRec:
           type: number
     CteTrafMut:
       type: object
-      description: 'TrafMut espelha CteSefazTrafMut.'
+      description: 'Tráfego mútuo entre ferrovias.'
       properties:
         respFat:
           type: integer
@@ -3180,6 +3717,7 @@ components:
           type: integer
         vFrete:
           type: number
+          description: 'Valor do frete.'
         chCTeFerroOrigem:
           type: string
         ferroEnv:
@@ -3192,23 +3730,28 @@ components:
       properties:
         chNFe:
           type: string
+          description: 'Chave de acesso da NF-e, 44 dígitos.'
     CteTribCTe:
       type: object
-      description: 'TribCTe espelha CteSefazTribCTe.'
+      description: 'Tributação do CT-e na Reforma Tributária.'
       properties:
         CST:
           type: string
+          description: 'Código de Situação Tributária.'
         cClassTrib:
           type: string
+          description: 'Código de classificação tributária (Reforma Tributária).'
         indDoacao:
           type: integer
         gIBSCBS:
-          $ref: "#/components/schemas/CteCIBS"
+          allOf:
+            - $ref: "#/components/schemas/CteCIBS"
         gEstornoCred:
-          $ref: "#/components/schemas/CteEstornoCred"
+          allOf:
+            - $ref: "#/components/schemas/CteEstornoCred"
     CteTribCompraGov:
       type: object
-      description: 'TribCompraGov espelha CteSefazTribCompraGov.'
+      description: 'Tributação em compra governamental.'
       properties:
         pAliqIBSUF:
           type: number
@@ -3224,12 +3767,14 @@ components:
           type: number
     CteTribRegular:
       type: object
-      description: 'TribRegular espelha CteSefazTribRegular.'
+      description: 'Tributação regular, quando há regime diferenciado.'
       properties:
         CSTReg:
           type: string
+          description: 'CST do regime específico (Reforma Tributária).'
         cClassTribReg:
           type: string
+          description: 'Classificação tributária do regime específico (Reforma Tributária).'
         pAliqEfetRegIBSUF:
           type: number
         vTribRegIBSUF:
@@ -3244,51 +3789,63 @@ components:
           type: number
     CteUnidCarga:
       type: object
-      description: 'UnidCarga espelha CteSefazUnidCarga.'
+      description: 'Unidade de carga: contêiner, pallet ou similar.'
       properties:
         tpUnidCarga:
           type: integer
+          description: 'Tipo da unidade de carga.'
         idUnidCarga:
           type: string
+          description: 'Identificação da unidade de carga, normalmente o número do contêiner.'
         lacUnidCarga:
           type: array
           items:
             $ref: "#/components/schemas/CteLacUnidCarga"
+          description: 'Lacres da unidade de carga.'
         qtdRat:
           type: number
+          description: 'Quantidade rateada nesta unidade.'
     CteUnidadeTransp:
       type: object
-      description: 'UnidadeTransp espelha CteSefazUnidadeTransp.'
+      description: 'Unidade de transporte: carreta, reboque ou vagão.'
       properties:
         tpUnidTransp:
           type: integer
+          description: 'Tipo da unidade de transporte.'
         idUnidTransp:
           type: string
+          description: 'Identificação da unidade de transporte, normalmente a placa.'
         lacUnidTransp:
           type: array
           items:
             $ref: "#/components/schemas/CteLacUnidTransp"
+          description: 'Lacres da unidade de transporte.'
         infUnidCarga:
           type: array
           items:
             $ref: "#/components/schemas/CteUnidCarga"
+          description: 'Unidades de carga (contêiner, pallet) transportadas.'
         qtdRat:
           type: number
+          description: 'Quantidade rateada nesta unidade.'
     CteVPrest:
       type: object
-      description: 'VPrest espelha CteSefazVPrest.'
+      description: 'Valores da prestação de serviço.'
       properties:
         vTPrest:
           type: number
+          description: 'Valor total da prestação do serviço.'
         vRec:
           type: number
+          description: 'Valor a receber pela prestação.'
         Comp:
           type: array
           items:
             $ref: "#/components/schemas/CteComp"
+          description: 'Componentes que somam o valor.'
     CteVeicNovos:
       type: object
-      description: 'VeicNovos espelha CteSefazVeicNovos.'
+      description: 'Veículos novos transportados, quando é o caso.'
       properties:
         chassi:
           type: string
@@ -3302,9 +3859,10 @@ components:
           type: number
         vFrete:
           type: number
+          description: 'Valor do frete.'
     MdfeAereo:
       type: object
-      description: 'Aereo espelha MdfeSefazAereo.'
+      description: 'Modal aéreo.'
       properties:
         nac:
           type: string
@@ -3320,26 +3878,35 @@ components:
           type: string
     MdfeAquav:
       type: object
-      description: 'Aquav espelha MdfeSefazAquav.'
+      description: 'Modal aquaviário.'
       properties:
         irin:
           type: string
+          description: 'Número IRIN do navio.'
         tpEmb:
           type: string
+          description: 'Tipo de embarcação.'
         cEmbar:
           type: string
+          description: 'Código da embarcação.'
         xEmbar:
           type: string
+          description: 'Nome da embarcação.'
         nViag:
           type: string
+          description: 'Número da viagem.'
         cPrtEmb:
           type: string
+          description: 'Código do porto de embarque.'
         cPrtDest:
           type: string
+          description: 'Código do porto de destino.'
         prtTrans:
           type: string
+          description: 'Porto de transbordo.'
         tpNav:
           type: integer
+          description: 'Tipo de navegação, no modal aquaviário.'
         infTermCarreg:
           type: array
           items:
@@ -3364,33 +3931,38 @@ components:
           type: string
     MdfeAutXML:
       type: object
-      description: 'AutXML espelha MdfeSefazAutXML.'
+      description: 'CNPJ ou CPF autorizado a baixar o XML do documento.'
       properties:
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
         CPF:
           type: string
+          description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
     MdfeComp:
       type: object
-      description: 'Comp espelha MdfeSefazComp.'
+      description: 'Componentes que somam o valor da prestação.'
       properties:
         tpComp:
           type: string
         vComp:
           type: number
+          description: 'Valor do componente.'
         xComp:
           type: string
     MdfeCondutor:
       type: object
-      description: 'Condutor espelha MdfeSefazCondutor.'
+      description: 'Condutor do veículo.'
       properties:
         xNome:
           type: string
+          description: 'Razão social ou nome.'
         CPF:
           type: string
+          description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
     MdfeDisp:
       type: object
-      description: 'Disp espelha MdfeSefazDisp.'
+      description: 'Dispositivo de rastreamento da carga.'
       properties:
         CNPJForn:
           type: string
@@ -3410,75 +3982,100 @@ components:
       properties:
         chNFe:
           type: string
+          description: 'Chave de acesso da NF-e, 44 dígitos.'
         cMunDescarga:
           type: string
+          description: 'Código IBGE do município de descarregamento.'
         xMunDescarga:
           type: string
+          description: 'Nome do município de descarregamento.'
     MdfeDocumento:
       type: object
-      description: 'PedidoEmissao espelha MdfePedidoEmissao.'
+      description: 'PedidoEmissao é o MDF-e a ser gerado, no contrato da Nuvem Fiscal / ACBr.API.'
       properties:
         infMDFe:
-          $ref: "#/components/schemas/MdfeInfMDFe"
+          allOf:
+            - $ref: "#/components/schemas/MdfeInfMDFe"
         infMDFeSupl:
-          $ref: "#/components/schemas/MdfeInfMDFeSupl"
+          allOf:
+            - $ref: "#/components/schemas/MdfeInfMDFeSupl"
         ambiente:
           type: string
+          description: 'Ambiente do documento. Vazio assume homologação.'
         referencia:
           type: string
+          description: 'Identificador externo seu. Devolvido como veio, não vai no XML.'
     MdfeEmit:
       type: object
-      description: 'Emit espelha MdfeSefazEmit.'
+      description: 'Emitente do documento.'
       properties:
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
         CPF:
           type: string
+          description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
         IE:
           type: string
+          description: 'Inscrição estadual. Use ISENTO quando isento.'
         xNome:
           type: string
+          description: 'Razão social ou nome.'
         xFant:
           type: string
+          description: 'Nome fantasia.'
         enderEmit:
-          $ref: "#/components/schemas/MdfeEndeEmi"
+          allOf:
+            - $ref: "#/components/schemas/MdfeEndeEmi"
     MdfeEndeEmi:
       type: object
-      description: 'EndeEmi espelha MdfeSefazEndeEmi.'
+      description: 'Endereço do emitente.'
       properties:
         xLgr:
           type: string
+          description: 'Logradouro.'
         nro:
           type: string
+          description: 'Número do endereço. Use SN quando não houver.'
         xCpl:
           type: string
+          description: 'Complemento do endereço.'
         xBairro:
           type: string
+          description: 'Bairro.'
         cMun:
           type: string
+          description: 'Código IBGE do município, 7 dígitos.'
         xMun:
           type: string
+          description: 'Nome do município.'
         CEP:
           type: string
+          description: 'CEP, 8 dígitos, sem hífen.'
         UF:
           type: string
+          description: 'Sigla da unidade federativa, duas letras.'
         fone:
           type: string
+          description: 'Telefone, só dígitos, com DDD.'
         email:
           type: string
+          description: 'Endereço de e-mail.'
     MdfeEventoCancelamento:
       type: object
       description: 'PedidoCancelamento é o corpo de POST /v1/mdfe/eventos/cancelamento (ACBr.API).'
       properties:
         justificativa:
           type: string
+          description: 'Justificativa. Mínimo de 15 caracteres.'
     MdfeEventoEncerramento:
       type: object
       description: 'PedidoEncerramento é o corpo de POST /v1/mdfe/eventos/encerramento (ACBr.API). chMDFe e nProt vêm do documento autorizado.'
       properties:
         data_encerramento:
           type: string
-          description: 'ISO; default hoje'
+          format: date
+          description: 'default hoje Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
         cUF:
           type: integer
           description: 'UF do encerramento'
@@ -3491,82 +4088,113 @@ components:
       properties:
         nome:
           type: string
+          description: 'Nome ou razão social.'
         cpf:
           type: string
         nSeqEvento:
           type: integer
+          description: 'Número sequencial do evento para a mesma chave. Começa em 1.'
     MdfeEventoInclusaoDFe:
       type: object
       description: 'PedidoInclusaoDFe: POST /v1/mdfe/eventos/inclusao-dfe (evento 110115). Inclui novos documentos (NF-e) ao manifesto em trânsito, por município de descarga.'
       properties:
         cMunCarrega:
           type: string
+          description: 'Código IBGE do município de carregamento.'
         xMunCarrega:
           type: string
+          description: 'Nome do município de carregamento.'
         documentos:
           type: array
           items:
             $ref: "#/components/schemas/MdfeDocInclusao"
         nSeqEvento:
           type: integer
+          description: 'Número sequencial do evento para a mesma chave. Começa em 1.'
     MdfeEventoPagamentoOperacao:
       type: object
       description: 'PedidoPagamentoOperacao é o corpo de POST /v1/mdfe/eventos/pagamento-operacao (evento 110116). Registra o pagamento da operação de transporte. Reusa os tipos da emissão (InfPag/Comp/InfPrazo/InfBanc).'
       properties:
         infViagens:
-          $ref: "#/components/schemas/MdfeInfViagens"
+          allOf:
+            - $ref: "#/components/schemas/MdfeInfViagens"
         pagamentos:
           type: array
           items:
             $ref: "#/components/schemas/MdfeInfPag"
         nSeqEvento:
           type: integer
+          description: 'Número sequencial do evento para a mesma chave. Começa em 1.'
     MdfeFerrov:
       type: object
-      description: 'Ferrov espelha MdfeSefazFerrov.'
+      description: 'Modal ferroviário.'
       properties:
         trem:
-          $ref: "#/components/schemas/MdfeTrem"
+          allOf:
+            - $ref: "#/components/schemas/MdfeTrem"
         vag:
           type: array
           items:
             $ref: "#/components/schemas/MdfeVag"
     MdfeIde:
       type: object
-      description: 'Ide espelha MdfeSefazIde.'
+      description: 'Identificação do documento: numeração, datas, tipo de emissão, municípios e modal.'
       properties:
         cUF:
           type: integer
+          description: 'Código IBGE da unidade federativa, 2 dígitos.'
         tpAmb:
           type: integer
+          enum: [1, 2]
+          description: 'Valores: 1 = Produção; 2 = Homologação.'
         tpEmit:
           type: integer
+          enum: [1, 2, 3]
+          description: 'Valores: 1 = Prestador de serviço de transporte; 2 = Transporte de carga própria; 3 = Prestador de serviço de transporte, CT-e Globalizado.'
         tpTransp:
           type: integer
+          enum: [1, 2, 3]
+          description: 'Valores: 1 = ETC (Empresa de Transporte Rodoviário de Cargas); 2 = TAC (Transportador Autônomo de Cargas); 3 = CTC (Cooperativa de Transporte de Cargas).'
         mod:
           type: integer
+          enum: [58]
+          description: 'Valores: 58 = MDF-e.'
         serie:
           type: integer
+          description: 'Série do documento.'
         nMDF:
           type: integer
+          description: 'Número do MDF-e.'
         cMDF:
           type: string
+          description: 'Código numérico aleatório que compõe a chave. A lib gera se ausente.'
         cDV:
           type: integer
+          description: 'Dígito verificador da chave de acesso. A lib calcula se ausente.'
         modal:
           type: integer
+          enum: [1, 2, 3, 4]
+          description: 'Valores: 1 = Rodoviário; 2 = Aéreo; 3 = Aquaviário; 4 = Ferroviário.'
         dhEmi:
           type: string
+          format: date-time
+          description: 'Data e hora. COM offset (2026-08-23T14:05:00-03:00) a entrada é um instante e é convertida para o fuso do documento; SEM offset (2026-08-23T14:05:00) é lida como relógio de parede do emitente e não sofre conversão. Vazio usa o momento da chamada.'
         tpEmis:
           type: integer
+          enum: [1, 2, 3]
+          description: 'Valores: 1 = Normal; 2 = Contingência; 3 = Regime Especial NFF.'
         procEmi:
           type: string
+          description: 'Identificador do processo de emissão. 0 = aplicativo do contribuinte.'
         verProc:
           type: string
+          description: 'Versão do aplicativo emissor.'
         UFIni:
           type: string
+          description: 'Sigla da UF de início da prestação.'
         UFFim:
           type: string
+          description: 'Sigla da UF de fim da prestação.'
         infMunCarrega:
           type: array
           items:
@@ -3577,22 +4205,26 @@ components:
             $ref: "#/components/schemas/MdfeInfPercurso"
         dhIniViagem:
           type: string
+          format: date-time
+          description: 'Data e hora. COM offset (2026-08-23T14:05:00-03:00) a entrada é um instante e é convertida para o fuso do documento; SEM offset (2026-08-23T14:05:00) é lida como relógio de parede do emitente e não sofre conversão. Vazio usa o momento da chamada.'
         indCanalVerde:
           type: integer
         indCarregaPosterior:
           type: integer
     MdfeInfANTT:
       type: object
-      description: 'InfANTT espelha MdfeSefazInfANTT.'
+      description: 'Informações exigidas pela ANTT no transporte rodoviário de carga.'
       properties:
         RNTRC:
           type: string
+          description: 'Registro Nacional de Transportadores Rodoviários de Carga.'
         infCIOT:
           type: array
           items:
             $ref: "#/components/schemas/MdfeInfCIOT"
         valePed:
-          $ref: "#/components/schemas/MdfeValePed"
+          allOf:
+            - $ref: "#/components/schemas/MdfeValePed"
         infContratante:
           type: array
           items:
@@ -3603,15 +4235,17 @@ components:
             $ref: "#/components/schemas/MdfeInfPag"
     MdfeInfAdic:
       type: object
-      description: 'InfAdic espelha MdfeSefazInfAdic.'
+      description: 'Informações adicionais do manifesto.'
       properties:
         infAdFisco:
           type: string
+          description: 'Informações adicionais de interesse do fisco.'
         infCpl:
           type: string
+          description: 'Informações complementares.'
     MdfeInfBanc:
       type: object
-      description: 'InfBanc espelha MdfeSefazInfBanc.'
+      description: 'Dados bancários para o pagamento: PIX ou banco e agência.'
       properties:
         codBanco:
           type: string
@@ -3623,34 +4257,43 @@ components:
           type: string
     MdfeInfCIOT:
       type: object
-      description: 'InfCIOT espelha MdfeSefazInfCIOT.'
+      description: 'CIOT da operação de transporte.'
       properties:
         CIOT:
           type: string
+          description: 'Código Identificador da Operação de Transporte.'
         CPF:
           type: string
+          description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
     MdfeInfCTe:
       type: object
-      description: 'InfCTe espelha MdfeSefazInfCTe.'
+      description: 'CT-e transportado no manifesto.'
       properties:
         chCTe:
           type: string
+          description: 'Chave de acesso do CT-e, 44 dígitos.'
         SegCodBarra:
           type: string
+          description: 'Segundo código de barras, de uso da UF.'
         indReentrega:
           type: integer
+          description: 'Indicador de reentrega.'
         infUnidTransp:
           type: array
           items:
             $ref: "#/components/schemas/MdfeUnidadeTransp"
+          description: 'Unidades de transporte (carreta, reboque, vagão) que compõem o veículo.'
         peri:
           type: array
           items:
             $ref: "#/components/schemas/MdfePeri"
+          description: 'Produtos perigosos transportados, conforme a ONU.'
         infEntregaParcial:
-          $ref: "#/components/schemas/MdfeInfEntregaParcial"
+          allOf:
+            - $ref: "#/components/schemas/MdfeInfEntregaParcial"
         indPrestacaoParcial:
           type: integer
         infNFePrestParcial:
@@ -3659,21 +4302,26 @@ components:
             $ref: "#/components/schemas/MdfeInfNFePrestParcial"
     MdfeInfContratante:
       type: object
-      description: 'InfContratante espelha MdfeSefazInfContratante.'
+      description: 'Contratante do serviço de transporte.'
       properties:
         xNome:
           type: string
+          description: 'Razão social ou nome.'
         CPF:
           type: string
+          description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
         idEstrangeiro:
           type: string
+          description: 'Identificador do estrangeiro, quando não há CNPJ nem CPF.'
         infContrato:
-          $ref: "#/components/schemas/MdfeInfContrato"
+          allOf:
+            - $ref: "#/components/schemas/MdfeInfContrato"
     MdfeInfContrato:
       type: object
-      description: 'InfContrato espelha MdfeSefazInfContrato.'
+      description: 'Contrato entre o transportador e o contratante.'
       properties:
         NroContrato:
           type: string
@@ -3681,7 +4329,7 @@ components:
           type: number
     MdfeInfDoc:
       type: object
-      description: 'InfDoc espelha MdfeSefazInfDoc.'
+      description: 'Documentos fiscais vinculados à carga.'
       properties:
         infMunDescarga:
           type: array
@@ -3689,15 +4337,16 @@ components:
             $ref: "#/components/schemas/MdfeInfMunDescarga"
     MdfeInfEmbComb:
       type: object
-      description: 'InfEmbComb espelha MdfeSefazInfEmbComb.'
+      description: 'Embarcação de comboio no modal aquaviário.'
       properties:
         cEmbComb:
           type: string
         xBalsa:
           type: string
+          description: 'Identificação da balsa.'
     MdfeInfEntregaParcial:
       type: object
-      description: 'InfEntregaParcial espelha MdfeSefazInfEntregaParcial.'
+      description: 'Entrega parcial da carga.'
       properties:
         qtdTotal:
           type: number
@@ -3705,56 +4354,72 @@ components:
           type: number
     MdfeInfLocalCarrega:
       type: object
-      description: 'InfLocalCarrega espelha MdfeSefazInfLocalCarrega.'
+      description: 'Local de carregamento.'
       properties:
         CEP:
           type: string
+          description: 'CEP, 8 dígitos, sem hífen.'
         latitude:
           type: string
+          description: 'Latitude em graus decimais. Ex.: -23.5505.'
         longitude:
           type: string
+          description: 'Longitude em graus decimais. Ex.: -46.6333.'
     MdfeInfLocalDescarrega:
       type: object
-      description: 'InfLocalDescarrega espelha MdfeSefazInfLocalDescarrega.'
+      description: 'Local de descarregamento.'
       properties:
         CEP:
           type: string
+          description: 'CEP, 8 dígitos, sem hífen.'
         latitude:
           type: string
+          description: 'Latitude em graus decimais. Ex.: -23.5505.'
         longitude:
           type: string
+          description: 'Longitude em graus decimais. Ex.: -46.6333.'
     MdfeInfLotacao:
       type: object
-      description: 'InfLotacao espelha MdfeSefazInfLotacao.'
+      description: 'Informações do transporte em lotação.'
       properties:
         infLocalCarrega:
-          $ref: "#/components/schemas/MdfeInfLocalCarrega"
+          allOf:
+            - $ref: "#/components/schemas/MdfeInfLocalCarrega"
         infLocalDescarrega:
-          $ref: "#/components/schemas/MdfeInfLocalDescarrega"
+          allOf:
+            - $ref: "#/components/schemas/MdfeInfLocalDescarrega"
     MdfeInfMDFe:
       type: object
-      description: 'InfMDFe espelha MdfeSefazInfMDFe.'
+      description: 'Corpo do MDF-e: identificação, emitente, modal, documentos e totais.'
       properties:
         versao:
           type: string
+          description: 'Versão do layout do documento.'
         Id:
           type: string
+          description: 'Identificador do grupo, montado pela lib a partir da chave.'
         ide:
-          $ref: "#/components/schemas/MdfeIde"
+          allOf:
+            - $ref: "#/components/schemas/MdfeIde"
         emit:
-          $ref: "#/components/schemas/MdfeEmit"
+          allOf:
+            - $ref: "#/components/schemas/MdfeEmit"
         infModal:
-          $ref: "#/components/schemas/MdfeInfModal"
+          allOf:
+            - $ref: "#/components/schemas/MdfeInfModal"
         infDoc:
-          $ref: "#/components/schemas/MdfeInfDoc"
+          allOf:
+            - $ref: "#/components/schemas/MdfeInfDoc"
         seg:
           type: array
           items:
             $ref: "#/components/schemas/MdfeSeg"
         prodPred:
-          $ref: "#/components/schemas/MdfeProdPred"
+          allOf:
+            - $ref: "#/components/schemas/MdfeProdPred"
         tot:
-          $ref: "#/components/schemas/MdfeTot"
+          allOf:
+            - $ref: "#/components/schemas/MdfeTot"
         lacres:
           type: array
           items:
@@ -3763,80 +4428,103 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/MdfeAutXML"
+          description: 'CNPJ ou CPF autorizados a baixar o XML do documento.'
         infAdic:
-          $ref: "#/components/schemas/MdfeInfAdic"
+          allOf:
+            - $ref: "#/components/schemas/MdfeInfAdic"
         infRespTec:
-          $ref: "#/components/schemas/MdfeRespTec"
+          allOf:
+            - $ref: "#/components/schemas/MdfeRespTec"
         infSolicNFF:
-          $ref: "#/components/schemas/MdfeInfSolicNFF"
+          allOf:
+            - $ref: "#/components/schemas/MdfeInfSolicNFF"
     MdfeInfMDFeSupl:
       type: object
-      description: 'InfMDFeSupl espelha MdfeSefazInfMDFeSupl.'
+      description: 'Informações suplementares: o QR Code, gerado pela biblioteca.'
       properties:
         qrCodMDFe:
           type: string
     MdfeInfMDFeTransp:
       type: object
-      description: 'InfMDFeTransp espelha MdfeSefazInfMDFeTransp.'
+      description: 'MDF-e de transporte vinculado.'
       properties:
         chMDFe:
           type: string
+          description: 'Chave de acesso do MDF-e, 44 dígitos.'
         indReentrega:
           type: integer
+          description: 'Indicador de reentrega.'
         infUnidTransp:
           type: array
           items:
             $ref: "#/components/schemas/MdfeUnidadeTransp"
+          description: 'Unidades de transporte (carreta, reboque, vagão) que compõem o veículo.'
         peri:
           type: array
           items:
             $ref: "#/components/schemas/MdfeInfMDFeTranspPeri"
+          description: 'Produtos perigosos transportados, conforme a ONU.'
     MdfeInfMDFeTranspPeri:
       type: object
-      description: 'InfMDFeTranspPeri espelha MdfeSefazInfMDFeTransp_Peri.'
+      description: 'Produtos perigosos no MDF-e vinculado.'
       properties:
         nONU:
           type: string
+          description: 'Número ONU do produto perigoso, 4 dígitos.'
         xNomeAE:
           type: string
+          description: 'Nome apropriado para embarque do produto perigoso.'
         xClaRisco:
           type: string
+          description: 'Classe ou subclasse de risco do produto perigoso.'
         grEmb:
           type: string
+          description: 'Grupo de embalagem do produto perigoso.'
         qTotProd:
           type: string
+          description: 'Quantidade total do produto.'
         qVolTipo:
           type: string
+          description: 'Quantidade e tipo de volumes transportados.'
     MdfeInfModal:
       type: object
-      description: 'InfModal espelha MdfeSefazInfModal.'
+      description: 'Grupo do modal. Preencha apenas o modal declarado em ide.modal.'
       properties:
         versaoModal:
           type: string
+          description: 'Versão do leiaute do grupo do modal.'
         aereo:
-          $ref: "#/components/schemas/MdfeAereo"
+          allOf:
+            - $ref: "#/components/schemas/MdfeAereo"
         rodo:
-          $ref: "#/components/schemas/MdfeRodo"
+          allOf:
+            - $ref: "#/components/schemas/MdfeRodo"
         aquav:
-          $ref: "#/components/schemas/MdfeAquav"
+          allOf:
+            - $ref: "#/components/schemas/MdfeAquav"
         ferrov:
-          $ref: "#/components/schemas/MdfeFerrov"
+          allOf:
+            - $ref: "#/components/schemas/MdfeFerrov"
     MdfeInfMunCarrega:
       type: object
-      description: 'InfMunCarrega espelha MdfeSefazInfMunCarrega.'
+      description: 'Município de carregamento.'
       properties:
         cMunCarrega:
           type: string
+          description: 'Código IBGE do município de carregamento.'
         xMunCarrega:
           type: string
+          description: 'Nome do município de carregamento.'
     MdfeInfMunDescarga:
       type: object
-      description: 'InfMunDescarga espelha MdfeSefazInfMunDescarga.'
+      description: 'Município de descarregamento e os documentos entregues nele.'
       properties:
         cMunDescarga:
           type: string
+          description: 'Código IBGE do município de descarregamento.'
         xMunDescarga:
           type: string
+          description: 'Nome do município de descarregamento.'
         infCTe:
           type: array
           items:
@@ -3845,72 +4533,92 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/MdfeInfNFe"
+          description: 'Notas fiscais eletrônicas vinculadas ao documento.'
         infMDFeTransp:
           type: array
           items:
             $ref: "#/components/schemas/MdfeInfMDFeTransp"
     MdfeInfNFe:
       type: object
-      description: 'InfNFe espelha MdfeSefazInfNFe.'
+      description: 'Nota fiscal eletrônica vinculada.'
       properties:
         chNFe:
           type: string
+          description: 'Chave de acesso da NF-e, 44 dígitos.'
         SegCodBarra:
           type: string
+          description: 'Segundo código de barras, de uso da UF.'
         indReentrega:
           type: integer
+          description: 'Indicador de reentrega.'
         infUnidTransp:
           type: array
           items:
             $ref: "#/components/schemas/MdfeUnidadeTransp"
+          description: 'Unidades de transporte (carreta, reboque, vagão) que compõem o veículo.'
         peri:
           type: array
           items:
             $ref: "#/components/schemas/MdfeInfNFePeri"
+          description: 'Produtos perigosos transportados, conforme a ONU.'
     MdfeInfNFePeri:
       type: object
-      description: 'InfNFePeri espelha MdfeSefazInfNFe_Peri.'
+      description: 'Produtos perigosos na NF-e transportada.'
       properties:
         nONU:
           type: string
+          description: 'Número ONU do produto perigoso, 4 dígitos.'
         xNomeAE:
           type: string
+          description: 'Nome apropriado para embarque do produto perigoso.'
         xClaRisco:
           type: string
+          description: 'Classe ou subclasse de risco do produto perigoso.'
         grEmb:
           type: string
+          description: 'Grupo de embalagem do produto perigoso.'
         qTotProd:
           type: string
+          description: 'Quantidade total do produto.'
         qVolTipo:
           type: string
+          description: 'Quantidade e tipo de volumes transportados.'
     MdfeInfNFePrestParcial:
       type: object
-      description: 'InfNFePrestParcial espelha MdfeSefazInfNFePrestParcial.'
+      description: 'Prestação parcial da NF-e transportada.'
       properties:
         chNFe:
           type: string
+          description: 'Chave de acesso da NF-e, 44 dígitos.'
     MdfeInfPag:
       type: object
-      description: 'InfPag espelha MdfeSefazInfPag.'
+      description: 'Pagamento da operação de transporte.'
       properties:
         xNome:
           type: string
+          description: 'Razão social ou nome.'
         CPF:
           type: string
+          description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
         idEstrangeiro:
           type: string
+          description: 'Identificador do estrangeiro, quando não há CNPJ nem CPF.'
         Comp:
           type: array
           items:
             $ref: "#/components/schemas/MdfeComp"
+          description: 'Componentes que somam o valor.'
         vContrato:
           type: number
         indAltoDesemp:
           type: integer
         indPag:
           type: integer
+          enum: [0, 1]
+          description: 'Valores: 0 = Pagamento à vista; 1 = Pagamento a prazo.'
         vAdiant:
           type: number
         indAntecipaAdiant:
@@ -3922,50 +4630,59 @@ components:
         tpAntecip:
           type: integer
         infBanc:
-          $ref: "#/components/schemas/MdfeInfBanc"
+          allOf:
+            - $ref: "#/components/schemas/MdfeInfBanc"
     MdfeInfPercurso:
       type: object
-      description: 'InfPercurso espelha MdfeSefazInfPercurso.'
+      description: 'UFs de percurso entre a origem e o destino.'
       properties:
         UFPer:
           type: string
     MdfeInfPrazo:
       type: object
-      description: 'InfPrazo espelha MdfeSefazInfPrazo.'
+      description: 'Parcelas, quando o pagamento é a prazo.'
       properties:
         nParcela:
           type: integer
         dVenc:
           type: string
+          format: date
+          description: 'Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
         vParcela:
           type: number
     MdfeInfResp:
       type: object
-      description: 'InfResp espelha MdfeSefazInfResp.'
+      description: 'Responsável pelo pagamento do vale-pedágio.'
       properties:
         respSeg:
           type: integer
+          description: 'Responsável pelo seguro da carga.'
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
         CPF:
           type: string
+          description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
     MdfeInfSeg:
       type: object
-      description: 'InfSeg espelha MdfeSefazInfSeg.'
+      description: 'Dados da seguradora.'
       properties:
         xSeg:
           type: string
+          description: 'Nome da seguradora.'
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
     MdfeInfSolicNFF:
       type: object
-      description: 'InfSolicNFF espelha MdfeSefazInfSolicNFF.'
+      description: 'Dados da solicitação da Nota Fiscal Fácil.'
       properties:
         xSolic:
           type: string
+          description: 'Nome do solicitante.'
     MdfeInfTermCarreg:
       type: object
-      description: 'InfTermCarreg espelha MdfeSefazInfTermCarreg.'
+      description: 'Terminal de carregamento no modal aquaviário.'
       properties:
         cTermCarreg:
           type: string
@@ -3973,7 +4690,7 @@ components:
           type: string
     MdfeInfTermDescarreg:
       type: object
-      description: 'InfTermDescarreg espelha MdfeSefazInfTermDescarreg.'
+      description: 'Terminal de descarregamento no modal aquaviário.'
       properties:
         cTermDescarreg:
           type: string
@@ -3981,7 +4698,7 @@ components:
           type: string
     MdfeInfUnidCargaVazia:
       type: object
-      description: 'InfUnidCargaVazia espelha MdfeSefazInfUnidCargaVazia.'
+      description: 'Unidade de carga que segue vazia.'
       properties:
         idUnidCargaVazia:
           type: string
@@ -3989,7 +4706,7 @@ components:
           type: integer
     MdfeInfUnidTranspVazia:
       type: object
-      description: 'InfUnidTranspVazia espelha MdfeSefazInfUnidTranspVazia.'
+      description: 'Unidade de transporte que segue vazia.'
       properties:
         idUnidTranspVazia:
           type: string
@@ -4005,50 +4722,62 @@ components:
           type: integer
     MdfeLacRodo:
       type: object
-      description: 'LacRodo espelha MdfeSefazLacRodo.'
+      description: 'Lacre no modal rodoviário.'
       properties:
         nLacre:
           type: string
+          description: 'Número do lacre.'
     MdfeLacUnidCarga:
       type: object
-      description: 'LacUnidCarga espelha MdfeSefazLacUnidCarga.'
+      description: 'Lacre da unidade de carga.'
       properties:
         nLacre:
           type: string
+          description: 'Número do lacre.'
     MdfeLacUnidTransp:
       type: object
-      description: 'LacUnidTransp espelha MdfeSefazLacUnidTransp.'
+      description: 'Lacre da unidade de transporte.'
       properties:
         nLacre:
           type: string
+          description: 'Número do lacre.'
     MdfeLacres:
       type: object
-      description: 'Lacres espelha MdfeSefazLacres.'
+      description: 'Lacres do manifesto.'
       properties:
         nLacre:
           type: string
+          description: 'Número do lacre.'
     MdfePeri:
       type: object
-      description: 'Peri espelha MdfeSefazPeri.'
+      description: 'Produtos perigosos, conforme a resolução da ANTT.'
       properties:
         nONU:
           type: string
+          description: 'Número ONU do produto perigoso, 4 dígitos.'
         xNomeAE:
           type: string
+          description: 'Nome apropriado para embarque do produto perigoso.'
         xClaRisco:
           type: string
+          description: 'Classe ou subclasse de risco do produto perigoso.'
         grEmb:
           type: string
+          description: 'Grupo de embalagem do produto perigoso.'
         qTotProd:
           type: string
+          description: 'Quantidade total do produto.'
         qVolTipo:
           type: string
+          description: 'Quantidade e tipo de volumes transportados.'
     MdfeProdPred:
       type: object
-      description: 'ProdPred espelha MdfeSefazProdPred.'
+      description: 'Produto predominante da carga.'
       properties:
         tpCarga:
           type: string
+          enum: ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
+          description: 'Valores: 01 = Granel sólido; 02 = Granel líquido; 03 = Frigorificada; 04 = Conteinerizada; 05 = Carga geral; 06 = Neogranel; 07 = Perigosa (granel sólido); 08 = Perigosa (granel líquido); 09 = Perigosa (frigorificada); 10 = Perigosa (conteinerizada); 11 = Perigosa (carga geral); 12 = Granel pressurizada.'
         xProd:
           type: string
         cEAN:
@@ -4056,51 +4785,68 @@ components:
         NCM:
           type: string
         infLotacao:
-          $ref: "#/components/schemas/MdfeInfLotacao"
+          allOf:
+            - $ref: "#/components/schemas/MdfeInfLotacao"
     MdfeProp:
       type: object
-      description: 'Prop espelha MdfeSefazProp.'
+      description: 'Proprietário do veículo, quando não é o emitente.'
       properties:
         CPF:
           type: string
+          description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
         RNTRC:
           type: string
+          description: 'Registro Nacional de Transportadores Rodoviários de Carga.'
         xNome:
           type: string
+          description: 'Razão social ou nome.'
         IE:
           type: string
+          description: 'Inscrição estadual. Use ISENTO quando isento.'
         UF:
           type: string
+          description: 'Sigla da unidade federativa, duas letras.'
         tpProp:
           type: integer
+          description: 'Tipo de propriedade do veículo.'
     MdfeRespTec:
       type: object
-      description: 'RespTec espelha MdfeSefazRespTec.'
+      description: 'Responsável técnico pelo sistema emissor.'
       properties:
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
         xContato:
           type: string
+          description: 'Nome da pessoa de contato.'
         email:
           type: string
+          description: 'Endereço de e-mail.'
         fone:
           type: string
+          description: 'Telefone, só dígitos, com DDD.'
         idCSRT:
           type: integer
+          description: 'Identificador do Código de Segurança do Responsável Técnico.'
         CSRT:
           type: string
+          description: 'Código de Segurança do Responsável Técnico.'
         hashCSRT:
           type: string
+          description: 'Hash do CSRT, calculado pela lib.'
     MdfeRodo:
       type: object
-      description: 'Rodo espelha MdfeSefazRodo.'
+      description: 'Modal rodoviário.'
       properties:
         infANTT:
-          $ref: "#/components/schemas/MdfeInfANTT"
+          allOf:
+            - $ref: "#/components/schemas/MdfeInfANTT"
         veicTracao:
-          $ref: "#/components/schemas/MdfeVeicTracao"
+          allOf:
+            - $ref: "#/components/schemas/MdfeVeicTracao"
         veicReboque:
           type: array
           items:
@@ -4113,21 +4859,25 @@ components:
             $ref: "#/components/schemas/MdfeLacRodo"
     MdfeSeg:
       type: object
-      description: 'Seg espelha MdfeSefazSeg.'
+      description: 'Seguro da carga.'
       properties:
         infResp:
-          $ref: "#/components/schemas/MdfeInfResp"
+          allOf:
+            - $ref: "#/components/schemas/MdfeInfResp"
         infSeg:
-          $ref: "#/components/schemas/MdfeInfSeg"
+          allOf:
+            - $ref: "#/components/schemas/MdfeInfSeg"
         nApol:
           type: string
+          description: 'Número da apólice de seguro.'
         nAver:
           type: array
           items:
             type: string
+          description: 'Número da averbação do seguro.'
     MdfeTot:
       type: object
-      description: 'Tot espelha MdfeSefazTot.'
+      description: 'Totalizadores do manifesto.'
       properties:
         qCTe:
           type: integer
@@ -4137,13 +4887,16 @@ components:
           type: integer
         vCarga:
           type: number
+          description: 'Valor total da carga.'
         cUnid:
           type: string
+          description: 'Código da unidade de medida.'
         qCarga:
           type: number
+          description: 'Quantidade da carga.'
     MdfeTrem:
       type: object
-      description: 'Trem espelha MdfeSefazTrem.'
+      description: 'Trem no modal ferroviário.'
       properties:
         xPref:
           type: string
@@ -4153,43 +4906,53 @@ components:
           type: string
         xDest:
           type: string
+          description: 'Nome do destinatário.'
         qVag:
           type: integer
     MdfeUnidCarga:
       type: object
-      description: 'UnidCarga espelha MdfeSefazUnidCarga.'
+      description: 'Unidade de carga: contêiner, pallet ou similar.'
       properties:
         tpUnidCarga:
           type: integer
+          description: 'Tipo da unidade de carga.'
         idUnidCarga:
           type: string
+          description: 'Identificação da unidade de carga, normalmente o número do contêiner.'
         lacUnidCarga:
           type: array
           items:
             $ref: "#/components/schemas/MdfeLacUnidCarga"
+          description: 'Lacres da unidade de carga.'
         qtdRat:
           type: number
+          description: 'Quantidade rateada nesta unidade.'
     MdfeUnidadeTransp:
       type: object
-      description: 'UnidadeTransp espelha MdfeSefazUnidadeTransp.'
+      description: 'Unidade de transporte: carreta, reboque ou vagão.'
       properties:
         tpUnidTransp:
           type: integer
+          description: 'Tipo da unidade de transporte.'
         idUnidTransp:
           type: string
+          description: 'Identificação da unidade de transporte, normalmente a placa.'
         lacUnidTransp:
           type: array
           items:
             $ref: "#/components/schemas/MdfeLacUnidTransp"
+          description: 'Lacres da unidade de transporte.'
         infUnidCarga:
           type: array
           items:
             $ref: "#/components/schemas/MdfeUnidCarga"
+          description: 'Unidades de carga (contêiner, pallet) transportadas.'
         qtdRat:
           type: number
+          description: 'Quantidade rateada nesta unidade.'
     MdfeVag:
       type: object
-      description: 'Vag espelha MdfeSefazVag.'
+      description: 'Vagão no modal ferroviário.'
       properties:
         pesoBC:
           type: number
@@ -4199,6 +4962,7 @@ components:
           type: string
         serie:
           type: string
+          description: 'Série do documento.'
         nVag:
           type: integer
         nSeq:
@@ -4207,7 +4971,7 @@ components:
           type: number
     MdfeValePed:
       type: object
-      description: 'ValePed espelha MdfeSefazValePed.'
+      description: 'Vale-pedágio.'
       properties:
         disp:
           type: array
@@ -4217,72 +4981,98 @@ components:
           type: string
     MdfeVeicReboque:
       type: object
-      description: 'VeicReboque espelha MdfeSefazVeicReboque.'
+      description: 'Veículo reboque.'
       properties:
         cInt:
           type: string
+          description: 'Código interno de uso do emitente. Não vai no XML.'
         placa:
           type: string
+          description: 'Placa do veículo, sem hífen.'
         RENAVAM:
           type: string
+          description: 'RENAVAM do veículo.'
         tara:
           type: integer
+          description: 'Tara do veículo, em quilos.'
         capKG:
           type: integer
+          description: 'Capacidade em quilos.'
         capM3:
           type: integer
+          description: 'Capacidade em metros cúbicos.'
         prop:
-          $ref: "#/components/schemas/MdfeVeicReboqueProp"
+          allOf:
+            - $ref: "#/components/schemas/MdfeVeicReboqueProp"
         tpCar:
           type: string
+          description: 'Tipo de carroceria do veículo.'
         UF:
           type: string
+          description: 'Sigla da unidade federativa, duas letras.'
     MdfeVeicReboqueProp:
       type: object
-      description: 'VeicReboqueProp espelha MdfeSefazVeicReboque_Prop.'
+      description: 'Proprietário do reboque, quando não é o emitente.'
       properties:
         CPF:
           type: string
+          description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
         RNTRC:
           type: string
+          description: 'Registro Nacional de Transportadores Rodoviários de Carga.'
         xNome:
           type: string
+          description: 'Razão social ou nome.'
         IE:
           type: string
+          description: 'Inscrição estadual. Use ISENTO quando isento.'
         UF:
           type: string
+          description: 'Sigla da unidade federativa, duas letras.'
         tpProp:
           type: integer
+          description: 'Tipo de propriedade do veículo.'
     MdfeVeicTracao:
       type: object
-      description: 'VeicTracao espelha MdfeSefazVeicTracao.'
+      description: 'Veículo de tração.'
       properties:
         cInt:
           type: string
+          description: 'Código interno de uso do emitente. Não vai no XML.'
         placa:
           type: string
+          description: 'Placa do veículo, sem hífen.'
         RENAVAM:
           type: string
+          description: 'RENAVAM do veículo.'
         tara:
           type: integer
+          description: 'Tara do veículo, em quilos.'
         capKG:
           type: integer
+          description: 'Capacidade em quilos.'
         capM3:
           type: integer
+          description: 'Capacidade em metros cúbicos.'
         prop:
-          $ref: "#/components/schemas/MdfeProp"
+          allOf:
+            - $ref: "#/components/schemas/MdfeProp"
         condutor:
           type: array
           items:
             $ref: "#/components/schemas/MdfeCondutor"
+          description: 'Condutores do veículo.'
         tpRod:
           type: string
         tpCar:
           type: string
+          description: 'Tipo de carroceria do veículo.'
         UF:
           type: string
+          description: 'Sigla da unidade federativa, duas letras.'
     NfseComExt:
       type: object
       description: 'ComExt é o grupo de comércio exterior (seção [ComercioExterior]).'
@@ -4319,36 +5109,51 @@ components:
       properties:
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
         CPF:
           type: string
+          description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
         NIF:
           type: string
         xNome:
           type: string
+          description: 'Razão social ou nome.'
         IM:
           type: string
+          description: 'Inscrição municipal.'
         logradouro:
           type: string
+          description: 'Logradouro.'
         numero:
           type: string
+          description: 'Número do documento.'
         complemento:
           type: string
+          description: 'Complemento do endereço.'
         bairro:
           type: string
+          description: 'Bairro.'
         cMun:
           type: string
+          description: 'Código IBGE do município, 7 dígitos.'
         xMun:
           type: string
+          description: 'Nome do município.'
         UF:
           type: string
+          description: 'Sigla da unidade federativa, duas letras.'
         CEP:
           type: string
+          description: 'CEP, 8 dígitos, sem hífen.'
         cPais:
           type: string
+          description: 'Código do país conforme a tabela do BACEN. 1058 = Brasil.'
         email:
           type: string
+          description: 'Endereço de e-mail.'
         telefone:
           type: string
+          description: 'Telefone, só dígitos, com DDD.'
     NfseDocReeRep:
       type: object
       description: 'DocReeRep é um documento de reembolso/representação/ressarcimento (gReeRepRes, seção [DocumentosNNNN]). Identifica o doc por chave DFe, doc fiscal de outro município ou doc avulso, o fornecedor e o tipo/valor de reembolso.'
@@ -4359,14 +5164,17 @@ components:
           type: string
         chaveDFe:
           type: string
+          description: 'Chave de acesso do documento fiscal referenciado.'
         cMunDocFiscal:
           type: string
         nDocFiscal:
           type: string
+          description: 'Número do documento fiscal.'
         xDocFiscal:
           type: string
         nDoc:
           type: string
+          description: 'Número do documento.'
         xDoc:
           type: string
         fornecCNPJ:
@@ -4399,7 +5207,8 @@ components:
           type: string
           description: 'id externo do cliente'
         infDPS:
-          $ref: "#/components/schemas/NfseInfDPS"
+          allOf:
+            - $ref: "#/components/schemas/NfseInfDPS"
     NfseEventoCancelamento:
       type: object
       description: 'CancelamentoPedido é o corpo do pedido de cancelamento (espelha o NfsePedidoCancelamento do ACBr.API). Códigos/motivos exigidos variam por prefeitura; no Padrão Nacional o código default é 1 (erro na emissão).'
@@ -4427,6 +5236,7 @@ components:
           description: 'CodCancelamento, default "1"'
         motivo:
           type: string
+          description: 'Descrição do status devolvido pelo fisco.'
     NfseGDifDPS:
       type: object
       description: 'GDifDPS é o diferimento por ente (seção [gDif]).'
@@ -4443,22 +5253,28 @@ components:
       properties:
         CST:
           type: string
+          description: 'Código de Situação Tributária.'
         cClassTrib:
           type: string
+          description: 'Código de classificação tributária (Reforma Tributária).'
         cCredPres:
           type: string
         gTribRegular:
-          $ref: "#/components/schemas/NfseGTribRegularDPS"
+          allOf:
+            - $ref: "#/components/schemas/NfseGTribRegularDPS"
         gDif:
-          $ref: "#/components/schemas/NfseGDifDPS"
+          allOf:
+            - $ref: "#/components/schemas/NfseGDifDPS"
     NfseGTribRegularDPS:
       type: object
       description: 'GTribRegularDPS é a tributação regular de referência (seção [gTribRegular]).'
       properties:
         CSTReg:
           type: string
+          description: 'CST do regime específico (Reforma Tributária).'
         cClassTribReg:
           type: string
+          description: 'Classificação tributária do regime específico (Reforma Tributária).'
     NfseIBSCBSDPS:
       type: object
       description: 'IBSCBSDPS é o grupo da Reforma Tributária no DPS (seção [IBSCBSDPS]).'
@@ -4473,6 +5289,7 @@ components:
           type: string
         tpEnteGov:
           type: string
+          description: 'Tipo do ente governamental.'
         indDest:
           type: string
         dest:
@@ -4489,7 +5306,8 @@ components:
             $ref: "#/components/schemas/NfseDocReeRep"
           description: 'gReeRepRes ([DocumentosNNNN])'
         gIBSCBS:
-          $ref: "#/components/schemas/NfseGIBSCBSDPS"
+          allOf:
+            - $ref: "#/components/schemas/NfseGIBSCBSDPS"
     NfseImovelIBS:
       type: object
       description: 'ImovelIBS identifica o imóvel da operação (seção [Imovel]).'
@@ -4500,49 +5318,62 @@ components:
           type: string
         logradouro:
           type: string
+          description: 'Logradouro.'
         numero:
           type: string
+          description: 'Número do documento.'
         complemento:
           type: string
+          description: 'Complemento do endereço.'
         bairro:
           type: string
+          description: 'Bairro.'
         CEP:
           type: string
+          description: 'CEP, 8 dígitos, sem hífen.'
     NfseInfDPS:
       type: object
       description: 'InfDPS são as informações da DPS (Declaração de Prestação de Serviços).'
       properties:
         serie:
           type: string
+          description: 'Série do documento.'
         nDPS:
           type: string
           description: 'número do RPS/DPS'
         dCompet:
           type: string
-          description: 'competência (YYYY-MM-DD)'
+          format: date
+          description: 'competência Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
         dhEmi:
           type: string
-          description: 'emissão (YYYY-MM-DD); vazio = hoje'
+          format: date
+          description: 'emissão; vazio = hoje Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
         tpEmit:
           type: integer
-          description: '1 = prestador'
+          enum: [1, 2, 3]
+          description: 'Valores: 1 = Prestador; 2 = Tomador; 3 = Intermediário.'
         verAplic:
           type: string
         cLocEmi:
           type: string
           description: 'município emissor (IBGE); vazio = cMun do prestador'
         prest:
-          $ref: "#/components/schemas/NfsePessoa"
+          allOf:
+            - $ref: "#/components/schemas/NfsePessoa"
         toma:
-          $ref: "#/components/schemas/NfsePessoa"
+          allOf:
+            - $ref: "#/components/schemas/NfsePessoa"
         interm:
           description: 'intermediário (seção [Intermediario])'
           allOf:
             - $ref: "#/components/schemas/NfsePessoa"
         serv:
-          $ref: "#/components/schemas/NfseServico"
+          allOf:
+            - $ref: "#/components/schemas/NfseServico"
         valores:
-          $ref: "#/components/schemas/NfseValores"
+          allOf:
+            - $ref: "#/components/schemas/NfseValores"
         ibscbs:
           description: 'Reforma Tributária (grupo IBSCBSDPS)'
           allOf:
@@ -4570,10 +5401,13 @@ components:
       properties:
         numero:
           type: string
+          description: 'Número do documento.'
         serie:
           type: string
+          description: 'Série do documento.'
         codigo_verificacao:
           type: string
+          description: 'Código de verificação da NFS-e, devolvido pelo provedor.'
         numero_lote:
           type: string
     NfsePessoa:
@@ -4582,8 +5416,10 @@ components:
       properties:
         CNPJ:
           type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
         CPF:
           type: string
+          description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
         IM:
           type: string
           description: 'inscrição municipal'
@@ -4595,21 +5431,28 @@ components:
           description: 'código do município (IBGE)'
         UF:
           type: string
+          description: 'Sigla da unidade federativa, duas letras.'
         CEP:
           type: string
+          description: 'CEP, 8 dígitos, sem hífen.'
         email:
           type: string
+          description: 'Endereço de e-mail.'
         logradouro:
           type: string
           description: 'Endereço/contato (Padrão Nacional: seção [Prestador]/[Tomador]).'
         numero:
           type: string
+          description: 'Número do documento.'
         complemento:
           type: string
+          description: 'Complemento do endereço.'
         bairro:
           type: string
+          description: 'Bairro.'
         telefone:
           type: string
+          description: 'Telefone, só dígitos, com DDD.'
         cPais:
           type: integer
           description: 'CPais/XPais só precisam ser informados para endereço NO EXTERIOR. Endereço nacional (com cMun) recebe 1058 (Brasil) automaticamente: ver pessoaCommon.'
@@ -4626,19 +5469,23 @@ components:
       properties:
         opSimpNac:
           type: integer
-          description: '1=não optante, 2=MEI, 3=ME/EPP'
+          enum: [1, 2, 3]
+          description: 'Valores: 1 = Não optante; 2 = Optante, MEI (Microempreendedor Individual); 3 = Optante, ME/EPP (Microempresa ou Empresa de Pequeno Porte).'
         regApTribSN:
           type: integer
-          description: 'regime de apuração do Simples Nacional'
+          enum: [1, 2, 3]
+          description: 'regime de apuração do Simples Nacional Valores: 1 = Tributos federais e municipal pelo Simples Nacional; 2 = Federais pelo SN; ISSQN por fora do SN (legislação municipal); 3 = Tributos federais e municipal por fora do SN.'
         regEspTrib:
           type: integer
-          description: 'regime especial de tributação'
+          enum: [0, 1, 2, 3, 4, 5, 6, 9]
+          description: 'regime especial de tributação Valores: 0 = Nenhum; 1 = Ato cooperado (cooperativa); 2 = Estimativa; 3 = Microempresa municipal; 4 = Notário ou registrador; 5 = Profissional autônomo; 6 = Sociedade de profissionais; 9 = Outros.'
         incentivadorCultural:
           type: integer
           description: 'Campos exclusivos ABRASF (municípios fora do Padrão Nacional): opcionais, ignorados na emissão Padrão Nacional.'
         dataOptanteSimplesNacional:
           type: string
-          description: 'YYYY-MM-DD'
+          format: date
+          description: 'Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
     NfseServico:
       type: object
       description: 'Servico descreve o serviço prestado.'
@@ -4677,6 +5524,7 @@ components:
           description: 'país da prestação (exterior)'
         xPais:
           type: string
+          description: 'Nome do país.'
         comExt:
           description: 'comércio exterior'
           allOf:
@@ -4719,6 +5567,7 @@ components:
       properties:
         CST:
           type: string
+          description: 'Código de Situação Tributária.'
         vBCPisCofins:
           type: number
         pAliqPis:
@@ -4743,7 +5592,8 @@ components:
       properties:
         tribISSQN:
           type: integer
-          description: '1=operação tributável'
+          enum: [1, 2, 3, 4]
+          description: 'Valores: 1 = Operação tributável; 2 = Exportação de serviço; 3 = Não incidência; 4 = Imunidade.'
         tpRetISSQN:
           type: integer
           description: '1=não retido, 2=retido tomador...'
@@ -4791,24 +5641,29 @@ components:
           description: 'alíquota de deduções (%)'
         tribISSQN:
           type: integer
-          description: 'ISSQN (atalhos comuns; o detalhe vai em tribMun).'
+          enum: [1, 2, 3, 4]
+          description: 'ISSQN (atalhos comuns; o detalhe vai em tribMun). Valores: 1 = Operação tributável; 2 = Exportação de serviço; 3 = Não incidência; 4 = Imunidade.'
         pAliq:
           type: number
           description: 'alíquota ISS (%)'
         iss_retido:
           type: integer
-          description: '1=Sim, 2=Não (ABRASF); default 2'
+          enum: [1, 2]
+          description: 'default 2 Valores: 1 = Retido pelo tomador; 2 = Não retido.'
         tribMun:
           description: 'Tributação detalhada (Padrão Nacional).'
           allOf:
             - $ref: "#/components/schemas/NfseTribMun"
         tribFed:
-          $ref: "#/components/schemas/NfseTribFed"
+          allOf:
+            - $ref: "#/components/schemas/NfseTribFed"
         totTrib:
-          $ref: "#/components/schemas/NfseTotTrib"
+          allOf:
+            - $ref: "#/components/schemas/NfseTotTrib"
     # <<< FIM DOS SCHEMAS GERADOS
     Erro:
       type: object
+      description: "Envelope de erro. Trate pelo campo codigo, nunca pela mensagem."
       properties:
         erro:
           type: object
