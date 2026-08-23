@@ -1,0 +1,1118 @@
+openapi: 3.1.0
+info:
+  title: wrapper-api
+  version: "1"
+  description: |
+    API sem estado para documentos fiscais brasileiros (CT-e, MDF-e, NFS-e) e
+    boletos.
+
+    ## Duas fases
+
+    Emitir não é uma chamada só:
+
+    1. `POST /v1/{doc}/xml` monta o documento e devolve o XML e a identidade
+       dele (chave, ou `id_dps` na NFS-e). **Não** assina, **não** fala com o
+       fisco e **não** pede certificado.
+    2. `POST /v1/{doc}/transmissao` assina e envia. O certificado entra aqui.
+
+    A fase 1 põe o documento nas suas mãos antes de qualquer byte sair. É isso
+    que torna recuperável uma transmissão cuja resposta se perdeu: consulte pela
+    chave em vez de reenviar e duplicar.
+
+    ## Nada é persistido
+
+    O certificado A1 viaja no corpo da chamada que transmite, é usado em memória
+    e vai embora com ela. Guardar o XML e o protocolo é responsabilidade sua.
+
+    ## Precisão desta especificação
+
+    Envelopes, respostas, erros e eventos estão descritos campo a campo. O
+    **corpo do documento fiscal** (`infCte`, `infMDFe`, `infDPS`) aparece como
+    objeto livre: são centenas de campos que espelham o contrato da Nuvem
+    Fiscal / ACBr.API, e mantê-los duplicados aqui só criaria uma segunda fonte
+    da verdade para divergir da primeira. A fonte é o modelo Go
+    (`internal/{cte,mdfe,nfse}/model.go`). Campo desconhecido é recusado com
+    `400`, então um nome errado aparece na primeira chamada.
+  license:
+    name: AGPL-3.0
+    identifier: AGPL-3.0
+
+servers:
+  - url: /
+
+security:
+  - bearer: []
+
+tags:
+  - name: sistema
+  - name: cte
+  - name: mdfe
+  - name: nfse
+  - name: boletos
+
+paths:
+  /healthz:
+    get:
+      tags: [sistema]
+      summary: Liveness — o processo está vivo
+      security: []
+      responses:
+        "200": { $ref: "#/components/responses/StatusOK" }
+
+  /readyz:
+    get:
+      tags: [sistema]
+      summary: Readiness — o motor fiscal atende
+      description: |
+        Responde `503` quando não há worker atendendo. É a diferença entre "o
+        processo subiu" e "dá para transmitir" — sem isto o orquestrador manda
+        tráfego para uma instância que só sabe errar.
+      security: []
+      responses:
+        "200": { $ref: "#/components/responses/StatusOK" }
+        "503":
+          description: Sem motor fiscal
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: indisponivel }
+                  motivo: { type: string }
+
+  /openapi.yaml:
+    get:
+      tags: [sistema]
+      summary: Esta especificação
+      security: []
+      responses:
+        "200":
+          description: OK
+          content: { application/yaml: { schema: { type: string } } }
+
+  /v1/ping:
+    get:
+      tags: [sistema]
+      summary: Identidade do binário em execução
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string }
+                  versao:
+                    type: object
+                    properties:
+                      commit: { type: string }
+                      commit_curto: { type: string }
+                      build: { type: string }
+
+  /v1/capacidades:
+    get:
+      tags: [sistema]
+      summary: O que esta build sabe fazer, por módulo
+      description: |
+        É como o cliente descobre o contrato sem tentar a rota e tomar `404`.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  base: { type: string, example: /v1 }
+                  modulos:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items: { type: string }
+
+  # ---------------------------------------------------------------- CT-e
+  /v1/cte/xml:
+    post:
+      tags: [cte]
+      summary: Fase 1 — monta e valida o CT-e
+      description: |
+        Sem certificado e sem rede. Devolve o XML e a **chave**, que é o que
+        permite recuperar uma transmissão perdida.
+
+        `422 regras_de_negocio` quando a validação da lib reprova: o XML vai
+        junto na resposta, para você ver o que a lib entendeu.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DocumentoFiscal" }
+      responses:
+        "200":
+          description: XML montado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaXML" }
+        "400": { $ref: "#/components/responses/Erro400" }
+        "422": { $ref: "#/components/responses/Erro422" }
+        "502": { $ref: "#/components/responses/Erro502" }
+        "503": { $ref: "#/components/responses/Erro503" }
+
+  /v1/cte/simp/xml:
+    post:
+      tags: [cte]
+      summary: Fase 1 do CT-e Simplificado (tpCTe=5)
+      description: |
+        Não há rota de transmissão própria: transmitir é a mesma operação, e o
+        XML já diz o que é. Use `POST /v1/cte/transmissao`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DocumentoFiscal" }
+      responses:
+        "200":
+          description: XML montado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaXML" }
+        "400": { $ref: "#/components/responses/Erro400" }
+        "422": { $ref: "#/components/responses/Erro422" }
+
+  /v1/cte/transmissao:
+    post:
+      tags: [cte]
+      summary: Fase 2 — assina e transmite o CT-e
+      description: |
+        O ambiente sai do `tpAmb` do próprio XML; o campo `ambiente` só é usado
+        se a tag faltar. Divergir seria rejeição 252 — ou um documento de
+        homologação indo para produção.
+
+        **Timeout aqui não é falha: é desfecho desconhecido.** A resposta `502
+        desfecho_indeterminado` significa que o documento PODE ter sido
+        autorizado. Não repita — use `POST /v1/cte/consulta`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PedidoTransmissao" }
+      responses:
+        "200":
+          description: Autorizado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaTransmissao" }
+        "400": { $ref: "#/components/responses/Erro400" }
+        "422":
+          description: Rejeitado pelo fisco (o corpo traz cStat e motivo)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaTransmissao" }
+        "502": { $ref: "#/components/responses/Erro502" }
+        "503": { $ref: "#/components/responses/Erro503" }
+
+  /v1/cte/eventos/{tipo}:
+    post:
+      tags: [cte]
+      summary: Envia um evento do CT-e
+      description: |
+        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        recuperação é consultar o documento — você já tem a chave dele.
+      parameters:
+        - name: tipo
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [cancelamento, carta-correcao, epec, comprovante-entrega, insucesso-entrega, prestacao-desacordo]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PedidoEvento" }
+      responses:
+        "200":
+          description: Evento registrado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEvento" }
+        "400": { $ref: "#/components/responses/Erro400" }
+        "404": { $ref: "#/components/responses/Erro404" }
+        "422":
+          description: Evento rejeitado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEvento" }
+
+  /v1/cte/consulta:
+    post:
+      tags: [cte]
+      summary: Consulta o CT-e pela chave
+      description: |
+        É a recuperação depois de um desfecho indeterminado. Chame ISTO, nunca
+        repita a transmissão.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PedidoConsultaChave" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaTransmissao" }
+        "400": { $ref: "#/components/responses/Erro400" }
+
+  /v1/cte/status-servico:
+    post:
+      tags: [cte]
+      summary: Status do serviço da SEFAZ
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PedidoSefaz" }
+      responses:
+        "200": { $ref: "#/components/responses/RespostaCrua" }
+
+  /v1/cte/cadastro:
+    post:
+      tags: [cte]
+      summary: Consulta o cadastro de um contribuinte na UF
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PedidoSefaz"
+                - type: object
+                  required: [uf, documento]
+                  properties:
+                    uf: { type: string, example: SP }
+                    documento: { type: string, description: CNPJ/CPF, ou IE quando eh_ie=true }
+                    eh_ie: { type: boolean, default: false }
+      responses:
+        "200": { $ref: "#/components/responses/RespostaCrua" }
+        "400": { $ref: "#/components/responses/Erro400" }
+
+  /v1/cte/pdf:
+    post:
+      tags: [cte]
+      summary: Gera o DACTE a partir do XML
+      description: |
+        **Não existe "obter PDF pela chave" no CT-e.** Se você perder o XML, o
+        DACTE não se regenera de lugar nenhum. Render local: não fala com a
+        SEFAZ, logo não pede certificado.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PedidoPDF" }
+      responses:
+        "200": { $ref: "#/components/responses/RespostaPDF" }
+        "400": { $ref: "#/components/responses/Erro400" }
+        "422": { $ref: "#/components/responses/Erro422" }
+
+  /v1/cte/pdf/evento:
+    post:
+      tags: [cte]
+      summary: Gera o DACTE de um evento
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PedidoPDF"
+                - type: object
+                  required: [xml_evento_b64]
+                  properties:
+                    xml_evento_b64: { type: string, format: byte }
+      responses:
+        "200": { $ref: "#/components/responses/RespostaPDF" }
+        "400": { $ref: "#/components/responses/Erro400" }
+
+  # ---------------------------------------------------------------- MDF-e
+  /v1/mdfe/xml:
+    post:
+      tags: [mdfe]
+      summary: Fase 1 — monta e valida o MDF-e
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DocumentoFiscal" }
+      responses:
+        "200":
+          description: XML montado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaXML" }
+        "400": { $ref: "#/components/responses/Erro400" }
+        "422": { $ref: "#/components/responses/Erro422" }
+
+  /v1/mdfe/transmissao:
+    post:
+      tags: [mdfe]
+      summary: Fase 2 — assina e transmite o MDF-e
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PedidoTransmissao" }
+      responses:
+        "200":
+          description: Autorizado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaTransmissao" }
+        "422":
+          description: Rejeitado pelo fisco
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaTransmissao" }
+        "502": { $ref: "#/components/responses/Erro502" }
+
+  /v1/mdfe/eventos/{tipo}:
+    post:
+      tags: [mdfe]
+      summary: Envia um evento do MDF-e
+      parameters:
+        - name: tipo
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [encerramento, cancelamento, inclusao-condutor, inclusao-dfe, pagamento-operacao]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PedidoEvento" }
+      responses:
+        "200":
+          description: Evento registrado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEvento" }
+        "400": { $ref: "#/components/responses/Erro400" }
+
+  /v1/mdfe/consulta:
+    post:
+      tags: [mdfe]
+      summary: Consulta o MDF-e pela chave
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PedidoConsultaChave" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaTransmissao" }
+
+  /v1/mdfe/status-servico:
+    post:
+      tags: [mdfe]
+      summary: Status do serviço da SEFAZ
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PedidoSefaz" }
+      responses:
+        "200": { $ref: "#/components/responses/RespostaCrua" }
+
+  /v1/mdfe/nao-encerrados:
+    post:
+      tags: [mdfe]
+      summary: Lista os MDF-e do CNPJ ainda em trânsito
+      description: |
+        Conformidade: emitir novo manifesto com outro em aberto é rejeição.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PedidoSefaz"
+                - type: object
+                  required: [cnpj]
+      responses:
+        "200": { $ref: "#/components/responses/RespostaCrua" }
+        "400": { $ref: "#/components/responses/Erro400" }
+
+  /v1/mdfe/pdf:
+    post:
+      tags: [mdfe]
+      summary: Gera o DAMDFE a partir do XML
+      description: |
+        Como no CT-e, **não existe "obter PDF pela chave"**. Guarde o XML.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PedidoPDF" }
+      responses:
+        "200": { $ref: "#/components/responses/RespostaPDF" }
+
+  /v1/mdfe/pdf/evento:
+    post:
+      tags: [mdfe]
+      summary: Gera o DAMDFE de um evento
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PedidoPDF"
+                - type: object
+                  required: [xml_evento_b64]
+                  properties:
+                    xml_evento_b64: { type: string, format: byte }
+      responses:
+        "200": { $ref: "#/components/responses/RespostaPDF" }
+
+  # ---------------------------------------------------------------- NFS-e
+  /v1/nfse/xml:
+    post:
+      tags: [nfse]
+      summary: Fase 1 — monta a DPS
+      description: |
+        O município (`infDPS.cLocEmi`, ou o do prestador) decide o provedor, e o
+        provedor decide o layout. Município sem provedor conhecido é recusado
+        **antes** de montar.
+
+        Devolve `id_dps`, não `chave`: a chave de acesso só existe depois da
+        autorização, enquanto o identificador da DPS é determinístico. É ele que
+        recupera a transmissão perdida.
+
+        `validacao.suportada` vem **false**: o ACBrNFSeX não expõe validação de
+        regras de negócio, ao contrário de CT-e e MDF-e.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DocumentoFiscal" }
+      responses:
+        "200":
+          description: DPS montada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaXMLNFSe" }
+        "400": { $ref: "#/components/responses/Erro400" }
+        "422": { $ref: "#/components/responses/Erro422" }
+
+  /v1/nfse/transmissao:
+    post:
+      tags: [nfse]
+      summary: Fase 2 — assina e transmite a DPS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PedidoTransmissaoNFSe" }
+      responses:
+        "200":
+          description: Autorizada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaTransmissaoNFSe" }
+        "422":
+          description: Rejeitada, ou operação não suportada pelo provedor
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaTransmissaoNFSe" }
+        "502": { $ref: "#/components/responses/Erro502" }
+
+  /v1/nfse/consulta-dps:
+    post:
+      tags: [nfse]
+      summary: A DPS virou nota? (recuperação)
+      description: |
+        É o fecho do modelo sem estado para a NFS-e: depois de um desfecho
+        indeterminado, é ISTO que se chama — nunca reenviar a DPS.
+
+        Aceita o `id_dps` como a fase 1 devolveu (com o prefixo `DPS`) ou a
+        chave nua; o webservice quer sem prefixo, e essa diferença não é
+        problema seu.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PedidoConsultaNFSe" }
+      responses:
+        "200": { $ref: "#/components/responses/RespostaCrua" }
+        "400": { $ref: "#/components/responses/Erro400" }
+
+  /v1/nfse/consulta:
+    post:
+      tags: [nfse]
+      summary: Consulta a NFS-e pela chave
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PedidoConsultaNFSe" }
+      responses:
+        "200": { $ref: "#/components/responses/RespostaCrua" }
+
+  /v1/nfse/consultas/{tipo}:
+    post:
+      tags: [nfse]
+      summary: Consultas por número, faixa, RPS, situação ou lote
+      parameters:
+        - name: tipo
+          in: path
+          required: true
+          schema: { type: string, enum: [numero, faixa, rps, situacao, lote-rps] }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PedidoConsultaNFSe"
+                - type: object
+                  properties:
+                    numero: { type: string }
+                    numero_final: { type: string }
+                    serie: { type: string }
+                    tipo: { type: string }
+                    codigo_verificacao: { type: string }
+                    protocolo: { type: string }
+                    numero_lote: { type: string }
+                    pagina: { type: integer, default: 1 }
+      responses:
+        "200": { $ref: "#/components/responses/RespostaCrua" }
+        "404": { $ref: "#/components/responses/Erro404" }
+
+  /v1/nfse/distribuicao:
+    post:
+      tags: [nfse]
+      summary: Distribuição DF-e do ADN por NSU
+      description: |
+        O cursor (`nsu`) vai e volta no payload: sem estado, é você que guarda
+        onde parou. **Não paralelize a distribuição do mesmo CNPJ** — sem o lock
+        que existia com banco, chamadas simultâneas embaralham o cursor.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PedidoConsultaNFSe"
+                - type: object
+                  properties:
+                    nsu: { type: integer }
+      responses:
+        "200": { $ref: "#/components/responses/RespostaCrua" }
+
+  /v1/nfse/eventos/{tipo}:
+    post:
+      tags: [nfse]
+      summary: Cancela ou substitui uma NFS-e
+      description: |
+        Nem todo provedor implementa estas operações — a capacidade é descoberta
+        em runtime, e a resposta é `422 operacao_nao_suportada` quando não há.
+      parameters:
+        - name: tipo
+          in: path
+          required: true
+          schema: { type: string, enum: [cancelamento, substituicao] }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PedidoEventoNFSe" }
+      responses:
+        "200":
+          description: Evento concluído
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEventoNFSe" }
+        "400": { $ref: "#/components/responses/Erro400" }
+        "422": { $ref: "#/components/responses/Erro422" }
+
+  /v1/nfse/pdf:
+    post:
+      tags: [nfse]
+      summary: Gera o DANFSE, pela chave ou pelo XML
+      description: |
+        Diferente de CT-e e MDF-e, a NFS-e **recupera o PDF pela chave**
+        (`ObterDANFSE`) — perder o XML aqui não é definitivo. Por chave fala com
+        o provedor e exige certificado; por XML é render local e não exige.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Informe `chave` (com certificado) OU `xml_b64`.
+              properties:
+                chave: { type: string }
+                xml_b64: { type: string, format: byte }
+                municipio: { type: string }
+                ambiente: { $ref: "#/components/schemas/Ambiente" }
+                emitente: { $ref: "#/components/schemas/Emitente" }
+                certificado: { $ref: "#/components/schemas/Certificado" }
+                credenciais: { $ref: "#/components/schemas/Credenciais" }
+      responses:
+        "200": { $ref: "#/components/responses/RespostaPDF" }
+        "400": { $ref: "#/components/responses/Erro400" }
+
+  /v1/nfse/municipios/{codigo}:
+    get:
+      tags: [nfse]
+      summary: O município é atendido, e por quem?
+      description: |
+        Não leva certificado. É como você descobre, antes de montar qualquer
+        coisa, se vale a pena tentar.
+      parameters:
+        - name: codigo
+          in: path
+          required: true
+          schema: { type: string, description: código IBGE de 7 dígitos }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  codigo: { type: string }
+                  provedor: { type: string }
+                  layout: { type: string, enum: [padrao_nacional, abrasf, proprio, ""] }
+                  suportado: { type: boolean }
+
+  # ---------------------------------------------------------------- boletos
+  /v1/boletos/pdf:
+    post:
+      tags: [boletos]
+      summary: Gera o PDF do(s) boleto(s)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PedidoBoleto" }
+      responses:
+        "200": { $ref: "#/components/responses/RespostaPDF" }
+        "400": { $ref: "#/components/responses/Erro400" }
+        "422": { $ref: "#/components/responses/Erro422" }
+
+  /v1/boletos/remessa:
+    post:
+      tags: [boletos]
+      summary: Gera o arquivo de remessa CNAB
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PedidoBoleto"
+                - type: object
+                  properties:
+                    numeroArquivo:
+                      type: integer
+                      default: 1
+                      description: sequencial da remessa — controle do cliente
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  remessa: { type: string }
+                  numero_arquivo: { type: integer }
+
+  /v1/boletos/retorno:
+    post:
+      tags: [boletos]
+      summary: Processa um arquivo de retorno CNAB
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [conta, arquivo]
+              properties:
+                conta:
+                  type: object
+                  description: só a config do banco — títulos não entram aqui
+                arquivo: { type: string, description: conteúdo cru do retorno }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  retorno:
+                    description: objeto quando a lib devolve JSON; string caso contrário
+
+  /v1/boletos/registro:
+    post:
+      tags: [boletos]
+      summary: Registra ou baixa boleto(s) na API do banco
+      description: |
+        Exige `conta.ws` (OAuth + mTLS). Recusa do banco volta como `502` com o
+        detalhe — a falha é do outro lado.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PedidoBoleto"
+                - type: object
+                  properties:
+                    operacao:
+                      type: integer
+                      enum: [0, 2]
+                      default: 0
+                      description: 0=incluir (exige títulos), 2=baixar
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  operacao: { type: integer }
+                  resposta: { type: string }
+        "400": { $ref: "#/components/responses/Erro400" }
+        "502": { $ref: "#/components/responses/Erro502" }
+
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      description: O token de `API_TOKEN`. Um token dá acesso a tudo.
+
+  schemas:
+    Ambiente:
+      type: string
+      enum: [homologacao, producao]
+      default: homologacao
+
+    Certificado:
+      type: object
+      required: [pfx_b64, senha]
+      description: |
+        Certificado A1 (.pfx) em base64 e a senha. **Não é persistido**: vai ao
+        worker por socket unix, é usado na sessão nativa e morre com ela.
+      properties:
+        pfx_b64: { type: string, format: byte }
+        senha: { type: string, format: password }
+
+    Credenciais:
+      type: object
+      description: |
+        Login/token de prefeitura, exigidos por provedores de NFS-e fora do
+        Padrão Nacional. Como o certificado, não são persistidos.
+      properties:
+        usuario: { type: string }
+        senha: { type: string, format: password }
+        token: { type: string, format: password }
+
+    Emitente:
+      type: object
+      description: Sem cadastro no servidor, o emitente vem no pedido.
+      required: [cnpj]
+      properties:
+        cnpj: { type: string }
+        inscricao_municipal: { type: string }
+        razao_social: { type: string }
+
+    DocumentoFiscal:
+      type: object
+      description: |
+        O documento no contrato da Nuvem Fiscal / ACBr.API. Ver
+        `internal/{cte,mdfe,nfse}/model.go` — campo desconhecido é recusado com
+        `400`, então um nome errado aparece na primeira chamada.
+      additionalProperties: true
+      properties:
+        ambiente: { $ref: "#/components/schemas/Ambiente" }
+        referencia: { type: string, description: seu identificador externo }
+
+    Validacao:
+      type: object
+      description: |
+        `suportada: false` significa que a lib **não** expõe validação de regras
+        para este documento (é o caso da NFS-e) — e não que passou.
+      properties:
+        ok: { type: boolean }
+        suportada: { type: boolean }
+        mensagens:
+          type: array
+          items: { type: string }
+
+    RespostaXML:
+      type: object
+      properties:
+        chave: { type: string, description: chave de acesso (44 dígitos) }
+        xml_b64: { type: string, format: byte }
+        assinado:
+          type: boolean
+          description: sempre `false` — a ACBrLib assina no envio, não na montagem
+        validacao: { $ref: "#/components/schemas/Validacao" }
+
+    RespostaXMLNFSe:
+      type: object
+      properties:
+        id_dps:
+          type: string
+          description: identificador determinístico da DPS; use em /consulta-dps
+        xml_b64: { type: string, format: byte }
+        assinado: { type: boolean }
+        layout: { type: string, enum: [padrao_nacional, abrasf, proprio] }
+        provedor: { type: string }
+        validacao: { $ref: "#/components/schemas/Validacao" }
+
+    PedidoTransmissao:
+      type: object
+      required: [xml_b64, certificado]
+      properties:
+        xml_b64:
+          type: string
+          format: byte
+          description: o XML devolvido pela fase 1
+        ambiente:
+          allOf: [{ $ref: "#/components/schemas/Ambiente" }]
+          description: FALLBACK — o ambiente sai do tpAmb do XML quando presente
+        certificado: { $ref: "#/components/schemas/Certificado" }
+
+    PedidoTransmissaoNFSe:
+      type: object
+      required: [xml_b64, municipio, emitente, certificado]
+      properties:
+        xml_b64: { type: string, format: byte }
+        municipio: { type: string, description: código IBGE — decide o provedor }
+        ambiente: { $ref: "#/components/schemas/Ambiente" }
+        emitente: { $ref: "#/components/schemas/Emitente" }
+        certificado: { $ref: "#/components/schemas/Certificado" }
+        credenciais: { $ref: "#/components/schemas/Credenciais" }
+
+    Mensagem:
+      type: object
+      properties:
+        codigo: { type: string }
+        descricao: { type: string }
+
+    RespostaTransmissao:
+      type: object
+      properties:
+        chave: { type: string }
+        protocolo: { type: string }
+        status: { type: string, enum: [autorizado, rejeitado, erro] }
+        cstat: { type: string }
+        motivo: { type: string }
+        recibo:
+          type: string
+          description: vestígio — o envio é síncrono e ele não vem
+        xml_proc_b64:
+          type: string
+          format: byte
+          description: "o documento autorizado. **Guarde**: é a sua única via."
+        erros:
+          type: array
+          items: { $ref: "#/components/schemas/Mensagem" }
+
+    RespostaTransmissaoNFSe:
+      type: object
+      properties:
+        numero: { type: string }
+        chave: { type: string }
+        codigo_verificacao: { type: string }
+        protocolo: { type: string }
+        status: { type: string, enum: [autorizado, rejeitado, erro] }
+        situacao: { type: string }
+        xml_b64: { type: string, format: byte }
+        erros:
+          type: array
+          items: { $ref: "#/components/schemas/Mensagem" }
+        alertas:
+          type: array
+          items: { $ref: "#/components/schemas/Mensagem" }
+
+    PedidoEvento:
+      type: object
+      required: [chave, certificado]
+      properties:
+        chave: { type: string, description: 44 dígitos }
+        protocolo: { type: string, description: exigido no cancelamento }
+        ambiente: { $ref: "#/components/schemas/Ambiente" }
+        dhEvento: { type: string, description: "default: agora" }
+        certificado: { $ref: "#/components/schemas/Certificado" }
+        evento:
+          type: object
+          description: campos próprios do tipo; ver o modelo do documento
+          additionalProperties: true
+
+    PedidoEventoNFSe:
+      type: object
+      required: [municipio, certificado]
+      properties:
+        chave: { type: string, description: exigida no cancelamento }
+        municipio: { type: string }
+        ambiente: { $ref: "#/components/schemas/Ambiente" }
+        emitente: { $ref: "#/components/schemas/Emitente" }
+        certificado: { $ref: "#/components/schemas/Certificado" }
+        credenciais: { $ref: "#/components/schemas/Credenciais" }
+        evento:
+          type: object
+          additionalProperties: true
+
+    RespostaEvento:
+      type: object
+      properties:
+        tipo: { type: string }
+        chave: { type: string }
+        status: { type: string, enum: [concluido, rejeitado, erro] }
+        cstat: { type: string }
+        motivo: { type: string }
+        protocolo: { type: string }
+        xml_evento_b64: { type: string, format: byte }
+        erros:
+          type: array
+          items: { $ref: "#/components/schemas/Mensagem" }
+
+    RespostaEventoNFSe:
+      type: object
+      properties:
+        tipo: { type: string }
+        chave: { type: string }
+        status: { type: string }
+        protocolo: { type: string }
+        data_hora: { type: string }
+        xml_b64: { type: string, format: byte }
+        mensagens:
+          type: array
+          items: { $ref: "#/components/schemas/Mensagem" }
+
+    PedidoConsultaChave:
+      type: object
+      required: [chave, certificado]
+      properties:
+        chave: { type: string }
+        ambiente: { $ref: "#/components/schemas/Ambiente" }
+        certificado: { $ref: "#/components/schemas/Certificado" }
+
+    PedidoConsultaNFSe:
+      type: object
+      required: [municipio, certificado]
+      properties:
+        chave: { type: string }
+        municipio: { type: string }
+        ambiente: { $ref: "#/components/schemas/Ambiente" }
+        emitente: { $ref: "#/components/schemas/Emitente" }
+        certificado: { $ref: "#/components/schemas/Certificado" }
+        credenciais: { $ref: "#/components/schemas/Credenciais" }
+
+    PedidoSefaz:
+      type: object
+      required: [certificado]
+      properties:
+        ambiente: { $ref: "#/components/schemas/Ambiente" }
+        cnpj: { type: string }
+        certificado: { $ref: "#/components/schemas/Certificado" }
+
+    PedidoPDF:
+      type: object
+      required: [xml_b64]
+      properties:
+        xml_b64: { type: string, format: byte }
+
+    PedidoBoleto:
+      type: object
+      required: [conta, titulos]
+      description: |
+        Conta de cobrança (banco + cedente) e títulos. Ver
+        `internal/boleto/model.go`. `conta.ws` carrega OAuth e mTLS quando o
+        registro é online — não é persistido.
+      additionalProperties: true
+      properties:
+        conta: { type: object, additionalProperties: true }
+        titulos:
+          type: array
+          items: { type: object, additionalProperties: true }
+
+    Erro:
+      type: object
+      properties:
+        erro:
+          type: object
+          properties:
+            codigo:
+              type: string
+              description: |
+                Chave estável para tratar por máquina: `json_invalido`,
+                `campo_obrigatorio`, `certificado_invalido`, `chave_invalida`,
+                `regras_de_negocio`, `provedor_nao_suportado`,
+                `operacao_nao_suportada`, `desfecho_indeterminado`,
+                `lib_indisponivel`, `falha_na_lib`.
+            mensagem: { type: string }
+            detalhes: { description: contexto (rejeições, XML montado, retorno cru) }
+
+  responses:
+    StatusOK:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status: { type: string, example: ok }
+
+    RespostaCrua:
+      description: |
+        Retorno da lib sem reinterpretação: o formato varia por provedor, e
+        normalizá-lo esconderia informação que só o provedor tem.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              codigo: { type: integer }
+              resposta: { type: string }
+              xml_b64: { type: string, format: byte }
+
+    RespostaPDF:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              pdf_b64: { type: string, format: byte }
+
+    Erro400:
+      description: Pedido inválido
+      content: { application/json: { schema: { $ref: "#/components/schemas/Erro" } } }
+    "Erro404":
+      description: Rota ou tipo inexistente
+      content: { application/json: { schema: { $ref: "#/components/schemas/Erro" } } }
+    Erro422:
+      description: Recusado antes de transmitir (nada saiu)
+      content: { application/json: { schema: { $ref: "#/components/schemas/Erro" } } }
+    Erro502:
+      description: |
+        A lib ou o webservice falhou. `desfecho_indeterminado` significa que a
+        operação PODE ter sido transmitida — consulte pela chave, não repita.
+      content: { application/json: { schema: { $ref: "#/components/schemas/Erro" } } }
+    Erro503:
+      description: Motor fiscal indisponível — a chamada NÃO saiu; repetir é seguro
+      content: { application/json: { schema: { $ref: "#/components/schemas/Erro" } } }

@@ -1,0 +1,23 @@
+# Config do golangci-lint (v2). Conjunto sóbrio: o set "standard" (errcheck,
+# govet, ineffassign, staticcheck, unused). O gate de gofmt já vive no CI à parte.
+version: "2"
+
+linters:
+  default: standard
+  exclusions:
+    # Cache local do fonte ACBr (não versionado) — não é nosso código.
+    paths:
+      - acbr-source
+    rules:
+      # defer Close(): o erro é ignorado por convenção em Go — num Close de
+      # leitura não há o que tratar.
+      - linters: [errcheck]
+        text: 'Error return value of `.*\.Close` is not checked'
+      # ST1005: muitas mensagens de erro aqui são user-facing (pt-BR, renderizadas
+      # na UI/JSON), onde maiúscula e pontuação são corretas — a convenção Go
+      # (minúscula, sem pontuação) é para erros que serão encadeados.
+      - linters: [staticcheck]
+        text: 'ST1005'
+      # QF1001 (De Morgan) e afins: sugestões de reescrita de estilo, não bugs.
+      - linters: [staticcheck]
+        text: 'QF1001'

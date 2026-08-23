@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  test:
+    name: fmt + vet + test (domínio puro, sem .so)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.13"
+          cache: true
+      # Gate de formatação: falha se algum .go rastreado não estiver gofmt-limpo.
+      - name: gofmt
+        run: |
+          fora=$(gofmt -l $(git ls-files '*.go'))
+          if [ -n "$fora" ]; then
+            echo "Arquivos fora do gofmt (rode 'make fmt'):"; echo "$fora"; exit 1
+          fi
+      # CGO desligado: compila o binding stub. O domínio inteiro — que é o ativo
+      # do projeto — é testável sem a lib nativa E sem certificado, porque a fase
+      # 1 do contrato não assina. É o que torna este job barato e honesto.
+      - run: CGO_ENABLED=0 go vet ./...
+      - run: CGO_ENABLED=0 go test ./...
+
+  cgo:
+    name: type-check + link do binding contra as .so reais
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.13"
+          cache: true
+      # As libs NEEDED pelo .so: o linker precisa delas para resolver as
+      # referências transitivas.
+      - name: dependências nativas
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libglib2.0-0 libgtk2.0-0
+      - name: baixa as libs nativas
+        run: make acbr-libs-baixar
+      # Este job pega o que o job acima NÃO pega: assinatura C errada no header.
+      # Um argumento a menos desloca os registradores e vira corrupção de memória
+      # em runtime — já aconteceu com CTE_Enviar.
+      - run: make test-cgo
+      - run: make build-cgo
+
+  govulncheck:
+    name: govulncheck (CVEs alcançadas pelo código)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.13"
+          cache: true
+      - run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - run: CGO_ENABLED=0 govulncheck ./...
+
+  lint:
+    name: golangci-lint
+    runs-on: ubuntu-latest
+    env:
+      CGO_ENABLED: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.13"
+          cache: true
+      - uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.5.0
+          # verify baixa o JSON Schema do site do golangci a cada run só para
+          # validar o .golangci.yml — dependência de rede externa que já derrubou
+          # CI por timeout, sem nada a ver com o código.
+          verify: false
+
+  segredo:
+    name: nenhum segredo no repositório
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Este projeto recebe certificado alheio por payload. Um .pfx ou .env que
+      # escape para o repositório PÚBLICO é irreversível — vale um gate barato.
+      - name: procura certificados, chaves e .env
+        run: |
+          # O -v '.example' é essencial: .env.example É para ser versionado, e
+          # sem ele este gate reprova todo push.
+          achados=$(git ls-files \
+            | grep -iE '\.(pfx|p12|pem|key|crt|cer)$|(^|/)\.env($|\.)' \
+            | grep -v '\.example$' || true)
+          if [ -n "$achados" ]; then
+            echo "::error::arquivos sensíveis rastreados:"; echo "$achados"; exit 1
+          fi
+          echo "nenhum arquivo sensível rastreado"

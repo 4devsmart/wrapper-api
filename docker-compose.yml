@@ -1,0 +1,51 @@
+# Stack completo: dois containers, um volume — e o volume só guarda o socket.
+#
+# Não há banco, bucket nem volume de dados: o serviço não persiste nada. O
+# certificado A1 chega no corpo da requisição que transmite e morre com ela.
+services:
+  api:
+    build:
+      context: .
+      args:
+        APP_COMMIT: ${APP_COMMIT:-}
+        APP_BUILD: ${APP_BUILD:-}
+    image: ${APP_IMAGE:-wrapper-api}
+    environment:
+      # Com isto a API NÃO carrega a lib nativa: delega por RPC, e um crash dela
+      # derruba o worker, não o servidor HTTP.
+      ACBR_WORKERS: /run/wrapper/fiscal.sock
+      API_TOKEN: ${API_TOKEN:-}
+      MODO: ${MODO:-homologacao}
+    ports:
+      - "${HOST_PORT:-8080}:8080"
+    depends_on:
+      worker:
+        condition: service_healthy
+    volumes:
+      - worker-run:/run/wrapper
+    restart: unless-stopped
+
+  # Processo que carrega a lib fiscal nativa (mesma imagem, outro comando). Fica
+  # isolado de propósito: um SIGSEGV na lib mata este container — que o Docker
+  # reinicia — em vez de derrubar a API. Não expõe porta: só o socket unix.
+  worker:
+    build:
+      context: .
+    image: ${APP_IMAGE:-wrapper-api}
+    command: ["worker"]
+    environment:
+      ACBR_WORKER_LISTEN: /run/wrapper/fiscal.sock
+      ACBR_WORKER_SLOTS: ${ACBR_WORKER_SLOTS:-1}
+      ACBR_WORKER_TIMEOUT_SECONDS: ${ACBR_WORKER_TIMEOUT_SECONDS:-90}
+    volumes:
+      - worker-run:/run/wrapper
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "--unix-socket", "/run/wrapper/fiscal.sock", "http://worker/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  worker-run: # socket RPC entre a API e o fiscal-worker

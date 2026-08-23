@@ -1,0 +1,53 @@
+name: Release
+
+# Promove a imagem JÁ TESTADA de um commit de main para as tags de distribuição.
+# NÃO rebuilda: re-aponta as tags para o MESMO digest que passou pelo CI e pelo
+# teste de fumaça — ou seja, exatamente os bits que foram verificados.
+#
+#   1. merge em main   → Publicar imagem publica :<sha> e :latest
+#   2. validado        → git tag v1.2.3 && git push origin v1.2.3
+#   3. este workflow   → promove :<sha> para :v1.2.3 (+ :stable)
+#
+# Pré-release (tag com hífen, ex. v1.2.3-rc1) não move :stable.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGEM: ghcr.io/${{ github.repository }}/api
+
+jobs:
+  promover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: promove :<sha> → :vX.Y.Z (+ :stable)
+        run: |
+          set -eu
+          VERSAO="${GITHUB_REF_NAME}"
+          ORIGEM="${IMAGEM}:${GITHUB_SHA}"
+
+          if ! docker buildx imagetools inspect "$ORIGEM" >/dev/null 2>&1; then
+            echo "::error::$ORIGEM não existe no registry. Faça a tag num commit de main já publicado."
+            exit 1
+          fi
+
+          TAGS="-t ${IMAGEM}:${VERSAO}"
+          case "$VERSAO" in
+            *-*) echo "Pré-release ($VERSAO): não move :stable." ;;
+            *)   TAGS="$TAGS -t ${IMAGEM}:stable" ;;
+          esac
+
+          # imagetools create copia o manifesto (mesmo digest) para as tags novas.
+          docker buildx imagetools create $TAGS "$ORIGEM"
+          docker buildx imagetools inspect "${IMAGEM}:${VERSAO}"
