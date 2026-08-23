@@ -86,6 +86,9 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !ambienteDoPedido(w, &p.Ambiente) {
+		return
+	}
 
 	t := m.tenant(cnpj, cmun, p.InfDPS.Prest, p.Ambiente, layout, fiscal.Certificado{}, Credenciais{})
 	xml, val, res, err := fiscal.Montar(m.svc, t, ToINIDoLayout(layout, p))
@@ -182,7 +185,10 @@ func (m *Modulo) handleTransmissao(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ambiente := fiscal.Primeiro(AmbienteDoXML(xml), p.Ambiente, "homologacao")
+	if !ambienteDoPedido(w, &p.Ambiente) {
+		return
+	}
+	ambiente := fiscal.Primeiro(AmbienteDoXML(xml), p.Ambiente)
 	t := m.tenantEmitente(p.Emitente, p.Municipio, ambiente, layout, p.Certificado, p.Credenciais)
 
 	res, err := m.svc.Transmitir(t, xml)
@@ -261,7 +267,10 @@ func (m *Modulo) handleEvento(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	t := m.tenantEmitente(p.Emitente, p.Municipio, fiscal.Primeiro(p.Ambiente, "homologacao"),
+	if !ambienteDoPedido(w, &p.Ambiente) {
+		return
+	}
+	t := m.tenantEmitente(p.Emitente, p.Municipio, p.Ambiente,
 		layout, p.Certificado, p.Credenciais)
 
 	if tipo == "substituicao" {
@@ -457,7 +466,10 @@ func (m *Modulo) lerConsulta(w http.ResponseWriter, r *http.Request) (PedidoCons
 	if !ok {
 		return p, acbr.TenantConfig{}, false
 	}
-	t := m.tenantEmitente(p.Emitente, p.Municipio, fiscal.Primeiro(p.Ambiente, "homologacao"),
+	if !ambienteDoPedido(w, &p.Ambiente) {
+		return p, acbr.TenantConfig{}, false
+	}
+	t := m.tenantEmitente(p.Emitente, p.Municipio, p.Ambiente,
 		layout, p.Certificado, p.Credenciais)
 	return p, t, true
 }
@@ -518,7 +530,10 @@ func (m *Modulo) handlePDF(w http.ResponseWriter, r *http.Request) {
 		if !ok {
 			return
 		}
-		t := m.tenantEmitente(p.Emitente, p.Municipio, fiscal.Primeiro(p.Ambiente, "homologacao"),
+		if !ambienteDoPedido(w, &p.Ambiente) {
+			return
+		}
+		t := m.tenantEmitente(p.Emitente, p.Municipio, p.Ambiente,
 			layout, p.Certificado, p.Credenciais)
 		res, err = m.svc.ObterPDF(t, p.Chave)
 	default:
@@ -574,6 +589,19 @@ func (m *Modulo) layout(w http.ResponseWriter, cmun string) (Layout, bool) {
 		return "", false
 	}
 	return l, true
+}
+
+// ambienteDoPedido normaliza o ambiente NO PRÓPRIO pedido, recusando valor que
+// não seja homologação nem produção. A NFS-e não escreve tpAmb no INI (o
+// ambiente só configura a sessão), então aqui não há o par de códigos que o
+// CT-e e o MDF-e precisam manter alinhados: o que se ganha é não deixar um
+// "prod" digitado errado virar homologação com resposta 200.
+func ambienteDoPedido(w http.ResponseWriter, ambiente *string) bool {
+	amb, ok := fiscal.AmbienteValido(w, *ambiente)
+	if ok {
+		*ambiente = amb
+	}
+	return ok
 }
 
 // tenant monta a sessão a partir do prestador do próprio pedido (ao gerar).

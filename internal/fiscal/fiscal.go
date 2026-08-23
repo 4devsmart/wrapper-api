@@ -68,14 +68,69 @@ func (c Certificado) Validar() error {
 	return nil
 }
 
-// AmbienteOrdinal traduz o ambiente para o valor que a ACBrLib espera.
-// Produção = 0, homologação = 1 (é a ordem do enum do ACBr, não do tpAmb da
-// SEFAZ: invertê-los emitiria em produção achando que era homologação).
+// Ambientes aceitos no campo "ambiente" do payload. São os dois únicos valores:
+// qualquer outro é erro do cliente, não um sinônimo de homologação.
+const (
+	AmbienteHomologacao = "homologacao"
+	AmbienteProducao    = "producao"
+)
+
+// NormalizarAmbiente devolve o ambiente canônico e se o valor era reconhecido.
+// Vazio é homologação: é o default declarado no contrato e o lado seguro.
+//
+// PONTO ÚNICO, e é o que importa aqui: o mesmo campo vira DOIS códigos
+// diferentes (o ordinal da sessão nativa e o tpAmb do XML). Enquanto cada um
+// normalizava por conta própria, "Producao" abria a sessão em produção e
+// escrevia tpAmb=2 no documento: rejeição 252, ou um documento de homologação
+// no webservice de produção. Os dois derivam desta função e não têm como
+// divergir de novo.
+func NormalizarAmbiente(ambiente string) (string, bool) {
+	switch a := strings.ToLower(strings.TrimSpace(ambiente)); a {
+	case "":
+		return AmbienteHomologacao, true
+	case AmbienteHomologacao, AmbienteProducao:
+		return a, true
+	default:
+		return AmbienteHomologacao, false
+	}
+}
+
+// AmbienteOrdinal traduz o ambiente para o valor que a ACBrLib espera na
+// configuração da sessão. Produção = 0, homologação = 1 (é a ordem do enum do
+// ACBr, não do tpAmb da SEFAZ: invertê-los emitiria em produção achando que era
+// homologação).
 func AmbienteOrdinal(ambiente string) string {
-	if strings.EqualFold(strings.TrimSpace(ambiente), "producao") {
+	if a, _ := NormalizarAmbiente(ambiente); a == AmbienteProducao {
 		return "0"
 	}
 	return "1"
+}
+
+// TpAmb traduz o ambiente para o tpAmb que vai NO XML, na convenção da SEFAZ:
+// 1 = produção, 2 = homologação. É o oposto do AmbienteOrdinal, e por isso os
+// dois moram lado a lado: quem mexer num vê o outro.
+func TpAmb(ambiente string) string {
+	if a, _ := NormalizarAmbiente(ambiente); a == AmbienteProducao {
+		return "1"
+	}
+	return "2"
+}
+
+// AmbienteValido normaliza o ambiente do pedido, respondendo 400 quando o valor
+// não é reconhecido. Devolve o canônico, que é o que deve seguir para a sessão
+// E para o INI.
+//
+// Recusar em vez de assumir homologação é deliberado: um "prod" digitado errado
+// que virasse homologação em silêncio produziria um documento sem valor fiscal
+// com resposta 200.
+func AmbienteValido(w http.ResponseWriter, ambiente string) (string, bool) {
+	a, ok := NormalizarAmbiente(ambiente)
+	if !ok {
+		httpx.ErroJSON(w, http.StatusBadRequest, "ambiente_invalido",
+			`ambiente deve ser "`+AmbienteHomologacao+`" ou "`+AmbienteProducao+`"; omitir assume homologação`)
+		return "", false
+	}
+	return a, true
 }
 
 // Tenant monta a configuração da sessão nativa. secao é a seção de config do
@@ -171,7 +226,14 @@ func Montar(svc acbr.Servico, t acbr.TenantConfig, ini string) (xml string, val 
 	if err != nil {
 		return "", Validacao{}, res, err
 	}
-	return res.XML, validarRegras(svc, t, ini), res, nil
+	val, resVal, err := validarRegras(svc, t, ini)
+	if err != nil {
+		// A validação é a segunda chamada, e falhar nela não é detalhe: o XML
+		// existe, mas ninguém conferiu as regras. Devolver o documento com
+		// "ok" aqui seria entregar um carimbo que não foi dado.
+		return "", Validacao{}, resVal, err
+	}
+	return res.XML, val, res, nil
 }
 
 // validarRegras roda a validação de regras de negócio da lib.
@@ -181,15 +243,23 @@ func Montar(svc acbr.Servico, t acbr.TenantConfig, ini string) (xml string, val 
 // SetRetorno(ErrOK, Erros) incondicionalmente, e o MDF-e faz igual. Quem diz que
 // passou é a RESPOSTA VIR VAZIA. Conferir o código daria "válido" para qualquer
 // documento.
-func validarRegras(svc acbr.Servico, t acbr.TenantConfig, ini string) Validacao {
+func validarRegras(svc acbr.Servico, t acbr.TenantConfig, ini string) (Validacao, acbr.Result, error) {
 	res, err := svc.ValidarRegras(t, ini)
-	if err != nil {
+	switch {
+	case errors.Is(err, acbr.ErrNaoSuportado):
 		// A lib não expõe validação para este documento (NFS-e). Honesto é dizer
 		// que não rodou, não fingir que passou.
-		return Validacao{OK: true, Suportada: false}
+		//
+		// A sentinela é o ÚNICO erro tolerado aqui, e é por isso que ela
+		// atravessa o RPC num campo próprio (rpc.go, NaoSuportado). Tratar
+		// qualquer erro como "não suportada" transformava worker reiniciado,
+		// timeout e vaga esgotada em "validação ok, só não rodou".
+		return Validacao{OK: true, Suportada: false}, acbr.Result{}, nil
+	case err != nil:
+		return Validacao{}, res, err
 	}
 	msgs := Linhas(res.Resposta)
-	return Validacao{OK: len(msgs) == 0, Suportada: true, Mensagens: msgs}
+	return Validacao{OK: len(msgs) == 0, Suportada: true, Mensagens: msgs}, res, nil
 }
 
 // --- entrada e saída --------------------------------------------------------

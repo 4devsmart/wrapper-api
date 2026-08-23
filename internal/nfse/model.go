@@ -16,7 +16,7 @@ package nfse
 // formas (PadraoNacional, proPadraoNacional). Para saber quem atende um
 // município antes de montar, use GET /v1/nfse/municipios/{codigo}.
 type DPSPedido struct {
-	Ambiente   string `json:"ambiente"`             // "homologacao" | "producao"
+	Ambiente   string `json:"ambiente" enum:"Ambiente"`
 	Referencia string `json:"referencia,omitempty"` // id externo do cliente
 	InfDPS     InfDPS `json:"infDPS"`
 }

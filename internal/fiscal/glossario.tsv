@@ -186,7 +186,7 @@ CSTReg	CST do regime específico (Reforma Tributária).
 cClassTribReg	Classificação tributária do regime específico (Reforma Tributária).
 Comp	Componentes que somam o valor.
 justificativa	Justificativa. Mínimo de 15 caracteres.
-ambiente	Ambiente do documento. Vazio assume homologação.
+ambiente	Ambiente de autorização. Omitir assume homologação; qualquer outro valor é recusado com 400.
 referencia	Identificador externo seu. Devolvido como veio, não vai no XML.
 municipio	Código IBGE do município, 7 dígitos. Decide o provedor de NFS-e.
 cnpj	CNPJ, 14 dígitos. Aceita com ou sem máscara.

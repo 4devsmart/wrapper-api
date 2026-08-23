@@ -270,8 +270,13 @@ func TestToINI_TpAmb(t *testing.T) {
 		"homologação":     {"homologacao", 0, "tpAmb=2"},
 		"produção":        {"producao", 0, "tpAmb=1"},
 		"vazio é homolog": {"", 0, "tpAmb=2"},
-		// O campo explícito do cliente vence o ambiente do envelope.
-		"explícito vence": {"homologacao", 1, "tpAmb=1"},
+		// Grafia diferente NÃO pode mudar o resultado: era por aqui que a sessão
+		// ia para produção e o XML saía com tpAmb=2.
+		"maiúscula":  {"PRODUCAO", 0, "tpAmb=1"},
+		"com espaço": {" producao", 0, "tpAmb=1"},
+		// O tpAmb explícito não vence mais nada: ele é conferido contra o
+		// ambiente no handler, e contradição é 400. Coerente, dá o mesmo INI.
+		"explícito coerente": {"producao", 1, "tpAmb=1"},
 	}
 	for nome, c := range casos {
 		t.Run(nome, func(t *testing.T) {

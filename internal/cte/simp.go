@@ -17,7 +17,7 @@ const (
 type PedidoSimp struct {
 	InfCte     InfCteSimp  `json:"infCte"`
 	InfCTeSupl *InfCTeSupl `json:"infCTeSupl,omitempty"`
-	Ambiente   string      `json:"ambiente"`
+	Ambiente   string      `json:"ambiente" enum:"Ambiente"`
 	Referencia string      `json:"referencia,omitempty"`
 }
 

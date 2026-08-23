@@ -500,3 +500,41 @@ func TestTransmitir_QuedaNoMeioNaoAutorizaRepetir(t *testing.T) {
 		t.Errorf("a mensagem deveria nomear a operação em risco: %v", err)
 	}
 }
+
+// TestQuedaEmMetodoLocalNaoViraIndeterminado cobre a outra metade do conserto da
+// validação: agora que uma falha ao GERAR chega ao cliente em vez de virar
+// "validação ok", ela precisa chegar com o status certo.
+//
+// MontarXML e ValidarRegras não abrem conexão com a SEFAZ. Se o worker cai no
+// meio de uma delas, não há desfecho a descobrir: repetir é seguro. Marcar como
+// indeterminado mandaria o cliente "consultar pela chave" de um documento que
+// nunca saiu, e cuja chave ele ainda nem tem.
+func TestQuedaEmMetodoLocalNaoViraIndeterminado(t *testing.T) {
+	var ts *httptest.Server
+	ts = httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.URL.Path, RotaRPC) {
+			ts.CloseClientConnections() // o SIGSEGV no meio da chamada
+		}
+	}))
+	t.Cleanup(ts.Close)
+
+	svc := clienteDe(t, ts.URL, 1, 5*time.Second)
+	for nome, chamada := range map[string]func() error{
+		"MontarXML":     func() error { _, err := svc.CTe.MontarXML(TenantConfig{}, "[ide]"); return err },
+		"ValidarRegras": func() error { _, err := svc.CTe.ValidarRegras(TenantConfig{}, "[ide]"); return err },
+		"RenderizarPDF": func() error { _, err := svc.CTe.RenderizarPDF(TenantConfig{}, "<CTe/>"); return err },
+	} {
+		t.Run(nome, func(t *testing.T) {
+			err := chamada()
+			if err == nil {
+				t.Fatal("esperava erro")
+			}
+			if errors.Is(err, ErrIndeterminado) {
+				t.Errorf("%s não transmite nada; indeterminado manda consultar uma chave que não existe: %v", nome, err)
+			}
+			if !errors.Is(err, ErrUnavailable) {
+				t.Errorf("%s deveria ser ErrUnavailable (503, repetir é seguro), veio: %v", nome, err)
+			}
+		})
+	}
+}

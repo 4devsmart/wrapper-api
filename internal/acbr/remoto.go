@@ -181,8 +181,8 @@ func (p *poolWorkers) chamar(pedido Pedido) (Resposta, error) {
 
 	res, err := d.cli.Do(req)
 	if err != nil {
-		falha := erroDeTransporte(d, pedido, err)
-		mortoNoDial = errors.Is(falha, ErrUnavailable)
+		var falha error
+		falha, mortoNoDial = erroDeTransporte(d, pedido, err)
 		return Resposta{}, falha
 	}
 	defer func() { _ = res.Body.Close() }()
@@ -214,21 +214,29 @@ func erroDaResposta(resp Resposta) error {
 	}
 }
 
-// erroDeTransporte classifica a falha de comunicação com o worker. A distinção
-// importa e é fiscal, não cosmética:
+// erroDeTransporte classifica a falha de comunicação com o worker e diz se ela
+// foi ao DISCAR (o que põe o destino de quarentena). A distinção importa e é
+// fiscal, não cosmética:
 //
 //   - falha ao CONECTAR → a chamada nunca saiu; é ErrUnavailable (503), e repetir
 //     é seguro;
-//   - conexão caiu ou estourou o prazo DEPOIS de enviada → o worker pode ter
-//     crashado já com o documento transmitido. Nunca é ErrUnavailable (vira 502),
-//     e a mensagem avisa que repetir pode duplicar.
-func erroDeTransporte(d *destino, p Pedido, err error) error {
+//   - queda ou prazo estourado DEPOIS de enviada, num método que TRANSMITE → o
+//     worker pode ter crashado já com o documento na SEFAZ. Nunca é
+//     ErrUnavailable (vira 502), e a mensagem avisa que repetir pode duplicar;
+//   - queda depois de enviada num método LOCAL (gerar, validar, renderizar) →
+//     nada saiu do host, então não há desfecho a descobrir: é ErrUnavailable de
+//     novo, e repetir é seguro. Ver metodosLocais em rpc.go.
+func erroDeTransporte(d *destino, p Pedido, err error) (falha error, falhouNoDial bool) {
 	var opErr *net.OpError
 	if errors.As(err, &opErr) && opErr.Op == "dial" {
-		return fmt.Errorf("worker fiscal %s inacessível (%v): %w", d.rotulo, err, ErrUnavailable)
+		return fmt.Errorf("worker fiscal %s inacessível (%v): %w", d.rotulo, err, ErrUnavailable), true
+	}
+	if metodosLocais[p.Metodo] {
+		return fmt.Errorf("worker fiscal %s caiu durante %s/%s (%v): a operação não transmite nada, repetir é seguro: %w",
+			d.rotulo, p.Servico, p.Metodo, err, ErrUnavailable), false
 	}
 	return fmt.Errorf("worker fiscal %s falhou durante %s/%s (%v): confira antes de repetir: %w",
-		d.rotulo, p.Servico, p.Metodo, err, ErrIndeterminado)
+		d.rotulo, p.Servico, p.Metodo, err, ErrIndeterminado), false
 }
 
 // --- implementação das interfaces -------------------------------------------

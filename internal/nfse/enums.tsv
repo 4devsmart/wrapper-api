@@ -27,3 +27,5 @@ TributacaoISSQN	3	Não incidência
 TributacaoISSQN	4	Imunidade
 ISSRetido	1	Retido pelo tomador
 ISSRetido	2	Não retido
+Ambiente	homologacao	Ambiente de homologação, sem valor fiscal
+Ambiente	producao	Ambiente de produção

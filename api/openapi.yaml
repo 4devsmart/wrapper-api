@@ -2109,7 +2109,8 @@ components:
             - $ref: "#/components/schemas/CteInfCTeSupl"
         ambiente:
           type: string
-          description: 'Ambiente do documento. Vazio assume homologação.'
+          enum: ["homologacao", "producao"]
+          description: 'Ambiente de autorização. Omitir assume homologação; qualquer outro valor é recusado com 400. Valores: homologacao = Ambiente de homologação, sem valor fiscal; producao = Ambiente de produção.'
         referencia:
           type: string
           description: 'Identificador externo seu. Devolvido como veio, não vai no XML.'
@@ -2125,7 +2126,8 @@ components:
             - $ref: "#/components/schemas/CteInfCTeSupl"
         ambiente:
           type: string
-          description: 'Ambiente do documento. Vazio assume homologação.'
+          enum: ["homologacao", "producao"]
+          description: 'Ambiente de autorização. Omitir assume homologação; qualquer outro valor é recusado com 400. Valores: homologacao = Ambiente de homologação, sem valor fiscal; producao = Ambiente de produção.'
         referencia:
           type: string
           description: 'Identificador externo seu. Devolvido como veio, não vai no XML.'
@@ -2956,7 +2958,7 @@ components:
         tpAmb:
           type: integer
           enum: [1, 2]
-          description: 'Valores: 1 = Produção; 2 = Homologação.'
+          description: 'Redundante com o campo ambiente do pedido, e mantido para quem já monta o documento completo: informado, precisa CONCORDAR com ele, senão a requisição é recusada. Quem manda no XML e na sessão é o ambiente. Valores: 1 = Produção; 2 = Homologação.'
         tpCTe:
           type: integer
           enum: [0, 1, 3]
@@ -4212,7 +4214,8 @@ components:
             - $ref: "#/components/schemas/MdfeInfMDFeSupl"
         ambiente:
           type: string
-          description: 'Ambiente do documento. Vazio assume homologação.'
+          enum: ["homologacao", "producao"]
+          description: 'Ambiente de autorização. Omitir assume homologação; qualquer outro valor é recusado com 400. Valores: homologacao = Ambiente de homologação, sem valor fiscal; producao = Ambiente de produção.'
         referencia:
           type: string
           description: 'Identificador externo seu. Devolvido como veio, não vai no XML.'
@@ -4361,7 +4364,7 @@ components:
         tpAmb:
           type: integer
           enum: [1, 2]
-          description: 'Valores: 1 = Produção; 2 = Homologação.'
+          description: 'Redundante com o campo ambiente do pedido, e mantido para quem já monta o documento completo: informado, precisa CONCORDAR com ele, senão a requisição é recusada. Quem manda no XML e na sessão é o ambiente. Valores: 1 = Produção; 2 = Homologação.'
         tpEmit:
           type: integer
           enum: [1, 2, 3]
@@ -5519,7 +5522,8 @@ components:
       properties:
         ambiente:
           type: string
-          description: '"homologacao" | "producao"'
+          enum: ["homologacao", "producao"]
+          description: 'Ambiente de autorização. Omitir assume homologação; qualquer outro valor é recusado com 400. Valores: homologacao = Ambiente de homologação, sem valor fiscal; producao = Ambiente de produção.'
         referencia:
           type: string
           description: 'id externo do cliente'

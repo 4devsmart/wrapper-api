@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/4devsmart/wrapper-api/internal/fiscal"
 	"github.com/4devsmart/wrapper-api/internal/platform/inifmt"
 )
 
@@ -106,14 +107,11 @@ func (b *iniBuilder) identificacao(id Ide, ambiente string) {
 	// Ambiente de recebimento". Pior: como a transmissão deriva o ambiente do tpAmb do
 	// XML, um documento pedido em homologação apontaria para produção.
 	//
-	// O campo explícito do cliente vence; na ausência, deriva do ambiente do
-	// pedido. O MDF-e já fazia assim; o CT-e não, e a lacuna estava registrada em
-	// testdata/nao_enviadas.tsv.
-	if id.TpAmb == 1 || id.TpAmb == 2 {
-		b.kv("tpAmb", strconv.Itoa(id.TpAmb))
-	} else {
-		b.kv("tpAmb", tpAmb(ambiente))
-	}
+	// A fonte é SEMPRE o ambiente do pedido, o mesmo que configura a sessão
+	// nativa (fiscal.TpAmb e fiscal.AmbienteOrdinal saem da mesma normalização).
+	// O tpAmb explícito de infCte.ide é conferido no handler e recusado quando
+	// contradiz: eleger um vencedor aqui era a divergência que ninguém via.
+	b.kv("tpAmb", fiscal.TpAmb(ambiente))
 	b.kvOpt("CFOP", id.CFOP)
 	b.kv("natOp", id.NatOp)
 	b.kv("mod", strconv.Itoa(defaultInt(id.Mod, 57)))
@@ -618,16 +616,6 @@ func (b *iniBuilder) icms(ic ICMS) {
 type iniBuilder struct {
 	sb  strings.Builder
 	loc *time.Location
-}
-
-// tpAmb converte o ambiente para o tpAmb da SEFAZ (1=produção, 2=homologação).
-// Note a inversão em relação ao ordinal da ACBrLib (0=produção): são duas
-// escalas diferentes, e trocá-las emite em produção achando que é homologação.
-func tpAmb(ambiente string) string {
-	if ambiente == "producao" {
-		return "1"
-	}
-	return "2"
 }
 
 func (b *iniBuilder) section(name string) {
