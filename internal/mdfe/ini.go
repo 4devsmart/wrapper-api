@@ -27,6 +27,9 @@ func ToINI(p PedidoEmissao) string {
 	var b iniBuilder
 	b.loc = inifmt.LocalDoCodigoUF(inf.Ide.CUF)
 
+	b.section("infMDFe")
+	b.kv("versao", defaultStr(inf.Versao, "3.00"))
+
 	b.section("ide")
 	b.kvIntOpt("cUF", id.CUF)
 	b.kv("tpAmb", fiscal.TpAmb(p.Ambiente))
@@ -43,6 +46,8 @@ func ToINI(p PedidoEmissao) string {
 	b.kv("verProc", defaultStr(id.VerProc, versao.Emissor()))
 	b.kv("UFIni", id.UFIni)
 	b.kv("UFFim", id.UFFim)
+	b.kvIntOpt("indCanalVerde", id.IndCanalVerde)
+	b.kvIntOpt("indCarregaPosterior", id.IndCarregaPosterior)
 	// dhIniViagem pertence a [ide]: o leitor da lib faz ReadString(<ide>,
 	// 'dhIniViagem'). Era escrito dentro de [CARR001] e simplesmente ignorado:
 	// o MDF-e saía sem data/hora de início da viagem. Achado pelo lockstep.
@@ -106,6 +111,12 @@ func ToINI(p PedidoEmissao) string {
 				b.kvOpt("CNPJCPF", firstNonEmpty(ct.CNPJ, ct.CPF))
 				b.kvOpt("idEstrangeiro", ct.IdEstrangeiro)
 				b.kvOpt("xNome", ct.XNome)
+				// infContrato não tem seção própria: a lib lê as duas chaves
+				// dentro de [infContratantennn].
+				if k := ct.InfContrato; k != nil {
+					b.kvOpt("NroContrato", k.NroContrato)
+					b.kvOpt("vContratoGlobal", moneyOpt(k.VContratoGlobal))
+				}
 			}
 			for pi, pg := range antt.InfPag {
 				ps := seq(pi + 1)
@@ -116,6 +127,9 @@ func ToINI(p PedidoEmissao) string {
 				b.kv("vContrato", money(pg.VContrato))
 				b.kv("indPag", strconv.Itoa(pg.IndPag))
 				b.kvOpt("vAdiant", moneyOpt(pg.VAdiant))
+				b.kvIntOpt("indAltoDesemp", pg.IndAltoDesemp)
+				b.kvIntOpt("indAntecipaAdiant", pg.IndAntecipaAdiant)
+				b.kvIntOpt("tpAntecip", pg.TpAntecip)
 				for ci, c := range pg.Comp {
 					b.section("Comp" + ps + seq(ci+1))
 					b.kv("tpComp", c.TpComp)
@@ -207,6 +221,16 @@ func ToINI(p PedidoEmissao) string {
 			b.kv("chCTe", c.ChCTe)
 			b.kvOpt("SegCodBarra", c.SegCodBarra)
 			b.kvIntOpt("indReentrega", c.IndReentrega)
+			b.kvIntOpt("indPrestacaoParcial", c.IndPrestacaoParcial)
+			if ep := c.InfEntregaParcial; ep != nil {
+				b.section("infEntregaParcial" + dn)
+				b.kv("qtdTotal", money(ep.QtdTotal))
+				b.kv("qtdParcial", money(ep.QtdParcial))
+			}
+			for ni, nfp := range c.InfNFePrestParcial {
+				b.section("infNFePrestParcial" + dn + seq(ni+1))
+				b.kv("chNFe", nfp.ChNFe)
+			}
 			for pi, p := range c.Peri {
 				b.peri(dn+seq(pi+1), p.NONU, p.XNomeAE, p.XClaRisco, p.GrEmb, p.QTotProd, p.QVolTipo)
 			}
@@ -277,6 +301,14 @@ func ToINI(p PedidoEmissao) string {
 			b.section("aver" + seq(i+1) + seq(j+1))
 			b.kv("nAver", av)
 		}
+	}
+
+	// Indexação de DUAS casas, não das três que o resto do arquivo usa:
+	// verificado contra a biblioteca, [autXML001] é ignorado em silêncio e
+	// [autXML01] é lido.
+	for i, a := range inf.AutXML {
+		b.section("autXML" + inifmt.Seq2(i+1))
+		b.kvOpt("CNPJCPF", firstNonEmpty(a.CNPJ, a.CPF))
 	}
 
 	if rt := inf.InfRespTec; rt != nil {

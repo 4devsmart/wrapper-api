@@ -1,6 +1,10 @@
 package nfse
 
-import "strconv"
+import (
+	"strconv"
+
+	"github.com/4devsmart/wrapper-api/internal/platform/versao"
+)
 
 // ToINIAbrasf traduz o MESMO pedido JSON (contrato único, estilo Padrão
 // Nacional) para o INI RPS genérico consumido pela ACBrLibNFSe pelos provedores
@@ -35,6 +39,10 @@ func ToINIAbrasf(p DPSPedido) string {
 	b.kv("NaturezaOperacao", strconv.Itoa(defaultInt(inf.Serv.NaturezaOperacao, 1)))
 	b.kv("tpEmit", strconv.Itoa(defaultInt(inf.TpEmit, 1)))
 	b.kv("cLocEmi", defaultStr(inf.CLocEmi, inf.Prest.CMun))
+	// verAplic identifica o emissor no RPS como identifica no Padrão Nacional.
+	// Só o builder do PN emitia, e o campo do contrato era descartado nos
+	// municípios não-PN. Achado pelo teste de espelho.
+	b.kv("verAplic", defaultStr(inf.VerAplic, versao.Emissor()))
 
 	b.section("Prestador")
 	b.pessoaCommon(inf.Prest)
@@ -76,6 +84,7 @@ func ToINIAbrasf(p DPSPedido) string {
 	b.kvOpt("CodigoCnae", s.CodigoCnae)
 	b.kvIntOpt("ExigibilidadeISS", s.ExigibISS)
 	b.kvOpt("MunicipioIncidencia", s.MunIncidencia)
+	b.kvOpt("xMunicipioIncidencia", s.XMunIncidencia)
 	// País do LOCAL DA PRESTAÇÃO (serviço prestado no exterior). O ABRASF aceita
 	// (tcDadosServico tem CodigoPais) e só o builder do PN enviava: mesma
 	// família do CodigoPais do tomador, que fazia o endereço nacional virar

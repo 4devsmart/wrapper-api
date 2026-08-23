@@ -84,6 +84,7 @@ info:
     | `regras_de_negocio`: a biblioteca reprovou, nada foi transmitido | 422 | corrija |
     | `provedor_nao_suportado`: município sem provedor de NFS-e | 422 | não |
     | `operacao_nao_suportada`: o provedor não implementa | 422 | não |
+    | `grupo_incompativel`: grupo que não existe no tipo de documento pedido | 400 | corrija |
     | `limite_de_requisicoes`: passou do teto por endereço | 429 | sim, veja `Retry-After` |
     | `desfecho_indeterminado`: **pode ter sido transmitido** | 502 | **não.** consulte |
     | `lib_indisponivel`: a chamada **não** saiu | 503 | sim |
@@ -2878,13 +2879,6 @@ components:
         vTotDFe:
           type: number
           description: 'Valor total dos documentos fiscais transportados.'
-    CteInfCTeMultimodal:
-      type: object
-      description: 'Dados do CT-e multimodal vinculado.'
-      properties:
-        chCTeMultimodal:
-          type: string
-          description: 'Chave do CT-e multimodal ao qual este está vinculado.'
     CteInfCTeNorm:
       type: object
       description: 'Grupo do CT-e Normal. Preenchido quando ide.tpCTe = 0.'
@@ -2915,9 +2909,6 @@ components:
         infGlobalizado:
           allOf:
             - $ref: "#/components/schemas/CteInfGlobalizado"
-        infServVinc:
-          allOf:
-            - $ref: "#/components/schemas/CteInfServVinc"
     CteInfCTeSupl:
       type: object
       description: 'Informações suplementares: o QR Code, gerado pela biblioteca.'
@@ -3257,15 +3248,6 @@ components:
         qCarga:
           type: number
           description: 'Quantidade da carga.'
-    CteInfServVinc:
-      type: object
-      description: 'Serviços vinculados a um multimodal.'
-      properties:
-        infCTeMultimodal:
-          type: array
-          items:
-            $ref: "#/components/schemas/CteInfCTeMultimodal"
-          description: 'CT-e multimodal ao qual o serviço está vinculado.'
     CteInfSolicNFF:
       type: object
       description: 'Dados da solicitação da Nota Fiscal Fácil.'
@@ -5524,7 +5506,8 @@ components:
                 Chave estável para tratar por máquina: `json_invalido`,
                 `campo_obrigatorio`, `certificado_invalido`, `chave_invalida`,
                 `ambiente_invalido`, `ambiente_divergente`,
-                `modal_nao_suportado`, `limite_de_requisicoes`, `regras_de_negocio`,
+                `modal_nao_suportado`, `grupo_incompativel`, `limite_de_requisicoes`,
+                `regras_de_negocio`,
                 `provedor_nao_suportado`, `operacao_nao_suportada`,
                 `desfecho_indeterminado`, `lib_indisponivel`, `falha_na_lib`.
             mensagem:

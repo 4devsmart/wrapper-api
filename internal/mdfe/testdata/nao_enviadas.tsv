@@ -2,14 +2,15 @@
 # builders NÃO escrevem. É a superfície das limitações declaradas no README
 # (modais, grupos e eventos fora do escopo atual), registrada linha a linha.
 #
-# O teste de lockstep NÃO cobra estas — cobra o que aparecer DEPOIS, que é
+# O teste de lockstep NÃO cobra estas : cobra o que aparecer DEPOIS, que é
 # onde mora o campo esquecido num bump do .so. Cada linha nova é uma
 # DECISÃO humana: passar a enviar, ou registrar aqui com o porquê.
 #
-# Regenerar o snapshot da lib: make acbr-chaves
+# O snapshot vem do fonte do ACBr (os procedimentos de leitura de INI da
+# biblioteca), na revisão fixada em docs/ACBRLIB.md. Não há script neste
+# repositório: regenerar exige o fonte, que não vem no clone.
 # Formato: <secao>/<chave>  (minúsculas; seções e chaves indexadas pelo prefixo)
 aquav/cnpjagenav
-autxml/cnpjcpf
 emit/cnpj
 evento/cmun
 evento/cmuncarrega
@@ -21,18 +22,8 @@ evento/nprot
 evento/xjust
 evento/xmuncarrega
 evento/xnome
-ide/indcanalverde
-ide/indcarregaposterior
-infcontratante/nrocontrato
-infcontratante/vcontratoglobal
-infcte/indprestacaoparcial
 infembcomb/cembcomb
 infembcomb/xbalsa
-infentregaparcial/qtdparcial
-infentregaparcial/qtdtotal
-infmdfe/versao
-infnfeprestparcial/chnfe
-infpag/indaltodesemp
 inftermcarreg/ctermcarreg
 inftermcarreg/xtermcarreg
 inftermdescarreg/ctermdescarreg

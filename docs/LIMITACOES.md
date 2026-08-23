@@ -81,6 +81,12 @@ transmitir: falhou ali, nada saiu.
   As chaves de INI dos modais fora de escopo estão listadas em
   `internal/{cte,mdfe}/testdata/nao_enviadas.tsv`, para o lockstep não tratá-las
   como lacuna nova a cada bump da biblioteca.
+- **Todo campo do contrato ou chega ao documento, ou está registrado.** O teste
+  de espelho preenche o modelo inteiro e cobra cada campo na saída; o que não
+  sai está em `internal/*/testdata/nao_espelhadas*.tsv` com o motivo. Os casos
+  mais comuns são campo que a biblioteca calcula (dígito verificador, QR Code),
+  campo que existe só no outro layout da NFS-e, e o par CNPJ/CPF, onde só um
+  viaja. "Aceito e descartado em silêncio" deixou de ser um estado possível.
 - **NFS-e é multi-provedor e a capacidade é descoberta em runtime.** Não existe
   tabela do que cada município aceita: quando o provedor não implementa a
   operação, a resposta é `422 operacao_nao_suportada`. Cancelamento e

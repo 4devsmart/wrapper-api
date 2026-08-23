@@ -73,6 +73,19 @@ Falhar ali não é "conserte o código": é **decida**: passar a enviar, ou decl
 com o motivo. Foi um desses baselines que registrou por meses que o CT-e não
 enviava `tpAmb`.
 
+Só que nenhuma das duas pontas é o **contrato**. Um campo que existe no modelo
+Go e que nenhuma linha escreve não aparece em conjunto nenhum, e as duas
+comparações passam enquanto o dado morre na tradução. Por isso existe a terceira
+direção, o **espelho** (`internal/*/espelho_test.go`): ele preenche o modelo
+inteiro com valores sentinela, gera o INI, e cobra cada folha do contrato na
+saída. O que não sai vai para `testdata/nao_espelhadas*.tsv` **com o motivo**,
+e uma linha que deixa de valer é acusada: lista que vira depósito para de
+significar alguma coisa.
+
+Ele achou, entre outros, o `versaoModal` que os dois documentos aceitavam sem
+ter para onde mandar, e o `autXML` que saía com índice de três casas onde a
+biblioteca lê duas.
+
 ## A especificação é gerada
 
 `api/openapi.yaml` tem as rotas escritas à mão e os **schemas gerados** dos

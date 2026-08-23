@@ -17,7 +17,7 @@ import (
 // São duas comparações:
 //
 //  1. chaves que a LIB aceita × chaves que ENVIAMOS (snapshot em testdata,
-//     regenerado em lockstep com o .so por `make acbr-chaves`);
+//     refeito a cada bump do .so, a partir do fonte do ACBr);
 //  2. campos do contrato consumidos por UM builder e ignorados pelo OUTRO.
 //
 // Falhar aqui não significa "corrija o código", significa "decida": passar a
@@ -93,7 +93,7 @@ func TestLockstep_ChavesDaLibQueNaoEnviamos(t *testing.T) {
 
 Não são todas as lacunas: só as que apareceram depois do último baseline
 (normalmente após um bump do .so). Decida cada uma: emitir no builder, ou
-acrescentar a testdata/nao_enviadas.tsv (com 'make acbr-chaves' e revisão).
+acrescentar a testdata/nao_enviadas.tsv, com o motivo.
 
 %s`, len(novas), "  "+strings.Join(novas, "\n  "))
 	}
@@ -194,7 +194,7 @@ func carregarSnapshot(t *testing.T) map[string]map[string]bool {
 	t.Helper()
 	f, err := os.Open("testdata/lerini_chaves.tsv")
 	if err != nil {
-		t.Fatalf("snapshot ausente (rode 'make acbr-chaves'): %v", err)
+		t.Fatalf("snapshot ausente: %v", err)
 	}
 	defer func() { _ = f.Close() }()
 
