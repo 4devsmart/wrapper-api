@@ -6,7 +6,7 @@ import (
 	"github.com/4devsmart/wrapper-api/internal/platform/inifmt"
 )
 
-// PedidoEncerramento é o corpo de POST /mdfe/{id}/encerramento (ACBr.API).
+// PedidoEncerramento é o corpo de POST /v1/mdfe/eventos/encerramento (ACBr.API).
 // chMDFe e nProt vêm do documento autorizado.
 type PedidoEncerramento struct {
 	DataEncerramento string `json:"data_encerramento,omitempty"` // ISO; default hoje
@@ -14,19 +14,19 @@ type PedidoEncerramento struct {
 	CMun             string `json:"cMun"`                        // município do encerramento
 }
 
-// PedidoCancelamento é o corpo de POST /mdfe/{id}/cancelamento (ACBr.API).
+// PedidoCancelamento é o corpo de POST /v1/mdfe/eventos/cancelamento (ACBr.API).
 type PedidoCancelamento struct {
 	Justificativa string `json:"justificativa"`
 }
 
-// PedidoInclusaoCondutor: POST /mdfe/{id}/inclusao-condutor (evento 110114).
+// PedidoInclusaoCondutor: POST /v1/mdfe/eventos/inclusao-condutor (evento 110114).
 type PedidoInclusaoCondutor struct {
 	Nome       string `json:"nome"`
 	CPF        string `json:"cpf"`
 	NSeqEvento int    `json:"nSeqEvento,omitempty"`
 }
 
-// PedidoInclusaoDFe: POST /mdfe/{id}/inclusao-dfe (evento 110115). Inclui novos
+// PedidoInclusaoDFe: POST /v1/mdfe/eventos/inclusao-dfe (evento 110115). Inclui novos
 // documentos (NF-e) ao manifesto em trânsito, por município de descarga.
 type PedidoInclusaoDFe struct {
 	CMunCarrega string        `json:"cMunCarrega,omitempty"`

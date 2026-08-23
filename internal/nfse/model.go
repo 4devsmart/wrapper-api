@@ -7,7 +7,7 @@
 // Fiscal) nas próximas iterações.
 package nfse
 
-// DPSPedido é o corpo de emissão (estilo Nuvem Fiscal: POST /nfse/dps).
+// DPSPedido é o corpo de emissão (estilo Nuvem Fiscal: POST /v1/nfse/xml).
 type DPSPedido struct {
 	Ambiente   string `json:"ambiente"`             // "homologacao" | "producao"
 	Provedor   string `json:"provedor,omitempty"`   // ex.: "padrao_nacional"

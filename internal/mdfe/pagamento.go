@@ -2,7 +2,7 @@ package mdfe
 
 import "strconv"
 
-// PedidoPagamentoOperacao é o corpo de POST /mdfe/{id}/pagamento-operacao
+// PedidoPagamentoOperacao é o corpo de POST /v1/mdfe/eventos/pagamento-operacao
 // (evento 110116). Registra o pagamento da operação de transporte. Reusa os
 // tipos da emissão (InfPag/Comp/InfPrazo/InfBanc).
 type PedidoPagamentoOperacao struct {

@@ -72,6 +72,22 @@ Falhar ali não é "conserte o código": é **decida** — passar a enviar, ou d
 com o motivo. Foi um desses baselines que registrou por meses que o CT-e não
 enviava `tpAmb`.
 
+## A especificação é gerada
+
+`api/openapi.yaml` tem as rotas escritas à mão e os **schemas gerados** dos
+modelos Go, entre marcadores. Ao mexer num modelo:
+
+```bash
+make openapi        # regenera
+make openapi-check  # é o que o CI roda
+```
+
+Expôs um pedido novo numa rota? Acrescente-o a `raizes` em
+`cmd/gerar-openapi/main.go`, senão ele fica fora da documentação.
+
+E escreva o comentário do campo pensando em quem vai ler no Swagger: ele **é** a
+descrição publicada.
+
 ## Pull requests
 
 - um assunto por PR;

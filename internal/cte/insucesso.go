@@ -1,6 +1,6 @@
 package cte
 
-// PedidoInsucessoEntrega é o corpo de POST /cte/{id}/insucesso-entrega
+// PedidoInsucessoEntrega é o corpo de POST /v1/cte/eventos/insucesso-entrega
 // (tpEvento 110190). Registra a tentativa frustrada de entrega.
 type PedidoInsucessoEntrega struct {
 	NProt                  string   `json:"nProt,omitempty"`

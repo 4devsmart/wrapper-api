@@ -47,6 +47,21 @@ test-cgo:
 	CGO_LDFLAGS="-L$(abspath $(ACBRLIBS)) -Wl,-rpath,$(abspath $(ACBRLIBS))" \
 	go vet -tags acbrlib $(PKGS)
 
+## openapi: regenera os schemas da spec a partir dos modelos Go
+openapi:
+	CGO_ENABLED=0 go run ./cmd/gerar-openapi
+
+## openapi-check: falha se a spec estiver desatualizada em relação aos modelos
+openapi-check:
+	@cp api/openapi.yaml /tmp/openapi.antes.yaml
+	@CGO_ENABLED=0 go run ./cmd/gerar-openapi >/dev/null
+	@if ! diff -q /tmp/openapi.antes.yaml api/openapi.yaml >/dev/null; then \
+	  echo "api/openapi.yaml está desatualizada — rode 'make openapi' e commite."; \
+	  diff -u /tmp/openapi.antes.yaml api/openapi.yaml | head -40; \
+	  cp /tmp/openapi.antes.yaml api/openapi.yaml; exit 1; \
+	fi
+	@echo "openapi.yaml em dia com os modelos"
+
 ## vet: go vet (build padrão)
 vet:
 	CGO_ENABLED=0 go vet $(PKGS)
@@ -104,5 +119,5 @@ limpar:
 help:
 	@grep -hE '^## ' $(MAKEFILE_LIST) | sed 's/^## /  /' | sort
 
-.PHONY: build build-cgo run test test-cgo vet fmt fmt-check tidy limpar help \
+.PHONY: build build-cgo run test test-cgo openapi openapi-check vet fmt fmt-check tidy limpar help \
 	acbr-libs-baixar acbr-libs-publicar acbr-libs-conferir docker-build up down

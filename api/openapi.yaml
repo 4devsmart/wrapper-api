@@ -24,15 +24,23 @@ info:
     O certificado A1 viaja no corpo da chamada que transmite, é usado em memória
     e vai embora com ela. Guardar o XML e o protocolo é responsabilidade sua.
 
-    ## Precisão desta especificação
+    ## Os schemas vêm do código
 
-    Envelopes, respostas, erros e eventos estão descritos campo a campo. O
-    **corpo do documento fiscal** (`infCte`, `infMDFe`, `infDPS`) aparece como
-    objeto livre: são centenas de campos que espelham o contrato da Nuvem
-    Fiscal / ACBr.API, e mantê-los duplicados aqui só criaria uma segunda fonte
-    da verdade para divergir da primeira. A fonte é o modelo Go
-    (`internal/{cte,mdfe,nfse}/model.go`). Campo desconhecido é recusado com
-    `400`, então um nome errado aparece na primeira chamada.
+    Os corpos dos documentos (`CteDocumento`, `MdfeDocumento`, `NfseDocumento`,
+    `BoletoPedido`) e de todos os eventos são **gerados a partir dos modelos
+    Go**, com as descrições vindas dos comentários do fonte. O contrato
+    publicado é o contrato compilado — não há segunda fonte da verdade para
+    divergir, e o CI reprova se a spec ficar desatualizada.
+
+    **Não há `required`.** No domínio fiscal a obrigatoriedade é condicional —
+    depende do modal, do provedor do município, do tipo de emitente, do regime
+    tributário. Um `required` estático mentiria em metade dos casos. Quem
+    valida de verdade é a lib: a fase 1 devolve as rejeições em
+    `validacao.mensagens` antes de qualquer coisa ser transmitida.
+
+    Campo desconhecido é recusado com `400`, então um nome errado aparece na
+    primeira chamada, não depois de a SEFAZ autorizar.
+
   license:
     name: AGPL-3.0
     identifier: AGPL-3.0
@@ -146,7 +154,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/DocumentoFiscal" }
+            schema: { $ref: "#/components/schemas/CteDocumento" }
       responses:
         "200":
           description: XML montado
@@ -169,7 +177,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/DocumentoFiscal" }
+            schema: { $ref: "#/components/schemas/CteDocumentoSimplificado" }
       responses:
         "200":
           description: XML montado
@@ -211,25 +219,25 @@ paths:
         "502": { $ref: "#/components/responses/Erro502" }
         "503": { $ref: "#/components/responses/Erro503" }
 
-  /v1/cte/eventos/{tipo}:
+  /v1/cte/eventos/cancelamento:
     post:
       tags: [cte]
-      summary: Envia um evento do CT-e
+      summary: "Evento: cancelamento"
       description: |
+        Cancela o CT-e. Exige o protocolo da autorização.
+
         Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
-        recuperação é consultar o documento — você já tem a chave dele.
-      parameters:
-        - name: tipo
-          in: path
-          required: true
-          schema:
-            type: string
-            enum: [cancelamento, carta-correcao, epec, comprovante-entrega, insucesso-entrega, prestacao-desacordo]
+        recuperação é consultar o documento — a chave dele você já tem.
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/PedidoEvento" }
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PedidoEvento"
+                - type: object
+                  properties:
+                    evento: { $ref: "#/components/schemas/CteEventoCancelamento" }
       responses:
         "200":
           description: Evento registrado
@@ -237,13 +245,166 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/RespostaEvento" }
         "400": { $ref: "#/components/responses/Erro400" }
-        "404": { $ref: "#/components/responses/Erro404" }
         "422":
-          description: Evento rejeitado
+          description: Evento rejeitado, ou operação não suportada pelo provedor
           content:
             application/json:
               schema: { $ref: "#/components/schemas/RespostaEvento" }
+  /v1/cte/eventos/carta-correcao:
+    post:
+      tags: [cte]
+      summary: "Evento: carta-correcao"
+      description: |
+        Carta de Correção (CC-e). Um grupo por campo corrigido.
 
+        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        recuperação é consultar o documento — a chave dele você já tem.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PedidoEvento"
+                - type: object
+                  properties:
+                    evento: { $ref: "#/components/schemas/CteEventoCartaCorrecao" }
+      responses:
+        "200":
+          description: Evento registrado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEvento" }
+        "400": { $ref: "#/components/responses/Erro400" }
+        "422":
+          description: Evento rejeitado, ou operação não suportada pelo provedor
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEvento" }
+  /v1/cte/eventos/epec:
+    post:
+      tags: [cte]
+      summary: "Evento: epec"
+      description: |
+        Evento Prévio de Emissão em Contingência.
+
+        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        recuperação é consultar o documento — a chave dele você já tem.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PedidoEvento"
+                - type: object
+                  properties:
+                    evento: { $ref: "#/components/schemas/CteEventoEPEC" }
+      responses:
+        "200":
+          description: Evento registrado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEvento" }
+        "400": { $ref: "#/components/responses/Erro400" }
+        "422":
+          description: Evento rejeitado, ou operação não suportada pelo provedor
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEvento" }
+  /v1/cte/eventos/comprovante-entrega:
+    post:
+      tags: [cte]
+      summary: "Evento: comprovante-entrega"
+      description: |
+        Registra a entrega da carga, com as NF-e entregues.
+
+        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        recuperação é consultar o documento — a chave dele você já tem.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PedidoEvento"
+                - type: object
+                  properties:
+                    evento: { $ref: "#/components/schemas/CteEventoComprovanteEntrega" }
+      responses:
+        "200":
+          description: Evento registrado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEvento" }
+        "400": { $ref: "#/components/responses/Erro400" }
+        "422":
+          description: Evento rejeitado, ou operação não suportada pelo provedor
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEvento" }
+  /v1/cte/eventos/insucesso-entrega:
+    post:
+      tags: [cte]
+      summary: "Evento: insucesso-entrega"
+      description: |
+        Registra tentativa frustrada de entrega.
+
+        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        recuperação é consultar o documento — a chave dele você já tem.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PedidoEvento"
+                - type: object
+                  properties:
+                    evento: { $ref: "#/components/schemas/CteEventoInsucessoEntrega" }
+      responses:
+        "200":
+          description: Evento registrado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEvento" }
+        "400": { $ref: "#/components/responses/Erro400" }
+        "422":
+          description: Evento rejeitado, ou operação não suportada pelo provedor
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEvento" }
+  /v1/cte/eventos/prestacao-desacordo:
+    post:
+      tags: [cte]
+      summary: "Evento: prestacao-desacordo"
+      description: |
+        Registrado pelo TOMADOR quando a prestação está em desacordo.
+
+        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        recuperação é consultar o documento — a chave dele você já tem.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PedidoEvento"
+                - type: object
+                  properties:
+                    evento: { $ref: "#/components/schemas/CteEventoPrestacaoDesacordo" }
+      responses:
+        "200":
+          description: Evento registrado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEvento" }
+        "400": { $ref: "#/components/responses/Erro400" }
+        "422":
+          description: Evento rejeitado, ou operação não suportada pelo provedor
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEvento" }
   /v1/cte/consulta:
     post:
       tags: [cte]
@@ -343,7 +504,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/DocumentoFiscal" }
+            schema: { $ref: "#/components/schemas/MdfeDocumento" }
       responses:
         "200":
           description: XML montado
@@ -375,22 +536,25 @@ paths:
               schema: { $ref: "#/components/schemas/RespostaTransmissao" }
         "502": { $ref: "#/components/responses/Erro502" }
 
-  /v1/mdfe/eventos/{tipo}:
+  /v1/mdfe/eventos/encerramento:
     post:
       tags: [mdfe]
-      summary: Envia um evento do MDF-e
-      parameters:
-        - name: tipo
-          in: path
-          required: true
-          schema:
-            type: string
-            enum: [encerramento, cancelamento, inclusao-condutor, inclusao-dfe, pagamento-operacao]
+      summary: "Evento: encerramento"
+      description: |
+        Encerra o manifesto. Exige o município de encerramento.
+
+        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        recuperação é consultar o documento — a chave dele você já tem.
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/PedidoEvento" }
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PedidoEvento"
+                - type: object
+                  properties:
+                    evento: { $ref: "#/components/schemas/MdfeEventoEncerramento" }
       responses:
         "200":
           description: Evento registrado
@@ -398,7 +562,135 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/RespostaEvento" }
         "400": { $ref: "#/components/responses/Erro400" }
+        "422":
+          description: Evento rejeitado, ou operação não suportada pelo provedor
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEvento" }
+  /v1/mdfe/eventos/cancelamento:
+    post:
+      tags: [mdfe]
+      summary: "Evento: cancelamento"
+      description: |
+        Cancela o MDF-e. Exige o protocolo da autorização.
 
+        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        recuperação é consultar o documento — a chave dele você já tem.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PedidoEvento"
+                - type: object
+                  properties:
+                    evento: { $ref: "#/components/schemas/MdfeEventoCancelamento" }
+      responses:
+        "200":
+          description: Evento registrado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEvento" }
+        "400": { $ref: "#/components/responses/Erro400" }
+        "422":
+          description: Evento rejeitado, ou operação não suportada pelo provedor
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEvento" }
+  /v1/mdfe/eventos/inclusao-condutor:
+    post:
+      tags: [mdfe]
+      summary: "Evento: inclusao-condutor"
+      description: |
+        Inclui condutor no manifesto em trânsito.
+
+        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        recuperação é consultar o documento — a chave dele você já tem.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PedidoEvento"
+                - type: object
+                  properties:
+                    evento: { $ref: "#/components/schemas/MdfeEventoInclusaoCondutor" }
+      responses:
+        "200":
+          description: Evento registrado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEvento" }
+        "400": { $ref: "#/components/responses/Erro400" }
+        "422":
+          description: Evento rejeitado, ou operação não suportada pelo provedor
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEvento" }
+  /v1/mdfe/eventos/inclusao-dfe:
+    post:
+      tags: [mdfe]
+      summary: "Evento: inclusao-dfe"
+      description: |
+        Inclui documentos (NF-e) no manifesto em trânsito.
+
+        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        recuperação é consultar o documento — a chave dele você já tem.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PedidoEvento"
+                - type: object
+                  properties:
+                    evento: { $ref: "#/components/schemas/MdfeEventoInclusaoDFe" }
+      responses:
+        "200":
+          description: Evento registrado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEvento" }
+        "400": { $ref: "#/components/responses/Erro400" }
+        "422":
+          description: Evento rejeitado, ou operação não suportada pelo provedor
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEvento" }
+  /v1/mdfe/eventos/pagamento-operacao:
+    post:
+      tags: [mdfe]
+      summary: "Evento: pagamento-operacao"
+      description: |
+        Registra o pagamento da operação de transporte.
+
+        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        recuperação é consultar o documento — a chave dele você já tem.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PedidoEvento"
+                - type: object
+                  properties:
+                    evento: { $ref: "#/components/schemas/MdfeEventoPagamentoOperacao" }
+      responses:
+        "200":
+          description: Evento registrado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEvento" }
+        "400": { $ref: "#/components/responses/Erro400" }
+        "422":
+          description: Evento rejeitado, ou operação não suportada pelo provedor
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEvento" }
   /v1/mdfe/consulta:
     post:
       tags: [mdfe]
@@ -498,7 +790,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/DocumentoFiscal" }
+            schema: { $ref: "#/components/schemas/NfseDocumento" }
       responses:
         "200":
           description: DPS montada
@@ -613,32 +905,68 @@ paths:
       responses:
         "200": { $ref: "#/components/responses/RespostaCrua" }
 
-  /v1/nfse/eventos/{tipo}:
+  /v1/nfse/eventos/cancelamento:
     post:
       tags: [nfse]
-      summary: Cancela ou substitui uma NFS-e
+      summary: "Evento: cancelamento"
       description: |
-        Nem todo provedor implementa estas operações — a capacidade é descoberta
-        em runtime, e a resposta é `422 operacao_nao_suportada` quando não há.
-      parameters:
-        - name: tipo
-          in: path
-          required: true
-          schema: { type: string, enum: [cancelamento, substituicao] }
+        Cancela a NFS-e. Nem todo provedor implementa.
+
+        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        recuperação é consultar o documento — a chave dele você já tem.
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/PedidoEventoNFSe" }
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PedidoEventoNFSe"
+                - type: object
+                  properties:
+                    evento: { $ref: "#/components/schemas/NfseEventoCancelamento" }
       responses:
         "200":
-          description: Evento concluído
+          description: Evento registrado
           content:
             application/json:
               schema: { $ref: "#/components/schemas/RespostaEventoNFSe" }
         "400": { $ref: "#/components/responses/Erro400" }
-        "422": { $ref: "#/components/responses/Erro422" }
+        "422":
+          description: Evento rejeitado, ou operação não suportada pelo provedor
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEventoNFSe" }
+  /v1/nfse/eventos/substituicao:
+    post:
+      tags: [nfse]
+      summary: "Evento: substituicao"
+      description: |
+        Emite a DPS substituta identificando a nota antiga. Nem todo provedor implementa.
 
+        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        recuperação é consultar o documento — a chave dele você já tem.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PedidoEventoNFSe"
+                - type: object
+                  properties:
+                    evento: { $ref: "#/components/schemas/NfseEventoSubstituicao" }
+      responses:
+        "200":
+          description: Evento registrado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEventoNFSe" }
+        "400": { $ref: "#/components/responses/Erro400" }
+        "422":
+          description: Evento rejeitado, ou operação não suportada pelo provedor
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaEventoNFSe" }
   /v1/nfse/pdf:
     post:
       tags: [nfse]
@@ -700,7 +1028,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/PedidoBoleto" }
+            schema: { $ref: "#/components/schemas/BoletoPedido" }
       responses:
         "200": { $ref: "#/components/responses/RespostaPDF" }
         "400": { $ref: "#/components/responses/Erro400" }
@@ -716,7 +1044,7 @@ paths:
           application/json:
             schema:
               allOf:
-                - $ref: "#/components/schemas/PedidoBoleto"
+                - $ref: "#/components/schemas/BoletoPedido"
                 - type: object
                   properties:
                     numeroArquivo:
@@ -774,7 +1102,7 @@ paths:
           application/json:
             schema:
               allOf:
-                - $ref: "#/components/schemas/PedidoBoleto"
+                - $ref: "#/components/schemas/BoletoPedido"
                 - type: object
                   properties:
                     operacao:
@@ -836,17 +1164,6 @@ components:
         cnpj: { type: string }
         inscricao_municipal: { type: string }
         razao_social: { type: string }
-
-    DocumentoFiscal:
-      type: object
-      description: |
-        O documento no contrato da Nuvem Fiscal / ACBr.API. Ver
-        `internal/{cte,mdfe,nfse}/model.go` — campo desconhecido é recusado com
-        `400`, então um nome errado aparece na primeira chamada.
-      additionalProperties: true
-      properties:
-        ambiente: { $ref: "#/components/schemas/Ambiente" }
-        referencia: { type: string, description: seu identificador externo }
 
     Validacao:
       type: object
@@ -1050,6 +1367,3387 @@ components:
           type: array
           items: { type: object, additionalProperties: true }
 
+    # >>> INÍCIO DOS SCHEMAS GERADOS — não edite à mão (make openapi)
+    BoletoConta:
+      type: object
+      description: 'Conta é a configuração da conta de cobrança ([Banco]+[Conta]+[Cedente]).'
+      properties:
+        banco:
+          type: string
+          description: 'Banco ([Banco]): número (ex.: "237") + tipo de cobrança (enum ACBr) + CNAB.'
+        tipoCobranca:
+          type: integer
+          description: 'enum ACBr (BB=1, Santander=2, Caixa=3, Bradesco=5, Itau=6...)'
+        CNAB:
+          type: string
+          description: '"1"=400, "2"=240'
+        agencia:
+          type: string
+          description: 'Conta ([Conta]).'
+        digitoAgencia:
+          type: string
+        conta:
+          type: string
+        digitoConta:
+          type: string
+        nome:
+          type: string
+          description: 'Cedente ([Cedente]).'
+        fantasia:
+          type: string
+        CNPJCPF:
+          type: string
+        tipoInscricao:
+          type: integer
+          description: '1=CNPJ, 2=CPF'
+        tipoPessoa:
+          type: integer
+        logradouro:
+          type: string
+        numero:
+          type: string
+        bairro:
+          type: string
+        cidade:
+          type: string
+        CEP:
+          type: string
+        complemento:
+          type: string
+        UF:
+          type: string
+        telefone:
+          type: string
+        codigoCedente:
+          type: string
+        modalidade:
+          type: string
+        convenio:
+          type: string
+        codTransmissao:
+          type: string
+        tipoCarteira:
+          type: integer
+          description: '0=simples,1=registrada,2=eletronica'
+        tipoDocumento:
+          type: integer
+        respEmis:
+          type: integer
+        layoutBol:
+          type: integer
+        pixTipoChave:
+          type: integer
+          description: 'PIX (boleto híbrido).'
+        pixChave:
+          type: string
+        ws:
+          description: 'WS: credenciais para registro online (Fase 3). Opcional.'
+          allOf:
+            - $ref: "#/components/schemas/BoletoContaWS"
+    BoletoContaWS:
+      type: object
+      description: 'ContaWS são as credenciais de integração online com a API do banco: OAuth (ClientID/Secret/Scope) + certificado mTLS (CRT/KEY em base64). Como o certificado A1 dos documentos fiscais, elas viajam no payload e não são persistidas. Os métodos String/LogValue abaixo existem para que um %v ou um slog distraído não as despeje em log — num serviço sem estado, é a única forma realista de um segredo do cliente escapar do processo.'
+      properties:
+        ambiente:
+          type: integer
+          description: '1=produção, 2=homologação'
+        clientID:
+          type: string
+        clientSecret:
+          type: string
+        keyUser:
+          type: string
+        scope:
+          type: string
+        indicadorPix:
+          type: string
+        certCRT:
+          type: string
+          description: 'base64 do .crt (mTLS)'
+        certKEY:
+          type: string
+          description: 'base64 do .key (mTLS)'
+    BoletoPedido:
+      type: object
+      description: 'Pedido é o corpo de geração de boleto(s): a conta de cobrança (cedente + conta + banco) e a lista de títulos.'
+      properties:
+        conta:
+          $ref: "#/components/schemas/BoletoConta"
+        titulos:
+          type: array
+          items:
+            $ref: "#/components/schemas/BoletoTitulo"
+    BoletoSacado:
+      type: object
+      description: 'Sacado é o pagador do boleto (chaves Sacado.* no [TituloN]).'
+      properties:
+        nome:
+          type: string
+        CNPJCPF:
+          type: string
+        logradouro:
+          type: string
+        numero:
+          type: string
+        bairro:
+          type: string
+        cidade:
+          type: string
+        UF:
+          type: string
+        CEP:
+          type: string
+        complemento:
+          type: string
+        email:
+          type: string
+    BoletoTitulo:
+      type: object
+      description: 'Titulo é um boleto da lista ([TituloN]).'
+      properties:
+        numeroDocumento:
+          type: string
+        seuNumero:
+          type: string
+        nossoNumero:
+          type: string
+        carteira:
+          type: string
+        especie:
+          type: string
+        valorDocumento:
+          type: number
+        vencimento:
+          type: string
+        dataDocumento:
+          type: string
+        aceite:
+          type: string
+        sacado:
+          $ref: "#/components/schemas/BoletoSacado"
+        mensagem:
+          type: string
+        instrucoes:
+          type: array
+          items:
+            type: string
+          description: 'até 3 (Instrucao1-3)'
+        valorMoraJuros:
+          type: number
+          description: 'Encargos.'
+        codigoMora:
+          type: string
+        percentualMulta:
+          type: number
+        multaValorFixo:
+          type: number
+        valorDesconto:
+          type: number
+        dataDesconto:
+          type: string
+        valorAbatimento:
+          type: number
+        chaveNFe:
+          type: string
+          description: 'Vínculo fiscal.'
+    CteAereo:
+      type: object
+      description: 'Aereo espelha CteSefazAereo.'
+      properties:
+        nMinu:
+          type: integer
+        nOCA:
+          type: string
+        dPrevAereo:
+          type: string
+        natCarga:
+          $ref: "#/components/schemas/CteNatCarga"
+        tarifa:
+          $ref: "#/components/schemas/CteTarifa"
+        peri:
+          type: array
+          items:
+            $ref: "#/components/schemas/CtePeri"
+    CteAquav:
+      type: object
+      description: 'Aquav espelha CteSefazAquav.'
+      properties:
+        vPrest:
+          type: number
+        vAFRMM:
+          type: number
+        xNavio:
+          type: string
+        balsa:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteBalsa"
+        nViag:
+          type: string
+        direc:
+          type: string
+        irin:
+          type: string
+        detCont:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteDetCont"
+        tpNav:
+          type: integer
+    CteAutXML:
+      type: object
+      description: 'AutXML espelha CteSefazAutXML.'
+      properties:
+        CNPJ:
+          type: string
+        CPF:
+          type: string
+    CteBalsa:
+      type: object
+      description: 'Balsa espelha CteSefazBalsa.'
+      properties:
+        xBalsa:
+          type: string
+    CteCIBS:
+      type: object
+      description: 'CIBS espelha CteSefazCIBS.'
+      properties:
+        vBC:
+          type: number
+        gIBSUF:
+          $ref: "#/components/schemas/CteGIBSUF"
+        gIBSMun:
+          $ref: "#/components/schemas/CteGIBSMun"
+        vIBS:
+          type: number
+        gCBS:
+          $ref: "#/components/schemas/CteGCBS"
+        gTribRegular:
+          $ref: "#/components/schemas/CteTribRegular"
+        gTribCompraGov:
+          $ref: "#/components/schemas/CteTribCompraGov"
+    CteCobr:
+      type: object
+      description: 'Cobr espelha CteSefazCobr.'
+      properties:
+        fat:
+          $ref: "#/components/schemas/CteFat"
+        dup:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteDup"
+    CteComData:
+      type: object
+      description: 'ComData espelha CteSefazComData.'
+      properties:
+        tpPer:
+          type: integer
+        dProg:
+          type: string
+    CteComHora:
+      type: object
+      description: 'ComHora espelha CteSefazComHora.'
+      properties:
+        tpHor:
+          type: integer
+        hProg:
+          type: string
+    CteComp:
+      type: object
+      description: 'Comp espelha CteSefazComp.'
+      properties:
+        xNome:
+          type: string
+        vComp:
+          type: number
+    CteCompl:
+      type: object
+      description: 'Compl espelha CteSefazCompl.'
+      properties:
+        xCaracAd:
+          type: string
+        xCaracSer:
+          type: string
+        xEmi:
+          type: string
+        fluxo:
+          $ref: "#/components/schemas/CteFluxo"
+        Entrega:
+          $ref: "#/components/schemas/CteEntrega"
+        origCalc:
+          type: string
+        destCalc:
+          type: string
+        xObs:
+          type: string
+        ObsCont:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteObsCont"
+        ObsFisco:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteObsFisco"
+    CteCompraGovReduzido:
+      type: object
+      description: 'CompraGovReduzido espelha CteSefazCompraGovReduzido.'
+      properties:
+        tpEnteGov:
+          type: integer
+        pRedutor:
+          type: number
+    CteCorrecao:
+      type: object
+      description: 'Correcao é um item de correção da CC-e (grupo [DETEVENTOxxx] no INI). grupoAlterado/campoAlterado/valorAlterado conforme o leiaute do CT-e; nroItemAlterado = nº do item quando o campo é de uma lista (0 se não se aplica).'
+      properties:
+        grupoAlterado:
+          type: string
+        campoAlterado:
+          type: string
+        valorAlterado:
+          type: string
+        nroItemAlterado:
+          type: integer
+    CteDest:
+      type: object
+      description: 'Dest espelha CteSefazDest.'
+      properties:
+        CNPJ:
+          type: string
+        CPF:
+          type: string
+        IE:
+          type: string
+        xNome:
+          type: string
+        fone:
+          type: string
+        ISUF:
+          type: string
+        enderDest:
+          $ref: "#/components/schemas/CteEndereco"
+        email:
+          type: string
+    CteDet:
+      type: object
+      description: 'Det é um trecho do detalhamento ([detNNN]): origem/destino, valores e os documentos transportados (componentes, NF-e e documentos anteriores).'
+      properties:
+        cMunIni:
+          type: string
+        xMunIni:
+          type: string
+        cMunFim:
+          type: string
+        xMunFim:
+          type: string
+        vPrest:
+          type: number
+        vRec:
+          type: number
+        comp:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteComp"
+        infNFe:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteInfNFe"
+        infDocAnt:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteDetDocAnt"
+    CteDetCont:
+      type: object
+      description: 'DetCont espelha CteSefazDetCont.'
+      properties:
+        nCont:
+          type: string
+        lacre:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteLacre"
+        infDoc:
+          $ref: "#/components/schemas/CteDetContInfDoc"
+    CteDetContInfDoc:
+      type: object
+      description: 'DetContInfDoc espelha CteSefazDetCont_InfDoc.'
+      properties:
+        infNF:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteDetContInfNF"
+        infNFe:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteDetContInfNFe"
+    CteDetContInfNF:
+      type: object
+      description: 'DetContInfNF espelha CteSefazDetCont_InfDoc_InfNF.'
+      properties:
+        serie:
+          type: string
+        nDoc:
+          type: string
+        unidRat:
+          type: number
+    CteDetContInfNFe:
+      type: object
+      description: 'DetContInfNFe espelha CteSefazDetCont_InfDoc_InfNFe.'
+      properties:
+        chave:
+          type: string
+        unidRat:
+          type: number
+    CteDetDocAnt:
+      type: object
+      description: 'DetDocAnt é um documento anterior dentro de um trecho do Simplificado.'
+      properties:
+        chCTe:
+          type: string
+        tpPrest:
+          type: integer
+        infNFeTranspParcial:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteTranspParcial"
+    CteDevTrib:
+      type: object
+      description: 'DevTrib espelha CteSefazDevTrib.'
+      properties:
+        vDevTrib:
+          type: number
+    CteDif:
+      type: object
+      description: 'Dif espelha CteSefazDif.'
+      properties:
+        pDif:
+          type: number
+        vDif:
+          type: number
+    CteDocAnt:
+      type: object
+      description: 'DocAnt espelha CteSefazDocAnt.'
+      properties:
+        emiDocAnt:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteEmiDocAnt"
+    CteDocumento:
+      type: object
+      description: 'PedidoEmissao espelha CtePedidoEmissao.'
+      properties:
+        infCte:
+          $ref: "#/components/schemas/CteInfCte"
+        infCTeSupl:
+          $ref: "#/components/schemas/CteInfCTeSupl"
+        ambiente:
+          type: string
+        referencia:
+          type: string
+    CteDocumentoSimplificado:
+      type: object
+      description: 'PedidoSimp espelha o pedido de emissão do CT-e Simplificado (contrato ACBr.API — mesmo envelope do CT-e, corpo simplificado).'
+      properties:
+        infCte:
+          $ref: "#/components/schemas/CteInfCteSimp"
+        infCTeSupl:
+          $ref: "#/components/schemas/CteInfCTeSupl"
+        ambiente:
+          type: string
+        referencia:
+          type: string
+    CteDup:
+      type: object
+      description: 'Dup espelha CteSefazDup.'
+      properties:
+        nDup:
+          type: string
+        dVenc:
+          type: string
+        vDup:
+          type: number
+    CteDuto:
+      type: object
+      description: 'Duto espelha CteSefazDuto.'
+      properties:
+        vTar:
+          type: number
+        dIni:
+          type: string
+        dFim:
+          type: string
+        classDuto:
+          type: integer
+        tpContratacao:
+          type: integer
+        codPontoEntrada:
+          type: string
+        codPontoSaida:
+          type: string
+        nContrato:
+          type: string
+    CteEmiDocAnt:
+      type: object
+      description: 'EmiDocAnt espelha CteSefazEmiDocAnt.'
+      properties:
+        CNPJ:
+          type: string
+        CPF:
+          type: string
+        IE:
+          type: string
+        UF:
+          type: string
+        xNome:
+          type: string
+        idDocAnt:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteIdDocAnt"
+    CteEmiOcc:
+      type: object
+      description: 'EmiOcc espelha CteSefazEmiOcc.'
+      properties:
+        CNPJ:
+          type: string
+        cInt:
+          type: string
+        IE:
+          type: string
+        UF:
+          type: string
+        fone:
+          type: string
+    CteEmit:
+      type: object
+      description: 'Emit espelha CteSefazEmit.'
+      properties:
+        CNPJ:
+          type: string
+        CPF:
+          type: string
+        IE:
+          type: string
+        IEST:
+          type: string
+        xNome:
+          type: string
+        xFant:
+          type: string
+        enderEmit:
+          $ref: "#/components/schemas/CteEndeEmi"
+        CRT:
+          type: integer
+    CteEndeEmi:
+      type: object
+      description: 'EndeEmi espelha CteSefazEndeEmi.'
+      properties:
+        xLgr:
+          type: string
+        nro:
+          type: string
+        xCpl:
+          type: string
+        xBairro:
+          type: string
+        cMun:
+          type: string
+        xMun:
+          type: string
+        CEP:
+          type: string
+        UF:
+          type: string
+        fone:
+          type: string
+    CteEnderFer:
+      type: object
+      description: 'EnderFer espelha CteSefazEnderFer.'
+      properties:
+        xLgr:
+          type: string
+        nro:
+          type: string
+        xCpl:
+          type: string
+        xBairro:
+          type: string
+        cMun:
+          type: string
+        xMun:
+          type: string
+        CEP:
+          type: string
+        UF:
+          type: string
+    CteEndereco:
+      type: object
+      description: 'Endereco espelha CteSefazEndereco.'
+      properties:
+        xLgr:
+          type: string
+        nro:
+          type: string
+        xCpl:
+          type: string
+        xBairro:
+          type: string
+        cMun:
+          type: string
+        xMun:
+          type: string
+        CEP:
+          type: string
+        UF:
+          type: string
+        cPais:
+          type: string
+        xPais:
+          type: string
+    CteEntrega:
+      type: object
+      description: 'Entrega espelha CteSefazEntrega.'
+      properties:
+        semData:
+          $ref: "#/components/schemas/CteSemData"
+        comData:
+          $ref: "#/components/schemas/CteComData"
+        noPeriodo:
+          $ref: "#/components/schemas/CteNoPeriodo"
+        semHora:
+          $ref: "#/components/schemas/CteSemHora"
+        comHora:
+          $ref: "#/components/schemas/CteComHora"
+        noInter:
+          $ref: "#/components/schemas/CteNoInter"
+    CteEstornoCred:
+      type: object
+      description: 'EstornoCred espelha CteSefazEstornoCred.'
+      properties:
+        vIBSEstCred:
+          type: number
+        vCBSEstCred:
+          type: number
+    CteEventoCancelamento:
+      type: object
+      description: 'PedidoCancelamento é o corpo de POST /v1/cte/eventos/cancelamento (ACBr.API). A chave e o protocolo vêm no envelope do evento, não daqui: sem estado no servidor, quem os guarda é o cliente.'
+      properties:
+        justificativa:
+          type: string
+        nSeqEvento:
+          type: integer
+          description: 'nSeqEvento é opcional (default 1).'
+    CteEventoCartaCorrecao:
+      type: object
+      description: 'PedidoCartaCorrecao é o corpo de POST /v1/cte/eventos/carta-correcao. A chave vem no envelope; o CNPJ é derivado dela. Aqui vão só os grupos de correção.'
+      properties:
+        correcoes:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteCorrecao"
+        nSeqEvento:
+          type: integer
+          description: 'opcional (default 1)'
+    CteEventoComprovanteEntrega:
+      type: object
+      description: 'PedidoComprovanteEntrega é o corpo de POST /v1/cte/eventos/comprovante-entrega (tpEvento 110180). Registra a entrega da carga (com geolocalização opcional) e as NF-e entregues.'
+      properties:
+        nProt:
+          type: string
+        UF:
+          type: string
+        dhEntrega:
+          type: string
+        nDoc:
+          type: string
+        xNome:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        hashEntrega:
+          type: string
+        dhHashEntrega:
+          type: string
+        documentos:
+          type: array
+          items:
+            type: string
+          description: 'chaves de NF-e entregues'
+        nSeqEvento:
+          type: integer
+    CteEventoEPEC:
+      type: object
+      description: 'PedidoEPEC é o corpo de POST /v1/cte/eventos/epec (Evento Prévio de Emissão em Contingência, tpEvento 110113). Valores com vírgula decimal no INI.'
+      properties:
+        vICMS:
+          type: number
+        vICMSST:
+          type: number
+        vTPrest:
+          type: number
+        vCarga:
+          type: number
+        modal:
+          type: string
+          description: 'default 01'
+        UFIni:
+          type: string
+        UFFim:
+          type: string
+        dhEmi:
+          type: string
+        tomador:
+          $ref: "#/components/schemas/CteTomadorEPEC"
+        nSeqEvento:
+          type: integer
+    CteEventoInsucessoEntrega:
+      type: object
+      description: 'PedidoInsucessoEntrega é o corpo de POST /v1/cte/eventos/insucesso-entrega (tpEvento 110190). Registra a tentativa frustrada de entrega.'
+      properties:
+        nProt:
+          type: string
+        dhTentativaEntrega:
+          type: string
+        nTentativa:
+          type: integer
+        tpMotivo:
+          type: string
+          description: 'default 1'
+        xJustMotivo:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        hashTentativaEntrega:
+          type: string
+        dhHashTentativaEntrega:
+          type: string
+        documentos:
+          type: array
+          items:
+            type: string
+          description: 'chaves de NF-e não entregues'
+        nSeqEvento:
+          type: integer
+    CteEventoPrestacaoDesacordo:
+      type: object
+      description: 'PedidoDesacordo é o corpo de POST /v1/cte/eventos/prestacao-desacordo (tpEvento 610110). Registrado pelo TOMADOR quando a prestação está em desacordo; xObs descreve o motivo.'
+      properties:
+        xObs:
+          type: string
+        nSeqEvento:
+          type: integer
+    CteExped:
+      type: object
+      description: 'Exped espelha CteSefazExped.'
+      properties:
+        CNPJ:
+          type: string
+        CPF:
+          type: string
+        IE:
+          type: string
+        xNome:
+          type: string
+        fone:
+          type: string
+        enderExped:
+          $ref: "#/components/schemas/CteEndereco"
+        email:
+          type: string
+    CteFat:
+      type: object
+      description: 'Fat espelha CteSefazFat.'
+      properties:
+        nFat:
+          type: string
+        vOrig:
+          type: number
+        vDesc:
+          type: number
+        vLiq:
+          type: number
+    CteFerroEnv:
+      type: object
+      description: 'FerroEnv espelha CteSefazFerroEnv.'
+      properties:
+        CNPJ:
+          type: string
+        cInt:
+          type: string
+        IE:
+          type: string
+        xNome:
+          type: string
+        enderFerro:
+          $ref: "#/components/schemas/CteEnderFer"
+    CteFerrov:
+      type: object
+      description: 'Ferrov espelha CteSefazFerrov.'
+      properties:
+        tpTraf:
+          type: integer
+        trafMut:
+          $ref: "#/components/schemas/CteTrafMut"
+        fluxo:
+          type: string
+    CteFluxo:
+      type: object
+      description: 'Fluxo espelha CteSefazFluxo.'
+      properties:
+        xOrig:
+          type: string
+        pass:
+          type: array
+          items:
+            $ref: "#/components/schemas/CtePass"
+        xDest:
+          type: string
+        xRota:
+          type: string
+    CteGCBS:
+      type: object
+      description: 'GCBS espelha CteSefazGCBS.'
+      properties:
+        pCBS:
+          type: number
+        gDif:
+          $ref: "#/components/schemas/CteDif"
+        gDevTrib:
+          $ref: "#/components/schemas/CteDevTrib"
+        gRed:
+          $ref: "#/components/schemas/CteRed"
+        vCBS:
+          type: number
+    CteGIBSMun:
+      type: object
+      description: 'GIBSMun espelha CteSefazGIBSMun.'
+      properties:
+        pIBSMun:
+          type: number
+        gDif:
+          $ref: "#/components/schemas/CteDif"
+        gDevTrib:
+          $ref: "#/components/schemas/CteDevTrib"
+        gRed:
+          $ref: "#/components/schemas/CteRed"
+        vIBSMun:
+          type: number
+    CteGIBSUF:
+      type: object
+      description: 'GIBSUF espelha CteSefazGIBSUF.'
+      properties:
+        pIBSUF:
+          type: number
+        gDif:
+          $ref: "#/components/schemas/CteDif"
+        gDevTrib:
+          $ref: "#/components/schemas/CteDevTrib"
+        gRed:
+          $ref: "#/components/schemas/CteRed"
+        vIBSUF:
+          type: number
+    CteICMS:
+      type: object
+      description: 'ICMS espelha CteSefazImp.'
+      properties:
+        ICMS00:
+          $ref: "#/components/schemas/CteICMS00"
+        ICMS20:
+          $ref: "#/components/schemas/CteICMS20"
+        ICMS45:
+          $ref: "#/components/schemas/CteICMS45"
+        ICMS60:
+          $ref: "#/components/schemas/CteICMS60"
+        ICMS90:
+          $ref: "#/components/schemas/CteICMS90"
+        ICMSOutraUF:
+          $ref: "#/components/schemas/CteICMSOutraUF"
+        ICMSSN:
+          $ref: "#/components/schemas/CteICMSSN"
+    CteICMS00:
+      type: object
+      description: 'ICMS00 espelha CteSefazICMS00.'
+      properties:
+        CST:
+          type: string
+        vBC:
+          type: number
+        pICMS:
+          type: number
+        vICMS:
+          type: number
+    CteICMS20:
+      type: object
+      description: 'ICMS20 espelha CteSefazICMS20.'
+      properties:
+        CST:
+          type: string
+        pRedBC:
+          type: number
+        vBC:
+          type: number
+        pICMS:
+          type: number
+        vICMS:
+          type: number
+        vICMSDeson:
+          type: number
+        cBenef:
+          type: string
+    CteICMS45:
+      type: object
+      description: 'ICMS45 espelha CteSefazICMS45.'
+      properties:
+        CST:
+          type: string
+        vICMSDeson:
+          type: number
+        cBenef:
+          type: string
+    CteICMS60:
+      type: object
+      description: 'ICMS60 espelha CteSefazICMS60.'
+      properties:
+        CST:
+          type: string
+        vBCSTRet:
+          type: number
+        vICMSSTRet:
+          type: number
+        pICMSSTRet:
+          type: number
+        vCred:
+          type: number
+        vICMSDeson:
+          type: number
+        cBenef:
+          type: string
+    CteICMS90:
+      type: object
+      description: 'ICMS90 espelha CteSefazICMS90.'
+      properties:
+        CST:
+          type: string
+        pRedBC:
+          type: number
+        vBC:
+          type: number
+        pICMS:
+          type: number
+        vICMS:
+          type: number
+        vCred:
+          type: number
+        vICMSDeson:
+          type: number
+        cBenef:
+          type: string
+    CteICMSOutraUF:
+      type: object
+      description: 'ICMSOutraUF espelha CteSefazICMSOutraUF.'
+      properties:
+        CST:
+          type: string
+        pRedBCOutraUF:
+          type: number
+        vBCOutraUF:
+          type: number
+        pICMSOutraUF:
+          type: number
+        vICMSOutraUF:
+          type: number
+        vICMSDeson:
+          type: number
+        cBenef:
+          type: string
+    CteICMSSN:
+      type: object
+      description: 'ICMSSN espelha CteSefazICMSSN.'
+      properties:
+        CST:
+          type: string
+        indSN:
+          type: integer
+    CteICMSUFFim:
+      type: object
+      description: 'ICMSUFFim espelha CteSefazICMSUFFim.'
+      properties:
+        vBCUFFim:
+          type: number
+        pFCPUFFim:
+          type: number
+        pICMSUFFim:
+          type: number
+        pICMSInter:
+          type: number
+        vFCPUFFim:
+          type: number
+        vICMSUFFim:
+          type: number
+        vICMSUFIni:
+          type: number
+    CteIdDocAnt:
+      type: object
+      description: 'IdDocAnt espelha CteSefazIdDocAnt.'
+      properties:
+        idDocAntPap:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteIdDocAntPap"
+        idDocAntEle:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteIdDocAntEle"
+    CteIdDocAntEle:
+      type: object
+      description: 'IdDocAntEle espelha CteSefazIdDocAntEle.'
+      properties:
+        chCTe:
+          type: string
+    CteIdDocAntPap:
+      type: object
+      description: 'IdDocAntPap espelha CteSefazIdDocAntPap.'
+      properties:
+        tpDoc:
+          type: string
+        serie:
+          type: string
+        subser:
+          type: string
+        nDoc:
+          type: string
+        dEmi:
+          type: string
+    CteIde:
+      type: object
+      description: 'Ide espelha CteSefazIde.'
+      properties:
+        cUF:
+          type: integer
+        cCT:
+          type: string
+        CFOP:
+          type: string
+        natOp:
+          type: string
+        mod:
+          type: integer
+        serie:
+          type: integer
+        nCT:
+          type: integer
+        dhEmi:
+          type: string
+        tpImp:
+          type: integer
+        tpEmis:
+          type: integer
+        cDV:
+          type: integer
+        tpAmb:
+          type: integer
+        tpCTe:
+          type: integer
+        procEmi:
+          type: integer
+        verProc:
+          type: string
+        indGlobalizado:
+          type: integer
+        cMunEnv:
+          type: string
+        xMunEnv:
+          type: string
+        UFEnv:
+          type: string
+        modal:
+          type: string
+        tpServ:
+          type: integer
+        cMunIni:
+          type: string
+        xMunIni:
+          type: string
+        UFIni:
+          type: string
+        cMunFim:
+          type: string
+        xMunFim:
+          type: string
+        UFFim:
+          type: string
+        retira:
+          type: integer
+        xDetRetira:
+          type: string
+        indIEToma:
+          type: integer
+        toma3:
+          $ref: "#/components/schemas/CteToma3"
+        toma4:
+          $ref: "#/components/schemas/CteToma4"
+        dhCont:
+          type: string
+        xJust:
+          type: string
+        gCompraGov:
+          $ref: "#/components/schemas/CteCompraGovReduzido"
+    CteImp:
+      type: object
+      description: 'Imp espelha CteSefazInfCte_Imp.'
+      properties:
+        ICMS:
+          $ref: "#/components/schemas/CteICMS"
+        vTotTrib:
+          type: number
+        infAdFisco:
+          type: string
+        ICMSUFFim:
+          $ref: "#/components/schemas/CteICMSUFFim"
+        IBSCBS:
+          $ref: "#/components/schemas/CteTribCTe"
+        vTotDFe:
+          type: number
+    CteInfCTeMultimodal:
+      type: object
+      description: 'InfCTeMultimodal espelha CteSefazInfCTeMultimodal.'
+      properties:
+        chCTeMultimodal:
+          type: string
+    CteInfCTeNorm:
+      type: object
+      description: 'InfCTeNorm espelha CteSefazInfCTeNorm.'
+      properties:
+        infCarga:
+          $ref: "#/components/schemas/CteInfCarga"
+        infDoc:
+          $ref: "#/components/schemas/CteInfDoc"
+        docAnt:
+          $ref: "#/components/schemas/CteDocAnt"
+        infModal:
+          $ref: "#/components/schemas/CteInfModal"
+        veicNovos:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteVeicNovos"
+        cobr:
+          $ref: "#/components/schemas/CteCobr"
+        infCteSub:
+          $ref: "#/components/schemas/CteInfCteSub"
+        infGlobalizado:
+          $ref: "#/components/schemas/CteInfGlobalizado"
+        infServVinc:
+          $ref: "#/components/schemas/CteInfServVinc"
+    CteInfCTeSupl:
+      type: object
+      description: 'InfCTeSupl espelha CteSefazInfCTeSupl.'
+      properties:
+        qrCodCTe:
+          type: string
+    CteInfCarga:
+      type: object
+      description: 'InfCarga espelha CteSefazInfCarga.'
+      properties:
+        vCarga:
+          type: number
+        proPred:
+          type: string
+        xOutCat:
+          type: string
+        infQ:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteInfQ"
+        vCargaAverb:
+          type: number
+    CteInfCte:
+      type: object
+      description: 'InfCte espelha CteSefazInfCte.'
+      properties:
+        versao:
+          type: string
+        Id:
+          type: string
+        ide:
+          $ref: "#/components/schemas/CteIde"
+        compl:
+          $ref: "#/components/schemas/CteCompl"
+        emit:
+          $ref: "#/components/schemas/CteEmit"
+        rem:
+          $ref: "#/components/schemas/CteRem"
+        exped:
+          $ref: "#/components/schemas/CteExped"
+        receb:
+          $ref: "#/components/schemas/CteReceb"
+        dest:
+          $ref: "#/components/schemas/CteDest"
+        vPrest:
+          $ref: "#/components/schemas/CteVPrest"
+        imp:
+          $ref: "#/components/schemas/CteImp"
+        infCTeNorm:
+          $ref: "#/components/schemas/CteInfCTeNorm"
+        infCteComp:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteInfCteComp"
+        autXML:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteAutXML"
+        infRespTec:
+          $ref: "#/components/schemas/CteRespTec"
+        infSolicNFF:
+          $ref: "#/components/schemas/CteInfSolicNFF"
+    CteInfCteComp:
+      type: object
+      description: 'InfCteComp espelha CteSefazInfCteComp.'
+      properties:
+        chCTe:
+          type: string
+    CteInfCteSimp:
+      type: object
+      description: 'InfCteSimp é o corpo do CT-e Simplificado.'
+      properties:
+        versao:
+          type: string
+        Id:
+          type: string
+        ide:
+          $ref: "#/components/schemas/CteIde"
+        compl:
+          $ref: "#/components/schemas/CteCompl"
+        emit:
+          $ref: "#/components/schemas/CteEmit"
+        toma:
+          $ref: "#/components/schemas/CteToma"
+        infCarga:
+          $ref: "#/components/schemas/CteInfCarga"
+        det:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteDet"
+        imp:
+          $ref: "#/components/schemas/CteImp"
+        infModal:
+          $ref: "#/components/schemas/CteInfModal"
+        cobr:
+          $ref: "#/components/schemas/CteCobr"
+        infCteSub:
+          $ref: "#/components/schemas/CteInfCteSub"
+        total:
+          $ref: "#/components/schemas/CteTotal"
+        infRespTec:
+          $ref: "#/components/schemas/CteRespTec"
+    CteInfCteSub:
+      type: object
+      description: 'InfCteSub espelha CteSefazInfCteSub.'
+      properties:
+        chCte:
+          type: string
+        indAlteraToma:
+          type: integer
+    CteInfDCe:
+      type: object
+      description: 'InfDCe espelha CteSefazInfDCe.'
+      properties:
+        chave:
+          type: string
+    CteInfDoc:
+      type: object
+      description: 'InfDoc espelha CteSefazInfDoc.'
+      properties:
+        infNF:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteInfNF"
+        infNFe:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteInfNFe"
+        infOutros:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteInfOutros"
+        infDCe:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteInfDCe"
+    CteInfGlobalizado:
+      type: object
+      description: 'InfGlobalizado espelha CteSefazInfGlobalizado.'
+      properties:
+        xObs:
+          type: string
+    CteInfModal:
+      type: object
+      description: 'InfModal espelha CteSefazInfModal.'
+      properties:
+        versaoModal:
+          type: string
+        rodo:
+          $ref: "#/components/schemas/CteRodo"
+        aereo:
+          $ref: "#/components/schemas/CteAereo"
+        ferrov:
+          $ref: "#/components/schemas/CteFerrov"
+        aquav:
+          $ref: "#/components/schemas/CteAquav"
+        duto:
+          $ref: "#/components/schemas/CteDuto"
+        multimodal:
+          $ref: "#/components/schemas/CteMultimodal"
+    CteInfNF:
+      type: object
+      description: 'InfNF espelha CteSefazInfNF.'
+      properties:
+        nRoma:
+          type: string
+        nPed:
+          type: string
+        mod:
+          type: string
+        serie:
+          type: string
+        nDoc:
+          type: string
+        dEmi:
+          type: string
+        vBC:
+          type: number
+        vICMS:
+          type: number
+        vBCST:
+          type: number
+        vST:
+          type: number
+        vProd:
+          type: number
+        vNF:
+          type: number
+        nCFOP:
+          type: string
+        nPeso:
+          type: number
+        PIN:
+          type: string
+        dPrev:
+          type: string
+        infUnidCarga:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteUnidCarga"
+        infUnidTransp:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteUnidadeTransp"
+    CteInfNFe:
+      type: object
+      description: 'InfNFe espelha CteSefazInfNFe.'
+      properties:
+        chave:
+          type: string
+        PIN:
+          type: string
+        dPrev:
+          type: string
+        infUnidCarga:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteUnidCarga"
+        infUnidTransp:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteUnidadeTransp"
+    CteInfOutros:
+      type: object
+      description: 'InfOutros espelha CteSefazInfOutros.'
+      properties:
+        tpDoc:
+          type: string
+        descOutros:
+          type: string
+        nDoc:
+          type: string
+        dEmi:
+          type: string
+        vDocFisc:
+          type: number
+        dPrev:
+          type: string
+        infUnidCarga:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteUnidCarga"
+        infUnidTransp:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteUnidadeTransp"
+    CteInfQ:
+      type: object
+      description: 'InfQ espelha CteSefazInfQ.'
+      properties:
+        cUnid:
+          type: string
+        tpMed:
+          type: string
+        qCarga:
+          type: number
+    CteInfSeg:
+      type: object
+      description: 'InfSeg espelha CteSefazInfSeg.'
+      properties:
+        xSeg:
+          type: string
+        CNPJ:
+          type: string
+    CteInfServVinc:
+      type: object
+      description: 'InfServVinc espelha CteSefazInfServVinc.'
+      properties:
+        infCTeMultimodal:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteInfCTeMultimodal"
+    CteInfSolicNFF:
+      type: object
+      description: 'InfSolicNFF espelha CteSefazInfSolicNFF.'
+      properties:
+        xSolic:
+          type: string
+    CteInfTotAP:
+      type: object
+      description: 'InfTotAP espelha CteSefazInfTotAP.'
+      properties:
+        qTotProd:
+          type: number
+        uniAP:
+          type: integer
+    CteLacUnidCarga:
+      type: object
+      description: 'LacUnidCarga espelha CteSefazLacUnidCarga.'
+      properties:
+        nLacre:
+          type: string
+    CteLacUnidTransp:
+      type: object
+      description: 'LacUnidTransp espelha CteSefazLacUnidTransp.'
+      properties:
+        nLacre:
+          type: string
+    CteLacre:
+      type: object
+      description: 'Lacre espelha CteSefazLacre.'
+      properties:
+        nLacre:
+          type: string
+    CteMultimodal:
+      type: object
+      description: 'Multimodal espelha CteSefazMultimodal.'
+      properties:
+        COTM:
+          type: string
+        indNegociavel:
+          type: integer
+        seg:
+          $ref: "#/components/schemas/CteSeg"
+    CteNatCarga:
+      type: object
+      description: 'NatCarga espelha CteSefazNatCarga.'
+      properties:
+        xDime:
+          type: string
+        cInfManu:
+          type: array
+          items:
+            type: string
+    CteNoInter:
+      type: object
+      description: 'NoInter espelha CteSefazNoInter.'
+      properties:
+        tpHor:
+          type: integer
+        hIni:
+          type: string
+        hFim:
+          type: string
+    CteNoPeriodo:
+      type: object
+      description: 'NoPeriodo espelha CteSefazNoPeriodo.'
+      properties:
+        tpPer:
+          type: integer
+        dIni:
+          type: string
+        dFim:
+          type: string
+    CteObsCont:
+      type: object
+      description: 'ObsCont espelha CteSefazObsCont.'
+      properties:
+        xCampo:
+          type: string
+        xTexto:
+          type: string
+    CteObsFisco:
+      type: object
+      description: 'ObsFisco espelha CteSefazObsFisco.'
+      properties:
+        xCampo:
+          type: string
+        xTexto:
+          type: string
+    CteOcc:
+      type: object
+      description: 'Occ espelha CteSefazOcc.'
+      properties:
+        serie:
+          type: string
+        nOcc:
+          type: integer
+        dEmi:
+          type: string
+        emiOcc:
+          $ref: "#/components/schemas/CteEmiOcc"
+    CtePass:
+      type: object
+      description: 'Pass espelha CteSefazPass.'
+      properties:
+        xPass:
+          type: string
+    CtePeri:
+      type: object
+      description: 'Peri espelha CteSefazPeri.'
+      properties:
+        nONU:
+          type: string
+        qTotEmb:
+          type: string
+        infTotAP:
+          $ref: "#/components/schemas/CteInfTotAP"
+    CteReceb:
+      type: object
+      description: 'Receb espelha CteSefazReceb.'
+      properties:
+        CNPJ:
+          type: string
+        CPF:
+          type: string
+        IE:
+          type: string
+        xNome:
+          type: string
+        fone:
+          type: string
+        enderReceb:
+          $ref: "#/components/schemas/CteEndereco"
+        email:
+          type: string
+    CteRed:
+      type: object
+      description: 'Red espelha CteSefazRed.'
+      properties:
+        pRedAliq:
+          type: number
+        pAliqEfet:
+          type: number
+    CteRem:
+      type: object
+      description: 'Rem espelha CteSefazRem.'
+      properties:
+        CNPJ:
+          type: string
+        CPF:
+          type: string
+        IE:
+          type: string
+        xNome:
+          type: string
+        xFant:
+          type: string
+        fone:
+          type: string
+        enderReme:
+          $ref: "#/components/schemas/CteEndereco"
+        email:
+          type: string
+    CteRespTec:
+      type: object
+      description: 'RespTec espelha CteSefazRespTec.'
+      properties:
+        CNPJ:
+          type: string
+        xContato:
+          type: string
+        email:
+          type: string
+        fone:
+          type: string
+        idCSRT:
+          type: integer
+        CSRT:
+          type: string
+        hashCSRT:
+          type: string
+    CteRodo:
+      type: object
+      description: 'Rodo espelha CteSefazRodo.'
+      properties:
+        RNTRC:
+          type: string
+        occ:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteOcc"
+    CteSeg:
+      type: object
+      description: 'Seg espelha CteSefazSeg.'
+      properties:
+        infSeg:
+          $ref: "#/components/schemas/CteInfSeg"
+        nApol:
+          type: string
+        nAver:
+          type: string
+    CteSemData:
+      type: object
+      description: 'SemData espelha CteSefazSemData.'
+      properties:
+        tpPer:
+          type: integer
+    CteSemHora:
+      type: object
+      description: 'SemHora espelha CteSefazSemHora.'
+      properties:
+        tpHor:
+          type: integer
+    CteTarifa:
+      type: object
+      description: 'Tarifa espelha CteSefazTarifa.'
+      properties:
+        CL:
+          type: string
+        cTar:
+          type: string
+        vTar:
+          type: number
+    CteToma:
+      type: object
+      description: 'Toma é o tomador único do CT-e Simplificado/OS (seção [toma]).'
+      properties:
+        toma:
+          type: integer
+        indIEToma:
+          type: integer
+        CNPJ:
+          type: string
+        CPF:
+          type: string
+        IE:
+          type: string
+        xNome:
+          type: string
+        xFant:
+          type: string
+        ISUF:
+          type: string
+        email:
+          type: string
+        fone:
+          type: string
+        enderToma:
+          $ref: "#/components/schemas/CteEndereco"
+    CteToma3:
+      type: object
+      description: 'Toma3 espelha CteSefazToma3.'
+      properties:
+        toma:
+          type: integer
+    CteToma4:
+      type: object
+      description: 'Toma4 espelha CteSefazToma4.'
+      properties:
+        toma:
+          type: integer
+        CNPJ:
+          type: string
+        CPF:
+          type: string
+        IE:
+          type: string
+        xNome:
+          type: string
+        xFant:
+          type: string
+        fone:
+          type: string
+        enderToma:
+          $ref: "#/components/schemas/CteEndereco"
+        email:
+          type: string
+    CteTomadorEPEC:
+      type: object
+      description: 'TomadorEPEC é a seção [TOMADOR] do EPEC.'
+      properties:
+        toma:
+          type: string
+          description: 'default 1'
+        UF:
+          type: string
+        CNPJCPF:
+          type: string
+        IE:
+          type: string
+    CteTotal:
+      type: object
+      description: 'Total são os totais do CT-e Simplificado (seção [total]).'
+      properties:
+        vTPrest:
+          type: number
+        vTRec:
+          type: number
+    CteTrafMut:
+      type: object
+      description: 'TrafMut espelha CteSefazTrafMut.'
+      properties:
+        respFat:
+          type: integer
+        ferrEmi:
+          type: integer
+        vFrete:
+          type: number
+        chCTeFerroOrigem:
+          type: string
+        ferroEnv:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteFerroEnv"
+    CteTranspParcial:
+      type: object
+      description: 'TranspParcial é uma NF-e de transporte parcial vinculada a um doc anterior.'
+      properties:
+        chNFe:
+          type: string
+    CteTribCTe:
+      type: object
+      description: 'TribCTe espelha CteSefazTribCTe.'
+      properties:
+        CST:
+          type: string
+        cClassTrib:
+          type: string
+        indDoacao:
+          type: integer
+        gIBSCBS:
+          $ref: "#/components/schemas/CteCIBS"
+        gEstornoCred:
+          $ref: "#/components/schemas/CteEstornoCred"
+    CteTribCompraGov:
+      type: object
+      description: 'TribCompraGov espelha CteSefazTribCompraGov.'
+      properties:
+        pAliqIBSUF:
+          type: number
+        vTribIBSUF:
+          type: number
+        pAliqIBSMun:
+          type: number
+        vTribIBSMun:
+          type: number
+        pAliqCBS:
+          type: number
+        vTribCBS:
+          type: number
+    CteTribRegular:
+      type: object
+      description: 'TribRegular espelha CteSefazTribRegular.'
+      properties:
+        CSTReg:
+          type: string
+        cClassTribReg:
+          type: string
+        pAliqEfetRegIBSUF:
+          type: number
+        vTribRegIBSUF:
+          type: number
+        pAliqEfetRegIBSMun:
+          type: number
+        vTribRegIBSMun:
+          type: number
+        pAliqEfetRegCBS:
+          type: number
+        vTribRegCBS:
+          type: number
+    CteUnidCarga:
+      type: object
+      description: 'UnidCarga espelha CteSefazUnidCarga.'
+      properties:
+        tpUnidCarga:
+          type: integer
+        idUnidCarga:
+          type: string
+        lacUnidCarga:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteLacUnidCarga"
+        qtdRat:
+          type: number
+    CteUnidadeTransp:
+      type: object
+      description: 'UnidadeTransp espelha CteSefazUnidadeTransp.'
+      properties:
+        tpUnidTransp:
+          type: integer
+        idUnidTransp:
+          type: string
+        lacUnidTransp:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteLacUnidTransp"
+        infUnidCarga:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteUnidCarga"
+        qtdRat:
+          type: number
+    CteVPrest:
+      type: object
+      description: 'VPrest espelha CteSefazVPrest.'
+      properties:
+        vTPrest:
+          type: number
+        vRec:
+          type: number
+        Comp:
+          type: array
+          items:
+            $ref: "#/components/schemas/CteComp"
+    CteVeicNovos:
+      type: object
+      description: 'VeicNovos espelha CteSefazVeicNovos.'
+      properties:
+        chassi:
+          type: string
+        cCor:
+          type: string
+        xCor:
+          type: string
+        cMod:
+          type: string
+        vUnit:
+          type: number
+        vFrete:
+          type: number
+    MdfeAereo:
+      type: object
+      description: 'Aereo espelha MdfeSefazAereo.'
+      properties:
+        nac:
+          type: string
+        matr:
+          type: string
+        nVoo:
+          type: string
+        cAerEmb:
+          type: string
+        cAerDes:
+          type: string
+        dVoo:
+          type: string
+    MdfeAquav:
+      type: object
+      description: 'Aquav espelha MdfeSefazAquav.'
+      properties:
+        irin:
+          type: string
+        tpEmb:
+          type: string
+        cEmbar:
+          type: string
+        xEmbar:
+          type: string
+        nViag:
+          type: string
+        cPrtEmb:
+          type: string
+        cPrtDest:
+          type: string
+        prtTrans:
+          type: string
+        tpNav:
+          type: integer
+        infTermCarreg:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeInfTermCarreg"
+        infTermDescarreg:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeInfTermDescarreg"
+        infEmbComb:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeInfEmbComb"
+        infUnidCargaVazia:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeInfUnidCargaVazia"
+        infUnidTranspVazia:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeInfUnidTranspVazia"
+        MMSI:
+          type: string
+    MdfeAutXML:
+      type: object
+      description: 'AutXML espelha MdfeSefazAutXML.'
+      properties:
+        CNPJ:
+          type: string
+        CPF:
+          type: string
+    MdfeComp:
+      type: object
+      description: 'Comp espelha MdfeSefazComp.'
+      properties:
+        tpComp:
+          type: string
+        vComp:
+          type: number
+        xComp:
+          type: string
+    MdfeCondutor:
+      type: object
+      description: 'Condutor espelha MdfeSefazCondutor.'
+      properties:
+        xNome:
+          type: string
+        CPF:
+          type: string
+    MdfeDisp:
+      type: object
+      description: 'Disp espelha MdfeSefazDisp.'
+      properties:
+        CNPJForn:
+          type: string
+        CNPJPg:
+          type: string
+        CPFPg:
+          type: string
+        nCompra:
+          type: string
+        vValePed:
+          type: number
+        tpValePed:
+          type: string
+    MdfeDocInclusao:
+      type: object
+      description: 'DocInclusao é uma NF-e a incluir (seção [infDocNNNN]).'
+      properties:
+        chNFe:
+          type: string
+        cMunDescarga:
+          type: string
+        xMunDescarga:
+          type: string
+    MdfeDocumento:
+      type: object
+      description: 'PedidoEmissao espelha MdfePedidoEmissao.'
+      properties:
+        infMDFe:
+          $ref: "#/components/schemas/MdfeInfMDFe"
+        infMDFeSupl:
+          $ref: "#/components/schemas/MdfeInfMDFeSupl"
+        ambiente:
+          type: string
+        referencia:
+          type: string
+    MdfeEmit:
+      type: object
+      description: 'Emit espelha MdfeSefazEmit.'
+      properties:
+        CNPJ:
+          type: string
+        CPF:
+          type: string
+        IE:
+          type: string
+        xNome:
+          type: string
+        xFant:
+          type: string
+        enderEmit:
+          $ref: "#/components/schemas/MdfeEndeEmi"
+    MdfeEndeEmi:
+      type: object
+      description: 'EndeEmi espelha MdfeSefazEndeEmi.'
+      properties:
+        xLgr:
+          type: string
+        nro:
+          type: string
+        xCpl:
+          type: string
+        xBairro:
+          type: string
+        cMun:
+          type: string
+        xMun:
+          type: string
+        CEP:
+          type: string
+        UF:
+          type: string
+        fone:
+          type: string
+        email:
+          type: string
+    MdfeEventoCancelamento:
+      type: object
+      description: 'PedidoCancelamento é o corpo de POST /v1/mdfe/eventos/cancelamento (ACBr.API).'
+      properties:
+        justificativa:
+          type: string
+    MdfeEventoEncerramento:
+      type: object
+      description: 'PedidoEncerramento é o corpo de POST /v1/mdfe/eventos/encerramento (ACBr.API). chMDFe e nProt vêm do documento autorizado.'
+      properties:
+        data_encerramento:
+          type: string
+          description: 'ISO; default hoje'
+        cUF:
+          type: integer
+          description: 'UF do encerramento'
+        cMun:
+          type: string
+          description: 'município do encerramento'
+    MdfeEventoInclusaoCondutor:
+      type: object
+      description: 'PedidoInclusaoCondutor: POST /v1/mdfe/eventos/inclusao-condutor (evento 110114).'
+      properties:
+        nome:
+          type: string
+        cpf:
+          type: string
+        nSeqEvento:
+          type: integer
+    MdfeEventoInclusaoDFe:
+      type: object
+      description: 'PedidoInclusaoDFe: POST /v1/mdfe/eventos/inclusao-dfe (evento 110115). Inclui novos documentos (NF-e) ao manifesto em trânsito, por município de descarga.'
+      properties:
+        cMunCarrega:
+          type: string
+        xMunCarrega:
+          type: string
+        documentos:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeDocInclusao"
+        nSeqEvento:
+          type: integer
+    MdfeEventoPagamentoOperacao:
+      type: object
+      description: 'PedidoPagamentoOperacao é o corpo de POST /v1/mdfe/eventos/pagamento-operacao (evento 110116). Registra o pagamento da operação de transporte. Reusa os tipos da emissão (InfPag/Comp/InfPrazo/InfBanc).'
+      properties:
+        infViagens:
+          $ref: "#/components/schemas/MdfeInfViagens"
+        pagamentos:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeInfPag"
+        nSeqEvento:
+          type: integer
+    MdfeFerrov:
+      type: object
+      description: 'Ferrov espelha MdfeSefazFerrov.'
+      properties:
+        trem:
+          $ref: "#/components/schemas/MdfeTrem"
+        vag:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeVag"
+    MdfeIde:
+      type: object
+      description: 'Ide espelha MdfeSefazIde.'
+      properties:
+        cUF:
+          type: integer
+        tpAmb:
+          type: integer
+        tpEmit:
+          type: integer
+        tpTransp:
+          type: integer
+        mod:
+          type: integer
+        serie:
+          type: integer
+        nMDF:
+          type: integer
+        cMDF:
+          type: string
+        cDV:
+          type: integer
+        modal:
+          type: integer
+        dhEmi:
+          type: string
+        tpEmis:
+          type: integer
+        procEmi:
+          type: string
+        verProc:
+          type: string
+        UFIni:
+          type: string
+        UFFim:
+          type: string
+        infMunCarrega:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeInfMunCarrega"
+        infPercurso:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeInfPercurso"
+        dhIniViagem:
+          type: string
+        indCanalVerde:
+          type: integer
+        indCarregaPosterior:
+          type: integer
+    MdfeInfANTT:
+      type: object
+      description: 'InfANTT espelha MdfeSefazInfANTT.'
+      properties:
+        RNTRC:
+          type: string
+        infCIOT:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeInfCIOT"
+        valePed:
+          $ref: "#/components/schemas/MdfeValePed"
+        infContratante:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeInfContratante"
+        infPag:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeInfPag"
+    MdfeInfAdic:
+      type: object
+      description: 'InfAdic espelha MdfeSefazInfAdic.'
+      properties:
+        infAdFisco:
+          type: string
+        infCpl:
+          type: string
+    MdfeInfBanc:
+      type: object
+      description: 'InfBanc espelha MdfeSefazInfBanc.'
+      properties:
+        codBanco:
+          type: string
+        codAgencia:
+          type: string
+        CNPJIPEF:
+          type: string
+        PIX:
+          type: string
+    MdfeInfCIOT:
+      type: object
+      description: 'InfCIOT espelha MdfeSefazInfCIOT.'
+      properties:
+        CIOT:
+          type: string
+        CPF:
+          type: string
+        CNPJ:
+          type: string
+    MdfeInfCTe:
+      type: object
+      description: 'InfCTe espelha MdfeSefazInfCTe.'
+      properties:
+        chCTe:
+          type: string
+        SegCodBarra:
+          type: string
+        indReentrega:
+          type: integer
+        infUnidTransp:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeUnidadeTransp"
+        peri:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfePeri"
+        infEntregaParcial:
+          $ref: "#/components/schemas/MdfeInfEntregaParcial"
+        indPrestacaoParcial:
+          type: integer
+        infNFePrestParcial:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeInfNFePrestParcial"
+    MdfeInfContratante:
+      type: object
+      description: 'InfContratante espelha MdfeSefazInfContratante.'
+      properties:
+        xNome:
+          type: string
+        CPF:
+          type: string
+        CNPJ:
+          type: string
+        idEstrangeiro:
+          type: string
+        infContrato:
+          $ref: "#/components/schemas/MdfeInfContrato"
+    MdfeInfContrato:
+      type: object
+      description: 'InfContrato espelha MdfeSefazInfContrato.'
+      properties:
+        NroContrato:
+          type: string
+        vContratoGlobal:
+          type: number
+    MdfeInfDoc:
+      type: object
+      description: 'InfDoc espelha MdfeSefazInfDoc.'
+      properties:
+        infMunDescarga:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeInfMunDescarga"
+    MdfeInfEmbComb:
+      type: object
+      description: 'InfEmbComb espelha MdfeSefazInfEmbComb.'
+      properties:
+        cEmbComb:
+          type: string
+        xBalsa:
+          type: string
+    MdfeInfEntregaParcial:
+      type: object
+      description: 'InfEntregaParcial espelha MdfeSefazInfEntregaParcial.'
+      properties:
+        qtdTotal:
+          type: number
+        qtdParcial:
+          type: number
+    MdfeInfLocalCarrega:
+      type: object
+      description: 'InfLocalCarrega espelha MdfeSefazInfLocalCarrega.'
+      properties:
+        CEP:
+          type: string
+        latitude:
+          type: string
+        longitude:
+          type: string
+    MdfeInfLocalDescarrega:
+      type: object
+      description: 'InfLocalDescarrega espelha MdfeSefazInfLocalDescarrega.'
+      properties:
+        CEP:
+          type: string
+        latitude:
+          type: string
+        longitude:
+          type: string
+    MdfeInfLotacao:
+      type: object
+      description: 'InfLotacao espelha MdfeSefazInfLotacao.'
+      properties:
+        infLocalCarrega:
+          $ref: "#/components/schemas/MdfeInfLocalCarrega"
+        infLocalDescarrega:
+          $ref: "#/components/schemas/MdfeInfLocalDescarrega"
+    MdfeInfMDFe:
+      type: object
+      description: 'InfMDFe espelha MdfeSefazInfMDFe.'
+      properties:
+        versao:
+          type: string
+        Id:
+          type: string
+        ide:
+          $ref: "#/components/schemas/MdfeIde"
+        emit:
+          $ref: "#/components/schemas/MdfeEmit"
+        infModal:
+          $ref: "#/components/schemas/MdfeInfModal"
+        infDoc:
+          $ref: "#/components/schemas/MdfeInfDoc"
+        seg:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeSeg"
+        prodPred:
+          $ref: "#/components/schemas/MdfeProdPred"
+        tot:
+          $ref: "#/components/schemas/MdfeTot"
+        lacres:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeLacres"
+        autXML:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeAutXML"
+        infAdic:
+          $ref: "#/components/schemas/MdfeInfAdic"
+        infRespTec:
+          $ref: "#/components/schemas/MdfeRespTec"
+        infSolicNFF:
+          $ref: "#/components/schemas/MdfeInfSolicNFF"
+    MdfeInfMDFeSupl:
+      type: object
+      description: 'InfMDFeSupl espelha MdfeSefazInfMDFeSupl.'
+      properties:
+        qrCodMDFe:
+          type: string
+    MdfeInfMDFeTransp:
+      type: object
+      description: 'InfMDFeTransp espelha MdfeSefazInfMDFeTransp.'
+      properties:
+        chMDFe:
+          type: string
+        indReentrega:
+          type: integer
+        infUnidTransp:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeUnidadeTransp"
+        peri:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeInfMDFeTranspPeri"
+    MdfeInfMDFeTranspPeri:
+      type: object
+      description: 'InfMDFeTranspPeri espelha MdfeSefazInfMDFeTransp_Peri.'
+      properties:
+        nONU:
+          type: string
+        xNomeAE:
+          type: string
+        xClaRisco:
+          type: string
+        grEmb:
+          type: string
+        qTotProd:
+          type: string
+        qVolTipo:
+          type: string
+    MdfeInfModal:
+      type: object
+      description: 'InfModal espelha MdfeSefazInfModal.'
+      properties:
+        versaoModal:
+          type: string
+        aereo:
+          $ref: "#/components/schemas/MdfeAereo"
+        rodo:
+          $ref: "#/components/schemas/MdfeRodo"
+        aquav:
+          $ref: "#/components/schemas/MdfeAquav"
+        ferrov:
+          $ref: "#/components/schemas/MdfeFerrov"
+    MdfeInfMunCarrega:
+      type: object
+      description: 'InfMunCarrega espelha MdfeSefazInfMunCarrega.'
+      properties:
+        cMunCarrega:
+          type: string
+        xMunCarrega:
+          type: string
+    MdfeInfMunDescarga:
+      type: object
+      description: 'InfMunDescarga espelha MdfeSefazInfMunDescarga.'
+      properties:
+        cMunDescarga:
+          type: string
+        xMunDescarga:
+          type: string
+        infCTe:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeInfCTe"
+        infNFe:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeInfNFe"
+        infMDFeTransp:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeInfMDFeTransp"
+    MdfeInfNFe:
+      type: object
+      description: 'InfNFe espelha MdfeSefazInfNFe.'
+      properties:
+        chNFe:
+          type: string
+        SegCodBarra:
+          type: string
+        indReentrega:
+          type: integer
+        infUnidTransp:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeUnidadeTransp"
+        peri:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeInfNFePeri"
+    MdfeInfNFePeri:
+      type: object
+      description: 'InfNFePeri espelha MdfeSefazInfNFe_Peri.'
+      properties:
+        nONU:
+          type: string
+        xNomeAE:
+          type: string
+        xClaRisco:
+          type: string
+        grEmb:
+          type: string
+        qTotProd:
+          type: string
+        qVolTipo:
+          type: string
+    MdfeInfNFePrestParcial:
+      type: object
+      description: 'InfNFePrestParcial espelha MdfeSefazInfNFePrestParcial.'
+      properties:
+        chNFe:
+          type: string
+    MdfeInfPag:
+      type: object
+      description: 'InfPag espelha MdfeSefazInfPag.'
+      properties:
+        xNome:
+          type: string
+        CPF:
+          type: string
+        CNPJ:
+          type: string
+        idEstrangeiro:
+          type: string
+        Comp:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeComp"
+        vContrato:
+          type: number
+        indAltoDesemp:
+          type: integer
+        indPag:
+          type: integer
+        vAdiant:
+          type: number
+        indAntecipaAdiant:
+          type: integer
+        infPrazo:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeInfPrazo"
+        tpAntecip:
+          type: integer
+        infBanc:
+          $ref: "#/components/schemas/MdfeInfBanc"
+    MdfeInfPercurso:
+      type: object
+      description: 'InfPercurso espelha MdfeSefazInfPercurso.'
+      properties:
+        UFPer:
+          type: string
+    MdfeInfPrazo:
+      type: object
+      description: 'InfPrazo espelha MdfeSefazInfPrazo.'
+      properties:
+        nParcela:
+          type: integer
+        dVenc:
+          type: string
+        vParcela:
+          type: number
+    MdfeInfResp:
+      type: object
+      description: 'InfResp espelha MdfeSefazInfResp.'
+      properties:
+        respSeg:
+          type: integer
+        CNPJ:
+          type: string
+        CPF:
+          type: string
+    MdfeInfSeg:
+      type: object
+      description: 'InfSeg espelha MdfeSefazInfSeg.'
+      properties:
+        xSeg:
+          type: string
+        CNPJ:
+          type: string
+    MdfeInfSolicNFF:
+      type: object
+      description: 'InfSolicNFF espelha MdfeSefazInfSolicNFF.'
+      properties:
+        xSolic:
+          type: string
+    MdfeInfTermCarreg:
+      type: object
+      description: 'InfTermCarreg espelha MdfeSefazInfTermCarreg.'
+      properties:
+        cTermCarreg:
+          type: string
+        xTermCarreg:
+          type: string
+    MdfeInfTermDescarreg:
+      type: object
+      description: 'InfTermDescarreg espelha MdfeSefazInfTermDescarreg.'
+      properties:
+        cTermDescarreg:
+          type: string
+        xTermDescarreg:
+          type: string
+    MdfeInfUnidCargaVazia:
+      type: object
+      description: 'InfUnidCargaVazia espelha MdfeSefazInfUnidCargaVazia.'
+      properties:
+        idUnidCargaVazia:
+          type: string
+        tpUnidCargaVazia:
+          type: integer
+    MdfeInfUnidTranspVazia:
+      type: object
+      description: 'InfUnidTranspVazia espelha MdfeSefazInfUnidTranspVazia.'
+      properties:
+        idUnidTranspVazia:
+          type: string
+        tpUnidTranspVazia:
+          type: integer
+    MdfeInfViagens:
+      type: object
+      description: 'InfViagens é a seção [infViagens] (quantidade/numeração de viagens).'
+      properties:
+        qtdViagens:
+          type: integer
+        nroViagem:
+          type: integer
+    MdfeLacRodo:
+      type: object
+      description: 'LacRodo espelha MdfeSefazLacRodo.'
+      properties:
+        nLacre:
+          type: string
+    MdfeLacUnidCarga:
+      type: object
+      description: 'LacUnidCarga espelha MdfeSefazLacUnidCarga.'
+      properties:
+        nLacre:
+          type: string
+    MdfeLacUnidTransp:
+      type: object
+      description: 'LacUnidTransp espelha MdfeSefazLacUnidTransp.'
+      properties:
+        nLacre:
+          type: string
+    MdfeLacres:
+      type: object
+      description: 'Lacres espelha MdfeSefazLacres.'
+      properties:
+        nLacre:
+          type: string
+    MdfePeri:
+      type: object
+      description: 'Peri espelha MdfeSefazPeri.'
+      properties:
+        nONU:
+          type: string
+        xNomeAE:
+          type: string
+        xClaRisco:
+          type: string
+        grEmb:
+          type: string
+        qTotProd:
+          type: string
+        qVolTipo:
+          type: string
+    MdfeProdPred:
+      type: object
+      description: 'ProdPred espelha MdfeSefazProdPred.'
+      properties:
+        tpCarga:
+          type: string
+        xProd:
+          type: string
+        cEAN:
+          type: string
+        NCM:
+          type: string
+        infLotacao:
+          $ref: "#/components/schemas/MdfeInfLotacao"
+    MdfeProp:
+      type: object
+      description: 'Prop espelha MdfeSefazProp.'
+      properties:
+        CPF:
+          type: string
+        CNPJ:
+          type: string
+        RNTRC:
+          type: string
+        xNome:
+          type: string
+        IE:
+          type: string
+        UF:
+          type: string
+        tpProp:
+          type: integer
+    MdfeRespTec:
+      type: object
+      description: 'RespTec espelha MdfeSefazRespTec.'
+      properties:
+        CNPJ:
+          type: string
+        xContato:
+          type: string
+        email:
+          type: string
+        fone:
+          type: string
+        idCSRT:
+          type: integer
+        CSRT:
+          type: string
+        hashCSRT:
+          type: string
+    MdfeRodo:
+      type: object
+      description: 'Rodo espelha MdfeSefazRodo.'
+      properties:
+        infANTT:
+          $ref: "#/components/schemas/MdfeInfANTT"
+        veicTracao:
+          $ref: "#/components/schemas/MdfeVeicTracao"
+        veicReboque:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeVeicReboque"
+        codAgPorto:
+          type: string
+        lacRodo:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeLacRodo"
+    MdfeSeg:
+      type: object
+      description: 'Seg espelha MdfeSefazSeg.'
+      properties:
+        infResp:
+          $ref: "#/components/schemas/MdfeInfResp"
+        infSeg:
+          $ref: "#/components/schemas/MdfeInfSeg"
+        nApol:
+          type: string
+        nAver:
+          type: array
+          items:
+            type: string
+    MdfeTot:
+      type: object
+      description: 'Tot espelha MdfeSefazTot.'
+      properties:
+        qCTe:
+          type: integer
+        qNFe:
+          type: integer
+        qMDFe:
+          type: integer
+        vCarga:
+          type: number
+        cUnid:
+          type: string
+        qCarga:
+          type: number
+    MdfeTrem:
+      type: object
+      description: 'Trem espelha MdfeSefazTrem.'
+      properties:
+        xPref:
+          type: string
+        dhTrem:
+          type: string
+        xOri:
+          type: string
+        xDest:
+          type: string
+        qVag:
+          type: integer
+    MdfeUnidCarga:
+      type: object
+      description: 'UnidCarga espelha MdfeSefazUnidCarga.'
+      properties:
+        tpUnidCarga:
+          type: integer
+        idUnidCarga:
+          type: string
+        lacUnidCarga:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeLacUnidCarga"
+        qtdRat:
+          type: number
+    MdfeUnidadeTransp:
+      type: object
+      description: 'UnidadeTransp espelha MdfeSefazUnidadeTransp.'
+      properties:
+        tpUnidTransp:
+          type: integer
+        idUnidTransp:
+          type: string
+        lacUnidTransp:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeLacUnidTransp"
+        infUnidCarga:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeUnidCarga"
+        qtdRat:
+          type: number
+    MdfeVag:
+      type: object
+      description: 'Vag espelha MdfeSefazVag.'
+      properties:
+        pesoBC:
+          type: number
+        pesoR:
+          type: number
+        tpVag:
+          type: string
+        serie:
+          type: string
+        nVag:
+          type: integer
+        nSeq:
+          type: integer
+        TU:
+          type: number
+    MdfeValePed:
+      type: object
+      description: 'ValePed espelha MdfeSefazValePed.'
+      properties:
+        disp:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeDisp"
+        categCombVeic:
+          type: string
+    MdfeVeicReboque:
+      type: object
+      description: 'VeicReboque espelha MdfeSefazVeicReboque.'
+      properties:
+        cInt:
+          type: string
+        placa:
+          type: string
+        RENAVAM:
+          type: string
+        tara:
+          type: integer
+        capKG:
+          type: integer
+        capM3:
+          type: integer
+        prop:
+          $ref: "#/components/schemas/MdfeVeicReboqueProp"
+        tpCar:
+          type: string
+        UF:
+          type: string
+    MdfeVeicReboqueProp:
+      type: object
+      description: 'VeicReboqueProp espelha MdfeSefazVeicReboque_Prop.'
+      properties:
+        CPF:
+          type: string
+        CNPJ:
+          type: string
+        RNTRC:
+          type: string
+        xNome:
+          type: string
+        IE:
+          type: string
+        UF:
+          type: string
+        tpProp:
+          type: integer
+    MdfeVeicTracao:
+      type: object
+      description: 'VeicTracao espelha MdfeSefazVeicTracao.'
+      properties:
+        cInt:
+          type: string
+        placa:
+          type: string
+        RENAVAM:
+          type: string
+        tara:
+          type: integer
+        capKG:
+          type: integer
+        capM3:
+          type: integer
+        prop:
+          $ref: "#/components/schemas/MdfeProp"
+        condutor:
+          type: array
+          items:
+            $ref: "#/components/schemas/MdfeCondutor"
+        tpRod:
+          type: string
+        tpCar:
+          type: string
+        UF:
+          type: string
+    NfseComExt:
+      type: object
+      description: 'ComExt é o grupo de comércio exterior (seção [ComercioExterior]).'
+      properties:
+        mdPrestacao:
+          type: string
+          description: 'modo de prestação'
+        vincPrest:
+          type: string
+          description: 'vínculo da prestação'
+        tpMoeda:
+          type: integer
+          description: 'código da moeda'
+        vServMoeda:
+          type: number
+          description: 'valor do serviço em moeda estrangeira'
+        mecAFComexP:
+          type: string
+        mecAFComexT:
+          type: string
+        movTempBens:
+          type: string
+        nDI:
+          type: string
+          description: 'nº da Declaração de Importação'
+        nRE:
+          type: string
+          description: 'nº do Registro de Exportação'
+        mdic:
+          type: integer
+    NfseDestIBS:
+      type: object
+      description: 'DestIBS é o destinatário da operação na Reforma (seção [Destinatario]).'
+      properties:
+        CNPJ:
+          type: string
+        CPF:
+          type: string
+        NIF:
+          type: string
+        xNome:
+          type: string
+        IM:
+          type: string
+        logradouro:
+          type: string
+        numero:
+          type: string
+        complemento:
+          type: string
+        bairro:
+          type: string
+        cMun:
+          type: string
+        xMun:
+          type: string
+        UF:
+          type: string
+        CEP:
+          type: string
+        cPais:
+          type: string
+        email:
+          type: string
+        telefone:
+          type: string
+    NfseDocReeRep:
+      type: object
+      description: 'DocReeRep é um documento de reembolso/representação/ressarcimento (gReeRepRes, seção [DocumentosNNNN]). Identifica o doc por chave DFe, doc fiscal de outro município ou doc avulso, o fornecedor e o tipo/valor de reembolso.'
+      properties:
+        tipoChaveDFe:
+          type: string
+        xTipoChaveDFe:
+          type: string
+        chaveDFe:
+          type: string
+        cMunDocFiscal:
+          type: string
+        nDocFiscal:
+          type: string
+        xDocFiscal:
+          type: string
+        nDoc:
+          type: string
+        xDoc:
+          type: string
+        fornecCNPJ:
+          type: string
+        fornecCPF:
+          type: string
+        fornecNome:
+          type: string
+        dtEmiDoc:
+          type: string
+        dtCompDoc:
+          type: string
+        tpReeRepRes:
+          type: string
+        xTpReeRepRes:
+          type: string
+        vlrReeRepRes:
+          type: number
+    NfseDocumento:
+      type: object
+      description: 'DPSPedido é o corpo de emissão (estilo Nuvem Fiscal: POST /v1/nfse/xml).'
+      properties:
+        ambiente:
+          type: string
+          description: '"homologacao" | "producao"'
+        provedor:
+          type: string
+          description: 'ex.: "padrao_nacional"'
+        referencia:
+          type: string
+          description: 'id externo do cliente'
+        infDPS:
+          $ref: "#/components/schemas/NfseInfDPS"
+    NfseEventoCancelamento:
+      type: object
+      description: 'CancelamentoPedido é o corpo do pedido de cancelamento (espelha o NfsePedidoCancelamento do ACBr.API). Códigos/motivos exigidos variam por prefeitura; no Padrão Nacional o código default é 1 (erro na emissão).'
+      properties:
+        codigo:
+          type: string
+          description: 'CodCancelamento (default "1")'
+        motivo:
+          type: string
+          description: 'MotCancelamento'
+    NfseEventoSubstituicao:
+      type: object
+      description: 'SubstituicaoPedido é o corpo de POST /v1/nfse/eventos/substituicao: a DPS substituta (nova nota) + os identificadores da NFS-e antiga + o motivo do cancelamento. Espelha os parâmetros do NFSE_SubstituirNFSe (provedores que expõem o webservice SubstituiNFSe — o Padrão Nacional faz substituição via grupo subst na DPS, não por este método).'
+      properties:
+        dps:
+          description: 'nota nova (substituta)'
+          allOf:
+            - $ref: "#/components/schemas/NfseDocumento"
+        substituida:
+          description: 'identifica a NFS-e antiga'
+          allOf:
+            - $ref: "#/components/schemas/NfseNFSeSubstituidaRef"
+        codigo:
+          type: string
+          description: 'CodCancelamento, default "1"'
+        motivo:
+          type: string
+    NfseGDifDPS:
+      type: object
+      description: 'GDifDPS é o diferimento por ente (seção [gDif]).'
+      properties:
+        pDifUF:
+          type: number
+        pDifMun:
+          type: number
+        pDifCBS:
+          type: number
+    NfseGIBSCBSDPS:
+      type: object
+      description: 'GIBSCBSDPS é a tributação IBS/CBS (seção [gIBSCBS]).'
+      properties:
+        CST:
+          type: string
+        cClassTrib:
+          type: string
+        cCredPres:
+          type: string
+        gTribRegular:
+          $ref: "#/components/schemas/NfseGTribRegularDPS"
+        gDif:
+          $ref: "#/components/schemas/NfseGDifDPS"
+    NfseGTribRegularDPS:
+      type: object
+      description: 'GTribRegularDPS é a tributação regular de referência (seção [gTribRegular]).'
+      properties:
+        CSTReg:
+          type: string
+        cClassTribReg:
+          type: string
+    NfseIBSCBSDPS:
+      type: object
+      description: 'IBSCBSDPS é o grupo da Reforma Tributária no DPS (seção [IBSCBSDPS]).'
+      properties:
+        finNFSe:
+          type: string
+        indFinal:
+          type: string
+        cIndOp:
+          type: string
+        tpOper:
+          type: string
+        tpEnteGov:
+          type: string
+        indDest:
+          type: string
+        dest:
+          description: 'destinatário (seção [Destinatario])'
+          allOf:
+            - $ref: "#/components/schemas/NfseDestIBS"
+        imovel:
+          description: 'imóvel (seção [Imovel])'
+          allOf:
+            - $ref: "#/components/schemas/NfseImovelIBS"
+        documentos:
+          type: array
+          items:
+            $ref: "#/components/schemas/NfseDocReeRep"
+          description: 'gReeRepRes ([DocumentosNNNN])'
+        gIBSCBS:
+          $ref: "#/components/schemas/NfseGIBSCBSDPS"
+    NfseImovelIBS:
+      type: object
+      description: 'ImovelIBS identifica o imóvel da operação (seção [Imovel]).'
+      properties:
+        inscImobFisc:
+          type: string
+        cCIB:
+          type: string
+        logradouro:
+          type: string
+        numero:
+          type: string
+        complemento:
+          type: string
+        bairro:
+          type: string
+        CEP:
+          type: string
+    NfseInfDPS:
+      type: object
+      description: 'InfDPS são as informações da DPS (Declaração de Prestação de Serviços).'
+      properties:
+        serie:
+          type: string
+        nDPS:
+          type: string
+          description: 'número do RPS/DPS'
+        dCompet:
+          type: string
+          description: 'competência (YYYY-MM-DD)'
+        dhEmi:
+          type: string
+          description: 'emissão (YYYY-MM-DD); vazio = hoje'
+        tpEmit:
+          type: integer
+          description: '1 = prestador'
+        verAplic:
+          type: string
+        cLocEmi:
+          type: string
+          description: 'município emissor (IBGE); vazio = cMun do prestador'
+        prest:
+          $ref: "#/components/schemas/NfsePessoa"
+        toma:
+          $ref: "#/components/schemas/NfsePessoa"
+        interm:
+          description: 'intermediário (seção [Intermediario])'
+          allOf:
+            - $ref: "#/components/schemas/NfsePessoa"
+        serv:
+          $ref: "#/components/schemas/NfseServico"
+        valores:
+          $ref: "#/components/schemas/NfseValores"
+        ibscbs:
+          description: 'Reforma Tributária (grupo IBSCBSDPS)'
+          allOf:
+            - $ref: "#/components/schemas/NfseIBSCBSDPS"
+    NfseInfoCompl:
+      type: object
+      description: 'InfoCompl são informações complementares (seção [InformacoesComplementares]).'
+      properties:
+        idDocTec:
+          type: string
+        docRef:
+          type: string
+        xPed:
+          type: string
+        xInfComp:
+          type: string
+        gItemPed:
+          type: array
+          items:
+            type: string
+          description: 'itens do pedido ([gItemPedNN] xItemPed)'
+    NfseNFSeSubstituidaRef:
+      type: object
+      description: 'NFSeSubstituidaRef identifica a NFS-e que está sendo substituída. Os valores vêm da emissão original (número/série/cód. verificação retornados pelo provedor).'
+      properties:
+        numero:
+          type: string
+        serie:
+          type: string
+        codigo_verificacao:
+          type: string
+        numero_lote:
+          type: string
+    NfsePessoa:
+      type: object
+      description: 'Pessoa representa prestador ou tomador.'
+      properties:
+        CNPJ:
+          type: string
+        CPF:
+          type: string
+        IM:
+          type: string
+          description: 'inscrição municipal'
+        xNome:
+          type: string
+          description: 'razão social / nome'
+        cMun:
+          type: string
+          description: 'código do município (IBGE)'
+        UF:
+          type: string
+        CEP:
+          type: string
+        email:
+          type: string
+        logradouro:
+          type: string
+          description: 'Endereço/contato (Padrão Nacional: seção [Prestador]/[Tomador]).'
+        numero:
+          type: string
+        complemento:
+          type: string
+        bairro:
+          type: string
+        telefone:
+          type: string
+        cPais:
+          type: integer
+          description: 'CPais/XPais só precisam ser informados para endereço NO EXTERIOR. Endereço nacional (com cMun) recebe 1058 (Brasil) automaticamente — ver pessoaCommon.'
+        xPais:
+          type: string
+          description: 'nome do país'
+        regTrib:
+          description: 'RegTrib (regime tributário) é obrigatório para o prestador no Padrão Nacional — sem ele o ACBr falha ao montar o XML.'
+          allOf:
+            - $ref: "#/components/schemas/NfseRegTrib"
+    NfseRegTrib:
+      type: object
+      description: 'RegTrib é o regime tributário do prestador.'
+      properties:
+        opSimpNac:
+          type: integer
+          description: '1=não optante, 2=MEI, 3=ME/EPP'
+        regApTribSN:
+          type: integer
+          description: 'regime de apuração do Simples Nacional'
+        regEspTrib:
+          type: integer
+          description: 'regime especial de tributação'
+        incentivadorCultural:
+          type: integer
+          description: 'Campos exclusivos ABRASF (municípios fora do Padrão Nacional) — opcionais, ignorados na emissão Padrão Nacional.'
+        dataOptanteSimplesNacional:
+          type: string
+          description: 'YYYY-MM-DD'
+    NfseServico:
+      type: object
+      description: 'Servico descreve o serviço prestado.'
+      properties:
+        cMunPrestacao:
+          type: string
+          description: 'município da prestação (IBGE)'
+        cServ:
+          type: string
+          description: 'item da lista (→ cTribNac no Padrão Nacional)'
+        cTribMun:
+          type: string
+          description: 'código de tributação municipal'
+        cNBS:
+          type: string
+          description: 'código NBS'
+        codigoCnae:
+          type: string
+          description: 'CNAE'
+        xDescServ:
+          type: string
+          description: 'discriminação'
+        exigibilidadeISS:
+          type: integer
+          description: '1=exigível, 2=não incidência...'
+        municipioIncidencia:
+          type: string
+          description: 'município de incidência do ISS (IBGE)'
+        xMunicipioIncidencia:
+          type: string
+        numeroProcesso:
+          type: string
+          description: 'processo de suspensão/exigibilidade'
+        codigoPais:
+          type: string
+          description: 'país da prestação (exterior)'
+        xPais:
+          type: string
+        comExt:
+          description: 'comércio exterior'
+          allOf:
+            - $ref: "#/components/schemas/NfseComExt"
+        infoCompl:
+          description: 'informações complementares'
+          allOf:
+            - $ref: "#/components/schemas/NfseInfoCompl"
+        itemListaServico:
+          type: string
+          description: 'Campos exclusivos ABRASF (municípios fora do Padrão Nacional) — opcionais, ignorados na emissão Padrão Nacional. Onde houver equivalente PN (cServ, cTribMun, pAliq em valores), o builder ABRASF cai nele como fallback.'
+        responsavelRetencao:
+          type: integer
+        naturezaOperacao:
+          type: integer
+          description: 'ABRASF v1'
+    NfseTotTrib:
+      type: object
+      description: 'TotTrib são os totais aproximados de tributos (seção [totTrib]).'
+      properties:
+        indTotTrib:
+          type: integer
+        pTotTribSN:
+          type: number
+        vTotTribFed:
+          type: number
+        vTotTribEst:
+          type: number
+        vTotTribMun:
+          type: number
+        pTotTribFed:
+          type: number
+        pTotTribEst:
+          type: number
+        pTotTribMun:
+          type: number
+    NfseTribFed:
+      type: object
+      description: 'TribFed é a tributação federal (seção [tribFed]): PIS/COFINS + retenções.'
+      properties:
+        CST:
+          type: string
+        vBCPisCofins:
+          type: number
+        pAliqPis:
+          type: number
+        pAliqCofins:
+          type: number
+        vPis:
+          type: number
+        vCofins:
+          type: number
+        tpRetPisCofins:
+          type: integer
+        vRetCP:
+          type: number
+        vRetIRRF:
+          type: number
+        vRetCSLL:
+          type: number
+    NfseTribMun:
+      type: object
+      description: 'TribMun é a tributação municipal (seção [tribMun]).'
+      properties:
+        tribISSQN:
+          type: integer
+          description: '1=operação tributável'
+        tpRetISSQN:
+          type: integer
+          description: '1=não retido, 2=retido tomador...'
+        pAliq:
+          type: number
+          description: 'alíquota (%)'
+        tpImunidade:
+          type: integer
+          description: 'tipo de imunidade'
+        tpSusp:
+          type: integer
+          description: 'exigibilidade suspensa'
+        nProcesso:
+          type: string
+          description: 'processo de suspensão'
+        vRedBCBM:
+          type: number
+          description: 'redução da BC (benefício)'
+        pRedBCBM:
+          type: number
+        nBM:
+          type: string
+          description: 'nº do benefício municipal'
+    NfseValores:
+      type: object
+      description: 'Valores são os montantes e a tributação do serviço (ISSQN + federal + totais).'
+      properties:
+        vServ:
+          type: number
+          description: 'valor dos serviços'
+        vReceb:
+          type: number
+          description: 'valor recebido'
+        vDescIncond:
+          type: number
+          description: 'desconto incondicionado'
+        vDescCond:
+          type: number
+          description: 'desconto condicionado'
+        vDeducoes:
+          type: number
+          description: 'valor das deduções'
+        pDeducoes:
+          type: number
+          description: 'alíquota de deduções (%)'
+        tribISSQN:
+          type: integer
+          description: 'ISSQN (atalhos comuns; o detalhe vai em tribMun).'
+        pAliq:
+          type: number
+          description: 'alíquota ISS (%)'
+        iss_retido:
+          type: integer
+          description: '1=Sim, 2=Não (ABRASF); default 2'
+        tribMun:
+          description: 'Tributação detalhada (Padrão Nacional).'
+          allOf:
+            - $ref: "#/components/schemas/NfseTribMun"
+        tribFed:
+          $ref: "#/components/schemas/NfseTribFed"
+        totTrib:
+          $ref: "#/components/schemas/NfseTotTrib"
+    # <<< FIM DOS SCHEMAS GERADOS
     Erro:
       type: object
       properties:

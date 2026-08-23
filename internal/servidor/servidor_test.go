@@ -231,6 +231,55 @@ func TestSpecEhServidaEIntegra(t *testing.T) {
 	}
 }
 
+// O Swagger UI é servido do BINÁRIO, não de CDN. Se estes assets sumirem, a
+// página abre quebrada — e num serviço self-hosted não há CDN para socorrer.
+func TestAssetsDoSwaggerVemDoBinario(t *testing.T) {
+	h := servir(t, cfgTeste())
+	for caminho, tipo := range map[string]string{
+		"/docs/swagger-ui-bundle.js": "javascript",
+		"/docs/swagger-ui.css":       "css",
+	} {
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, caminho, nil))
+		if rec.Code != http.StatusOK {
+			t.Errorf("GET %s = %d, quero 200", caminho, rec.Code)
+			continue
+		}
+		if rec.Body.Len() < 10000 {
+			t.Errorf("GET %s devolveu %d bytes — asset truncado?", caminho, rec.Body.Len())
+		}
+		if ct := rec.Header().Get("Content-Type"); !strings.Contains(ct, tipo) {
+			t.Errorf("GET %s Content-Type = %q, quero %s", caminho, ct, tipo)
+		}
+	}
+}
+
+// A página não pode buscar NADA de fora: é a política do projeto, e a CSP é o
+// que a torna verificável em vez de intenção.
+func TestPaginaDeDocsNaoBuscaNadaDeFora(t *testing.T) {
+	rec := httptest.NewRecorder()
+	servir(t, cfgTeste()).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/docs", nil))
+
+	corpo := rec.Body.String()
+	if strings.Contains(corpo, "//unpkg.com") || strings.Contains(corpo, "//cdn.") ||
+		strings.Contains(corpo, "https://cdn") || strings.Contains(corpo, "jsdelivr") {
+		t.Error("a página de docs referencia CDN externa")
+	}
+	csp := rec.Header().Get("Content-Security-Policy")
+	if !strings.Contains(csp, "default-src 'self'") {
+		t.Errorf("CSP não restringe a origem: %q", csp)
+	}
+	// O Swagger UI precisa de inline, mas nada além da própria origem.
+	for _, proibido := range []string{"http://", "https://"} {
+		if strings.Contains(csp, proibido) {
+			t.Errorf("CSP libera host externo: %q", csp)
+		}
+	}
+	if !strings.Contains(corpo, `SwaggerUIBundle`) || !strings.Contains(corpo, `url: "/openapi.yaml"`) {
+		t.Error("a página não monta o Swagger UI sobre a spec local")
+	}
+}
+
 // O índice lista os módulos montados — se ele não acompanhar as capacidades,
 // vira documentação que mente.
 func TestIndiceDeDocsListaOsModulos(t *testing.T) {
@@ -242,9 +291,39 @@ func TestIndiceDeDocsListaOsModulos(t *testing.T) {
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/docs", nil))
 
 	corpo := rec.Body.String()
-	for _, quero := range []string{"/v1/cte", "/v1/boletos", "transmissao", "desfecho_indeterminado"} {
+	for _, quero := range []string{"/v1/cte/xml", "/v1/cte/transmissao", "desfecho_indeterminado"} {
 		if !strings.Contains(corpo, quero) {
-			t.Errorf("índice não menciona %q", quero)
+			t.Errorf("a página não menciona %q", quero)
+		}
+	}
+}
+
+// Seletor de elemento solto (table, td, pre, code) no CSS da página atropela o
+// do Swagger UI, que é construído desses elementos — foi assim que a renderização
+// quebrou uma vez. Todo estilo próprio precisa estar escopado.
+func TestCSSDaPaginaNaoAtropelaOSwagger(t *testing.T) {
+	rec := httptest.NewRecorder()
+	servir(t, cfgTeste()).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/docs", nil))
+
+	corpo := rec.Body.String()
+	i, j := strings.Index(corpo, "<style>"), strings.Index(corpo, "</style>")
+	if i < 0 || j < 0 {
+		t.Fatal("bloco <style> não encontrado")
+	}
+	for _, linha := range strings.Split(corpo[i:j], "\n") {
+		linha = strings.TrimSpace(linha)
+		sel, _, tem := strings.Cut(linha, "{")
+		if !tem || strings.HasPrefix(linha, "/*") || strings.HasPrefix(linha, "*") {
+			continue
+		}
+		sel = strings.TrimSpace(sel)
+		if sel == "" || strings.HasPrefix(sel, "@") || strings.HasPrefix(sel, ".") ||
+			strings.HasPrefix(sel, "#") || strings.HasPrefix(sel, ":") {
+			continue
+		}
+		// Sobrou um seletor que começa por nome de elemento: só body é aceitável.
+		if sel != "body" {
+			t.Errorf("seletor de elemento sem escopo %q — vai atropelar o Swagger UI", sel)
 		}
 	}
 }
