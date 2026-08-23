@@ -3,7 +3,7 @@ package tabelas
 import "testing"
 
 func TestFamiliaDoProvedor(t *testing.T) {
-	// As três primeiras mudaram no bump para r47859 — não porque o ACBr mudou de
+	// As três primeiras mudaram no bump para r47859, não porque o ACBr mudou de
 	// ideia, mas porque a tabela passou a ser derivada da HERANÇA DE CLASSES em
 	// vez dos comentários do ProviderManager, que estavam incompletos. Fiorilli e
 	// ISSCampinas têm classe descendente de Proprio E de ABRASF; Tinus declara

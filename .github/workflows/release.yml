@@ -2,7 +2,7 @@ name: Release
 
 # Promove a imagem JÁ TESTADA de um commit de main para as tags de distribuição.
 # NÃO rebuilda: re-aponta as tags para o MESMO digest que passou pelo CI e pelo
-# teste de fumaça — ou seja, exatamente os bits que foram verificados.
+# teste de fumaça, ou seja, exatamente os bits que foram verificados.
 #
 #   1. merge em main   → Publicar imagem publica :<sha> e :latest
 #   2. validado        → git tag v1.2.3 && git push origin v1.2.3

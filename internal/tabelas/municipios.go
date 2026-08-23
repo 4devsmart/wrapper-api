@@ -1,5 +1,5 @@
 // Package tabelas carrega tabelas de referência embutidas. A de municípios usa a
-// base oficial do IBGE (5.571 municípios: código de 7 dígitos, nome e UF) — a
+// base oficial do IBGE (5.571 municípios, com código de 7 dígitos, nome e UF), a
 // mesma base que o ACBr usa para resolver o provedor de NFS-e. O TSV embutido é
 // a fonte do seed da tabela `municipios` no PostgreSQL (ver MunicipioRepo).
 package tabelas

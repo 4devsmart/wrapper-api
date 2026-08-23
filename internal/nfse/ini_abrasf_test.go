@@ -101,7 +101,7 @@ func TestCodigoPaisEnderecoNacional(t *testing.T) {
 	}
 
 	// Endereço nacional (tem município): 1058 é preenchido sozinho, nos dois
-	// builders — o helper de pessoa é compartilhado por ABRASF e Padrão Nacional.
+	// builders: o helper de pessoa é compartilhado por ABRASF e Padrão Nacional.
 	for nome, ini := range map[string]string{
 		"abrasf":          ToINIAbrasf(base()),
 		"padrao_nacional": ToINI(base()),
@@ -153,7 +153,7 @@ func TestCodigoNBS(t *testing.T) {
 	}
 
 	// Pontuação é removida: a lib trunca em 9 caracteres, então "1.1103.22.00"
-	// viraria "1.1103.22" — um código errado, sem erro nenhum.
+	// viraria "1.1103.22": um código errado, sem erro nenhum.
 	if serv := secaoINI(ToINIAbrasf(comNBS("1.1103.22.00")), "Servico"); !strings.Contains(serv, "CodigoNBS=111032200") {
 		t.Errorf("NBS formatado deveria ser normalizado para dígitos\n---\n%s", serv)
 	}
@@ -190,7 +190,7 @@ func TestCodigoServicoNacional(t *testing.T) {
 }
 
 // TestNumeroProcesso: campo existe nos dois layouts (máx. 30 no ABRASF) e o
-// builder ABRASF o descartava — mesma classe do cNBS e do cServ.
+// builder ABRASF o descartava: mesma classe do cNBS e do cServ.
 func TestNumeroProcesso(t *testing.T) {
 	p := pedidoAbrasfExemplo()
 	p.InfDPS.Serv.NumeroProcesso = "PROC-2026-000123"

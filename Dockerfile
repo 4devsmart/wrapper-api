@@ -4,7 +4,7 @@
 # `make acbr-libs-baixar` (assets de release) ou por compilação do fonte ACBr.
 # Ver docs/ACBRLIB.md.
 #
-# Plataforma é sempre linux/amd64 — a ACBrLib só existe para x86_64.
+# Plataforma é sempre linux/amd64: a ACBrLib só existe para x86_64.
 
 # --- artefatos nativos ------------------------------------------------------
 FROM --platform=linux/amd64 debian:bookworm-slim AS acbrlib
@@ -20,7 +20,7 @@ RUN set -eu; \
       if head -c 64 "$f" | grep -q 'git-lfs'; then \
         echo "ERRO: '$f' é um ponteiro Git LFS, não o binário." >&2; exit 1; fi; \
       if [ "$(stat -c%s "$f")" -lt 1000000 ]; then \
-        echo "ERRO: '$f' tem $(stat -c%s "$f") bytes — cache incompleto." >&2; \
+        echo "ERRO: '$f' tem $(stat -c%s "$f") bytes: cache incompleto." >&2; \
         echo "      Rode 'make acbr-libs-baixar' e rebuilde." >&2; exit 1; fi; \
     done
 # NF-e não distribui XSD no trunk2 → schemas-nfe some no tar; garante o diretório
@@ -118,18 +118,18 @@ COPY --from=gobuild /out/fiscal-worker /usr/local/bin/fiscal-worker
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Socket RPC entre API e worker (único volume do stack — e não guarda dado).
+# Socket RPC entre API e worker (único volume do stack, e não guarda dado).
 RUN mkdir -p /run/wrapper && chown app:app /run/wrapper
 # Socket do X (Xvfb) gravável pelo não-root.
 RUN mkdir -p /tmp/.X11-unix && chmod 1777 /tmp/.X11-unix
 
 USER app
 EXPOSE 8080
-# start-period curto: não há migration nem seed para esperar — o serviço não
+# start-period curto: não há migration nem seed para esperar: o serviço não
 # guarda estado, então subir é só abrir a porta.
 HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 \
   CMD curl -fsS http://127.0.0.1:8080/healthz || exit 1
-# O primeiro argumento escolhe o processo: "api" (default) ou "worker" — este
+# O primeiro argumento escolhe o processo: "api" (default) ou "worker": este
 # sobe o Xvfb antes, por causa do GTK2/FortesReport. Mesma imagem nos dois
 # serviços; o que muda é o comando.
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

@@ -29,7 +29,7 @@ extern int NFSE_SubstituirNFSe(LibHandle handle, const char* aNumeroNFSe, const 
 extern int NFSE_SalvarPDF(LibHandle handle, char* sResposta, int* esTamanho);
 extern int NFSE_ConsultarNFSePorChave(LibHandle handle, const char* aChaveNFSe, char* sResposta, int* esTamanho);
 /* Consulta a NFS-e gerada a partir de uma DPS, pela chave DELA (o ADN atende
- * GET /dps/{chave} — ver PadraoNacional.Provider.pas:503). É o caminho de
+ * GET /dps/{chave}: ver PadraoNacional.Provider.pas:503). É o caminho de
  * recuperação quando a transmissão de uma DPS teve desfecho desconhecido.
  * Assinatura conferida em ACBrLibNFSeMT.pas:198 e ACBrNFSeMT.h:83. */
 extern int NFSE_ConsultarDPSPorChave(LibHandle handle, const char* aChaveDPS, char* sResposta, int* esTamanho);
@@ -56,7 +56,7 @@ extern int CTE_CarregarEventoINI(LibHandle handle, const char* eArquivoOuINI);
 extern int CTE_ObterIni(LibHandle handle, int AIndex, char* sResposta, int* esTamanho);
 extern int CTE_ObterXml(LibHandle handle, int AIndex, char* sResposta, int* esTamanho);
 /* ATENÇÃO: aSincrono existe e é OBRIGATÓRIO. O ACBrLibCTeStaticImportMT.pas
- * oficial o OMITE — está desatualizado em relação ao ACBrLibCTeMT.pas que ele
+ * oficial o OMITE: está desatualizado em relação ao ACBrLibCTeMT.pas que ele
  * espelha. A ABI correta está confirmada em ACBrLibCTeMT.pas:122 e nos imports
  * MT de PHP (ACBrCTeMT.h), C# (ACBrCTe.Delegates.cs) e VB6. Chamar sem ele
  * desloca os argumentos de registrador no SysV AMD64: a lib passa a escrever a
@@ -93,18 +93,18 @@ extern int MDFE_Consultar(LibHandle handle, const char* eChaveOuMDFe, char* sRes
 extern int MDFE_EnviarEvento(LibHandle handle, int idLote, char* sResposta, int* esTamanho);
 extern int MDFE_SalvarPDF(LibHandle handle, char* sResposta, int* esTamanho);
 extern int MDFE_SalvarEventoPDF(LibHandle handle, const char* eArquivoXmlMDFe, const char* eArquivoXmlEvento, char* sResposta, int* esTamanho);
-/* Distribuição DF-e (MDF-e NÃO recebe AcUFAutor — diferente do CT-e/NFe). */
+/* Distribuição DF-e (MDF-e NÃO recebe AcUFAutor: diferente do CT-e/NFe). */
 extern int MDFE_DistribuicaoDFePorUltNSU(LibHandle handle, const char* eCNPJCPF, const char* eultNSU, char* sResposta, int* esTamanho);
 extern int MDFE_DistribuicaoDFePorNSU(LibHandle handle, const char* eCNPJCPF, const char* eNSU, char* sResposta, int* esTamanho);
 extern int MDFE_DistribuicaoDFePorChave(LibHandle handle, const char* eCNPJCPF, const char* echMDFe, char* sResposta, int* esTamanho);
 /* Status/consultas. MDFE_ConsultaMDFeNaoEnc confirmado em DUAS fontes oficiais
- * independentes — ACBrLibMDFeMT.pas:133 e o header C do demo PHP
- * (ACBrMDFeMT.h:85) — com a assinatura abaixo. Não precisa de opt-in. */
+ * independentes: ACBrLibMDFeMT.pas:133 e o header C do demo PHP
+ * (ACBrMDFeMT.h:85), com a assinatura abaixo. Não precisa de opt-in. */
 extern int MDFE_StatusServico(LibHandle handle, char* sResposta, int* esTamanho);
 extern int MDFE_ConsultarRecibo(LibHandle handle, const char* ARecibo, char* sResposta, int* esTamanho);
 extern int MDFE_ConsultaMDFeNaoEnc(LibHandle handle, const char* nCNPJ, char* sResposta, int* esTamanho);
 
-/* ----- NF-e (libacbrnfe64) — APENAS Distribuição DF-e + Manifestação ----- */
+/* ----- NF-e (libacbrnfe64): APENAS Distribuição DF-e + Manifestação ----- */
 /* (sem emissão: o escopo do projeto é receber NF-e contra o CNPJ e manifestar). */
 extern int NFE_Inicializar(LibHandle* handle, const char* eArqConfig, const char* eChaveCrypt);
 extern int NFE_Finalizar(LibHandle handle);
@@ -117,7 +117,7 @@ extern int NFE_DistribuicaoDFePorUltNSU(LibHandle handle, int AcUFAutor, const c
 extern int NFE_DistribuicaoDFePorNSU(LibHandle handle, int AcUFAutor, const char* eCNPJCPF, const char* eNSU, char* sResposta, int* esTamanho);
 extern int NFE_DistribuicaoDFePorChave(LibHandle handle, int AcUFAutor, const char* eCNPJCPF, const char* echNFe, char* sResposta, int* esTamanho);
 
-/* ----- Boleto (libacbrboleto64) — não-fiscal: boleto/PDF + CNAB ----- */
+/* ----- Boleto (libacbrboleto64): não-fiscal: boleto/PDF + CNAB ----- */
 extern int Boleto_Inicializar(LibHandle* handle, const char* eArqConfig, const char* eChaveCrypt);
 extern int Boleto_Finalizar(LibHandle handle);
 extern int Boleto_Versao(LibHandle handle, char* sVersao, int* esTamanho);

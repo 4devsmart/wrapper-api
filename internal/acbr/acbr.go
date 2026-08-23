@@ -25,12 +25,12 @@ var ErrUnavailable = errors.New("ACBrLib indisponível: compile com -tags acbrli
 
 // ErrIndeterminado marca a falha em que NÃO se sabe o desfecho da operação: o
 // pedido chegou a sair, mas a resposta se perdeu (worker crashou no meio,
-// timeout). Numa emissão isso significa que o documento PODE estar na SEFAZ —
+// timeout). Numa emissão isso significa que o documento PODE estar na SEFAZ:
 // repetir duplicaria. É deliberadamente distinta de ErrUnavailable (onde a
 // chamada nunca saiu e repetir é seguro).
 var ErrIndeterminado = errors.New("resultado indeterminado: a operação pode ter sido transmitida")
 
-// ErrNaoSuportado marca a operação que a lib não expõe PARA AQUELE DOCUMENTO —
+// ErrNaoSuportado marca a operação que a lib não expõe PARA AQUELE DOCUMENTO:
 // não é falta da lib, é falta da função. O caso concreto é ValidarRegras na
 // NFS-e: o ACBrNFSeX não exporta validação de regras de negócio, enquanto CT-e e
 // MDF-e exportam. Distinta de ErrUnavailable de propósito: ali a lib não está
@@ -78,22 +78,22 @@ type Servico interface {
 	// MontarXML carrega o INI e devolve o XML montado pela lib SEM transmitir
 	// (CarregarINI → ObterXml). É a GERAÇÃO: o cliente recebe o
 	// documento e a sua chave antes de qualquer byte sair para a SEFAZ, e é isso
-	// — não a assinatura — que torna uma transmissão perdida recuperável.
+	//, não a assinatura, que torna uma transmissão perdida recuperável.
 	//
 	// NÃO assina: nenhuma lib assina em CarregarINI, e a NFS-e sequer expõe
 	// assinatura separada. Por isso gerar dispensa certificado.
 	MontarXML(t TenantConfig, ini string) (Result, error)
 	// ValidarRegras roda as validações de REGRAS DE NEGÓCIO da lib sobre o INI
-	// carregado, sem certificado e sem rede — as rejeições que a SEFAZ daria,
+	// carregado, sem certificado e sem rede: as rejeições que a SEFAZ daria,
 	// antecipadas na geração.
 	//
 	// NÃO é validação de XSD: o schema exige a tag Signature, então a estrutura
-	// só pode ser validada depois de assinar — o que acontece na transmissão, ainda
+	// só pode ser validada depois de assinar, o que acontece na transmissão, ainda
 	// antes de transmitir. Devolve ErrNaoSuportado onde a lib não expõe a função
 	// (NFS-e).
 	ValidarRegras(t TenantConfig, ini string) (Result, error)
 	// Transmitir carrega um XML JÁ MONTADO (o da geração) e o envia ao webservice
-	// — CarregarXML → Enviar/Emitir. É a TRANSMISSÃO: o certificado chega aqui, e é
+	// (CarregarXML → Enviar/Emitir). É a TRANSMISSÃO: o certificado chega aqui, e é
 	// a lib que assina no envio.
 	//
 	// Como qualquer envio, NUNCA deve ser repetido às cegas: em falha
@@ -112,7 +112,7 @@ type Servico interface {
 	//
 	// Existe por segurança fiscal: o render (FortesReport/GTK2) é o componente
 	// que mais crasha, e antes ele rodava DENTRO da sessão de emissão, logo após
-	// a transmissão — um SIGSEGV ali matava o processo com o documento já
+	// a transmissão: um SIGSEGV ali matava o processo com o documento já
 	// autorizado na SEFAZ e nada persistido. Separado, o pior caso é perder o
 	// PDF, que se regenera a partir do XML.
 	RenderizarPDF(t TenantConfig, xml string) (Result, error)
@@ -133,7 +133,7 @@ const (
 
 // DistDFeParams são os parâmetros de uma Distribuição DF-e, em termos primitivos
 // (o binding não conhece o domínio). UFAutor (cUF do autor) é exigido por CT-e e
-// NFe; o MDF-e o ignora. NSU é string — a lib aceita com ou sem zero-padding.
+// NFe; o MDF-e o ignora. NSU é string: a lib aceita com ou sem zero-padding.
 type DistDFeParams struct {
 	UFAutor int
 	CNPJCPF string
@@ -155,7 +155,7 @@ type NFSeServico interface {
 	// interpretada por internal/distribuicao.ParseNFSe.
 	ConsultarDFe(t TenantConfig, nsu int) (Result, error)
 	// ConsultarDPSPorChave consulta a NFS-e gerada a partir de uma DPS, usando a
-	// chave DA DPS — a que a geração devolve, antes de qualquer transmissão.
+	// chave DA DPS: a que a geração devolve, antes de qualquer transmissão.
 	//
 	// É a recuperação da NFS-e: sem estado no servidor, um envio cujo desfecho se
 	// perdeu só é resolvível perguntando ao ADN se aquela DPS virou nota. É o
@@ -203,7 +203,7 @@ type MDFeServico interface {
 	// ConsultarRecibo consulta o processamento de um lote pelo recibo (assíncrono).
 	ConsultarRecibo(t TenantConfig, recibo string) (Result, error)
 	// ConsultaNaoEncerrados lista os MDF-e do CNPJ ainda não encerrados
-	// (MDFE_ConsultaMDFeNaoEnc) — útil para conformidade antes de emitir novos.
+	// (MDFE_ConsultaMDFeNaoEnc): útil para conformidade antes de emitir novos.
 	ConsultaNaoEncerrados(t TenantConfig, cnpj string) (Result, error)
 	// SalvarEventoPDF gera o DAMDFE do evento (PDF em Result.PDF) a partir do XML
 	// do MDF-e + o XML do evento. Render FortesReport (gtk2+Xvfb), como o DANFSE.
@@ -239,7 +239,7 @@ type CTeServico interface {
 
 // NFeServico é o binding da NF-e RESTRITO a Distribuição DF-e + Manifestação do
 // Destinatário (receber NF-e emitidas contra o CNPJ e manifestar-se). Por design
-// NÃO embute Servico nem expõe emissão — está fora do escopo do projeto. Reusa
+// NÃO embute Servico nem expõe emissão: está fora do escopo do projeto. Reusa
 // DistDFeParams (CT-e e NF-e compartilham a assinatura, com AcUFAutor).
 type NFeServico interface {
 	Backend() string
@@ -257,12 +257,12 @@ type NFeServico interface {
 
 // BoletoServico é o binding do boleto bancário (não-fiscal): geração do
 // boleto/PDF a partir de um INI combinado ([Cedente]/[Conta]/[Banco]/[TituloN]).
-// Não tem o ciclo SEFAZ — é integração bancária; o banco é só config.
+// Não tem o ciclo SEFAZ: é integração bancária; o banco é só config.
 type BoletoServico interface {
 	Backend() string
 	Version() (string, error)
 	// GerarPDF carrega o INI (config + títulos) e devolve o PDF do boleto (base64
-	// decodificado em Result.PDF). Geração offline — não fala com o banco.
+	// decodificado em Result.PDF). Geração offline, não fala com o banco.
 	GerarPDF(t TenantConfig, ini string) (Result, error)
 	// GerarRemessa carrega o INI (config + títulos) e gera o arquivo de remessa
 	// CNAB (texto em Result.Resposta). numArquivo = sequencial da remessa.
@@ -287,8 +287,8 @@ type BoletoOnline struct {
 	ConfigINI string // ConsultarTitulos: config do banco (credenciais WS)
 	FiltroINI string // ConsultarTitulos: [BoletoConsulta] (período/filtros)
 	Operacao  int    // Registrar: 0=incluir, 2=baixar
-	CertCRT   []byte // certificado mTLS (.crt) — pode ser nil
-	CertKEY   []byte // chave privada mTLS (.key) — pode ser nil
+	CertCRT   []byte // certificado mTLS (.crt): pode ser nil
+	CertKEY   []byte // chave privada mTLS (.key): pode ser nil
 }
 
 // Servicos agrupa os bindings por documento. Campos podem apontar para stubs
@@ -319,7 +319,7 @@ func (s *Servicos) Close() error {
 // New cria os bindings adequados à configuração e ao build atual.
 //
 // Havendo workers configurados (ACBR_WORKERS), devolve clientes RPC: a lib
-// nativa roda em OUTRO processo (cmd/fiscal-worker) e este aqui não a carrega —
+// nativa roda em OUTRO processo (cmd/fiscal-worker) e este aqui não a carrega:
 // um SIGSEGV dentro dela deixa de derrubar a API. Sem workers, cai no binding
 // local (stub ou cgo, conforme a build tag), como sempre foi.
 func New(cfg config.ACBr) *Servicos {
@@ -330,7 +330,7 @@ func New(cfg config.ACBr) *Servicos {
 }
 
 // NewLocal força o binding NO PROCESSO ATUAL (stub ou cgo, conforme a build
-// tag), ignorando ACBR_WORKERS. É o que o fiscal-worker usa — ele é o processo
+// tag), ignorando ACBR_WORKERS. É o que o fiscal-worker usa: ele é o processo
 // que carrega a lib nativa, então delegar de novo seria uma recursão infinita.
 func NewLocal(cfg config.ACBr) *Servicos {
 	return newServicos(cfg)

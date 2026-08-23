@@ -1,6 +1,6 @@
 // Package inifmt centraliza a formatação dos valores escritos nos INIs que a
 // ACBrLib consome (NFS-e/CT-e/MDF-e/boleto). Antes cada pacote duplicava estas
-// funções — idênticas — então um ajuste de sanitização/moeda precisava ser
+// funções: idênticas, então um ajuste de sanitização/moeda precisava ser
 // replicado em 4 lugares (risco de drift). Agora a lógica vive aqui.
 package inifmt
 
@@ -77,13 +77,13 @@ var ufPorCodigo = map[int]string{
 func LocalDoCodigoUF(cuf int) *time.Location { return LocalDaUF(ufPorCodigo[cuf]) }
 
 // LocalDaUF devolve o fuso do estado (UF de duas letras). Qualquer UF fora das
-// exceções — e UF vazia ou desconhecida — cai em Brasília (-03:00), que é o mesmo
+// exceções, e UF vazia ou desconhecida: cai em Brasília (-03:00), que é o mesmo
 // default do ACBr.
 //
 // Existe para uma razão específica: o cliente informa data-hora em RFC 3339, com
 // offset, e o documento fiscal precisa do MESMO INSTANTE expresso no fuso do
 // emitente. Sem converter, um pedido em UTC ("11:00Z") viraria "11:00" no fuso do
-// estado — três horas adiantado, sem erro nenhum.
+// estado: três horas adiantado, sem erro nenhum.
 func LocalDaUF(uf string) *time.Location {
 	h, ok := offsetPorUF[strings.ToUpper(strings.TrimSpace(uf))]
 	if !ok {
@@ -102,7 +102,7 @@ func DataHoraNoFuso(s string, loc *time.Location) string {
 		return ""
 	}
 	const saida = "02/01/2006 15:04:05"
-	// Com offset explícito: instante — converte para o fuso do documento.
+	// Com offset explícito a entrada é um instante: converte para o fuso do documento.
 	for _, layout := range []string{time.RFC3339, "2006-01-02T15:04:05Z07:00"} {
 		if t, err := time.Parse(layout, s); err == nil {
 			return t.In(loc).Format(saida)

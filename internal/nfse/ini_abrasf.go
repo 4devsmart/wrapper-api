@@ -4,7 +4,7 @@ import "strconv"
 
 // ToINIAbrasf traduz o MESMO pedido JSON (contrato único, estilo Padrão
 // Nacional) para o INI RPS genérico consumido pela ACBrLibNFSe pelos provedores
-// NÃO-PN — tanto ABRASF (v1/v2) quanto os de layout PRÓPRIO. O leitor de INI do
+// NÃO-PN: tanto ABRASF (v1/v2) quanto os de layout PRÓPRIO. O leitor de INI do
 // NFSeX é único: todos os provedores leem deste mesmo formato; o que é
 // proprietário é só o XML de SAÍDA, gerado pela engine por município.
 //
@@ -60,14 +60,14 @@ func ToINIAbrasf(p DPSPedido) string {
 	b.kvOpt("CodigoMunicipio", firstNonEmpty(s.MunIncidencia, s.CMunPrestacao))
 	b.kv("ItemListaServico", firstNonEmpty(s.ItemListaServico, s.CServ))
 	// CodigoServicoNacional é o código nacional do serviço (o cTribNac do Padrão
-	// Nacional). No ABRASF ele é um campo PRÓPRIO — até aqui o cServ do pedido só
+	// Nacional). No ABRASF ele é um campo PRÓPRIO, até aqui o cServ do pedido só
 	// servia de fallback do ItemListaServico e nunca chegava ao XML. Não existe no
 	// Padrão Nacional (o gravador dele não lê este campo), por isso só aqui.
 	b.kvOpt("CodigoServicoNacional", s.CServ)
 	b.kvOpt("CodigoTributacaoMunicipio", s.CTribMun)
 	// CodigoNBS alimenta o <CodigoNbs> do layout ABRASF (tsCodigoNbs, 9
 	// caracteres, entre CodigoTributacaoMunicipio e Discriminacao). Faltava aqui
-	// — o builder do Padrão Nacional já emitia, então o campo cNBS do contrato
+	//: o builder do Padrão Nacional já emitia, então o campo cNBS do contrato
 	// era simplesmente descartado nos municípios não-PN. Provedores que suprimem
 	// a tag (NrOcorrCodigoNBS=-1: SigCorp, GovDigital, Etherium, Sudoeste) seguem
 	// sem ela, o que é do provedor, não do pedido.
@@ -77,13 +77,13 @@ func ToINIAbrasf(p DPSPedido) string {
 	b.kvIntOpt("ExigibilidadeISS", s.ExigibISS)
 	b.kvOpt("MunicipioIncidencia", s.MunIncidencia)
 	// País do LOCAL DA PRESTAÇÃO (serviço prestado no exterior). O ABRASF aceita
-	// (tcDadosServico tem CodigoPais) e só o builder do PN enviava — mesma
+	// (tcDadosServico tem CodigoPais) e só o builder do PN enviava: mesma
 	// família do CodigoPais do tomador, que fazia o endereço nacional virar
 	// exterior. Achado pelo teste de lockstep.
 	b.kvOpt("CodigoPais", s.CodigoPais)
 	b.kvOpt("xPais", s.XPais)
 	// NumeroProcesso (processo judicial/administrativo que suspende a
-	// exigibilidade do ISS). Existe nos dois layouts — o builder do Padrão
+	// exigibilidade do ISS). Existe nos dois layouts: o builder do Padrão
 	// Nacional já enviava e este descartava. Máx. 30 no ABRASF.
 	b.kvOpt("NumeroProcesso", s.NumeroProcesso)
 	b.kvIntOpt("ResponsavelRetencao", s.RespRetencao)
@@ -116,17 +116,17 @@ func ToINIAbrasf(p DPSPedido) string {
 	return b.String()
 }
 
-// itemServico emite [Itens001] — a LISTA de serviços da NFS-e, derivada do
+// itemServico emite [Itens001]: a LISTA de serviços da NFS-e, derivada do
 // serviço único do contrato.
 //
 // Por que existe: alguns layouts não têm o bloco <Servico> singular. O fintelISS
 // 2.02, por exemplo, tem `GerarServico` devolvendo nil e monta um <ListaServicos>
 // a partir de `NFSe.Servico.ItemServico`. Sem nenhum item, a lista saía VAZIA e
-// discriminação, item da lista e valores sumiam do XML — o pedido era aceito e
+// discriminação, item da lista e valores sumiam do XML: o pedido era aceito e
 // o documento saía oco. Achado pela varredura por provedor.
 //
 // A lib preenche a lista lendo seções indexadas [Itens001..] e para no primeiro
-// índice sem `Descricao` — por isso ela é a âncora e vai sempre. Os demais campos
+// índice sem `Descricao`, por isso ela é a âncora e vai sempre. Os demais campos
 // do item que esses layouts usam vêm do serviço compartilhado, que já enviamos;
 // aqui só entram os que a lib lê do PRÓPRIO item.
 //
@@ -144,7 +144,7 @@ func (b *iniBuilder) itemServico(s Servico, v Valores, aliq float64) {
 	b.kv("ValorUnitario", money(v.VServ))
 	// ValorTotal é o que os gravadores leem do item. A lib documenta um fallback
 	// ('ValorTotal' com default vindo de 'ValorServicos'), mas ele NÃO funciona na
-	// prática — verificado: sem a chave explícita o valor chega zerado no XML.
+	// prática, está verificado: sem a chave explícita o valor chega zerado no XML.
 	// Mandamos as duas: explícita para o item, e ValorServicos porque parte dos
 	// layouts lê esse nome.
 	b.kv("ValorServicos", money(v.VServ))

@@ -15,9 +15,9 @@ import (
 // Modulo expõe o boleto bancário sob /v1/boletos.
 //
 // É o único módulo que NÃO é fiscal: não fala com SEFAZ, não assina, não tem
-// chave de acesso, e gerar já é transmitir. Não há envio a perder — gerar um
+// chave de acesso, e gerar já é transmitir. Não há envio a perder: gerar um
 // boleto é uma operação local, e registrá-lo no banco é uma chamada idempotente
-// do lado deles. Por isso aqui é uma chamada só — o que não é exceção à regra
+// do lado deles. Por isso aqui é uma chamada só, o que não é exceção à regra
 // dos outros documentos: é outra regra, para outro problema.
 type Modulo struct{ svc acbr.BoletoServico }
 
@@ -38,7 +38,7 @@ func (m *Modulo) Registrar(r modulo.Router) {
 	// ConsultarTitulos existe no binding mas NÃO é exposto: a seção de filtro que
 	// ele exigiria ([BoletoConsulta]) não aparece em lugar nenhum do fonte oficial
 	// do ACBr, então o formato do INI seria chute. Rota que só sabe falhar é pior
-	// que rota ausente — ver docs/LIMITACOES.md.
+	// que rota ausente: ver docs/LIMITACOES.md.
 }
 
 // --- PDF --------------------------------------------------------------------
@@ -108,7 +108,7 @@ func (m *Modulo) handleRemessa(w http.ResponseWriter, r *http.Request) {
 
 // PedidoRetorno é o corpo do processamento de retorno.
 type PedidoRetorno struct {
-	// Conta é só a configuração do banco — é ela que ensina a lib a interpretar
+	// Conta é só a configuração do banco: é ela que ensina a lib a interpretar
 	// o arquivo. Títulos não entram aqui.
 	Conta Conta `json:"conta"`
 	// Arquivo é o conteúdo CRU do arquivo de retorno.

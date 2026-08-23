@@ -25,7 +25,7 @@ done
 echo "checksums:"; sed 's/^/  /' "$ORIGEM/SHA256SUMS"
 
 if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
-  echo "release $TAG já existe — subindo/atualizando anexos"
+  echo "release $TAG já existe: subindo/atualizando anexos"
   gh release upload "$TAG" --repo "$REPO" --clobber \
     "${ARQUIVOS[@]/#/$ORIGEM/}" "$ORIGEM/SHA256SUMS"
 else
@@ -33,7 +33,7 @@ else
     --title "ACBrLib r${REV}" \
     --notes "Binários da ACBrLib (variante MT, linux/amd64) compilados do SVN oficial trunk2, revisão ${REV}.
 
-Licenciados sob LGPL — ver NOTICE. Consumidos por \`make acbr-libs-baixar\`.
+Licenciados sob LGPL: ver NOTICE. Consumidos por \`make acbr-libs-baixar\`.
 
 Este release existe para que os ~56 MB de binário fiquem FORA do clone." \
     "${ARQUIVOS[@]/#/$ORIGEM/}" "$ORIGEM/SHA256SUMS"

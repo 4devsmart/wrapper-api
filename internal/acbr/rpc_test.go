@@ -111,7 +111,7 @@ func TestRPC_RoundTripEmissao(t *testing.T) {
 }
 
 func TestRPC_PreservaErrUnavailable(t *testing.T) {
-	// O stub responde ErrUnavailable a tudo — é o cenário "worker sem a lib".
+	// O stub responde ErrUnavailable a tudo: é o cenário "worker sem a lib".
 	svc := clienteDe(t, workerDeTeste(t, &servicoFake{err: ErrUnavailable}, 1), 1, 5*time.Second)
 
 	_, err := svc.NFSe.Emitir(TenantConfig{}, "[DPS]")
@@ -184,7 +184,7 @@ func TestRemoto_QuedaDuranteChamadaAvisaRiscoDeDuplicidade(t *testing.T) {
 		t.Error("queda no meio da chamada não pode ser ErrUnavailable")
 	}
 	// A sentinela é o que o handler usa para responder 504 resultado_indeterminado
-	// — texto solto não é acionável por quem consome a API.
+	//: texto solto não é acionável por quem consome a API.
 	if !errors.Is(err, ErrIndeterminado) {
 		t.Errorf("queda em voo deveria ser ErrIndeterminado, veio: %v", err)
 	}
@@ -249,7 +249,7 @@ func TestRemoto_BackendEVersao(t *testing.T) {
 
 // TestPool_WorkerMortoNaoRoubaAFila trava a quarentena. Sem ela, o worker caído
 // devolve a vaga em microssegundos, é reescolhido imediatamente e absorve a fila
-// inteira servindo erro — enquanto o worker vivo, mais lento, atende uma só.
+// inteira servindo erro: enquanto o worker vivo, mais lento, atende uma só.
 func TestPool_WorkerMortoNaoRoubaAFila(t *testing.T) {
 	f := &servicoFake{}
 	vivo := workerDeTeste(t, f, 1)
@@ -280,7 +280,7 @@ func TestPool_WorkerMortoNaoRoubaAFila(t *testing.T) {
 	}
 }
 
-// TestRemoto_SaudavelRefleteOWorker: é o sinal que alimenta o /readyz — sem ele
+// TestRemoto_SaudavelRefleteOWorker: é o sinal que alimenta o /readyz, sem ele
 // a API se declara pronta com a emissão morta.
 func TestRemoto_SaudavelRefleteOWorker(t *testing.T) {
 	svc := clienteDe(t, workerDeTeste(t, &servicoFake{}, 1), 1, 5*time.Second)
@@ -304,7 +304,7 @@ func TestRemoto_SaudavelRefleteOWorker(t *testing.T) {
 }
 
 // TestReciclagemSinalizaAposTeto: o worker precisa avisar que atingiu o teto
-// para o processo drenar e sair — é o que impede corrupção de uma chamada de
+// para o processo drenar e sair: é o que impede corrupção de uma chamada de
 // atravessar para as próximas indefinidamente.
 func TestReciclagemSinalizaAposTeto(t *testing.T) {
 	f := &servicoFake{}
@@ -332,7 +332,7 @@ func TestReciclagemSinalizaAposTeto(t *testing.T) {
 	}
 }
 
-// TestReciclagemDesligadaPorPadrao: com max_calls=0 o worker nunca recicla —
+// TestReciclagemDesligadaPorPadrao: com max_calls=0 o worker nunca recicla.
 // reciclar com um único worker abriria janela de indisponibilidade.
 func TestReciclagemDesligadaPorPadrao(t *testing.T) {
 	f := &servicoFake{}
@@ -426,7 +426,7 @@ func TestRPC_GerarETransmitirAtravessamOWorker(t *testing.T) {
 	cli := clienteDe(t, ts.URL, 1, 5*time.Second).CTe
 
 	// Gerar: monta e valida SEM certificado. É o que permite testar a camada de
-	// montagem — o ativo real do projeto — sem um .pfx no repositório.
+	// montagem: o ativo real do projeto, sem um .pfx no repositório.
 	res, err := cli.MontarXML(TenantConfig{CNPJ: "12345678000199"}, "[infCTe]\nversao=4.00")
 	if err != nil {
 		t.Fatalf("MontarXML: %v", err)
@@ -470,7 +470,7 @@ func TestRPC_NaoSuportadoNaoViraIndisponivel(t *testing.T) {
 		t.Errorf("sentinela ErrNaoSuportado não sobreviveu ao RPC: %v", err)
 	}
 	if errors.Is(err, ErrUnavailable) {
-		t.Errorf("não suportado virou indisponível — viraria 503 no lugar de 422: %v", err)
+		t.Errorf("não suportado virou indisponível, viraria 503 no lugar de 422: %v", err)
 	}
 }
 
@@ -494,7 +494,7 @@ func TestTransmitir_QuedaNoMeioNaoAutorizaRepetir(t *testing.T) {
 		t.Errorf("queda durante a transmissão deveria ser ErrIndeterminado, veio: %v", err)
 	}
 	if errors.Is(err, ErrUnavailable) {
-		t.Errorf("queda durante a transmissão marcada como indisponível — convida a repetir e duplicar: %v", err)
+		t.Errorf("queda durante a transmissão marcada como indisponível, convida a repetir e duplicar: %v", err)
 	}
 	if !strings.Contains(err.Error(), "Transmitir") {
 		t.Errorf("a mensagem deveria nomear a operação em risco: %v", err)

@@ -3,7 +3,7 @@ package nfse
 // SubstituicaoPedido é o corpo de POST /v1/nfse/eventos/substituicao: a DPS substituta
 // (nova nota) + os identificadores da NFS-e antiga + o motivo do cancelamento.
 // Espelha os parâmetros do NFSE_SubstituirNFSe (provedores que expõem o
-// webservice SubstituiNFSe — o Padrão Nacional faz substituição via grupo subst
+// webservice SubstituiNFSe: o Padrão Nacional faz substituição via grupo subst
 // na DPS, não por este método).
 type SubstituicaoPedido struct {
 	DPS         DPSPedido          `json:"dps"`              // nota nova (substituta)

@@ -186,7 +186,7 @@ func TestRemessaRespeitaOSequencialInformado(t *testing.T) {
 	p["numeroArquivo"] = 47
 	post(t, muxDe(f), "/boletos/remessa", p)
 	if f.numArquivo != 47 {
-		t.Errorf("numeroArquivo = %d, quero 47 — o sequencial é controle do cliente", f.numArquivo)
+		t.Errorf("numeroArquivo = %d, quero 47: o sequencial é controle do cliente", f.numArquivo)
 	}
 }
 

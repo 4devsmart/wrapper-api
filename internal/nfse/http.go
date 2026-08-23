@@ -19,7 +19,7 @@ const secaoACBr = "NFSe"
 //
 // É o mais diferente dos três documentos fiscais: multi-provedor (o município
 // decide o layout), sem validação de regras de negócio na lib, e com PDF
-// recuperável pela chave — coisa que CT-e e MDF-e não têm.
+// recuperável pela chave: coisa que CT-e e MDF-e não têm.
 type Modulo struct{ svc acbr.NFSeServico }
 
 // NovoModulo liga o módulo ao binding.
@@ -39,15 +39,15 @@ func (m *Modulo) Registrar(r modulo.Router) {
 	r.HandleFunc("POST /xml", m.handleXML)
 	// Transmitir: assina e envia. É aqui que o certificado entra.
 	r.HandleFunc("POST /transmissao", m.handleTransmissao)
-	// Eventos: cancelamento e substituição — chamada única.
+	// Eventos (cancelamento e substituição): chamada única.
 	r.HandleFunc("POST /eventos/{tipo}", m.handleEvento)
-	// Consultas ao provedor — POST porque levam o certificado no corpo.
+	// Consultas ao provedor: POST porque levam o certificado no corpo.
 	r.HandleFunc("POST /consulta", m.handleConsulta)
 	r.HandleFunc("POST /consulta-dps", m.handleConsultaDPS)
 	r.HandleFunc("POST /consultas/{tipo}", m.handleConsultas)
 	r.HandleFunc("POST /distribuicao", m.handleDistribuicao)
 	// PDF: a NFS-e recupera o DANFSE pela CHAVE (ObterDANFSE), diferente de CT-e
-	// e MDF-e — perder o XML aqui não é definitivo. Também aceita XML.
+	// e MDF-e: perder o XML aqui não é definitivo. Também aceita XML.
 	r.HandleFunc("POST /pdf", m.handlePDF)
 	// Tabela de municípios: pública quanto a segredo (não leva certificado) e é
 	// como o cliente descobre, ANTES de emitir, se o município é atendido.
@@ -60,7 +60,7 @@ func (m *Modulo) Registrar(r modulo.Router) {
 //
 // Não há "chave" aqui: a chave de acesso da NFS-e é atribuída pelo provedor na
 // autorização. O que a geração entrega é o IDENTIFICADOR DA DPS, que é
-// determinístico a partir do pedido — e é ele que recupera uma transmissão
+// determinístico a partir do pedido, e é ele que recupera uma transmissão
 // perdida, via POST /consulta-dps.
 type RespostaXML struct {
 	IDdps     string           `json:"id_dps,omitempty"`
@@ -101,7 +101,7 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 	httpx.JSON(w, http.StatusOK, RespostaXML{
 		IDdps:     IDdoXML(xml),
 		XMLBase64: fiscal.Base64(xml),
-		// O provedor assina a DPS dentro do envio — a NFS-e não expõe assinatura
+		// O provedor assina a DPS dentro do envio: a NFS-e não expõe assinatura
 		// separada, ao contrário de CT-e e MDF-e. Dizer a verdade aqui evita que
 		// o cliente arquive isto achando que é documento assinado.
 		Assinado: false,
@@ -368,7 +368,7 @@ func (m *Modulo) handleConsulta(w http.ResponseWriter, r *http.Request) {
 
 // handleConsultaDPS é a recuperação de uma transmissão de desfecho desconhecido.
 //
-// Depois de um timeout na transmissão, é ISTO que se chama — nunca reenviar a DPS.
+// Depois de um timeout na transmissão, é ISTO que se chama: nunca reenviar a DPS.
 // Aceita o id_dps como a geração devolveu (com o prefixo "DPS") ou a chave nua: o
 // webservice quer a chave sem prefixo, e essa diferença não é problema do cliente.
 func (m *Modulo) handleConsultaDPS(w http.ResponseWriter, r *http.Request) {
@@ -433,7 +433,7 @@ func (m *Modulo) handleConsultas(w http.ResponseWriter, r *http.Request) {
 // handleDistribuicao consulta a Distribuição DF-e do ADN por NSU.
 //
 // O cursor (NSU) vai e volta no payload: sem estado no servidor, é o cliente que
-// guarda onde parou. Não paralelize a distribuição do mesmo CNPJ — sem o lock
+// guarda onde parou. Não paralelize a distribuição do mesmo CNPJ, sem o lock
 // que existia com banco, chamadas simultâneas embaralham o cursor.
 func (m *Modulo) handleDistribuicao(w http.ResponseWriter, r *http.Request) {
 	p, t, ok := m.lerConsulta(w, r)
@@ -480,7 +480,7 @@ func (m *Modulo) responderConsulta(w http.ResponseWriter, res acbr.Result, err e
 // --- DANFSE -----------------------------------------------------------------
 
 // PedidoPDF gera o DANFSE. Diferente de CT-e e MDF-e, a NFS-e recupera o PDF
-// pela CHAVE (ObterDANFSE no provedor) — então perder o XML não é definitivo.
+// pela CHAVE (ObterDANFSE no provedor), então perder o XML não é definitivo.
 // Por chave a operação fala com o provedor e exige certificado; por XML é render
 // local e não exige.
 type PedidoPDF struct {
@@ -585,7 +585,7 @@ func (m *Modulo) tenant(cnpj, cmun string, prest Pessoa, ambiente string, layout
 }
 
 // tenantEmitente monta a sessão nativa. O emitente vem do pedido porque não há
-// cadastro no servidor — é a consequência direta de não persistir nada.
+// cadastro no servidor: é a consequência direta de não persistir nada.
 func (m *Modulo) tenantEmitente(e Emitente, cmun, ambiente string, layout Layout,
 	cert fiscal.Certificado, cred Credenciais) acbr.TenantConfig {
 

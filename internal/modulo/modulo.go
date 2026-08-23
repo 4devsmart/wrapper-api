@@ -4,7 +4,7 @@
 // A regra que este pacote existe para tornar verificável: o servidor não conhece
 // documento fiscal, e um módulo não conhece outro módulo. Tudo que o CT-e
 // precisa saber sobre HTTP mora em internal/cte/http.go; tudo que o servidor
-// sabe sobre CT-e é o que está aqui — um nome e um conjunto de rotas.
+// sabe sobre CT-e é o que está aqui: um nome e um conjunto de rotas.
 //
 // Sem isso, adicionar um campo de CT-e volta a tocar dois pacotes (foi assim no
 // projeto de origem, onde um único handlers.go de 45 KB atendia todos os
@@ -14,7 +14,7 @@ package modulo
 import "net/http"
 
 // Router registra rotas JÁ SOB o prefixo do módulo. Um módulo chamado "cte"
-// que registra "POST /xml" atende POST /v1/cte/xml — ele nunca escreve o
+// que registra "POST /xml" atende POST /v1/cte/xml: ele nunca escreve o
 // prefixo, então renomear a versão da API ou o caminho base não toca módulo
 // nenhum.
 //

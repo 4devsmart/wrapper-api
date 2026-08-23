@@ -2,7 +2,7 @@
 // contrato da Nuvem Fiscal (infDPS: prest/toma/serv/valores) e traduz esse
 // JSON para o arquivo INI consumido pela ACBrLibNFSe.
 //
-// Este é um SUBCONJUNTO dos campos do DPS nacional — cobre uma emissão básica
+// Este é um SUBCONJUNTO dos campos do DPS nacional: cobre uma emissão básica
 // e será expandido (idealmente gerando os tipos a partir do OpenAPI da Nuvem
 // Fiscal) nas próximas iterações.
 package nfse
@@ -49,11 +49,11 @@ type Pessoa struct {
 	Bairro      string `json:"bairro,omitempty"`
 	Telefone    string `json:"telefone,omitempty"`
 	// CPais/XPais só precisam ser informados para endereço NO EXTERIOR. Endereço
-	// nacional (com cMun) recebe 1058 (Brasil) automaticamente — ver pessoaCommon.
+	// nacional (com cMun) recebe 1058 (Brasil) automaticamente: ver pessoaCommon.
 	CPais int    `json:"cPais,omitempty"` // código do país (1058 = Brasil)
 	XPais string `json:"xPais,omitempty"` // nome do país
 	// RegTrib (regime tributário) é obrigatório para o prestador no Padrão
-	// Nacional — sem ele o ACBr falha ao montar o XML.
+	// Nacional, sem ele o ACBr falha ao montar o XML.
 	RegTrib *RegTrib `json:"regTrib,omitempty"`
 }
 
@@ -62,7 +62,7 @@ type RegTrib struct {
 	OpSimpNac   int `json:"opSimpNac,omitempty"`   // 1=não optante, 2=MEI, 3=ME/EPP
 	RegApTribSN int `json:"regApTribSN,omitempty"` // regime de apuração do Simples Nacional
 	RegEspTrib  int `json:"regEspTrib,omitempty"`  // regime especial de tributação
-	// Campos exclusivos ABRASF (municípios fora do Padrão Nacional) — opcionais,
+	// Campos exclusivos ABRASF (municípios fora do Padrão Nacional): opcionais,
 	// ignorados na emissão Padrão Nacional.
 	IncentCultural int    `json:"incentivadorCultural,omitempty"`       // 1=Sim, 2=Não
 	DataOpSimpNac  string `json:"dataOptanteSimplesNacional,omitempty"` // YYYY-MM-DD
@@ -84,7 +84,7 @@ type Servico struct {
 	XPais          string     `json:"xPais,omitempty"`
 	ComExt         *ComExt    `json:"comExt,omitempty"`    // comércio exterior
 	InfoCompl      *InfoCompl `json:"infoCompl,omitempty"` // informações complementares
-	// Campos exclusivos ABRASF (municípios fora do Padrão Nacional) — opcionais,
+	// Campos exclusivos ABRASF (municípios fora do Padrão Nacional): opcionais,
 	// ignorados na emissão Padrão Nacional. Onde houver equivalente PN (cServ,
 	// cTribMun, pAliq em valores), o builder ABRASF cai nele como fallback.
 	ItemListaServico string `json:"itemListaServico,omitempty"` // LC116 (ex.: "01.07"); fallback: cServ

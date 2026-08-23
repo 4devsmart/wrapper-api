@@ -71,7 +71,7 @@ func (l *cteLib) Emitir(t TenantConfig, ini string) (Result, error) {
 			// PDF NÃO é gerado aqui: o render é o componente que mais crasha e,
 			// neste ponto, o documento já foi autorizado pela SEFAZ. Um SIGSEGV
 			// aqui deixava o DACTE emitido, o cliente com erro e nada
-			// persistido. Agora sai sob demanda — ver RenderizarPDF.
+			// persistido. Agora sai sob demanda: ver RenderizarPDF.
 		}
 		return res, nil
 	})
@@ -93,7 +93,7 @@ func (l *cteLib) MontarXML(t TenantConfig, ini string) (Result, error) {
 
 // ValidarRegras carrega o INI e roda CTE_ValidarRegrasdeNegocios: as rejeições
 // que a SEFAZ daria, antecipadas localmente, sem certificado e sem rede. É a
-// validação da geração. XSD fica de fora — ver o comentário da interface.
+// validação da geração. XSD fica de fora: ver o comentário da interface.
 func (l *cteLib) ValidarRegras(t TenantConfig, ini string) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		cIni := C.CString(ini)
@@ -109,7 +109,7 @@ func (l *cteLib) ValidarRegras(t TenantConfig, ini string) (Result, error) {
 }
 
 // Transmitir envia o XML montado na geração (CTE_CarregarXML → CTE_Enviar). A lib
-// assina no envio, então é aqui — e só aqui — que o certificado é necessário.
+// assina no envio, então é aqui, e só aqui, que o certificado é necessário.
 func (l *cteLib) Transmitir(t TenantConfig, xml string) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		cXML := C.CString(xml)
@@ -120,7 +120,7 @@ func (l *cteLib) Transmitir(t TenantConfig, xml string) (Result, error) {
 		// aLote=1, aImprimir=0 (PDF sai sob demanda), aSincrono=1.
 		//
 		// A SEFAZ desativou a recepção assíncrona: hoje é tudo síncrono, e o
-		// protocolo volta na mesma chamada. Na 4.00 o parâmetro nem decide —
+		// protocolo volta na mesma chamada. Na 4.00 o parâmetro nem decide:
 		// TCTeRecepcao.InicializarServico (ACBrCTeWebServices.pas:875) força
 		// Sincrono para VersaoDF >= ve400, escolhe o endpoint CTeRecepcaoSincV4
 		// e recusa lote com mais de um CT-e. Passamos 1 para que o comportamento
@@ -164,7 +164,7 @@ func (l *cteLib) EnviarEvento(t TenantConfig, ini string) (Result, error) {
 }
 
 // enviarEventoINI carrega o INI do evento (CTE_CarregarEventoINI) e o transmite
-// (CTE_EnviarEvento). Comum a cancelamento e CC-e — a diferença é só o tpEvento
+// (CTE_EnviarEvento). Comum a cancelamento e CC-e: a diferença é só o tpEvento
 // no INI. Em sucesso, anexa o XML do protocolo de evento.
 func (l *cteLib) enviarEventoINI(t TenantConfig, ini string) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {

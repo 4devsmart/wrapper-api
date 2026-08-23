@@ -16,7 +16,7 @@ import (
 const secaoACBr = "MDFe"
 
 // Modulo expõe o MDF-e sob /v1/mdfe. É a única parte deste pacote que conhece
-// HTTP — o resto é tradução JSON→INI e leitura de resposta.
+// HTTP: o resto é tradução JSON→INI e leitura de resposta.
 type Modulo struct{ svc acbr.MDFeServico }
 
 // NovoModulo liga o módulo ao binding.
@@ -38,7 +38,7 @@ func (m *Modulo) Registrar(r modulo.Router) {
 	r.HandleFunc("POST /transmissao", m.handleTransmissao)
 	// Eventos: chamada única (a lib não expõe o XML do evento antes de enviá-lo).
 	r.HandleFunc("POST /eventos/{tipo}", m.handleEvento)
-	// Consultas ao webservice — POST porque levam o certificado no corpo.
+	// Consultas ao webservice: POST porque levam o certificado no corpo.
 	r.HandleFunc("POST /consulta", m.handleConsulta)
 	r.HandleFunc("POST /status-servico", m.handleStatusServico)
 	r.HandleFunc("POST /nao-encerrados", m.handleNaoEncerrados)
@@ -118,7 +118,7 @@ type RespostaTransmissao struct {
 	CStat     string `json:"cstat,omitempty"`
 	Motivo    string `json:"motivo,omitempty"`
 	// Recibo é vestígio: o envio é síncrono e ele não vem. Fica porque a lib
-	// ainda trata um autorizador que responda cStat=103 — se acontecer, o
+	// ainda trata um autorizador que responda cStat=103, se acontecer, o
 	// cliente vê em vez de receber uma resposta sem explicação.
 	Recibo        string     `json:"recibo,omitempty"`
 	XMLProcBase64 string     `json:"xml_proc_b64,omitempty"`
@@ -140,7 +140,7 @@ func (m *Modulo) handleTransmissao(w http.ResponseWriter, r *http.Request) {
 	}
 
 	chave := ChaveDoXML(xml)
-	// O ambiente vem do XML, não do cliente: divergir dá rejeição 252 — ou,
+	// O ambiente vem do XML, não do cliente. Divergir dá rejeição 252, ou,
 	// pior, manda um documento de homologação para o webservice de produção.
 	ambiente := fiscal.Primeiro(AmbienteDoXML(xml), p.Ambiente, "homologacao")
 	t := fiscal.Tenant(fiscal.CNPJDaChave(chave), secaoACBr, ambiente, p.Certificado)
@@ -166,7 +166,7 @@ func (m *Modulo) handleTransmissao(w http.ResponseWriter, r *http.Request) {
 // --- eventos ----------------------------------------------------------------
 
 // PedidoEvento é o envelope de qualquer evento do MDF-e. Os campos próprios de
-// cada tipo vão aninhados em "evento" — assim os dois níveis podem recusar
+// cada tipo vão aninhados em "evento": assim os dois níveis podem recusar
 // campo desconhecido, que é como o cliente descobre que errou um nome.
 type PedidoEvento struct {
 	Chave       string             `json:"chave"`
@@ -307,7 +307,7 @@ type PedidoConsulta struct {
 }
 
 // handleConsulta é a recuperação de uma transmissão de desfecho desconhecido:
-// depois de um timeout, é ISTO que se chama — nunca repetir a transmissão.
+// depois de um timeout, é ISTO que se chama: nunca repetir a transmissão.
 func (m *Modulo) handleConsulta(w http.ResponseWriter, r *http.Request) {
 	var p PedidoConsulta
 	if !httpx.LerJSON(w, r, &p) {
@@ -398,7 +398,7 @@ func (m *Modulo) responderCru(w http.ResponseWriter, res acbr.Result, err error)
 // logo não pede certificado.
 //
 // É a rede de segurança do modelo sem estado: o MDF-e não tem "obter PDF pela
-// chave" — se o cliente perder o XML, o DAMDFE não se regenera de lugar nenhum.
+// chave", se o cliente perder o XML, o DAMDFE não se regenera de lugar nenhum.
 type PedidoPDF struct {
 	XMLBase64       string `json:"xml_b64"`
 	XMLEventoBase64 string `json:"xml_evento_b64,omitempty"`

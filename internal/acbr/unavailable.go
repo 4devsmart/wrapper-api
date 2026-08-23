@@ -4,7 +4,7 @@ package acbr
 // reporta a lib nativa indisponível. Usada pelos stubs (build sem -tags acbrlib)
 // e como placeholder dos serviços ainda não ligados no binding cgo.
 type indisponivel struct {
-	nome string // rótulo do serviço (nfse/cte/mdfe) — informativo
+	nome string // rótulo do serviço (nfse/cte/mdfe): informativo
 }
 
 // indisponivel satisfaz as cinco interfaces de serviço (é o stub sem -tags

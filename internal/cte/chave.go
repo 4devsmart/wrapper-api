@@ -25,7 +25,7 @@ var reTpAmb = regexp.MustCompile(`<tpAmb>\s*([12])\s*</tpAmb>`)
 // "" se não achar.
 //
 // Existe para a transmissão NÃO depender de o cliente repetir o ambiente: o XML já
-// diz em qual ele foi montado, e divergir disso é rejeição 252 na certa — ou,
+// diz em qual ele foi montado, e divergir disso é rejeição 252 na certa: ou,
 // pior, um documento de teste indo para o webservice de produção. O tpAmb da
 // SEFAZ é 1=produção e 2=homologação (o oposto do ordinal da ACBrLib, que é
 // 0=produção; a conversão fica em fiscal.AmbienteOrdinal).

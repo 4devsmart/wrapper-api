@@ -7,7 +7,7 @@ import (
 )
 
 // TestSemCredenciaisNaoVazaSegredo garante que o payload persistido (auditoria) do
-// boleto NÃO contém os segredos de WS — eles ficam só em memória durante a operação.
+// boleto NÃO contém os segredos de WS: eles ficam só em memória durante a operação.
 func TestSemCredenciaisNaoVazaSegredo(t *testing.T) {
 	p := Pedido{
 		Conta: Conta{

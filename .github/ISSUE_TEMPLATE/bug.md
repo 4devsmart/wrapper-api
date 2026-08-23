@@ -9,7 +9,7 @@ labels: bug
 **O que você esperava**
 
 **Como reproduzir**
-Payload mínimo (⚠️ **anonimizado** — nunca cole certificado, `.env`, CNPJ ou XML
+Payload mínimo (⚠️ **anonimizado**: nunca cole certificado, `.env`, CNPJ ou XML
 reais), rota chamada e resposta recebida.
 
 **Ambiente**

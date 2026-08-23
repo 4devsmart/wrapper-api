@@ -26,13 +26,13 @@ Cada item abaixo custou uma investigação. Estão no `Dockerfile`:
 
 - **provider `legacy` do OpenSSL.** Certificados A1 ICP-Brasil são PKCS#12 com
   algoritmos legados (RC2/3DES/SHA1) que o OpenSSL 3 desabilita por padrão. Sem
-  ele, **nenhum** certificado carrega — o erro é
+  ele, **nenhum** certificado carrega: o erro é
   `digital envelope routines::unsupported`, que não diz nada sobre isso.
 - **symlinks sem versão para libxml2/libxmlsec1.** O wrapper LibXmlSec do ACBr
   faz `dlopen` por nomes sem versão (`libxml2.so`); o Debian só instala os
   versionados. Sem os links, `CarregarXML` e a **assinatura** falham.
 - **GTK2 + Xvfb.** A lib é compilada com widgetset GTK2 (o FortesReport
-  rasteriza o DANFSE/DACTE) e chama `gtk_init` já no carregamento — precisa de um
+  rasteriza o DANFSE/DACTE) e chama `gtk_init` já no carregamento: precisa de um
   `$DISPLAY` válido mesmo para operações que não imprimem. Por isso o Xvfb sobe
   no worker, que é o único processo que abre o `.so`. A variante `nogui` **não**
   serve: ela não rasteriza, e o TBitmap nulo vira SIGSEGV.
@@ -47,7 +47,7 @@ A fonte oficial é o **SVN do ACBr, `trunk2`**, pinado por revisão:
 https://svn.code.sf.net/p/acbr/code/trunk2
 ```
 
-**Nunca use o mirror do GitHub** — ele fica meses atrasado, e a tabela de
+**Nunca use o mirror do GitHub**: ele fica meses atrasado, e a tabela de
 provedor por município da NFS-e muda rápido.
 
 A revisão em uso está em `ACBR_REV`, no `Makefile`. Ao bumpar, regenere também o
@@ -58,6 +58,6 @@ e ela ignora em silêncio.
 ## Licença
 
 A ACBrLib é **LGPL**. Redistribuímos os binários com atribuição, a revisão do
-fonte pinada e instruções de recompilação — ver [NOTICE](../NOTICE). O `.so` é
+fonte pinada e instruções de recompilação: ver [NOTICE](../NOTICE). O `.so` é
 substituível: quem quiser trocar a lib por outra compilação sua só precisa
 colocá-la em `acbr-libs/`.

@@ -6,7 +6,7 @@ import (
 )
 
 // pedidoFixture monta um CT-e rodoviário normal sintético (Simples Nacional)
-// com NF-e vinculada e responsável técnico — sem dados reais.
+// com NF-e vinculada e responsável técnico, sem dados reais.
 func pedidoFixture() PedidoEmissao {
 	return PedidoEmissao{
 		Ambiente: "homologacao",
@@ -188,7 +188,7 @@ func TestParseEnvio_Rejeitado(t *testing.T) {
 // TestToINI_TomaVaiNaSecaoPropria trava a regressão em que o indicador do
 // tomador era escrito em [ide] e a lib o ignorava: o leitor faz
 // ReadString('toma3','toma') e ReadString('toma4','toma'), então o valor em
-// [ide] nunca chegava ao XML e o CT-e saía com <toma>0</toma> — tomador =
+// [ide] nunca chegava ao XML e o CT-e saía com <toma>0</toma>: tomador =
 // Remetente, qualquer que fosse o pedido. Achado pelo teste de lockstep.
 func TestToINI_TomaVaiNaSecaoPropria(t *testing.T) {
 	t.Run("toma3", func(t *testing.T) {
@@ -214,7 +214,7 @@ func TestToINI_TomaVaiNaSecaoPropria(t *testing.T) {
 	})
 }
 
-// secaoDoINI devolve só o corpo de uma seção — asserção no INI inteiro casaria
+// secaoDoINI devolve só o corpo de uma seção: asserção no INI inteiro casaria
 // a chave de outra seção e passaria por acidente.
 func secaoDoINI(ini, secao string) string {
 	i := strings.Index(ini, "["+secao+"]")
@@ -229,8 +229,8 @@ func secaoDoINI(ini, secao string) string {
 }
 
 // TestToINI_CampoSoData documenta e trava a regra dos campos que são só data
-// (dEmi, dPrev, dVenc…). Eles NÃO levam fuso no XML — a lib os grava como
-// AAAA-MM-DD puro, sem offset —, mas a entrada continua sujeita à mesma leitura:
+// (dEmi, dPrev, dVenc…). Eles NÃO levam fuso no XML: a lib os grava como
+// AAAA-MM-DD puro, sem offset , mas a entrada continua sujeita à mesma leitura:
 // com offset é um instante e é convertida para o calendário do emitente, o que
 // PODE mudar o dia; sem offset é a data que o cliente escreveu.
 //

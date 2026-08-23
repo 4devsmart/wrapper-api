@@ -18,7 +18,7 @@ func TestProducaoExigeToken(t *testing.T) {
 
 // O log de nível 3+ da ACBr grava XML e CERTIFICADO em disco. Num serviço cuja
 // promessa é não persistir nada, deixá-lo ligado em produção transforma a
-// promessa em mentira — e sem sintoma. Por isso é erro de boot, não warning.
+// promessa em mentira, e sem sintoma. Por isso é erro de boot, não warning.
 func TestProducaoRecusaLogQueGravaCertificado(t *testing.T) {
 	t.Setenv("MODO", "producao")
 	t.Setenv("API_TOKEN", "abc")

@@ -2,4 +2,4 @@ blank_issues_enabled: true
 contact_links:
   - name: Vulnerabilidade de segurança
     url: https://github.com/4devsmart/wrapper-api/security/advisories/new
-    about: NÃO abra issue pública. Use o canal privado — ver SECURITY.md.
+    about: NÃO abra issue pública. Use o canal privado: ver SECURITY.md.

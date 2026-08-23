@@ -1,7 +1,11 @@
-# Binários
+# Binários. Os nomes soltos são os que `go build ./cmd/<x>` deixa na raiz:
+# sem eles, um build distraído commita megabytes de binário.
 /out/
 /bin/
 /dist/
+/api-bin
+/gerar-openapi
+/fiscal-worker
 
 # Ambiente
 .env
@@ -9,7 +13,7 @@
 !.env*.example
 
 # Artefatos nativos da ACBrLib: NÃO versionados. São assets de release,
-# baixados por scripts/baixar-acbr-libs.sh — este diretório é só cache local.
+# baixados por scripts/baixar-acbr-libs.sh: este diretório é só cache local.
 /acbr-libs/
 
 # Cache local dos fontes ACBr (make acbr-update)

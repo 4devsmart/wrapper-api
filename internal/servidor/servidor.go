@@ -1,7 +1,7 @@
 // Package servidor é a raiz de composição do HTTP: monta o mux, aplica os
 // middlewares e pendura os módulos sob /v1/<nome>.
 //
-// Ele não conhece documento fiscal nenhum — só o contrato de internal/modulo.
+// Ele não conhece documento fiscal nenhum: só o contrato de internal/modulo.
 package servidor
 
 import (
@@ -49,7 +49,7 @@ func Novo(cfg config.Config, svc *acbr.Servicos, modulos ...modulo.Modulo) *Serv
 
 func (s *Servidor) rotas() {
 	// Liveness e readiness ficam FORA de /v1 e fora da autenticação: quem os
-	// consulta é o orquestrador, que não tem token — e um healthcheck que exige
+	// consulta é o orquestrador, que não tem token, e um healthcheck que exige
 	// credencial é um healthcheck que falha por motivo errado.
 	s.mux.HandleFunc("GET /healthz", s.handleHealthz)
 	s.mux.HandleFunc("GET /readyz", s.handleReadyz)
@@ -92,7 +92,7 @@ func (s *Servidor) Handler() http.Handler {
 // --- middlewares ------------------------------------------------------------
 
 // recuperar transforma um panic em 500 e mantém o servidor vivo. Não cobre
-// SIGSEGV da lib nativa — esse não é recuperável e é justamente por isso que a
+// SIGSEGV da lib nativa: esse não é recuperável e é justamente por isso que a
 // lib roda em outro processo (ver cmd/fiscal-worker).
 func (s *Servidor) recuperar(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -130,7 +130,7 @@ func (s *Servidor) registrar(next http.Handler) http.Handler {
 }
 
 // exigirAuth valida o Bearer. Token vazio na config só é tolerado fora de
-// produção — config.Load recusa produção sem API_TOKEN.
+// produção: config.Load recusa produção sem API_TOKEN.
 func (s *Servidor) exigirAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if s.cfg.AuthToken == "" {
@@ -173,14 +173,14 @@ func (s *Servidor) handleReadyz(w http.ResponseWriter, r *http.Request) {
 // sessão na lib e sem depender de certificado.
 //
 // O type assertion é deliberado: só a implementação remota tem essa noção. Com
-// o binding local (o próprio worker) não há o que checar — se o processo está
+// o binding local (o próprio worker) não há o que checar, se o processo está
 // de pé, o motor está.
 func (s *Servidor) motorPronto(ctx context.Context) error {
 	if s.svc == nil || s.svc.CTe == nil {
 		return errSemMotor
 	}
 	// O stub compila e responde a tudo com "lib indisponível". Ele existe para a
-	// API subir sem os .so — mas subir não é estar pronta: sem worker de verdade
+	// API subir sem os .so, mas subir não é estar pronta: sem worker de verdade
 	// nada é transmitido, e devolver 200 aqui faria o orquestrador mandar
 	// tráfego para uma instância que só sabe errar.
 	if s.svc.CTe.Backend() == "stub" {

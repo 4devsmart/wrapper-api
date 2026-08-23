@@ -6,7 +6,7 @@ Adotamos o [Contributor Covenant] v2.1. Resumo adaptado:
 
 No interesse de promover um ambiente aberto e acolhedor, nós, como contribuidores
 e mantenedores, nos comprometemos a tornar a participação no projeto uma
-experiência livre de assédio para todos — independentemente de idade, identidade
+experiência livre de assédio para todos: independentemente de idade, identidade
 ou expressão de gênero, deficiência, etnia, nível de experiência, nacionalidade,
 aparência, religião ou orientação sexual.
 

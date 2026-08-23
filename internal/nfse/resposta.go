@@ -26,7 +26,7 @@ type Mensagem struct {
 }
 
 // OperacaoNaoSuportada indica que a resposta da lib é o erro de "serviço não
-// implementado para este provedor" — ou seja, o provedor de NFS-e do município
+// implementado para este provedor", ou seja, o provedor de NFS-e do município
 // não oferece a operação (cancelamento/substituição/etc.) via webservice.
 //
 // É detectado em RUNTIME, não por uma tabela estática: a engine multi-provedor

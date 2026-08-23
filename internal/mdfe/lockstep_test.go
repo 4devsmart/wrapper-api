@@ -11,7 +11,7 @@ import (
 
 // Lockstep do MDF-e: compara as chaves de INI que a LIB aceita com as que os
 // nossos builders escrevem. É o mesmo mecanismo de internal/nfse e internal/cte,
-// que nasceu de uma classe de bug que apareceu quatro vezes no NFS-e — o campo é
+// que nasceu de uma classe de bug que apareceu quatro vezes no NFS-e: o campo é
 // aceito pelo contrato, a emissão "funciona", e o dado some antes do XML.
 //
 // Duas comparações, em direções opostas:
@@ -21,14 +21,14 @@ import (
 //     em silêncio. Pior que a primeira, porque parece que funciona.
 //
 // O snapshot da lib é regenerado em lockstep com o .so por `make acbr-chaves`.
-// Falhar aqui não é "conserte o código": é "decida" — passar a enviar, ou
+// Falhar aqui não é "conserte o código", é "decida": passar a enviar, ou
 // declarar com o motivo.
 
 // chavesMortas são chaves que NÓS escrevemos e o leitor de INI da lib não lê.
 // Cada uma é uma decisão registrada, não um bug tolerado.
 var chavesMortas = map[string]string{
 	// infRespTec.idCSRT/hashCSRT existem na classe do MDF-e e o gravador de XML
-	// os emite, mas só chegam lá por leitura de XML — o leitor de INI não os lê.
+	// os emite, mas só chegam lá por leitura de XML: o leitor de INI não os lê.
 	// Mesma situação do CT-e (ver internal/cte/lockstep_test.go).
 	"infRespTec/idCSRT":   "a lib não lê idCSRT do INI (só de XML)",
 	"infRespTec/hashCSRT": "a lib não lê hashCSRT do INI (só de XML)",
@@ -43,7 +43,7 @@ var chavesMortas = map[string]string{
 // case-insensitive (TIniFile), e tanto a lib quanto nós indexamos seções e
 // chaves repetidas com sufixo numérico (det001, cInfManu002). Sem normalizar,
 // a comparação acusaria "Exped" × "exped" e "EVENTO" × "EVENTO001" como
-// divergência — ruído puro.
+// divergência: ruído puro.
 func par(secao, chave string) string {
 	return strings.ToLower(semIndice(secao)) + "/" + strings.ToLower(semIndice(chave))
 }
@@ -75,7 +75,7 @@ func TestLockstep_MDFe_ChavesDaLibQueNaoEnviamos(t *testing.T) {
 	}
 	sort.Strings(novas)
 	t.Errorf("%d chave(s) NOVAS que a lib aceita e não enviamos.\n\n"+
-		"Não são todas as lacunas — só as que apareceram depois do último baseline\n"+
+		"Não são todas as lacunas: só as que apareceram depois do último baseline\n"+
 		"(normalmente após um bump do .so). Decida cada uma: emitir no builder, ou\n"+
 		"acrescentar a testdata/nao_enviadas.tsv (com 'make acbr-chaves' e revisão).\n\n  %s",
 		len(novas), strings.Join(novas, "\n  "))
@@ -104,13 +104,13 @@ func TestLockstep_MDFe_ChavesQueEnviamosEALibIgnora(t *testing.T) {
 	}
 	if len(mortas) > 0 {
 		sort.Strings(mortas)
-		t.Errorf("%d chave(s) que ESCREVEMOS e a lib não lê — o dado é aceito e descartado em silêncio.\n"+
+		t.Errorf("%d chave(s) que ESCREVEMOS e a lib não lê: o dado é aceito e descartado em silêncio.\n"+
 			"Corrija o builder (nome/seção errados?) ou declare em chavesMortas com o motivo:\n  %s",
 			len(mortas), strings.Join(mortas, "\n  "))
 	}
 	if len(ressuscitadas) > 0 {
 		sort.Strings(ressuscitadas)
-		t.Errorf("estas chaves estão em chavesMortas mas a lib passou a lê-las — "+
+		t.Errorf("estas chaves estão em chavesMortas mas a lib passou a lê-las: "+
 			"remova-as da lista para travar o ganho:\n  %s", strings.Join(ressuscitadas, "\n  "))
 	}
 }
@@ -135,12 +135,12 @@ func carregarSnapshot(t *testing.T, arquivo string) map[string]bool {
 		}
 	}
 	if len(out) == 0 {
-		t.Fatalf("snapshot %s vazio — o layout do fonte mudou?", arquivo)
+		t.Fatalf("snapshot %s vazio: o layout do fonte mudou?", arquivo)
 	}
 	return out
 }
 
-// carregarBaselineDFe lê as lacunas JÁ CONHECIDAS. O teste não cobra o passado —
+// carregarBaselineDFe lê as lacunas JÁ CONHECIDAS. O teste não cobra o passado:
 // cobra o que aparecer depois, que é onde mora o campo esquecido.
 func carregarBaselineDFe(t *testing.T, arquivo string) map[string]bool {
 	t.Helper()
@@ -170,7 +170,7 @@ func carregarBaselineDFe(t *testing.T, arquivo string) map[string]bool {
 // arquivo faria as chaves dos outros parecerem lacuna.
 //
 // Vários helpers (pessoa, endereco, entrega…) escrevem na seção do CHAMADOR:
-// para eles, as chaves são expandidas no ponto da chamada, transitivamente —
+// para eles, as chaves são expandidas no ponto da chamada, transitivamente:
 // pessoa() chama endereco(), e as duas contribuem para a seção de quem chamou.
 func chavesDoBuilder(t *testing.T, dir string) map[string]bool {
 	t.Helper()
@@ -242,7 +242,7 @@ func chavesDoBuilder(t *testing.T, dir string) map[string]bool {
 	for _, l := range linhas {
 		// A seção corrente vale DENTRO de uma função: o arquivo tem dezenas
 		// delas, e sem zerar aqui as chaves de uma função sem seção própria
-		// seriam atribuídas à seção aberta pela função anterior no arquivo —
+		// seriam atribuídas à seção aberta pela função anterior no arquivo:
 		// que é ordem de texto, não ordem de execução.
 		if strings.HasPrefix(l, "func ") || strings.HasPrefix(l, "// ---- ") {
 			secao = ""
@@ -267,7 +267,7 @@ func chavesDoBuilder(t *testing.T, dir string) map[string]bool {
 		}
 	}
 	if len(out) == 0 {
-		t.Fatalf("nenhuma chave extraída de %s — os helpers do builder mudaram de forma?", dir)
+		t.Fatalf("nenhuma chave extraída de %s: os helpers do builder mudaram de forma?", dir)
 	}
 	return out
 }

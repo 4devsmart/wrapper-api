@@ -2,7 +2,7 @@ package cte
 
 import "strconv"
 
-// Identidade extrai a identidade fiscal (modelo, série, número) do pedido — base
+// Identidade extrai a identidade fiscal (modelo, série, número) do pedido: base
 // da unicidade (empresa, modelo, série, número, ambiente) que previne
 // duplicidade. Modelo default 57 (CT-e); 67 = CT-e OS.
 func Identidade(p PedidoEmissao) (modelo, serie, numero string) {

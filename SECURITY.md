@@ -6,15 +6,15 @@
 
 Reporte de forma privada por um destes canais:
 
-1. **GitHub** (preferido) — aba **Security → Report a vulnerability**
+1. **GitHub** (preferido): aba **Security → Report a vulnerability**
    ([Private Vulnerability Reporting]). Cria um canal privado com os mantenedores.
-2. **E-mail** — `security@devobjetivo.com.br`.
+2. **E-mail**: `security@devobjetivo.com.br`.
 
 Inclua, se possível:
 
 - descrição do problema e do impacto;
 - passos para reproduzir (PoC), versão/commit afetado;
-- configuração relevante (sem segredos reais — **nunca** envie certificados,
+- configuração relevante (sem segredos reais: **nunca** envie certificados,
   `.env` ou XMLs com dados reais).
 
 ## O que esperar
@@ -39,7 +39,7 @@ pública. Fora de escopo: vulnerabilidades em dependências de terceiros já
 rastreadas (use o fluxo do upstream) e configurações inseguras do próprio operador.
 
 > Há uma análise de segurança interna do projeto em
-> [`docs/security-review.md`](docs/security-review.md) (revisão de controles — não
+> [`docs/security-review.md`](docs/security-review.md) (revisão de controles: não
 > é um canal de report).
 
 [Private Vulnerability Reporting]: https://docs.github.com/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability

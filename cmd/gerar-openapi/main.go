@@ -4,7 +4,7 @@
 // Por que gerar em vez de escrever à mão: são ~270 structs. Uma spec escrita à
 // mão vira uma segunda fonte da verdade, e a segunda fonte diverge da primeira
 // no primeiro campo que alguém adicionar. Gerando, o contrato publicado é o
-// contrato compilado — e `make openapi-check` no CI reprova a divergência.
+// contrato compilado, e `make openapi-check` no CI reprova a divergência.
 //
 // Usa go/ast (stdlib) em vez de reflexão porque só o código-fonte tem os
 // COMENTÁRIOS, e é neles que está o conhecimento caro: "money com vírgula",
@@ -28,7 +28,7 @@ type raiz struct {
 }
 
 // raizes são os tipos que aparecem no corpo de alguma rota. Ao expor um pedido
-// novo, acrescente-o aqui — senão ele fica fora da documentação.
+// novo, acrescente-o aqui: senão ele fica fora da documentação.
 var raizes = []raiz{
 	{"cte", "PedidoEmissao", "CteDocumento"},
 	{"cte", "PedidoSimp", "CteDocumentoSimplificado"},
@@ -60,7 +60,7 @@ var prefixo = map[string]string{
 }
 
 const (
-	inicioBloco = "    # >>> INÍCIO DOS SCHEMAS GERADOS — não edite à mão (make openapi)"
+	inicioBloco = "    # >>> INÍCIO DOS SCHEMAS GERADOS, não edite à mão (make openapi)"
 	fimBloco    = "    # <<< FIM DOS SCHEMAS GERADOS"
 )
 
@@ -240,7 +240,7 @@ func (g *gerador) achatar(b *strings.Builder, pacote, tipo string) {
 //
 // Quando o tipo é uma referência, embrulha em allOf: $ref com irmãos é legal em
 // OpenAPI 3.1, mas parte das ferramentas (inclusive versões do Swagger UI)
-// simplesmente descarta o irmão — e a descrição, que é o valor deste gerador,
+// simplesmente descarta o irmão, e a descrição, que é o valor deste gerador,
 // sumiria justamente nos campos que apontam para outra estrutura.
 func (g *gerador) escreverCampo(b *strings.Builder, pacote string, t ast.Expr, desc, ind string) {
 	if desc == "" {

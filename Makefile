@@ -26,7 +26,7 @@ build:
 ## build-cgo: compila o worker com a ACBrLib real (exige as .so em ACBRLIBS)
 build-cgo:
 	@test -f "$(ACBRLIBS)/libacbrcte64.so" || { \
-	  echo "faltam as .so em $(ACBRLIBS) — rode 'make acbr-libs-baixar'"; exit 1; }
+	  echo "faltam as .so em $(ACBRLIBS): rode 'make acbr-libs-baixar'"; exit 1; }
 	CGO_ENABLED=1 \
 	CGO_LDFLAGS="-L$(abspath $(ACBRLIBS)) -Wl,-rpath,$(abspath $(ACBRLIBS))" \
 	go build -trimpath -tags acbrlib -ldflags "$(LDFLAGS)" -o $(OUT)/fiscal-worker-cgo ./cmd/fiscal-worker
@@ -42,7 +42,7 @@ test:
 ## test-cgo: type-check e link do binding cgo contra as .so (não executa a lib)
 test-cgo:
 	@test -f "$(ACBRLIBS)/libacbrcte64.so" || { \
-	  echo "faltam as .so em $(ACBRLIBS) — rode 'make acbr-libs-baixar'"; exit 1; }
+	  echo "faltam as .so em $(ACBRLIBS): rode 'make acbr-libs-baixar'"; exit 1; }
 	CGO_ENABLED=1 \
 	CGO_LDFLAGS="-L$(abspath $(ACBRLIBS)) -Wl,-rpath,$(abspath $(ACBRLIBS))" \
 	go vet -tags acbrlib $(PKGS)
@@ -51,12 +51,17 @@ test-cgo:
 openapi:
 	CGO_ENABLED=0 go run ./cmd/gerar-openapi
 
+## openapi-valida: confere que a spec é YAML válido
+openapi-valida:
+	@python3 -c "import yaml,sys; d=yaml.safe_load(open('api/openapi.yaml')); \
+	  print('openapi.yaml válido:', len(d['paths']), 'rotas,', len(d['components']['schemas']), 'schemas')"
+
 ## openapi-check: falha se a spec estiver desatualizada em relação aos modelos
-openapi-check:
+openapi-check: openapi-valida
 	@cp api/openapi.yaml /tmp/openapi.antes.yaml
 	@CGO_ENABLED=0 go run ./cmd/gerar-openapi >/dev/null
 	@if ! diff -q /tmp/openapi.antes.yaml api/openapi.yaml >/dev/null; then \
-	  echo "api/openapi.yaml está desatualizada — rode 'make openapi' e commite."; \
+	  echo "api/openapi.yaml está desatualizada: rode 'make openapi' e commite."; \
 	  diff -u /tmp/openapi.antes.yaml api/openapi.yaml | head -40; \
 	  cp /tmp/openapi.antes.yaml api/openapi.yaml; exit 1; \
 	fi
@@ -119,5 +124,5 @@ limpar:
 help:
 	@grep -hE '^## ' $(MAKEFILE_LIST) | sed 's/^## /  /' | sort
 
-.PHONY: build build-cgo run test test-cgo openapi openapi-check vet fmt fmt-check tidy limpar help \
+.PHONY: build build-cgo run test test-cgo openapi openapi-check openapi-valida vet fmt fmt-check tidy limpar help \
 	acbr-libs-baixar acbr-libs-publicar acbr-libs-conferir docker-build up down

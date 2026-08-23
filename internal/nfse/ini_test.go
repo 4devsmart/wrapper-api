@@ -6,7 +6,7 @@ import (
 )
 
 // pedidoSintetico monta um DPSPedido com dados ANONIMIZADOS (CNPJ/endereço
-// fictícios) — nunca dados reais de contribuinte. Espelha o caminho de emissão
+// fictícios): nunca dados reais de contribuinte. Espelha o caminho de emissão
 // do Padrão Nacional para exercitar ToINI.
 func pedidoSintetico() DPSPedido {
 	return DPSPedido{
@@ -46,7 +46,7 @@ func TestToINI_SecoesEChaves(t *testing.T) {
 	}
 }
 
-// money() usa vírgula decimal — "1234.50" seria lido como zero pelo ACBr.
+// money() usa vírgula decimal: "1234.50" seria lido como zero pelo ACBr.
 func TestToINI_ValorComVirgula(t *testing.T) {
 	ini := ToINI(pedidoSintetico())
 	if !strings.Contains(ini, "ValorServicos=1234,50") {
@@ -83,7 +83,7 @@ func TestToINI_ReformaETributacaoCompleta(t *testing.T) {
 		"[tribMun]", "tpRetISSQN=1", "pAliq=3,50",
 		"[tribFed]", "CST=01", "vPis=6,50",
 		"[totTrib]", "indTotTrib=1", "vTotTribFed=36,50",
-		// IBS/CBS — finNFSe/indDest com default neutro (a lib estoura no vazio).
+		// IBS/CBS: finNFSe/indDest com default neutro (a lib estoura no vazio).
 		"[IBSCBSDPS]", "finNFSe=0", "indDest=0",
 		"[gIBSCBS]", "CST=000", "cClassTrib=000001",
 		"[gTribRegular]", "CSTReg=000", "[gDif]", "pDifCBS=8,00",
