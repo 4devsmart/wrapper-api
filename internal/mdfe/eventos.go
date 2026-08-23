@@ -52,28 +52,28 @@ func eventoHeader(b *iniBuilder, chave, cnpj, dhEvento, tpEvento string, nSeq in
 	if len(chave) >= 2 {
 		cOrgao = chave[:2]
 	}
-	b.section("EVENTO")
-	b.kv("idLote", "1")
-	b.section("EVENTO001")
-	b.kv("chMDFe", chave)
-	b.kvOpt("cOrgao", cOrgao)
-	b.kvOpt("CNPJCPF", cnpj)
-	b.kvOpt("dhEvento", dhEvento)
-	b.kv("tpEvento", tpEvento)
+	b.Secao("EVENTO")
+	b.KV("idLote", "1")
+	b.Secao("EVENTO001")
+	b.KV("chMDFe", chave)
+	b.KVOpt("cOrgao", cOrgao)
+	b.KVOpt("CNPJCPF", cnpj)
+	b.KVOpt("dhEvento", dhEvento)
+	b.KV("tpEvento", tpEvento)
 	if nSeq <= 0 {
 		nSeq = 1
 	}
-	b.kv("nSeqEvento", strconv.Itoa(nSeq))
+	b.KV("nSeqEvento", strconv.Itoa(nSeq))
 }
 
 // ToINIEncerramento monta o INI do encerramento (tpEvento 110112), indexado.
 func ToINIEncerramento(chave, cnpj, protocolo, dhEvento string, p PedidoEncerramento) string {
 	var b iniBuilder
 	eventoHeader(&b, chave, cnpj, dhEvento, "110112", 1)
-	b.kv("dtEnc", b.data(p.DataEncerramento))
-	b.kvIntOpt("cUF", p.CUF)
-	b.kvOpt("cMun", p.CMun)
-	b.kvOpt("nProt", protocolo)
+	b.KV("dtEnc", inifmt.DataBR(p.DataEncerramento, b.Local()))
+	b.KVIntOpt("cUF", p.CUF)
+	b.KVOpt("cMun", p.CMun)
+	b.KVOpt("nProt", protocolo)
 	return b.String()
 }
 
@@ -81,8 +81,8 @@ func ToINIEncerramento(chave, cnpj, protocolo, dhEvento string, p PedidoEncerram
 func ToINICancelamento(chave, cnpj, protocolo, dhEvento string, p PedidoCancelamento) string {
 	var b iniBuilder
 	eventoHeader(&b, chave, cnpj, dhEvento, "110111", 1)
-	b.kvOpt("nProt", protocolo)
-	b.kv("xJust", p.Justificativa)
+	b.KVOpt("nProt", protocolo)
+	b.KV("xJust", p.Justificativa)
 	return b.String()
 }
 
@@ -90,8 +90,8 @@ func ToINICancelamento(chave, cnpj, protocolo, dhEvento string, p PedidoCancelam
 func ToINIInclusaoCondutor(chave, cnpj, dhEvento string, p PedidoInclusaoCondutor) string {
 	var b iniBuilder
 	eventoHeader(&b, chave, cnpj, dhEvento, "110114", p.NSeqEvento)
-	b.kv("xNome", p.Nome)
-	b.kv("CPF", p.CPF)
+	b.KV("xNome", p.Nome)
+	b.KV("CPF", p.CPF)
 	return b.String()
 }
 
@@ -100,19 +100,16 @@ func ToINIInclusaoCondutor(chave, cnpj, dhEvento string, p PedidoInclusaoConduto
 func ToINIInclusaoDFe(chave, cnpj, dhEvento string, p PedidoInclusaoDFe) string {
 	var b iniBuilder
 	eventoHeader(&b, chave, cnpj, dhEvento, "110115", p.NSeqEvento)
-	b.kvOpt("cMunCarrega", p.CMunCarrega)
-	b.kvOpt("xMunCarrega", p.XMunCarrega)
+	b.KVOpt("cMunCarrega", p.CMunCarrega)
+	b.KVOpt("xMunCarrega", p.XMunCarrega)
 	for i, d := range p.Documentos {
-		b.section("infDoc" + seq4(i+1))
-		b.kv("chNFe", d.ChNFe)
-		b.kvOpt("cMunDescarga", d.CMunDescarga)
-		b.kvOpt("xMunDescarga", d.XMunDescarga)
+		b.Secao("infDoc" + inifmt.Seq4(i+1))
+		b.KV("chNFe", d.ChNFe)
+		b.KVOpt("cMunDescarga", d.CMunDescarga)
+		b.KVOpt("xMunDescarga", d.XMunDescarga)
 	}
 	return b.String()
 }
-
-// seq4 formata índice com 4 dígitos (ex.: [infDoc0001]).
-func seq4(n int) string { return inifmt.Seq4(n) }
 
 // Evento é o resultado estruturado de um evento (encerramento/cancelamento).
 // cStat 135 = evento registrado e vinculado ao MDF-e.
@@ -144,13 +141,4 @@ func StatusEvento(e Evento) string {
 	default:
 		return "erro"
 	}
-}
-
-// data é a data (sem hora) no fuso do documento. Vazio = hoje.
-func (b *iniBuilder) data(s string) string {
-	dt := b.dataHora(s) // "DD/MM/YYYY HH:MM:SS"
-	if len(dt) >= 10 {
-		return dt[:10]
-	}
-	return dt
 }

@@ -310,3 +310,18 @@ func TestToINI_VerProcIdentificaEsteServico(t *testing.T) {
 		t.Error("verProc informado pelo cliente foi ignorado")
 	}
 }
+
+// Os builders escolhiam entre CNPJ e CPF com um firstNonEmpty local que só
+// testava string vazia, enquanto fiscal.Primeiro descarta o que é só espaço.
+// Duas funções com a mesma intenção e semânticas diferentes: um CNPJ em branco
+// virava "CNPJCPF= " e o CPF que estava logo ali era descartado. Agora é uma só.
+func TestToINI_CNPJEmBrancoNaoRoubaOLugarDoCPF(t *testing.T) {
+	p := pedidoFixture()
+	p.InfCte.Emit.CNPJ = "   "
+	p.InfCte.Emit.CPF = "11122233344"
+
+	ini := ToINI(p)
+	if !strings.Contains(ini, "CNPJ=11122233344") {
+		t.Errorf("o CPF não ocupou o lugar do CNPJ em branco:\n%s", ini)
+	}
+}

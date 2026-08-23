@@ -32,18 +32,6 @@ func ChaveDPS(id string) string {
 	return strings.TrimPrefix(strings.TrimSpace(id), "DPS")
 }
 
-var reTpAmb = regexp.MustCompile(`<tpAmb>\s*([12])\s*</tpAmb>`)
-
 // AmbienteDoXML devolve "producao"/"homologacao" a partir do tpAmb do XML, ou
 // "" se não achar. O tpAmb da SEFAZ é 1=produção e 2=homologação: o oposto do
 // ordinal da ACBrLib, que é 0=produção.
-func AmbienteDoXML(xml string) string {
-	m := reTpAmb.FindStringSubmatch(xml)
-	if len(m) != 2 {
-		return ""
-	}
-	if m[1] == "1" {
-		return "producao"
-	}
-	return "homologacao"
-}

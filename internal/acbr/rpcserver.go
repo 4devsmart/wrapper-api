@@ -3,6 +3,7 @@ package acbr
 import (
 	"encoding/json"
 	"errors"
+	"github.com/4devsmart/wrapper-api/internal/platform/httpx"
 	"net/http"
 	"sync"
 )
@@ -46,12 +47,12 @@ func RPCHandlerReciclavel(s *Servicos, slots, maxCalls int) (http.Handler, <-cha
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET "+RotaHealth, func(w http.ResponseWriter, _ *http.Request) {
-		escreverJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+		httpx.JSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
 	mux.HandleFunc("POST "+RotaRPC, func(w http.ResponseWriter, r *http.Request) {
 		var p Pedido
 		if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
-			escreverJSON(w, http.StatusBadRequest, Resposta{Erro: "pedido inválido: " + err.Error()})
+			httpx.JSON(w, http.StatusBadRequest, Resposta{Erro: "pedido inválido: " + err.Error()})
 			return
 		}
 
@@ -60,7 +61,7 @@ func RPCHandlerReciclavel(s *Servicos, slots, maxCalls int) (http.Handler, <-cha
 		case vagas <- struct{}{}:
 			defer func() { <-vagas }()
 		case <-r.Context().Done():
-			escreverJSON(w, http.StatusServiceUnavailable, Resposta{
+			httpx.JSON(w, http.StatusServiceUnavailable, Resposta{
 				Erro: "worker ocupado: nenhuma vaga liberou a tempo", Indisponivel: true,
 			})
 			return
@@ -69,12 +70,12 @@ func RPCHandlerReciclavel(s *Servicos, slots, maxCalls int) (http.Handler, <-cha
 		contar()
 		resp, conhecido := Despachar(s, p)
 		if !conhecido {
-			escreverJSON(w, http.StatusBadRequest, Resposta{
+			httpx.JSON(w, http.StatusBadRequest, Resposta{
 				Erro: "método desconhecido: " + p.Servico + "/" + p.Metodo,
 			})
 			return
 		}
-		escreverJSON(w, http.StatusOK, resp)
+		httpx.JSON(w, http.StatusOK, resp)
 	})
 	return mux, reciclar
 }
@@ -273,10 +274,4 @@ func marcarErro(resp *Resposta, err error) {
 	resp.Erro = err.Error()
 	resp.Indisponivel = errors.Is(err, ErrUnavailable)
 	resp.NaoSuportado = errors.Is(err, ErrNaoSuportado)
-}
-
-func escreverJSON(w http.ResponseWriter, status int, v any) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(v)
 }

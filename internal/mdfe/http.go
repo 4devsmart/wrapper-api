@@ -73,7 +73,7 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !ambienteDoPedido(w, &p.Ambiente, p.InfMDFe.Ide.TpAmb) || !modalSuportado(w, p.InfMDFe.Ide.Modal) {
+	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, p.InfMDFe.Ide.TpAmb, "infMDFe.ide.tpAmb") || !fiscal.ModalSuportado(w, modalTexto(p.InfMDFe.Ide.Modal), modalRodoviario) {
 		return
 	}
 	t := fiscal.Tenant(cnpj, secaoACBr, p.Ambiente, fiscal.Certificado{})
@@ -143,13 +143,13 @@ func (m *Modulo) handleTransmissao(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !ambienteDoPedido(w, &p.Ambiente, 0) {
+	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 		return
 	}
 	chave := ChaveDoXML(xml)
 	// O ambiente vem do XML, não do cliente. Divergir dá rejeição 252, ou,
 	// pior, manda um documento de homologação para o webservice de produção.
-	ambiente := fiscal.Primeiro(AmbienteDoXML(xml), p.Ambiente)
+	ambiente := fiscal.Primeiro(fiscal.AmbienteDoXML(xml), p.Ambiente)
 	t := fiscal.Tenant(fiscal.CNPJDaChave(chave), secaoACBr, ambiente, p.Certificado)
 
 	res, err := m.svc.Transmitir(t, xml)
@@ -211,7 +211,7 @@ func (m *Modulo) handleEvento(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !ambienteDoPedido(w, &p.Ambiente, 0) {
+	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 		return
 	}
 	cnpj := fiscal.CNPJDaChave(chave)
@@ -331,7 +331,7 @@ func (m *Modulo) handleConsulta(w http.ResponseWriter, r *http.Request) {
 		httpx.ErroJSON(w, http.StatusBadRequest, "certificado_invalido", err.Error())
 		return
 	}
-	if !ambienteDoPedido(w, &p.Ambiente, 0) {
+	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 		return
 	}
 	t := fiscal.Tenant(fiscal.CNPJDaChave(chave), secaoACBr, p.Ambiente, p.Certificado)
@@ -389,7 +389,7 @@ func (m *Modulo) lerPedidoSefaz(w http.ResponseWriter, r *http.Request) (PedidoS
 		httpx.ErroJSON(w, http.StatusBadRequest, "certificado_invalido", err.Error())
 		return p, acbr.TenantConfig{}, false
 	}
-	if !ambienteDoPedido(w, &p.Ambiente, 0) {
+	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 		return p, acbr.TenantConfig{}, false
 	}
 	t := fiscal.Tenant(fiscal.SoDigitos(p.CNPJ), secaoACBr, p.Ambiente, p.Certificado)
@@ -451,41 +451,17 @@ func (m *Modulo) handlePDFEvento(w http.ResponseWriter, r *http.Request) {
 }
 
 // modalRodoviario é o único modal que este serviço emite. Ver Escopo, no README.
-const modalRodoviario = 1
+// Texto porque é assim que ele chega à conferência compartilhada: o código do
+// rodoviário muda por documento ("01" no CT-e, "1" aqui).
+const modalRodoviario = "1"
 
-// modalSuportado recusa o pedido de um modal que não emitimos.
-//
-// O grupo infModal só tem "rodo": um pedido de outro modal chegaria aqui sem os
-// campos dele (o JSON recusa campo desconhecido) e viraria um MDF-e com o modal
-// declarado e nenhum dado de modal. Melhor dizer não na entrada.
-func modalSuportado(w http.ResponseWriter, modal int) bool {
-	if modal == 0 || modal == modalRodoviario {
-		return true
+// modalTexto converte o modal do pedido para texto, e o zero (campo ausente)
+// para vazio, que é como a conferência compartilhada entende "não informado".
+func modalTexto(modal int) string {
+	if modal == 0 {
+		return ""
 	}
-	httpx.ErroJSON(w, http.StatusUnprocessableEntity, "modal_nao_suportado",
-		"este serviço emite apenas o modal rodoviário (modal=1); recebido modal="+strconv.Itoa(modal))
-	return false
-}
-
-// ambienteDoPedido normaliza o ambiente NO PRÓPRIO pedido, para que a sessão
-// nativa e o INI leiam o mesmo valor, e confere o tpAmb explícito de infMDFe.ide
-// contra ele (tpAmb=0 quando o pedido não tem o campo).
-//
-// Antes o tpAmb informado pelo cliente era ignorado em silêncio e o INI saía
-// sempre do campo ambiente: quem pedisse produção pelo tpAmb recebia um
-// documento de homologação com resposta 200.
-func ambienteDoPedido(w http.ResponseWriter, ambiente *string, tpAmb int) bool {
-	amb, ok := fiscal.AmbienteValido(w, *ambiente)
-	if !ok {
-		return false
-	}
-	*ambiente = amb
-	if (tpAmb == 1 || tpAmb == 2) && fiscal.TpAmb(amb) != strconv.Itoa(tpAmb) {
-		httpx.ErroJSON(w, http.StatusBadRequest, "ambiente_divergente",
-			"infMDFe.ide.tpAmb contradiz o campo ambiente: informe um dos dois")
-		return false
-	}
-	return true
+	return strconv.Itoa(modal)
 }
 
 func (m *Modulo) responderPDF(w http.ResponseWriter, res acbr.Result, err error) {

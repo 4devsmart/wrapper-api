@@ -29,18 +29,18 @@ type PedidoComprovanteEntrega struct {
 func ToINIComprovanteEntrega(chave, cnpj, dhEvento string, p PedidoComprovanteEntrega) string {
 	var b iniBuilder
 	eventoHeader(&b, chave, cnpj, dhEvento, "110180", p.NSeqEvento)
-	b.kvOpt("nProt", p.NProt)
-	b.kvOpt("UF", p.UF)
-	b.kvOpt("dhEntrega", p.DhEntrega)
-	b.kvOpt("nDoc", p.NDoc)
-	b.kvOpt("xNome", p.XNome)
-	b.kvOpt("latitude", coord(p.Latitude))
-	b.kvOpt("longitude", coord(p.Longitude))
-	b.kvOpt("hashEntrega", p.HashEntrega)
-	b.kvOpt("dhHashEntrega", p.DhHashEntrega)
+	b.KVOpt("nProt", p.NProt)
+	b.KVOpt("UF", p.UF)
+	b.KVOpt("dhEntrega", p.DhEntrega)
+	b.KVOpt("nDoc", p.NDoc)
+	b.KVOpt("xNome", p.XNome)
+	b.KVOpt("latitude", coord(p.Latitude))
+	b.KVOpt("longitude", coord(p.Longitude))
+	b.KVOpt("hashEntrega", p.HashEntrega)
+	b.KVOpt("dhHashEntrega", p.DhHashEntrega)
 	for i, ch := range p.Documentos {
-		b.section("infEntrega" + seq4(i+1))
-		b.kv("chNFe", ch)
+		b.Secao("infEntrega" + inifmt.Seq4(i+1))
+		b.KV("chNFe", ch)
 	}
 	return b.String()
 }
@@ -52,6 +52,3 @@ func coord(v float64) string {
 	}
 	return strings.Replace(strconv.FormatFloat(v, 'f', -1, 64), ".", ",", 1)
 }
-
-// seq4 formata índice com 4 dígitos (ex.: [infEntrega0001]).
-func seq4(n int) string { return inifmt.Seq4(n) }

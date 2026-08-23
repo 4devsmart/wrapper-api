@@ -1,9 +1,8 @@
 package mdfe
 
 import (
+	"cmp"
 	"strconv"
-	"strings"
-	"time"
 
 	"github.com/4devsmart/wrapper-api/internal/fiscal"
 	"github.com/4devsmart/wrapper-api/internal/platform/inifmt"
@@ -25,281 +24,281 @@ func ToINI(p PedidoEmissao) string {
 	inf := p.InfMDFe
 	id := inf.Ide
 	var b iniBuilder
-	b.loc = inifmt.LocalDoCodigoUF(inf.Ide.CUF)
+	b.EmUF(inf.Ide.CUF)
 
-	b.section("infMDFe")
-	b.kv("versao", defaultStr(inf.Versao, "3.00"))
+	b.Secao("infMDFe")
+	b.KV("versao", cmp.Or(inf.Versao, "3.00"))
 
-	b.section("ide")
-	b.kvIntOpt("cUF", id.CUF)
-	b.kv("tpAmb", fiscal.TpAmb(p.Ambiente))
-	b.kv("tpEmit", strconv.Itoa(defaultInt(id.TpEmit, 1)))
-	b.kvIntOpt("tpTransp", id.TpTransp)
-	b.kv("mod", strconv.Itoa(defaultInt(id.Mod, 58)))
-	b.kv("serie", strconv.Itoa(id.Serie))
-	b.kv("nMDF", strconv.Itoa(id.NMDF))
-	b.kvOpt("cMDF", id.CMDF)
-	b.kv("modal", strconv.Itoa(defaultInt(id.Modal, 1))) // 1 = rodoviário
-	b.kv("dhemi", b.dataHora(id.DhEmi))
-	b.kv("tpEmis", strconv.Itoa(defaultInt(id.TpEmis, 1)))
-	b.kv("procEmi", defaultStr(id.ProcEmi, "0"))
-	b.kv("verProc", defaultStr(id.VerProc, versao.Emissor()))
-	b.kv("UFIni", id.UFIni)
-	b.kv("UFFim", id.UFFim)
-	b.kvIntOpt("indCanalVerde", id.IndCanalVerde)
-	b.kvIntOpt("indCarregaPosterior", id.IndCarregaPosterior)
+	b.Secao("ide")
+	b.KVIntOpt("cUF", id.CUF)
+	b.KV("tpAmb", fiscal.TpAmb(p.Ambiente))
+	b.KV("tpEmit", strconv.Itoa(cmp.Or(id.TpEmit, 1)))
+	b.KVIntOpt("tpTransp", id.TpTransp)
+	b.KV("mod", strconv.Itoa(cmp.Or(id.Mod, 58)))
+	b.KV("serie", strconv.Itoa(id.Serie))
+	b.KV("nMDF", strconv.Itoa(id.NMDF))
+	b.KVOpt("cMDF", id.CMDF)
+	b.KV("modal", strconv.Itoa(cmp.Or(id.Modal, 1))) // 1 = rodoviário
+	b.KV("dhemi", b.DataHora(id.DhEmi))
+	b.KV("tpEmis", strconv.Itoa(cmp.Or(id.TpEmis, 1)))
+	b.KV("procEmi", cmp.Or(id.ProcEmi, "0"))
+	b.KV("verProc", cmp.Or(id.VerProc, versao.Emissor()))
+	b.KV("UFIni", id.UFIni)
+	b.KV("UFFim", id.UFFim)
+	b.KVIntOpt("indCanalVerde", id.IndCanalVerde)
+	b.KVIntOpt("indCarregaPosterior", id.IndCarregaPosterior)
 	// dhIniViagem pertence a [ide]: o leitor da lib faz ReadString(<ide>,
 	// 'dhIniViagem'). Era escrito dentro de [CARR001] e simplesmente ignorado:
 	// o MDF-e saía sem data/hora de início da viagem. Achado pelo lockstep.
 	if id.DhIniViagem != "" {
-		b.kv("dhIniViagem", b.dataHora(id.DhIniViagem))
+		b.KV("dhIniViagem", b.DataHora(id.DhIniViagem))
 	}
 
 	for i, perc := range id.InfPercurso {
-		b.section("perc" + seq(i+1))
-		b.kv("UFPer", perc.UFPer)
+		b.Secao("perc" + inifmt.Seq3(i+1))
+		b.KV("UFPer", perc.UFPer)
 	}
 	for i, c := range id.InfMunCarrega {
-		b.section("CARR" + seq(i+1))
-		b.kv("cMunCarrega", c.CMunCarrega)
-		b.kv("xMunCarrega", c.XMunCarrega)
+		b.Secao("CARR" + inifmt.Seq3(i+1))
+		b.KV("cMunCarrega", c.CMunCarrega)
+		b.KV("xMunCarrega", c.XMunCarrega)
 	}
 
-	b.section("emit")
-	b.kvOpt("CNPJCPF", firstNonEmpty(inf.Emit.CNPJ, inf.Emit.CPF))
-	b.kvOpt("IE", inf.Emit.IE)
-	b.kvOpt("xNome", inf.Emit.XNome)
-	b.kvOpt("xFant", inf.Emit.XFant)
+	b.Secao("emit")
+	b.KVOpt("CNPJCPF", fiscal.Primeiro(inf.Emit.CNPJ, inf.Emit.CPF))
+	b.KVOpt("IE", inf.Emit.IE)
+	b.KVOpt("xNome", inf.Emit.XNome)
+	b.KVOpt("xFant", inf.Emit.XFant)
 	if a := inf.Emit.EnderEmit; a != nil {
-		b.kvOpt("xLgr", a.XLgr)
-		b.kvOpt("nro", a.Nro)
-		b.kvOpt("xCpl", a.XCpl)
-		b.kvOpt("xBairro", a.XBairro)
-		b.kvOpt("cMun", a.CMun)
-		b.kvOpt("xMun", a.XMun)
-		b.kvOpt("CEP", a.CEP)
-		b.kvOpt("UF", a.UF)
-		b.kvOpt("fone", a.Fone)
-		b.kvOpt("email", a.Email)
+		b.KVOpt("xLgr", a.XLgr)
+		b.KVOpt("nro", a.Nro)
+		b.KVOpt("xCpl", a.XCpl)
+		b.KVOpt("xBairro", a.XBairro)
+		b.KVOpt("cMun", a.CMun)
+		b.KVOpt("xMun", a.XMun)
+		b.KVOpt("CEP", a.CEP)
+		b.KVOpt("UF", a.UF)
+		b.KVOpt("fone", a.Fone)
+		b.KVOpt("email", a.Email)
 	}
 
 	if rodo := inf.InfModal.Rodo; rodo != nil {
-		b.section("Rodo")
-		b.kvOpt("codAgPorto", rodo.CodAgPorto)
+		b.Secao("Rodo")
+		b.KVOpt("codAgPorto", rodo.CodAgPorto)
 		if antt := rodo.InfANTT; antt != nil {
-			b.section("infANTT")
-			b.kvOpt("RNTRC", antt.RNTRC)
+			b.Secao("infANTT")
+			b.KVOpt("RNTRC", antt.RNTRC)
 			for i, c := range antt.InfCIOT {
-				b.section("infCIOT" + seq(i+1))
-				b.kv("CIOT", c.CIOT)
-				b.kvOpt("CNPJCPF", firstNonEmpty(c.CNPJ, c.CPF))
+				b.Secao("infCIOT" + inifmt.Seq3(i+1))
+				b.KV("CIOT", c.CIOT)
+				b.KVOpt("CNPJCPF", fiscal.Primeiro(c.CNPJ, c.CPF))
 			}
 			if vp := antt.ValePed; vp != nil {
-				b.section("valePed")
-				b.kvOpt("CategCombVeic", vp.CategCombVeic)
+				b.Secao("valePed")
+				b.KVOpt("CategCombVeic", vp.CategCombVeic)
 				for i, d := range vp.Disp {
-					b.section("disp" + seq(i+1))
-					b.kvOpt("CNPJForn", d.CNPJForn)
-					b.kvOpt("CNPJPg", firstNonEmpty(d.CNPJPg, d.CPFPg))
-					b.kvOpt("nCompra", d.NCompra)
-					b.kv("vValePed", money(d.VValePed))
-					b.kvOpt("tpValePed", d.TpValePed)
+					b.Secao("disp" + inifmt.Seq3(i+1))
+					b.KVOpt("CNPJForn", d.CNPJForn)
+					b.KVOpt("CNPJPg", fiscal.Primeiro(d.CNPJPg, d.CPFPg))
+					b.KVOpt("nCompra", d.NCompra)
+					b.KV("vValePed", inifmt.Money(d.VValePed))
+					b.KVOpt("tpValePed", d.TpValePed)
 				}
 			}
 			for i, ct := range antt.InfContratante {
-				b.section("infContratante" + seq(i+1))
-				b.kvOpt("CNPJCPF", firstNonEmpty(ct.CNPJ, ct.CPF))
-				b.kvOpt("idEstrangeiro", ct.IdEstrangeiro)
-				b.kvOpt("xNome", ct.XNome)
+				b.Secao("infContratante" + inifmt.Seq3(i+1))
+				b.KVOpt("CNPJCPF", fiscal.Primeiro(ct.CNPJ, ct.CPF))
+				b.KVOpt("idEstrangeiro", ct.IdEstrangeiro)
+				b.KVOpt("xNome", ct.XNome)
 				// infContrato não tem seção própria: a lib lê as duas chaves
 				// dentro de [infContratantennn].
 				if k := ct.InfContrato; k != nil {
-					b.kvOpt("NroContrato", k.NroContrato)
-					b.kvOpt("vContratoGlobal", moneyOpt(k.VContratoGlobal))
+					b.KVOpt("NroContrato", k.NroContrato)
+					b.KVOpt("vContratoGlobal", inifmt.MoneyOpt(k.VContratoGlobal))
 				}
 			}
 			for pi, pg := range antt.InfPag {
-				ps := seq(pi + 1)
-				b.section("infPag" + ps)
-				b.kvOpt("CNPJCPF", firstNonEmpty(pg.CNPJ, pg.CPF))
-				b.kvOpt("idEstrangeiro", pg.IdEstrangeiro)
-				b.kvOpt("xNome", pg.XNome)
-				b.kv("vContrato", money(pg.VContrato))
-				b.kv("indPag", strconv.Itoa(pg.IndPag))
-				b.kvOpt("vAdiant", moneyOpt(pg.VAdiant))
-				b.kvIntOpt("indAltoDesemp", pg.IndAltoDesemp)
-				b.kvIntOpt("indAntecipaAdiant", pg.IndAntecipaAdiant)
-				b.kvIntOpt("tpAntecip", pg.TpAntecip)
+				ps := inifmt.Seq3(pi + 1)
+				b.Secao("infPag" + ps)
+				b.KVOpt("CNPJCPF", fiscal.Primeiro(pg.CNPJ, pg.CPF))
+				b.KVOpt("idEstrangeiro", pg.IdEstrangeiro)
+				b.KVOpt("xNome", pg.XNome)
+				b.KV("vContrato", inifmt.Money(pg.VContrato))
+				b.KV("indPag", strconv.Itoa(pg.IndPag))
+				b.KVOpt("vAdiant", inifmt.MoneyOpt(pg.VAdiant))
+				b.KVIntOpt("indAltoDesemp", pg.IndAltoDesemp)
+				b.KVIntOpt("indAntecipaAdiant", pg.IndAntecipaAdiant)
+				b.KVIntOpt("tpAntecip", pg.TpAntecip)
 				for ci, c := range pg.Comp {
-					b.section("Comp" + ps + seq(ci+1))
-					b.kv("tpComp", c.TpComp)
-					b.kv("vComp", money(c.VComp))
-					b.kvOpt("xComp", c.XComp)
+					b.Secao("Comp" + ps + inifmt.Seq3(ci+1))
+					b.KV("tpComp", c.TpComp)
+					b.KV("vComp", inifmt.Money(c.VComp))
+					b.KVOpt("xComp", c.XComp)
 				}
 				for zi, z := range pg.InfPrazo {
-					b.section("infPrazo" + ps + seq(zi+1))
-					b.kv("nParcela", strconv.Itoa(z.NParcela))
-					b.kvOpt("dVenc", b.dataOpt(z.DVenc))
-					b.kv("vParcela", money(z.VParcela))
+					b.Secao("infPrazo" + ps + inifmt.Seq3(zi+1))
+					b.KV("nParcela", strconv.Itoa(z.NParcela))
+					b.KVOpt("dVenc", b.Data(z.DVenc))
+					b.KV("vParcela", inifmt.Money(z.VParcela))
 				}
 				if ib := pg.InfBanc; ib.CodBanco != "" || ib.CNPJIPEF != "" || ib.PIX != "" {
-					b.section("infBanc" + ps)
-					b.kvOpt("codBanco", ib.CodBanco)
-					b.kvOpt("codAgencia", ib.CodAgencia)
-					b.kvOpt("CNPJIPEF", ib.CNPJIPEF)
-					b.kvOpt("PIX", ib.PIX)
+					b.Secao("infBanc" + ps)
+					b.KVOpt("codBanco", ib.CodBanco)
+					b.KVOpt("codAgencia", ib.CodAgencia)
+					b.KVOpt("CNPJIPEF", ib.CNPJIPEF)
+					b.KVOpt("PIX", ib.PIX)
 				}
 			}
 		}
 		v := rodo.VeicTracao
-		b.section("veicTracao")
-		b.kvOpt("cInt", v.CInt)
-		b.kv("placa", v.Placa)
-		b.kvOpt("UF", v.UF)
-		b.kvOpt("RENAVAM", v.RENAVAM)
-		b.kv("tara", strconv.Itoa(v.Tara))
-		b.kvIntOpt("capKG", v.CapKG)
-		b.kvIntOpt("capM3", v.CapM3)
-		b.kv("tpRod", v.TpRod)
-		b.kv("tpCar", v.TpCar)
+		b.Secao("veicTracao")
+		b.KVOpt("cInt", v.CInt)
+		b.KV("placa", v.Placa)
+		b.KVOpt("UF", v.UF)
+		b.KVOpt("RENAVAM", v.RENAVAM)
+		b.KV("tara", strconv.Itoa(v.Tara))
+		b.KVIntOpt("capKG", v.CapKG)
+		b.KVIntOpt("capM3", v.CapM3)
+		b.KV("tpRod", v.TpRod)
+		b.KV("tpCar", v.TpCar)
 		if pr := v.Prop; pr != nil {
-			b.kvOpt("CNPJCPF", firstNonEmpty(pr.CNPJ, pr.CPF))
-			b.kvOpt("RNTRC", pr.RNTRC)
-			b.kvOpt("xNome", pr.XNome)
-			b.kvOpt("IE", pr.IE)
-			b.kvOpt("UFProp", pr.UF)
-			b.kvIntOpt("tpProp", pr.TpProp)
+			b.KVOpt("CNPJCPF", fiscal.Primeiro(pr.CNPJ, pr.CPF))
+			b.KVOpt("RNTRC", pr.RNTRC)
+			b.KVOpt("xNome", pr.XNome)
+			b.KVOpt("IE", pr.IE)
+			b.KVOpt("UFProp", pr.UF)
+			b.KVIntOpt("tpProp", pr.TpProp)
 		}
 		for i, c := range v.Condutor {
-			b.section("moto" + seq(i+1))
-			b.kv("xNome", c.XNome)
-			b.kv("CPF", c.CPF)
+			b.Secao("moto" + inifmt.Seq3(i+1))
+			b.KV("xNome", c.XNome)
+			b.KV("CPF", c.CPF)
 		}
 		for i, rb := range rodo.VeicReboque {
-			b.section("reboque" + seq2(i+1)) // [reboqueNN]: 2 dígitos
-			b.kvOpt("cInt", rb.CInt)
-			b.kv("placa", rb.Placa)
-			b.kvOpt("RENAVAM", rb.RENAVAM)
-			b.kv("tara", strconv.Itoa(rb.Tara))
-			b.kvIntOpt("capKG", rb.CapKG)
-			b.kvIntOpt("capM3", rb.CapM3)
-			b.kv("tpCar", rb.TpCar)
-			b.kvOpt("UF", rb.UF)
+			b.Secao("reboque" + inifmt.Seq2(i+1)) // [reboqueNN]: 2 dígitos
+			b.KVOpt("cInt", rb.CInt)
+			b.KV("placa", rb.Placa)
+			b.KVOpt("RENAVAM", rb.RENAVAM)
+			b.KV("tara", strconv.Itoa(rb.Tara))
+			b.KVIntOpt("capKG", rb.CapKG)
+			b.KVIntOpt("capM3", rb.CapM3)
+			b.KV("tpCar", rb.TpCar)
+			b.KVOpt("UF", rb.UF)
 			if pr := rb.Prop; pr != nil {
-				b.kvOpt("CNPJCPF", firstNonEmpty(pr.CNPJ, pr.CPF))
-				b.kvOpt("RNTRC", pr.RNTRC)
-				b.kvOpt("xNome", pr.XNome)
-				b.kvOpt("IE", pr.IE)
-				b.kvOpt("UFProp", pr.UF)
-				b.kvIntOpt("tpProp", pr.TpProp)
+				b.KVOpt("CNPJCPF", fiscal.Primeiro(pr.CNPJ, pr.CPF))
+				b.KVOpt("RNTRC", pr.RNTRC)
+				b.KVOpt("xNome", pr.XNome)
+				b.KVOpt("IE", pr.IE)
+				b.KVOpt("UFProp", pr.UF)
+				b.KVIntOpt("tpProp", pr.TpProp)
 			}
 		}
 		for i, l := range rodo.LacRodo {
-			b.section("lacRodo" + seq(i+1))
-			b.kv("nLacre", l.NLacre)
+			b.Secao("lacRodo" + inifmt.Seq3(i+1))
+			b.KV("nLacre", l.NLacre)
 		}
 	}
 
 	for di, desc := range inf.InfDoc.InfMunDescarga {
-		b.section("DESC" + seq(di+1))
-		b.kv("cMunDescarga", desc.CMunDescarga)
-		b.kv("xMunDescarga", desc.XMunDescarga)
+		b.Secao("DESC" + inifmt.Seq3(di+1))
+		b.KV("cMunDescarga", desc.CMunDescarga)
+		b.KV("xMunDescarga", desc.XMunDescarga)
 		for ni, nfe := range desc.InfNFe {
-			dn := seq(di+1) + seq(ni+1)
-			b.section("infNFe" + dn)
-			b.kv("chNFe", nfe.ChNFe)
-			b.kvOpt("SegCodBarra", nfe.SegCodBarra)
-			b.kvIntOpt("indReentrega", nfe.IndReentrega)
+			dn := inifmt.Seq3(di+1) + inifmt.Seq3(ni+1)
+			b.Secao("infNFe" + dn)
+			b.KV("chNFe", nfe.ChNFe)
+			b.KVOpt("SegCodBarra", nfe.SegCodBarra)
+			b.KVIntOpt("indReentrega", nfe.IndReentrega)
 			for pi, p := range nfe.Peri {
-				b.peri(dn+seq(pi+1), p.NONU, p.XNomeAE, p.XClaRisco, p.GrEmb, p.QTotProd, p.QVolTipo)
+				b.peri(dn+inifmt.Seq3(pi+1), p.NONU, p.XNomeAE, p.XClaRisco, p.GrEmb, p.QTotProd, p.QVolTipo)
 			}
 			b.unidTransp(dn, nfe.InfUnidTransp)
 		}
 		for ci, c := range desc.InfCTe {
-			dn := seq(di+1) + seq(ci+1)
-			b.section("infCTe" + dn)
-			b.kv("chCTe", c.ChCTe)
-			b.kvOpt("SegCodBarra", c.SegCodBarra)
-			b.kvIntOpt("indReentrega", c.IndReentrega)
-			b.kvIntOpt("indPrestacaoParcial", c.IndPrestacaoParcial)
+			dn := inifmt.Seq3(di+1) + inifmt.Seq3(ci+1)
+			b.Secao("infCTe" + dn)
+			b.KV("chCTe", c.ChCTe)
+			b.KVOpt("SegCodBarra", c.SegCodBarra)
+			b.KVIntOpt("indReentrega", c.IndReentrega)
+			b.KVIntOpt("indPrestacaoParcial", c.IndPrestacaoParcial)
 			if ep := c.InfEntregaParcial; ep != nil {
-				b.section("infEntregaParcial" + dn)
-				b.kv("qtdTotal", money(ep.QtdTotal))
-				b.kv("qtdParcial", money(ep.QtdParcial))
+				b.Secao("infEntregaParcial" + dn)
+				b.KV("qtdTotal", inifmt.Money(ep.QtdTotal))
+				b.KV("qtdParcial", inifmt.Money(ep.QtdParcial))
 			}
 			for ni, nfp := range c.InfNFePrestParcial {
-				b.section("infNFePrestParcial" + dn + seq(ni+1))
-				b.kv("chNFe", nfp.ChNFe)
+				b.Secao("infNFePrestParcial" + dn + inifmt.Seq3(ni+1))
+				b.KV("chNFe", nfp.ChNFe)
 			}
 			for pi, p := range c.Peri {
-				b.peri(dn+seq(pi+1), p.NONU, p.XNomeAE, p.XClaRisco, p.GrEmb, p.QTotProd, p.QVolTipo)
+				b.peri(dn+inifmt.Seq3(pi+1), p.NONU, p.XNomeAE, p.XClaRisco, p.GrEmb, p.QTotProd, p.QVolTipo)
 			}
 			b.unidTransp(dn, c.InfUnidTransp)
 		}
 		for mi, m := range desc.InfMDFeTransp {
-			dn := seq(di+1) + seq(mi+1)
-			b.section("infMDFeTransp" + dn)
-			b.kv("chMDFe", m.ChMDFe)
-			b.kvIntOpt("indReentrega", m.IndReentrega)
+			dn := inifmt.Seq3(di+1) + inifmt.Seq3(mi+1)
+			b.Secao("infMDFeTransp" + dn)
+			b.KV("chMDFe", m.ChMDFe)
+			b.KVIntOpt("indReentrega", m.IndReentrega)
 			for pi, p := range m.Peri {
-				b.peri(dn+seq(pi+1), p.NONU, p.XNomeAE, p.XClaRisco, p.GrEmb, p.QTotProd, p.QVolTipo)
+				b.peri(dn+inifmt.Seq3(pi+1), p.NONU, p.XNomeAE, p.XClaRisco, p.GrEmb, p.QTotProd, p.QVolTipo)
 			}
 			b.unidTransp(dn, m.InfUnidTransp)
 		}
 	}
 
 	if pp := inf.ProdPred; pp != nil {
-		b.section("prodPred")
-		b.kvOpt("tpCarga", pp.TpCarga)
-		b.kvOpt("xProd", pp.XProd)
-		b.kvOpt("cEAN", pp.CEAN)
-		b.kvOpt("NCM", pp.NCM)
+		b.Secao("prodPred")
+		b.KVOpt("tpCarga", pp.TpCarga)
+		b.KVOpt("xProd", pp.XProd)
+		b.KVOpt("cEAN", pp.CEAN)
+		b.KVOpt("NCM", pp.NCM)
 		if lot := pp.InfLotacao; lot != nil {
 			c := lot.InfLocalCarrega
-			b.section("infLocalCarrega")
-			b.kvOpt("CEP", c.CEP)
-			b.kvOpt("latitude", c.Latitude)
-			b.kvOpt("longitude", c.Longitude)
+			b.Secao("infLocalCarrega")
+			b.KVOpt("CEP", c.CEP)
+			b.KVOpt("latitude", c.Latitude)
+			b.KVOpt("longitude", c.Longitude)
 			d := lot.InfLocalDescarrega
-			b.section("infLocalDescarrega")
-			b.kvOpt("CEP", d.CEP)
-			b.kvOpt("latitude", d.Latitude)
-			b.kvOpt("longitude", d.Longitude)
+			b.Secao("infLocalDescarrega")
+			b.KVOpt("CEP", d.CEP)
+			b.KVOpt("latitude", d.Latitude)
+			b.KVOpt("longitude", d.Longitude)
 		}
 	}
 
 	t := inf.Tot
-	b.section("tot")
-	b.kvIntOpt("qCTe", t.QCTe)
-	b.kvIntOpt("qNFe", t.QNFe)
-	b.kvIntOpt("qMDFe", t.QMDFe)
-	b.kv("vCarga", money(t.VCarga))
-	b.kv("cUnid", defaultStr(t.CUnid, "01"))
-	b.kv("qCarga", money(t.QCarga))
+	b.Secao("tot")
+	b.KVIntOpt("qCTe", t.QCTe)
+	b.KVIntOpt("qNFe", t.QNFe)
+	b.KVIntOpt("qMDFe", t.QMDFe)
+	b.KV("vCarga", inifmt.Money(t.VCarga))
+	b.KV("cUnid", cmp.Or(t.CUnid, "01"))
+	b.KV("qCarga", inifmt.Money(t.QCarga))
 
 	for i, l := range inf.Lacres {
-		b.section("lacres" + seq(i+1))
-		b.kv("nLacre", l.NLacre)
+		b.Secao("lacres" + inifmt.Seq3(i+1))
+		b.KV("nLacre", l.NLacre)
 	}
 
 	if ia := inf.InfAdic; ia != nil {
-		b.section("infAdic")
-		b.kvOpt("infAdFisco", ia.InfAdFisco)
-		b.kvOpt("infCpl", ia.InfCpl)
+		b.Secao("infAdic")
+		b.KVOpt("infAdFisco", ia.InfAdFisco)
+		b.KVOpt("infCpl", ia.InfCpl)
 	}
 
 	for i, s := range inf.Seg {
-		b.section("seg" + seq(i+1))
-		b.kv("respSeg", strconv.Itoa(s.InfResp.RespSeg))
-		b.kvOpt("CNPJCPF", firstNonEmpty(s.InfResp.CNPJ, s.InfResp.CPF))
+		b.Secao("seg" + inifmt.Seq3(i+1))
+		b.KV("respSeg", strconv.Itoa(s.InfResp.RespSeg))
+		b.KVOpt("CNPJCPF", fiscal.Primeiro(s.InfResp.CNPJ, s.InfResp.CPF))
 		if is := s.InfSeg; is != nil {
-			b.kvOpt("xSeg", is.XSeg)
-			b.kvOpt("CNPJ", is.CNPJ)
+			b.KVOpt("xSeg", is.XSeg)
+			b.KVOpt("CNPJ", is.CNPJ)
 		}
-		b.kvOpt("nApol", s.NApol)
+		b.KVOpt("nApol", s.NApol)
 		for j, av := range s.NAver {
-			b.section("aver" + seq(i+1) + seq(j+1))
-			b.kv("nAver", av)
+			b.Secao("aver" + inifmt.Seq3(i+1) + inifmt.Seq3(j+1))
+			b.KV("nAver", av)
 		}
 	}
 
@@ -307,18 +306,18 @@ func ToINI(p PedidoEmissao) string {
 	// verificado contra a biblioteca, [autXML001] é ignorado em silêncio e
 	// [autXML01] é lido.
 	for i, a := range inf.AutXML {
-		b.section("autXML" + inifmt.Seq2(i+1))
-		b.kvOpt("CNPJCPF", firstNonEmpty(a.CNPJ, a.CPF))
+		b.Secao("autXML" + inifmt.Seq2(i+1))
+		b.KVOpt("CNPJCPF", fiscal.Primeiro(a.CNPJ, a.CPF))
 	}
 
 	if rt := inf.InfRespTec; rt != nil {
-		b.section("infRespTec")
-		b.kv("CNPJ", rt.CNPJ)
-		b.kv("xContato", rt.XContato)
-		b.kv("email", rt.Email)
-		b.kv("fone", rt.Fone)
-		b.kvIntOpt("idCSRT", rt.IdCSRT)
-		b.kvOpt("hashCSRT", rt.HashCSRT)
+		b.Secao("infRespTec")
+		b.KV("CNPJ", rt.CNPJ)
+		b.KV("xContato", rt.XContato)
+		b.KV("email", rt.Email)
+		b.KV("fone", rt.Fone)
+		b.KVIntOpt("idCSRT", rt.IdCSRT)
+		b.KVOpt("hashCSRT", rt.HashCSRT)
 	}
 	return b.String()
 }
@@ -328,141 +327,49 @@ func ToINI(p PedidoEmissao) string {
 // iniBuilder acumula o INI. Carrega o fuso do documento porque data-hora só faz
 // sentido com ele: o cliente informa um instante (RFC 3339) e o documento fiscal
 // precisa desse instante no relógio do emitente.
-type iniBuilder struct {
-	sb  strings.Builder
-	loc *time.Location
-}
-
-func (b *iniBuilder) section(name string) {
-	if b.sb.Len() > 0 {
-		b.sb.WriteByte('\n')
-	}
-	b.sb.WriteString("[" + name + "]\n")
-}
-
-// sanitizeINIVal neutraliza CR/LF no valor (evita injeção de chave/seção INI via
-// campo de texto livre do cliente que a ACBrLib consumiria).
-func sanitizeINIVal(s string) string { return inifmt.Sanitize(s) }
-
-func (b *iniBuilder) kv(key, val string) { b.sb.WriteString(key + "=" + sanitizeINIVal(val) + "\n") }
-func (b *iniBuilder) kvOpt(key, val string) {
-	if val != "" {
-		b.kv(key, val)
-	}
-}
-func (b *iniBuilder) kvIntOpt(key string, v int) {
-	if v != 0 {
-		b.kv(key, strconv.Itoa(v))
-	}
-}
+// iniBuilder é o construtor compartilhado (internal/platform/inifmt) mais os
+// métodos de DOMÍNIO deste documento, logo abaixo. O núcleo (seção, par
+// chave=valor, datas no fuso do emitente) vive num lugar só: era o mesmo código
+// nos quatro documentos, e um ajuste na sanitização precisava ser feito quatro
+// vezes.
+type iniBuilder struct{ inifmt.Builder }
 
 // peri emite [periIDX] (produto perigoso) do documento, com o índice já pronto.
 func (b *iniBuilder) peri(idx, nONU, xNomeAE, xClaRisco, grEmb, qTotProd, qVolTipo string) {
-	b.section("peri" + idx)
-	b.kv("nONU", nONU)
-	b.kvOpt("xNomeAE", xNomeAE)
-	b.kvOpt("xClaRisco", xClaRisco)
-	b.kvOpt("grEmb", grEmb)
-	b.kv("qTotProd", qTotProd)
-	b.kvOpt("qVolTipo", qVolTipo)
+	b.Secao("peri" + idx)
+	b.KV("nONU", nONU)
+	b.KVOpt("xNomeAE", xNomeAE)
+	b.KVOpt("xClaRisco", xClaRisco)
+	b.KVOpt("grEmb", grEmb)
+	b.KV("qTotProd", qTotProd)
+	b.KVOpt("qVolTipo", qVolTipo)
 }
 
 // unidTransp emite infUnidTransp/infUnidCarga (+lacres) de um documento da
 // descarga, com o prefixo {descarga}{doc}.
 func (b *iniBuilder) unidTransp(prefix string, transps []UnidadeTransp) {
 	for ti, tp := range transps {
-		tIdx := prefix + seq(ti+1)
-		b.section("infUnidTransp" + tIdx)
-		b.kv("tpUnidTransp", strconv.Itoa(tp.TpUnidTransp))
-		b.kv("idUnidTransp", tp.IdUnidTransp)
-		b.kvOpt("qtdRat", moneyOpt(tp.QtdRat))
+		tIdx := prefix + inifmt.Seq3(ti+1)
+		b.Secao("infUnidTransp" + tIdx)
+		b.KV("tpUnidTransp", strconv.Itoa(tp.TpUnidTransp))
+		b.KV("idUnidTransp", tp.IdUnidTransp)
+		b.KVOpt("qtdRat", inifmt.MoneyOpt(tp.QtdRat))
 		for li, l := range tp.LacUnidTransp {
-			b.section("lacUnidTransp" + tIdx + seq(li+1))
-			b.kv("nLacre", l.NLacre)
+			b.Secao("lacUnidTransp" + tIdx + inifmt.Seq3(li+1))
+			b.KV("nLacre", l.NLacre)
 		}
 		for ci, c := range tp.InfUnidCarga {
-			cIdx := tIdx + seq(ci+1)
-			b.section("infUnidCarga" + cIdx)
-			b.kv("tpUnidCarga", strconv.Itoa(c.TpUnidCarga))
-			b.kv("idUnidCarga", c.IdUnidCarga)
-			b.kvOpt("qtdRat", moneyOpt(c.QtdRat))
+			cIdx := tIdx + inifmt.Seq3(ci+1)
+			b.Secao("infUnidCarga" + cIdx)
+			b.KV("tpUnidCarga", strconv.Itoa(c.TpUnidCarga))
+			b.KV("idUnidCarga", c.IdUnidCarga)
+			b.KVOpt("qtdRat", inifmt.MoneyOpt(c.QtdRat))
 			for li, l := range c.LacUnidCarga {
-				b.section("lacUnidCarga" + cIdx + seq(li+1))
-				b.kv("nLacre", l.NLacre)
+				b.Secao("lacUnidCarga" + cIdx + inifmt.Seq3(li+1))
+				b.KV("nLacre", l.NLacre)
 			}
 		}
 	}
 }
 
-func (b *iniBuilder) String() string { return b.sb.String() }
-
 // --- helpers ----------------------------------------------------------------
-
-func seq(n int) string {
-	s := strconv.Itoa(n)
-	for len(s) < 3 {
-		s = "0" + s
-	}
-	return s
-}
-
-// seq2 formata índice com 2 dígitos (ex.: [reboque01]).
-func seq2(n int) string { return inifmt.Seq2(n) }
-
-// dataHora formata data-hora no fuso do documento. Substituiu um dateTimeBR que
-// DESCARTAVA o offset do cliente: "11:00Z" virava "11:00" e a lib carimbava o
-// fuso do estado, adiantando o documento em três horas sem erro nenhum.
-func (b *iniBuilder) dataHora(s string) string {
-	if s == "" {
-		return time.Now().In(b.fuso()).Format("02/01/2006 15:04:05")
-	}
-	return inifmt.DataHoraNoFuso(s, b.fuso())
-}
-
-// dataHoraOpt é como dataHora, mas vazio devolve vazio (chave omitida).
-func (b *iniBuilder) dataHoraOpt(s string) string {
-	if s == "" {
-		return ""
-	}
-	return inifmt.DataHoraNoFuso(s, b.fuso())
-}
-
-// fuso devolve o fuso do documento; Brasília quando não definido.
-func (b *iniBuilder) fuso() *time.Location {
-	if b.loc == nil {
-		b.loc = inifmt.LocalDaUF("")
-	}
-	return b.loc
-}
-
-func money(v float64) string    { return inifmt.Money(v) }
-func moneyOpt(v float64) string { return inifmt.MoneyOpt(v) }
-
-// dataOpt é a data (sem hora) no fuso do documento; vazio permanece vazio.
-func (b *iniBuilder) dataOpt(s string) string {
-	if dt := b.dataHoraOpt(s); len(dt) >= 10 {
-		return dt[:10]
-	}
-	return ""
-}
-
-func defaultStr(v, def string) string {
-	if v == "" {
-		return def
-	}
-	return v
-}
-func defaultInt(v, def int) int {
-	if v == 0 {
-		return def
-	}
-	return v
-}
-func firstNonEmpty(vals ...string) string {
-	for _, v := range vals {
-		if v != "" {
-			return v
-		}
-	}
-	return ""
-}

@@ -1,6 +1,9 @@
 package cte
 
-import "strconv"
+import (
+	"cmp"
+	"strconv"
+)
 
 // PedidoCancelamento é o corpo de POST /v1/cte/eventos/cancelamento (ACBr.API).
 // A chave e o protocolo vêm no envelope do evento, não daqui: sem estado no
@@ -21,15 +24,15 @@ func eventoHeader(b *iniBuilder, chave, cnpj, dhEvento, tpEvento string, nSeq in
 	if len(chave) >= 2 {
 		cOrgao = chave[:2]
 	}
-	b.section("EVENTO")
-	b.kv("idLote", "1")
-	b.section("EVENTO001")
-	b.kv("chCTe", chave)
-	b.kvOpt("cOrgao", cOrgao)
-	b.kvOpt("CNPJ", cnpj)
-	b.kvOpt("dhEvento", dhEvento)
-	b.kv("tpEvento", tpEvento)
-	b.kv("nSeqEvento", strconv.Itoa(defaultInt(nSeq, 1)))
+	b.Secao("EVENTO")
+	b.KV("idLote", "1")
+	b.Secao("EVENTO001")
+	b.KV("chCTe", chave)
+	b.KVOpt("cOrgao", cOrgao)
+	b.KVOpt("CNPJ", cnpj)
+	b.KVOpt("dhEvento", dhEvento)
+	b.KV("tpEvento", tpEvento)
+	b.KV("nSeqEvento", strconv.Itoa(cmp.Or(nSeq, 1)))
 }
 
 // ToINICancelamento monta o INI do evento de cancelamento (tpEvento 110111) no
@@ -38,8 +41,8 @@ func eventoHeader(b *iniBuilder, chave, cnpj, dhEvento, tpEvento string, nSeq in
 func ToINICancelamento(chave, cnpj, protocolo, dhEvento string, p PedidoCancelamento) string {
 	var b iniBuilder
 	eventoHeader(&b, chave, cnpj, dhEvento, "110111", p.NSeqEvento)
-	b.kvOpt("nProt", protocolo)
-	b.kv("xJust", p.Justificativa)
+	b.KVOpt("nProt", protocolo)
+	b.KV("xJust", p.Justificativa)
 	return b.String()
 }
 

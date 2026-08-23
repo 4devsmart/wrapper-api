@@ -12,6 +12,6 @@ type PedidoDesacordo struct {
 func ToINIDesacordo(chave, cnpj, dhEvento string, p PedidoDesacordo) string {
 	var b iniBuilder
 	eventoHeader(&b, chave, cnpj, dhEvento, "610110", p.NSeqEvento)
-	b.kv("xObs", p.XObs)
+	b.KV("xObs", p.XObs)
 	return b.String()
 }
