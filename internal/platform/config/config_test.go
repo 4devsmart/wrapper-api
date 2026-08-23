@@ -95,3 +95,45 @@ func TestEnvList(t *testing.T) {
 		}
 	}
 }
+
+// O limite por IP é promessa de segurança: se a variável existe e é lida, tem
+// de valer. Zero desliga, e é opção legítima atrás de um gateway que já limita.
+// Negativo não é nada: é engano de quem quis desligar e digitou -1.
+func TestAPIRatePerMin(t *testing.T) {
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.APIRatePerMin <= 0 {
+		t.Errorf("APIRatePerMin = %d, o default precisa limitar alguma coisa", cfg.APIRatePerMin)
+	}
+
+	t.Setenv("API_RATE_PER_MIN", "0")
+	if cfg, err := Load(); err != nil || cfg.APIRatePerMin != 0 {
+		t.Errorf("zero deveria carregar e desligar: %d, %v", cfg.APIRatePerMin, err)
+	}
+
+	t.Setenv("API_RATE_PER_MIN", "-1")
+	if _, err := Load(); err == nil {
+		t.Error("negativo deveria falhar no boot em vez de virar limite desligado em silêncio")
+	}
+}
+
+// X-Forwarded-For é escrito por quem chama. Dentro do Docker o peer da conexão
+// é o gateway da bridge, que é privado: se o default confiasse no cabeçalho,
+// todo chamador pareceria estar atrás de um proxy nosso e um valor forjado
+// furaria o limite por endereço, sem sintoma nenhum. Confiar é ato explícito de
+// quem pôs o proxy na frente.
+func TestTrustProxyHeadersNaoConfiaPorPadrao(t *testing.T) {
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.TrustProxyHeaders {
+		t.Error("o default precisa ser não confiar: um cabeçalho forjado furaria o limite por endereço")
+	}
+	t.Setenv("TRUST_PROXY_HEADERS", "true")
+	if cfg, _ := Load(); !cfg.TrustProxyHeaders {
+		t.Error("quem tem proxy de verdade precisa conseguir ligar")
+	}
+}

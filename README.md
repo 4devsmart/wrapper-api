@@ -172,8 +172,9 @@ binário, com todos os campos de todos os documentos.
 Para embutir na stack de outro projeto, veja [Como ele roda](#como-ele-roda).
 A imagem é pública: não há `docker login`.
 
-Configuração é **só por variável de ambiente**. São oito, todas em
-`.env.example`.
+Configuração é **só por variável de ambiente**, e o `.env.example` lista todas:
+um teste recusa a lista incompleta, dos dois lados. Na prática você define
+`API_TOKEN` e `MODO`; o resto tem default de imagem.
 
 ---
 
@@ -249,6 +250,21 @@ carrega o certificado no corpo, e certificado não vai em query string.
 
 Sem autenticação: `/healthz`, `/readyz`, `/docs`, `/openapi.yaml`.
 
+### Limite por endereço
+
+`API_RATE_PER_MIN` (default 240) limita as requisições por minuto **por
+endereço do chamador**, e vale **antes** do Bearer: sem isso, adivinhar o token
+sairia ao ritmo da rede. Estourar devolve `429` com `Retry-After`. As sondas
+`/healthz` e `/readyz` não gastam ficha. `0` desliga, o que é razoável atrás de
+um gateway que já limita.
+
+Por padrão o endereço é o da **conexão**. `TRUST_PROXY_HEADERS=true` manda ler
+`X-Forwarded-For`, e só ligue isso se houver mesmo um proxy na frente
+reescrevendo o cabeçalho: dentro do Docker o peer é o gateway da bridge, então
+sem proxy de verdade todo chamador pareceria interno e um valor forjado furaria
+o limite. Da cadeia vale a entrada mais à direita que seja externa, não a
+primeira. Desligado, quem vem por um proxy divide um balde só.
+
 ---
 
 ## Erros
@@ -269,6 +285,7 @@ Trate por `codigo`, nunca pela mensagem:
 | `regras_de_negocio` | 422 | a lib reprovou; nada foi transmitido | corrija |
 | `provedor_nao_suportado` | 422 | município sem provedor de NFS-e conhecido | não |
 | `operacao_nao_suportada` | 422 | o provedor não implementa esta operação | não |
+| `limite_de_requisicoes` | 429 | passou de `API_RATE_PER_MIN`; veja `Retry-After` | sim, depois |
 | `desfecho_indeterminado` | 502 | **pode ter sido transmitido** | **não.** consulte |
 | `lib_indisponivel` | 503 | a chamada **não** saiu | sim |
 | `falha_na_lib` | 502 | erro conhecido da lib | avalie |

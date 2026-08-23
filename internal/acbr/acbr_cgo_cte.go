@@ -59,7 +59,7 @@ func (l *cteLib) Emitir(t TenantConfig, ini string) (Result, error) {
 		if code := int(C.CTE_CarregarINI(h, cIni)); code != 0 {
 			return Result{Codigo: code, Resposta: l.s.ultRet(h, 0)}, fmt.Errorf("CTE_CarregarINI falhou: %d", code)
 		}
-		// aLote=1, aImprimir=0 (PDF é gerado adiante, gated por DANFSeLocal).
+		// aLote=1, aImprimir=0: o PDF sai sob demanda, nunca aqui (ver abaixo).
 		code, resp := l.s.callBuf(h, func(b *C.char, sz *C.int) C.int {
 			return C.CTE_Enviar(h, 1, C.uchar(0), C.uchar(1), b, sz)
 		})

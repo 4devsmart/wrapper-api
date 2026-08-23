@@ -84,12 +84,21 @@ info:
     | `regras_de_negocio`: a biblioteca reprovou, nada foi transmitido | 422 | corrija |
     | `provedor_nao_suportado`: município sem provedor de NFS-e | 422 | não |
     | `operacao_nao_suportada`: o provedor não implementa | 422 | não |
+    | `limite_de_requisicoes`: passou do teto por endereço | 429 | sim, veja `Retry-After` |
     | `desfecho_indeterminado`: **pode ter sido transmitido** | 502 | **não.** consulte |
     | `lib_indisponivel`: a chamada **não** saiu | 503 | sim |
     | `falha_na_lib` | 502 | avalie |
 
     Rejeição do fisco não é erro de protocolo: volta `422` com o corpo completo
     (`status`, `cstat`, `motivo`, `erros[]`).
+
+    ### Limite por endereço
+
+    Toda rota tem teto de requisições por minuto por endereço do chamador
+    (`API_RATE_PER_MIN`, default 240), aplicado **antes** da autenticação.
+    Estourar devolve `429 limite_de_requisicoes` com `Retry-After` em segundos.
+    As sondas `/healthz` e `/readyz` não contam. Quem opera pode desligar o teto
+    com `0`, e é o que se faz atrás de um gateway que já limita.
 
     Campo com nome errado é `400`, não é ignorado. Campo ignorado em silêncio vira
     documento transmitido com dado faltando, e isso só aparece depois de o fisco
@@ -5515,7 +5524,7 @@ components:
                 Chave estável para tratar por máquina: `json_invalido`,
                 `campo_obrigatorio`, `certificado_invalido`, `chave_invalida`,
                 `ambiente_invalido`, `ambiente_divergente`,
-                `modal_nao_suportado`, `regras_de_negocio`,
+                `modal_nao_suportado`, `limite_de_requisicoes`, `regras_de_negocio`,
                 `provedor_nao_suportado`, `operacao_nao_suportada`,
                 `desfecho_indeterminado`, `lib_indisponivel`, `falha_na_lib`.
             mensagem:

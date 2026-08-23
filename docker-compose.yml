@@ -16,6 +16,12 @@ services:
       ACBR_WORKERS: /run/wrapper/fiscal.sock
       API_TOKEN: ${API_TOKEN:-}
       MODO: ${MODO:-homologacao}
+      # Limites da borda. Precisam ser repassados um a um: o compose lê o .env
+      # só para expandir ${...}, então o que não estiver aqui não chega ao
+      # container e a variável vira enfeite.
+      API_RATE_PER_MIN: ${API_RATE_PER_MIN:-240}
+      MAX_BODY_BYTES: ${MAX_BODY_BYTES:-8388608}
+      TRUST_PROXY_HEADERS: ${TRUST_PROXY_HEADERS:-false}
     ports:
       - "${HOST_PORT:-8080}:8080"
     depends_on:
@@ -37,6 +43,12 @@ services:
       ACBR_WORKER_LISTEN: /run/wrapper/fiscal.sock
       ACBR_WORKER_SLOTS: ${ACBR_WORKER_SLOTS:-1}
       ACBR_WORKER_TIMEOUT_SECONDS: ${ACBR_WORKER_TIMEOUT_SECONDS:-90}
+      ACBR_WORKER_MAX_CALLS: ${ACBR_WORKER_MAX_CALLS:-0}
+      # O log da lib é do worker: é ele que abre o .so. Nível 3+ grava XML e
+      # CERTIFICADO em disco, e o boot recusa isso com MODO=producao.
+      ACBR_LOG_NIVEL: ${ACBR_LOG_NIVEL:-}
+      ACBR_LOG_PATH: ${ACBR_LOG_PATH:-}
+      MODO: ${MODO:-homologacao}
     volumes:
       - worker-run:/run/wrapper
     healthcheck:
