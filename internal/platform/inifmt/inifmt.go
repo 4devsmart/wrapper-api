@@ -1,7 +1,15 @@
-// Package inifmt centraliza a formatação dos valores escritos nos INIs que a
-// ACBrLib consome (NFS-e/CT-e/MDF-e/boleto). Antes cada pacote duplicava estas
-// funções: idênticas, então um ajuste de sanitização/moeda precisava ser
-// replicado em 4 lugares (risco de drift). Agora a lógica vive aqui.
+// Package inifmt centraliza a escrita do arquivo intermediário que a biblioteca
+// fiscal consome, e a formatação dos valores que vão nele.
+//
+// Os quatro documentos escreviam o mesmo construtor e os mesmos ajudantes,
+// copiados: sanitização, moeda com vírgula decimal, largura dos índices de
+// seção, datas no fuso do emitente. Um ajuste precisava ser feito quatro vezes,
+// e a cópia esquecida fazia um documento sair diferente dos outros sem sintoma.
+// Já tinha acontecido: a escolha entre CNPJ e CPF descartava um CNPJ em branco
+// num lugar e o aceitava em outro.
+//
+// O que mora aqui é o COMO escrever. O que escrever é de cada documento, e
+// continua lá.
 package inifmt
 
 import (
@@ -37,6 +45,44 @@ func Seq2(n int) string {
 		s = "0" + s
 	}
 	return s
+}
+
+// Seq3 formata n com zero-padding a 3 dígitos. É a largura de quase toda seção
+// indexada dos documentos fiscais. Quase: autXML e infCteComp usam DUAS casas,
+// e [autXML001] é ignorado em silêncio pela biblioteca. Por isso a largura é
+// escolhida na chamada, e não adivinhada aqui.
+func Seq3(n int) string {
+	s := strconv.Itoa(n)
+	for len(s) < 3 {
+		s = "0" + s
+	}
+	return s
+}
+
+// DataBR é a data (sem hora) no formato do arquivo intermediário, no fuso do
+// emitente. Entrada não reconhecida passa adiante: a biblioteca reclama com
+// mensagem própria, o que diz mais ao cliente do que uma data trocada em
+// silêncio.
+//
+// O fuso é parâmetro, e não o do servidor, porque o container roda em UTC: uma
+// nota emitida às 22h no horário de Brasília ganharia a data do dia SEGUINTE, e
+// a diferença só apareceria em quem emite à noite.
+func DataBR(s string, loc *time.Location) string {
+	if s == "" {
+		return time.Now().In(loc).Format("02/01/2006")
+	}
+	if dt := DataHoraNoFuso(s, loc); len(dt) >= 10 {
+		return dt[:10]
+	}
+	return s
+}
+
+// DataBROpt é como DataBR, e vazio continua vazio: a chave some.
+func DataBROpt(s string, loc *time.Location) string {
+	if s == "" {
+		return ""
+	}
+	return DataBR(s, loc)
 }
 
 // Seq4 formata n com zero-padding a 4 dígitos.

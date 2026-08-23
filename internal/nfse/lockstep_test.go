@@ -222,8 +222,8 @@ func carregarSnapshot(t *testing.T) map[string]map[string]bool {
 }
 
 var (
-	reSecao  = regexp.MustCompile(`b\.section\("([^"]+)"\)`)
-	reChave  = regexp.MustCompile(`b\.kv\w*\("([^"]+)"`)
+	reSecao  = regexp.MustCompile(`b\.Secao\("([^"]+)"\)`)
+	reChave  = regexp.MustCompile(`b\.KV\w*\("([^"]+)"`)
 	rePessoa = regexp.MustCompile(`b\.pessoaCommon\(`)
 )
 

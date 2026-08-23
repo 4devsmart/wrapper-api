@@ -9,6 +9,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/4devsmart/wrapper-api/internal/platform/httpx"
 )
 
 // Limite de requisições por endereço, e a descoberta de qual é o endereço.
@@ -138,7 +140,7 @@ func (s *Servidor) limitarTaxa(next http.Handler) http.Handler {
 		}
 		segundos := max(int((espera + time.Second - 1).Seconds()), 1)
 		w.Header().Set("Retry-After", strconv.Itoa(segundos))
-		escreverErro(w, http.StatusTooManyRequests, "limite_de_requisicoes",
+		httpx.ErroJSON(w, http.StatusTooManyRequests, "limite_de_requisicoes",
 			"limite de "+strconv.Itoa(s.taxa.porMinuto)+" requisições por minuto excedido para este endereço")
 	})
 }

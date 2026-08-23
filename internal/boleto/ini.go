@@ -2,8 +2,6 @@ package boleto
 
 import (
 	"strconv"
-	"strings"
-	"time"
 
 	"github.com/4devsmart/wrapper-api/internal/platform/inifmt"
 )
@@ -15,145 +13,106 @@ func ToINI(p Pedido) string {
 	var b iniBuilder
 	c := p.Conta
 
-	b.section("Banco")
-	b.kv("Numero", c.Banco)
-	b.kvIntOpt("TipoCobranca", c.TipoCobranca)
-	b.kvOpt("CNAB", c.CNAB)
+	b.Secao("Banco")
+	b.KV("Numero", c.Banco)
+	b.KVIntOpt("TipoCobranca", c.TipoCobranca)
+	b.KVOpt("CNAB", c.CNAB)
 
-	b.section("Conta")
-	b.kv("Agencia", c.Agencia)
-	b.kvOpt("DigitoAgencia", c.DigitoAgencia)
-	b.kv("Conta", c.NumeroConta)
-	b.kvOpt("DigitoConta", c.DigitoConta)
+	b.Secao("Conta")
+	b.KV("Agencia", c.Agencia)
+	b.KVOpt("DigitoAgencia", c.DigitoAgencia)
+	b.KV("Conta", c.NumeroConta)
+	b.KVOpt("DigitoConta", c.DigitoConta)
 
-	b.section("Cedente")
-	b.kv("Nome", c.Nome)
-	b.kvOpt("FantasiaCedente", c.Fantasia)
-	b.kv("CNPJCPF", c.CNPJCPF)
-	b.kvIntOpt("TipoInscricao", c.TipoInscricao)
-	b.kvIntOpt("TipoPessoa", c.TipoPessoa)
-	b.kvOpt("Logradouro", c.Logradouro)
-	b.kvOpt("Numero", c.Numero)
-	b.kvOpt("Bairro", c.Bairro)
-	b.kvOpt("Cidade", c.Cidade)
-	b.kvOpt("CEP", c.CEP)
-	b.kvOpt("Complemento", c.Complemento)
-	b.kvOpt("UF", c.UF)
-	b.kvOpt("Telefone", c.Telefone)
-	b.kvOpt("CodigoCedente", c.CodigoCedente)
-	b.kvOpt("Modalidade", c.Modalidade)
-	b.kvOpt("Convenio", c.Convenio)
-	b.kvOpt("CodTransmissao", c.CodTransmissao)
-	b.kvIntOpt("TipoCarteira", c.TipoCarteira)
-	b.kvIntOpt("TipoDocumento", c.TipoDocumento)
-	b.kvIntOpt("RespEmis", c.RespEmis)
-	b.kvIntOpt("LayoutBol", c.LayoutBol)
+	b.Secao("Cedente")
+	b.KV("Nome", c.Nome)
+	b.KVOpt("FantasiaCedente", c.Fantasia)
+	b.KV("CNPJCPF", c.CNPJCPF)
+	b.KVIntOpt("TipoInscricao", c.TipoInscricao)
+	b.KVIntOpt("TipoPessoa", c.TipoPessoa)
+	b.KVOpt("Logradouro", c.Logradouro)
+	b.KVOpt("Numero", c.Numero)
+	b.KVOpt("Bairro", c.Bairro)
+	b.KVOpt("Cidade", c.Cidade)
+	b.KVOpt("CEP", c.CEP)
+	b.KVOpt("Complemento", c.Complemento)
+	b.KVOpt("UF", c.UF)
+	b.KVOpt("Telefone", c.Telefone)
+	b.KVOpt("CodigoCedente", c.CodigoCedente)
+	b.KVOpt("Modalidade", c.Modalidade)
+	b.KVOpt("Convenio", c.Convenio)
+	b.KVOpt("CodTransmissao", c.CodTransmissao)
+	b.KVIntOpt("TipoCarteira", c.TipoCarteira)
+	b.KVIntOpt("TipoDocumento", c.TipoDocumento)
+	b.KVIntOpt("RespEmis", c.RespEmis)
+	b.KVIntOpt("LayoutBol", c.LayoutBol)
 	if c.PixChave != "" {
-		b.kv("PIX.TipoChavePix", strconv.Itoa(c.PixTipoChave))
-		b.kv("PIX.Chave", c.PixChave)
+		b.KV("PIX.TipoChavePix", strconv.Itoa(c.PixTipoChave))
+		b.KV("PIX.Chave", c.PixChave)
 	}
 
 	// WS (registro online). ArquivoCRT/KEY (mTLS) são setados em runtime
 	// pelo binding (gravados a partir do base64), não vão aqui.
 	if ws := c.WS; ws != nil {
-		b.section("BoletoWebSevice") // (typo é da própria ACBrLib)
-		b.kvIntOpt("Ambiente", ws.Ambiente)
-		b.section("BoletoCedenteWS")
-		b.kvOpt("ClientID", ws.ClientID)
-		b.kvOpt("ClientSecret", ws.ClientSecret)
-		b.kvOpt("KeyUser", ws.KeyUser)
-		b.kvOpt("Scope", ws.Scope)
-		b.kvOpt("IndicadorPix", ws.IndicadorPix)
+		b.Secao("BoletoWebSevice") // (typo é da própria ACBrLib)
+		b.KVIntOpt("Ambiente", ws.Ambiente)
+		b.Secao("BoletoCedenteWS")
+		b.KVOpt("ClientID", ws.ClientID)
+		b.KVOpt("ClientSecret", ws.ClientSecret)
+		b.KVOpt("KeyUser", ws.KeyUser)
+		b.KVOpt("Scope", ws.Scope)
+		b.KVOpt("IndicadorPix", ws.IndicadorPix)
 	}
 
 	for i, t := range p.Titulos {
-		b.section("Titulo" + strconv.Itoa(i+1))
-		b.kv("NumeroDocumento", t.NumeroDocumento)
-		b.kvOpt("SeuNumero", t.SeuNumero)
-		b.kvOpt("NossoNumero", t.NossoNumero)
-		b.kvOpt("Carteira", t.Carteira)
-		b.kvOpt("Especie", t.Especie)
-		b.kv("ValorDocumento", money(t.ValorDocumento))
-		b.kv("Vencimento", dateBR(t.Vencimento))
-		b.kvOpt("DataDocumento", dateBROpt(t.DataDocumento))
-		b.kvOpt("Aceite", t.Aceite)
-		b.kvOpt("Mensagem", t.Mensagem)
+		b.Secao("Titulo" + strconv.Itoa(i+1))
+		b.KV("NumeroDocumento", t.NumeroDocumento)
+		b.KVOpt("SeuNumero", t.SeuNumero)
+		b.KVOpt("NossoNumero", t.NossoNumero)
+		b.KVOpt("Carteira", t.Carteira)
+		b.KVOpt("Especie", t.Especie)
+		b.KV("ValorDocumento", inifmt.Money(t.ValorDocumento))
+		b.KV("Vencimento", inifmt.DataBR(t.Vencimento, b.Local()))
+		b.KVOpt("DataDocumento", inifmt.DataBROpt(t.DataDocumento, b.Local()))
+		b.KVOpt("Aceite", t.Aceite)
+		b.KVOpt("Mensagem", t.Mensagem)
 		for j, ins := range t.Instrucoes {
 			if j >= 3 {
 				break
 			}
-			b.kv("Instrucao"+strconv.Itoa(j+1), ins)
+			b.KV("Instrucao"+strconv.Itoa(j+1), ins)
 		}
-		b.kvOpt("ValorMoraJuros", moneyOpt(t.ValorMoraJuros))
-		b.kvOpt("CodigoMora", t.CodigoMora)
-		b.kvOpt("PercentualMulta", moneyOpt(t.PercentualMulta))
-		b.kvOpt("MultaValorFixo", moneyOpt(t.MultaValorFixo))
+		b.KVOpt("ValorMoraJuros", inifmt.MoneyOpt(t.ValorMoraJuros))
+		b.KVOpt("CodigoMora", t.CodigoMora)
+		b.KVOpt("PercentualMulta", inifmt.MoneyOpt(t.PercentualMulta))
+		b.KVOpt("MultaValorFixo", inifmt.MoneyOpt(t.MultaValorFixo))
 		if t.ValorDesconto != 0 {
-			b.kv("ValorDesconto", money(t.ValorDesconto))
-			b.kvOpt("DataDesconto", dateBROpt(t.DataDesconto))
+			b.KV("ValorDesconto", inifmt.Money(t.ValorDesconto))
+			b.KVOpt("DataDesconto", inifmt.DataBROpt(t.DataDesconto, b.Local()))
 		}
-		b.kvOpt("ValorAbatimento", moneyOpt(t.ValorAbatimento))
-		b.kvOpt("ChaveNFe", t.ChaveNFe)
+		b.KVOpt("ValorAbatimento", inifmt.MoneyOpt(t.ValorAbatimento))
+		b.KVOpt("ChaveNFe", t.ChaveNFe)
 
 		s := t.Sacado
-		b.kv("Sacado.NomeSacado", s.Nome)
-		b.kv("Sacado.CNPJCPF", s.CNPJCPF)
-		b.kvOpt("Sacado.Logradouro", s.Logradouro)
-		b.kvOpt("Sacado.Numero", s.Numero)
-		b.kvOpt("Sacado.Bairro", s.Bairro)
-		b.kvOpt("Sacado.Cidade", s.Cidade)
-		b.kvOpt("Sacado.UF", s.UF)
-		b.kvOpt("Sacado.CEP", s.CEP)
-		b.kvOpt("Sacado.Complemento", s.Complemento)
-		b.kvOpt("Sacado.Email", s.Email)
+		b.KV("Sacado.NomeSacado", s.Nome)
+		b.KV("Sacado.CNPJCPF", s.CNPJCPF)
+		b.KVOpt("Sacado.Logradouro", s.Logradouro)
+		b.KVOpt("Sacado.Numero", s.Numero)
+		b.KVOpt("Sacado.Bairro", s.Bairro)
+		b.KVOpt("Sacado.Cidade", s.Cidade)
+		b.KVOpt("Sacado.UF", s.UF)
+		b.KVOpt("Sacado.CEP", s.CEP)
+		b.KVOpt("Sacado.Complemento", s.Complemento)
+		b.KVOpt("Sacado.Email", s.Email)
 	}
 	return b.String()
 }
 
 // --- builder + helpers ------------------------------------------------------
 
-type iniBuilder struct{ sb strings.Builder }
-
-func (b *iniBuilder) section(name string) {
-	if b.sb.Len() > 0 {
-		b.sb.WriteByte('\n')
-	}
-	b.sb.WriteString("[" + name + "]\n")
-}
-
-// sanitizeINIVal neutraliza CR/LF no valor (evita injeção de chave/seção INI via
-// campo de texto livre do cliente que a ACBrLib consumiria).
-func sanitizeINIVal(s string) string { return inifmt.Sanitize(s) }
-
-func (b *iniBuilder) kv(key, val string) { b.sb.WriteString(key + "=" + sanitizeINIVal(val) + "\n") }
-func (b *iniBuilder) kvOpt(key, val string) {
-	if val != "" {
-		b.kv(key, val)
-	}
-}
-func (b *iniBuilder) kvIntOpt(key string, v int) {
-	if v != 0 {
-		b.kv(key, strconv.Itoa(v))
-	}
-}
-func (b *iniBuilder) String() string { return b.sb.String() }
-
-func money(v float64) string    { return inifmt.Money(v) }
-func moneyOpt(v float64) string { return inifmt.MoneyOpt(v) }
-func dateBR(s string) string {
-	if s == "" {
-		return time.Now().Format("02/01/2006")
-	}
-	for _, layout := range []string{"2006-01-02", time.RFC3339, "02/01/2006"} {
-		if t, err := time.Parse(layout, s); err == nil {
-			return t.Format("02/01/2006")
-		}
-	}
-	return s
-}
-func dateBROpt(s string) string {
-	if s == "" {
-		return ""
-	}
-	return dateBR(s)
-}
+// iniBuilder é o construtor compartilhado (internal/platform/inifmt) mais os
+// métodos de DOMÍNIO deste documento, logo abaixo. O núcleo (seção, par
+// chave=valor, datas no fuso do emitente) vive num lugar só: era o mesmo código
+// nos quatro documentos, e um ajuste na sanitização precisava ser feito quatro
+// vezes.
+type iniBuilder struct{ inifmt.Builder }

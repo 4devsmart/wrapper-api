@@ -1,6 +1,12 @@
 package cte
 
-import "strconv"
+import (
+	"cmp"
+	"strconv"
+
+	"github.com/4devsmart/wrapper-api/internal/fiscal"
+	"github.com/4devsmart/wrapper-api/internal/platform/inifmt"
+)
 
 // CT-e Simplificado (tpCTe=5): modelo 57 com corpo próprio, tomador único
 // ([toma]), detalhamento por trecho ([detNNN]) e totais ([total]), em vez de
@@ -95,8 +101,8 @@ func ToINISimp(p PedidoSimp) string {
 	}
 	var b iniBuilder
 
-	b.section("infCTe")
-	b.kv("versao", defaultStr(inf.Versao, "4.00"))
+	b.Secao("infCTe")
+	b.KV("versao", cmp.Or(inf.Versao, "4.00"))
 
 	b.identificacao(inf.Ide, p.Ambiente)
 	b.complemento(inf.Compl)
@@ -109,9 +115,9 @@ func ToINISimp(p PedidoSimp) string {
 	b.cobranca(inf.Cobr)
 	b.subst(inf.InfCteSub)
 
-	b.section("total")
-	b.kv("vTPrest", money(inf.Total.VTPrest))
-	b.kv("vTRec", money(inf.Total.VTRec))
+	b.Secao("total")
+	b.KV("vTPrest", inifmt.Money(inf.Total.VTPrest))
+	b.KV("vTRec", inifmt.Money(inf.Total.VTRec))
 
 	b.respTec(inf.InfRespTec)
 	return b.String()
@@ -119,16 +125,16 @@ func ToINISimp(p PedidoSimp) string {
 
 // tomador emite a seção [toma] (tomador único do Simplificado/OS).
 func (b *iniBuilder) tomador(t Toma) {
-	b.section("toma")
-	b.kv("toma", strconv.Itoa(t.Toma))
-	b.kvIntOpt("indIEToma", t.IndIEToma)
-	b.kvOpt("CNPJCPF", firstNonEmpty(t.CNPJ, t.CPF))
-	b.kvOpt("IE", t.IE)
-	b.kvOpt("xNome", t.XNome)
-	b.kvOpt("xFant", t.XFant)
-	b.kvOpt("ISUF", t.ISUF)
-	b.kvOpt("email", t.Email)
-	b.kvOpt("fone", t.Fone)
+	b.Secao("toma")
+	b.KV("toma", strconv.Itoa(t.Toma))
+	b.KVIntOpt("indIEToma", t.IndIEToma)
+	b.KVOpt("CNPJCPF", fiscal.Primeiro(t.CNPJ, t.CPF))
+	b.KVOpt("IE", t.IE)
+	b.KVOpt("xNome", t.XNome)
+	b.KVOpt("xFant", t.XFant)
+	b.KVOpt("ISUF", t.ISUF)
+	b.KVOpt("email", t.Email)
+	b.KVOpt("fone", t.Fone)
 	b.endereco(t.EnderToma)
 }
 
@@ -136,31 +142,31 @@ func (b *iniBuilder) tomador(t Toma) {
 // [infDocAntNNNmmm] (+ [infNFeTranspParcialNNNmmmkkk]).
 func (b *iniBuilder) detalhamento(dets []Det) {
 	for i, d := range dets {
-		di := seq(i + 1)
-		b.section("det" + di)
-		b.kv("cMunIni", d.CMunIni)
-		b.kvOpt("xMunIni", d.XMunIni)
-		b.kv("cMunFim", d.CMunFim)
-		b.kvOpt("xMunFim", d.XMunFim)
-		b.kv("vPrest", money(d.VPrest))
-		b.kv("vRec", money(d.VRec))
+		di := inifmt.Seq3(i + 1)
+		b.Secao("det" + di)
+		b.KV("cMunIni", d.CMunIni)
+		b.KVOpt("xMunIni", d.XMunIni)
+		b.KV("cMunFim", d.CMunFim)
+		b.KVOpt("xMunFim", d.XMunFim)
+		b.KV("vPrest", inifmt.Money(d.VPrest))
+		b.KV("vRec", inifmt.Money(d.VRec))
 		for j, c := range d.Comp {
-			b.section("Comp" + di + seq(j+1))
-			b.kv("xNome", c.XNome)
-			b.kv("vComp", money(c.VComp))
+			b.Secao("Comp" + di + inifmt.Seq3(j+1))
+			b.KV("xNome", c.XNome)
+			b.KV("vComp", inifmt.Money(c.VComp))
 		}
 		for j, nfe := range d.InfNFe {
-			b.section("infNFe" + di + seq(j+1))
-			b.kv("chave", nfe.Chave)
+			b.Secao("infNFe" + di + inifmt.Seq3(j+1))
+			b.KV("chave", nfe.Chave)
 		}
 		for j, da := range d.InfDocAnt {
-			dj := di + seq(j+1)
-			b.section("infDocAnt" + dj)
-			b.kv("chCTe", da.ChCTe)
-			b.kvIntOpt("tpPrest", da.TpPrest)
+			dj := di + inifmt.Seq3(j+1)
+			b.Secao("infDocAnt" + dj)
+			b.KV("chCTe", da.ChCTe)
+			b.KVIntOpt("tpPrest", da.TpPrest)
 			for k, tp := range da.InfNFeTranspParcial {
-				b.section("infNFeTranspParcial" + dj + seq(k+1))
-				b.kv("chNFe", tp.ChNFe)
+				b.Secao("infNFeTranspParcial" + dj + inifmt.Seq3(k+1))
+				b.KV("chNFe", tp.ChNFe)
 			}
 		}
 	}

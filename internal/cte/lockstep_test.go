@@ -59,8 +59,8 @@ func semIndice(s string) string { return reIndice.ReplaceAllString(s, "") }
 
 var (
 	reIndice   = regexp.MustCompile(`[0-9]+$`)
-	reSecaoGo  = regexp.MustCompile(`b\.section\("([A-Za-z0-9_]+)"`)
-	reChaveGo  = regexp.MustCompile(`b\.kv[A-Za-z]*\("([A-Za-z0-9_]+)"`)
+	reSecaoGo  = regexp.MustCompile(`b\.Secao\("([A-Za-z0-9_]+)"`)
+	reChaveGo  = regexp.MustCompile(`b\.KV[A-Za-z]*\("([A-Za-z0-9_]+)"`)
 	reHelperGo = regexp.MustCompile(`\bb\.([a-z][A-Za-z0-9_]*)\(`)
 	reFuncGo   = regexp.MustCompile(`func \(b \*iniBuilder\) ([A-Za-z0-9_]+)\(`)
 )

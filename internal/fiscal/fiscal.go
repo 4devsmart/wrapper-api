@@ -14,6 +14,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -92,6 +94,77 @@ func NormalizarAmbiente(ambiente string) (string, bool) {
 	default:
 		return AmbienteHomologacao, false
 	}
+}
+
+// reTpAmb casa o tpAmb declarado no XML montado. Vale para CT-e, MDF-e e NFS-e:
+// os três trazem a tag no mesmo formato.
+var reTpAmb = regexp.MustCompile(`<tpAmb>\s*([12])\s*</tpAmb>`)
+
+// AmbienteDoXML lê o ambiente do XML já montado, e devolve "" quando não acha.
+//
+// Existe para a transmissão NÃO depender de o cliente repetir o ambiente: o XML
+// já diz em qual ele foi montado, e divergir disso é rejeição 252 na certa, ou
+// pior, um documento de teste indo para o webservice de produção. O tpAmb da
+// SEFAZ é 1=produção e 2=homologação, o oposto do ordinal da biblioteca, que é
+// 0=produção; a conversão fica em AmbienteOrdinal.
+//
+// Vivia copiado em três pacotes, com a mesma expressão e o mesmo corpo. Uma
+// decisão de segurança implementada três vezes é uma decisão que pode divergir
+// em duas delas sem ninguém notar.
+func AmbienteDoXML(xml string) string {
+	m := reTpAmb.FindStringSubmatch(xml)
+	if len(m) != 2 {
+		return ""
+	}
+	if m[1] == "1" {
+		return AmbienteProducao
+	}
+	return AmbienteHomologacao
+}
+
+// AmbienteDoPedido normaliza o ambiente NO PRÓPRIO pedido, para que a sessão
+// nativa e o arquivo intermediário leiam o mesmo valor, e confere o tpAmb
+// explícito do documento contra ele.
+//
+// Dois valores para a mesma decisão é como um documento de homologação vai
+// parar no webservice de produção: em vez de eleger um vencedor em silêncio,
+// recusa e diz que se contradizem. tpAmb 0 é a ausência do campo. campoTpAmb é
+// o caminho dele no payload, para a mensagem dizer ONDE está a contradição;
+// vazio significa que aquele documento não tem tpAmb no contrato.
+//
+// Os três documentos tinham a sua cópia, com o mesmo corpo e o nome do campo
+// trocado. Uma decisão de segurança implementada três vezes é uma decisão que
+// pode divergir em duas delas sem ninguém notar.
+func AmbienteDoPedido(w http.ResponseWriter, ambiente *string, tpAmb int, campoTpAmb string) bool {
+	amb, ok := AmbienteValido(w, *ambiente)
+	if !ok {
+		return false
+	}
+	*ambiente = amb
+	if campoTpAmb != "" && (tpAmb == 1 || tpAmb == 2) && TpAmb(amb) != strconv.Itoa(tpAmb) {
+		httpx.ErroJSON(w, http.StatusBadRequest, "ambiente_divergente",
+			campoTpAmb+" contradiz o campo ambiente: informe um dos dois")
+		return false
+	}
+	return true
+}
+
+// ModalSuportado recusa o pedido de um modal que este serviço não emite.
+//
+// O grupo do modal só tem o rodoviário: um pedido de outro modal chegaria sem
+// os campos dele (o JSON recusa campo desconhecido) e viraria um documento com
+// o modal declarado e nenhum dado de modal. Melhor dizer não na entrada.
+//
+// informado vazio é a ausência do campo, e o default do documento é o
+// rodoviário. O código do rodoviário muda por documento ("01" no CT-e, "1" no
+// MDF-e), por isso ele é parâmetro.
+func ModalSuportado(w http.ResponseWriter, informado, rodoviario string) bool {
+	if informado == "" || informado == rodoviario {
+		return true
+	}
+	httpx.ErroJSON(w, http.StatusUnprocessableEntity, "modal_nao_suportado",
+		"este serviço emite apenas o modal rodoviário (modal="+rodoviario+"); recebido modal="+informado)
+	return false
 }
 
 // AmbienteOrdinal traduz o ambiente para o valor que a ACBrLib espera na

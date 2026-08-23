@@ -86,7 +86,7 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	if !ambienteDoPedido(w, &p.Ambiente) {
+	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 		return
 	}
 
@@ -185,10 +185,10 @@ func (m *Modulo) handleTransmissao(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !ambienteDoPedido(w, &p.Ambiente) {
+	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 		return
 	}
-	ambiente := fiscal.Primeiro(AmbienteDoXML(xml), p.Ambiente)
+	ambiente := fiscal.Primeiro(fiscal.AmbienteDoXML(xml), p.Ambiente)
 	t := m.tenantEmitente(p.Emitente, p.Municipio, ambiente, layout, p.Certificado, p.Credenciais)
 
 	res, err := m.svc.Transmitir(t, xml)
@@ -267,7 +267,7 @@ func (m *Modulo) handleEvento(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	if !ambienteDoPedido(w, &p.Ambiente) {
+	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 		return
 	}
 	t := m.tenantEmitente(p.Emitente, p.Municipio, p.Ambiente,
@@ -466,7 +466,7 @@ func (m *Modulo) lerConsulta(w http.ResponseWriter, r *http.Request) (PedidoCons
 	if !ok {
 		return p, acbr.TenantConfig{}, false
 	}
-	if !ambienteDoPedido(w, &p.Ambiente) {
+	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 		return p, acbr.TenantConfig{}, false
 	}
 	t := m.tenantEmitente(p.Emitente, p.Municipio, p.Ambiente,
@@ -530,7 +530,7 @@ func (m *Modulo) handlePDF(w http.ResponseWriter, r *http.Request) {
 		if !ok {
 			return
 		}
-		if !ambienteDoPedido(w, &p.Ambiente) {
+		if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 			return
 		}
 		t := m.tenantEmitente(p.Emitente, p.Municipio, p.Ambiente,
@@ -589,19 +589,6 @@ func (m *Modulo) layout(w http.ResponseWriter, cmun string) (Layout, bool) {
 		return "", false
 	}
 	return l, true
-}
-
-// ambienteDoPedido normaliza o ambiente NO PRÓPRIO pedido, recusando valor que
-// não seja homologação nem produção. A NFS-e não escreve tpAmb no INI (o
-// ambiente só configura a sessão), então aqui não há o par de códigos que o
-// CT-e e o MDF-e precisam manter alinhados: o que se ganha é não deixar um
-// "prod" digitado errado virar homologação com resposta 200.
-func ambienteDoPedido(w http.ResponseWriter, ambiente *string) bool {
-	amb, ok := fiscal.AmbienteValido(w, *ambiente)
-	if ok {
-		*ambiente = amb
-	}
-	return ok
 }
 
 // tenant monta a sessão a partir do prestador do próprio pedido (ao gerar).

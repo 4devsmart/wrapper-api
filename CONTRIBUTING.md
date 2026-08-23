@@ -61,6 +61,28 @@ Antes de propor uma mudança estrutural, saiba o que está fechado e por quê:
 Discordar é legítimo: abra uma issue com o caso concreto. O que não ajuda é um
 PR que contorna a regra sem tocar no raciocínio dela.
 
+## Onde o código compartilhado mora
+
+Os quatro documentos têm a mesma forma e conteúdos diferentes, e a tentação é
+copiar. Já custou caro: a escolha entre CNPJ e CPF existia em três versões, e
+uma delas aceitava um CNPJ em branco que as outras descartavam.
+
+| Camada | O que mora lá |
+|---|---|
+| `internal/platform/inifmt` | **como** escrever o arquivo intermediário: seção, par chave=valor, moeda, largura de índice, data no fuso do emitente |
+| `internal/fiscal` | o que é comum ao FISCO e não a um documento: certificado, ambiente, chave, erro da biblioteca virando HTTP |
+| `internal/platform/httpx` | envelope de erro, leitura e escrita de JSON |
+| `internal/{cte,mdfe,nfse,boleto}` | **o que** escrever: é aqui que o domínio de cada documento vive |
+
+Antes de escrever um ajudante num módulo de documento, procure nas três
+primeiras. Se o mesmo corpo já existe em outro módulo, ele pertence a uma
+delas.
+
+Duas exceções deliberadas: `ChaveDoXML` e `StatusEmissao` têm corpos idênticos
+em CT-e e MDF-e, mas o que muda entre elas é o dado (a expressão da chave, o
+tipo da resposta), e compartilhá-las custaria mais do que a cópia de cinco
+linhas.
+
 ## Testes de lockstep
 
 `internal/{cte,mdfe,nfse}/testdata/*.tsv` guardam as chaves de INI que a lib

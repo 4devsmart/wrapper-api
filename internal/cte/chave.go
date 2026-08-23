@@ -18,9 +18,6 @@ func ChaveDoXML(xml string) string {
 	return ""
 }
 
-// reTpAmb casa a tag tpAmb do XML.
-var reTpAmb = regexp.MustCompile(`<tpAmb>\s*([12])\s*</tpAmb>`)
-
 // AmbienteDoXML devolve "producao"/"homologacao" a partir do tpAmb do XML, ou
 // "" se não achar.
 //
@@ -29,13 +26,3 @@ var reTpAmb = regexp.MustCompile(`<tpAmb>\s*([12])\s*</tpAmb>`)
 // pior, um documento de teste indo para o webservice de produção. O tpAmb da
 // SEFAZ é 1=produção e 2=homologação (o oposto do ordinal da ACBrLib, que é
 // 0=produção; a conversão fica em fiscal.AmbienteOrdinal).
-func AmbienteDoXML(xml string) string {
-	m := reTpAmb.FindStringSubmatch(xml)
-	if len(m) != 2 {
-		return ""
-	}
-	if m[1] == "1" {
-		return "producao"
-	}
-	return "homologacao"
-}

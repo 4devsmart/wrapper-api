@@ -28,16 +28,16 @@ type Cancelamento struct {
 // incidência (default = município do prestador, resolvido pela lib se vazio).
 func ToINICancelamento(chave, cMun string, p CancelamentoPedido) string {
 	var b iniBuilder
-	b.section("CancelarNFSe")
-	b.kv("ChaveNFSe", chave)
+	b.Secao("CancelarNFSe")
+	b.KV("ChaveNFSe", chave)
 	// CodCancelamento: default 1 (erro na emissão), o código nacional mais comum.
 	codigo := p.Codigo
 	if codigo == "" {
 		codigo = "1"
 	}
-	b.kv("CodCancelamento", codigo)
-	b.kvOpt("MotCancelamento", p.Motivo)
-	b.kvOpt("CodMunicipio", cMun)
+	b.KV("CodCancelamento", codigo)
+	b.KVOpt("MotCancelamento", p.Motivo)
+	b.KVOpt("CodMunicipio", cMun)
 	return b.String()
 }
 

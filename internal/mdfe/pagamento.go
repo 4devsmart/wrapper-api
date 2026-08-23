@@ -1,6 +1,12 @@
 package mdfe
 
-import "strconv"
+import (
+	"cmp"
+	"strconv"
+
+	"github.com/4devsmart/wrapper-api/internal/fiscal"
+	"github.com/4devsmart/wrapper-api/internal/platform/inifmt"
+)
 
 // PedidoPagamentoOperacao é o corpo de POST /v1/mdfe/eventos/pagamento-operacao
 // (evento 110116). Registra o pagamento da operação de transporte. Reusa os
@@ -26,46 +32,46 @@ func ToINIPagamentoOperacao(chave, cnpj, dhEvento string, p PedidoPagamentoOpera
 	var b iniBuilder
 	eventoHeader(&b, chave, cnpj, dhEvento, "110116", p.NSeqEvento)
 	if v := p.InfViagens; v != nil {
-		b.section("infViagens")
-		b.kvIntOpt("qtdViagens", v.QtdViagens)
-		b.kvIntOpt("nroViagem", v.NroViagem)
+		b.Secao("infViagens")
+		b.KVIntOpt("qtdViagens", v.QtdViagens)
+		b.KVIntOpt("nroViagem", v.NroViagem)
 	}
 	for i, pag := range p.Pagamentos {
-		j := seq(i + 1)
-		b.section("infPag" + j)
-		b.kvOpt("xNome", pag.XNome)
-		b.kvOpt("CNPJCPF", firstNonEmpty(pag.CNPJ, pag.CPF))
-		b.kvOpt("idEstrangeiro", pag.IdEstrangeiro)
-		b.kv("vContrato", money(pag.VContrato))
-		b.kv("indPag", strconv.Itoa(pag.IndPag))
-		b.kvOpt("vAdiant", moneyOpt(pag.VAdiant))
-		b.kvIntOpt("indAntecipaAdiant", pag.IndAntecipaAdiant)
-		b.kvIntOpt("tpAntecip", pag.TpAntecip)
+		j := inifmt.Seq3(i + 1)
+		b.Secao("infPag" + j)
+		b.KVOpt("xNome", pag.XNome)
+		b.KVOpt("CNPJCPF", fiscal.Primeiro(pag.CNPJ, pag.CPF))
+		b.KVOpt("idEstrangeiro", pag.IdEstrangeiro)
+		b.KV("vContrato", inifmt.Money(pag.VContrato))
+		b.KV("indPag", strconv.Itoa(pag.IndPag))
+		b.KVOpt("vAdiant", inifmt.MoneyOpt(pag.VAdiant))
+		b.KVIntOpt("indAntecipaAdiant", pag.IndAntecipaAdiant)
+		b.KVIntOpt("tpAntecip", pag.TpAntecip)
 
 		for k, c := range pag.Comp {
-			b.section("Comp" + j + seq(k+1))
-			b.kv("tpComp", defaultStr(c.TpComp, "01"))
-			b.kv("vComp", money(c.VComp))
-			b.kvOpt("xComp", c.XComp)
+			b.Secao("Comp" + j + inifmt.Seq3(k+1))
+			b.KV("tpComp", cmp.Or(c.TpComp, "01"))
+			b.KV("vComp", inifmt.Money(c.VComp))
+			b.KVOpt("xComp", c.XComp)
 		}
 		if pag.IndPag == 1 {
 			for k, par := range pag.InfPrazo {
-				b.section("infPrazo" + j + seq(k+1))
-				b.kvIntOpt("nParcela", par.NParcela)
-				b.kvOpt("dVenc", par.DVenc)
-				b.kv("vParcela", money(par.VParcela))
+				b.Secao("infPrazo" + j + inifmt.Seq3(k+1))
+				b.KVIntOpt("nParcela", par.NParcela)
+				b.KVOpt("dVenc", par.DVenc)
+				b.KV("vParcela", inifmt.Money(par.VParcela))
 			}
 		}
 		if bc := pag.InfBanc; bc.PIX != "" || bc.CNPJIPEF != "" || bc.CodBanco != "" {
-			b.section("infBanc" + j)
+			b.Secao("infBanc" + j)
 			switch {
 			case bc.PIX != "":
-				b.kv("PIX", bc.PIX)
+				b.KV("PIX", bc.PIX)
 			case bc.CNPJIPEF != "":
-				b.kv("CNPJIPEF", bc.CNPJIPEF)
+				b.KV("CNPJIPEF", bc.CNPJIPEF)
 			default:
-				b.kvOpt("codBanco", bc.CodBanco)
-				b.kvOpt("codAgencia", bc.CodAgencia)
+				b.KVOpt("codBanco", bc.CodBanco)
+				b.KVOpt("codAgencia", bc.CodAgencia)
 			}
 		}
 	}

@@ -1,10 +1,11 @@
 package nfse
 
 import (
+	"cmp"
 	"strconv"
 	"strings"
-	"time"
 
+	"github.com/4devsmart/wrapper-api/internal/fiscal"
 	"github.com/4devsmart/wrapper-api/internal/platform/inifmt"
 	"github.com/4devsmart/wrapper-api/internal/platform/versao"
 )
@@ -37,134 +38,134 @@ func ToINI(p DPSPedido) string {
 	inf := p.InfDPS
 	var b iniBuilder
 
-	b.section("IdentificacaoNFSe")
-	b.kv("TipoXML", "RPS")
+	b.Secao("IdentificacaoNFSe")
+	b.KV("TipoXML", "RPS")
 
-	b.section("IdentificacaoRps")
-	b.kv("Numero", inf.NDPS)
-	b.kv("Serie", inf.Serie)
-	b.kv("DataEmissao", dateBR(inf.DhEmi))
-	b.kv("Competencia", dateBR(inf.DCompet))
-	b.kv("verAplic", defaultStr(inf.VerAplic, versao.Emissor()))
-	b.kv("tpEmit", strconv.Itoa(defaultInt(inf.TpEmit, 1)))
+	b.Secao("IdentificacaoRps")
+	b.KV("Numero", inf.NDPS)
+	b.KV("Serie", inf.Serie)
+	b.KV("DataEmissao", inifmt.DataBR(inf.DhEmi, b.Local()))
+	b.KV("Competencia", inifmt.DataBR(inf.DCompet, b.Local()))
+	b.KV("verAplic", cmp.Or(inf.VerAplic, versao.Emissor()))
+	b.KV("tpEmit", strconv.Itoa(cmp.Or(inf.TpEmit, 1)))
 	// Local de emissão (município emissor). Default = município do prestador.
-	b.kv("cLocEmi", defaultStr(inf.CLocEmi, inf.Prest.CMun))
+	b.KV("cLocEmi", cmp.Or(inf.CLocEmi, inf.Prest.CMun))
 	// NaturezaOperacao (ABRASF): 1=tributação no município (default). Nacional ignora.
-	b.kv("NaturezaOperacao", "1")
+	b.KV("NaturezaOperacao", "1")
 
-	b.section("Prestador")
+	b.Secao("Prestador")
 	b.pessoaCommon(inf.Prest)
 	if rt := inf.Prest.RegTrib; rt != nil {
-		b.kv("opSimpNac", strconv.Itoa(defaultInt(rt.OpSimpNac, 1)))
-		b.kvOpt("RegimeApuracaoSN", optInt(rt.RegApTribSN))
+		b.KV("opSimpNac", strconv.Itoa(cmp.Or(rt.OpSimpNac, 1)))
+		b.KVOpt("RegimeApuracaoSN", optInt(rt.RegApTribSN))
 		// regEspTrib é obrigatório no XSD (TCRegTrib): escrever sempre (0 = nenhum).
-		b.kv("Regime", strconv.Itoa(rt.RegEspTrib))
+		b.KV("Regime", strconv.Itoa(rt.RegEspTrib))
 	}
 
 	if inf.Toma != nil {
-		b.section("Tomador")
+		b.Secao("Tomador")
 		b.pessoaCommon(*inf.Toma)
 	}
 
 	if inf.Interm != nil {
-		b.section("Intermediario")
+		b.Secao("Intermediario")
 		b.pessoaCommon(*inf.Interm)
 	}
 
 	s := inf.Serv
-	b.section("Servico")
-	b.kv("CodigoMunicipio", s.CMunPrestacao)
-	b.kv("ItemListaServico", s.CServ)
-	b.kv("CodigoTributacaoMunicipio", s.CTribMun)
-	b.kv("Discriminacao", s.XDescServ)
-	b.kvOpt("CodigoNBS", nbs(s.CNBS))
-	b.kvOpt("CodigoCnae", s.CodigoCnae)
-	b.kvIntOpt("ExigibilidadeISS", s.ExigibISS)
-	b.kvOpt("MunicipioIncidencia", s.MunIncidencia)
-	b.kvOpt("xMunicipioIncidencia", s.XMunIncidencia)
-	b.kvOpt("NumeroProcesso", s.NumeroProcesso)
-	b.kvOpt("CodigoPais", s.CodigoPais)
-	b.kvOpt("xPais", s.XPais)
+	b.Secao("Servico")
+	b.KV("CodigoMunicipio", s.CMunPrestacao)
+	b.KV("ItemListaServico", s.CServ)
+	b.KV("CodigoTributacaoMunicipio", s.CTribMun)
+	b.KV("Discriminacao", s.XDescServ)
+	b.KVOpt("CodigoNBS", nbs(s.CNBS))
+	b.KVOpt("CodigoCnae", s.CodigoCnae)
+	b.KVIntOpt("ExigibilidadeISS", s.ExigibISS)
+	b.KVOpt("MunicipioIncidencia", s.MunIncidencia)
+	b.KVOpt("xMunicipioIncidencia", s.XMunIncidencia)
+	b.KVOpt("NumeroProcesso", s.NumeroProcesso)
+	b.KVOpt("CodigoPais", s.CodigoPais)
+	b.KVOpt("xPais", s.XPais)
 
 	if c := s.ComExt; c != nil {
-		b.section("ComercioExterior")
-		b.kvOpt("mdPrestacao", c.MdPrestacao)
-		b.kvOpt("vincPrest", c.VincPrest)
-		b.kvIntOpt("tpMoeda", c.TpMoeda)
-		b.kvOpt("vServMoeda", moneyOpt(c.VServMoeda))
-		b.kvOpt("mecAFComexP", c.MecAFComexP)
-		b.kvOpt("mecAFComexT", c.MecAFComexT)
-		b.kvOpt("movTempBens", c.MovTempBens)
-		b.kvOpt("nDI", c.NDI)
-		b.kvOpt("nRE", c.NRE)
-		b.kvIntOpt("mdic", c.Mdic)
+		b.Secao("ComercioExterior")
+		b.KVOpt("mdPrestacao", c.MdPrestacao)
+		b.KVOpt("vincPrest", c.VincPrest)
+		b.KVIntOpt("tpMoeda", c.TpMoeda)
+		b.KVOpt("vServMoeda", inifmt.MoneyOpt(c.VServMoeda))
+		b.KVOpt("mecAFComexP", c.MecAFComexP)
+		b.KVOpt("mecAFComexT", c.MecAFComexT)
+		b.KVOpt("movTempBens", c.MovTempBens)
+		b.KVOpt("nDI", c.NDI)
+		b.KVOpt("nRE", c.NRE)
+		b.KVIntOpt("mdic", c.Mdic)
 	}
 
 	if ic := s.InfoCompl; ic != nil {
-		b.section("InformacoesComplementares")
-		b.kvOpt("idDocTec", ic.IdDocTec)
-		b.kvOpt("docRef", ic.DocRef)
-		b.kvOpt("xPed", ic.XPed)
-		b.kvOpt("xInfComp", ic.XInfComp)
+		b.Secao("InformacoesComplementares")
+		b.KVOpt("idDocTec", ic.IdDocTec)
+		b.KVOpt("docRef", ic.DocRef)
+		b.KVOpt("xPed", ic.XPed)
+		b.KVOpt("xInfComp", ic.XInfComp)
 		for i, it := range ic.GItemPed {
-			b.section("gItemPed" + seq2(i+1))
-			b.kv("xItemPed", it)
+			b.Secao("gItemPed" + inifmt.Seq2(i+1))
+			b.KV("xItemPed", it)
 		}
 	}
 
 	v := inf.Valores
-	b.section("Valores")
-	b.kv("ValorServicos", money(v.VServ))
+	b.Secao("Valores")
+	b.KV("ValorServicos", inifmt.Money(v.VServ))
 	// IssRetido (ABRASF) é Sim/Não obrigatório; default 2 (não retido).
-	b.kv("IssRetido", strconv.Itoa(defaultInt(v.IssRetido, 2)))
-	b.kvOpt("Aliquota", moneyOpt(v.PAliq))
-	b.kvOpt("ValorRecebido", moneyOpt(v.VReceb))
-	b.kvOpt("DescontoIncondicionado", moneyOpt(v.VDescIncond))
-	b.kvOpt("DescontoCondicionado", moneyOpt(v.VDescCond))
-	b.kvOpt("ValorDeducoes", moneyOpt(v.VDeducoes))
-	b.kvOpt("AliquotaDeducoes", moneyOpt(v.PDeducoes))
+	b.KV("IssRetido", strconv.Itoa(cmp.Or(v.IssRetido, 2)))
+	b.KVOpt("Aliquota", inifmt.MoneyOpt(v.PAliq))
+	b.KVOpt("ValorRecebido", inifmt.MoneyOpt(v.VReceb))
+	b.KVOpt("DescontoIncondicionado", inifmt.MoneyOpt(v.VDescIncond))
+	b.KVOpt("DescontoCondicionado", inifmt.MoneyOpt(v.VDescCond))
+	b.KVOpt("ValorDeducoes", inifmt.MoneyOpt(v.VDeducoes))
+	b.KVOpt("AliquotaDeducoes", inifmt.MoneyOpt(v.PDeducoes))
 
 	// [tribMun]: usa o grupo detalhado quando informado; senão o atalho simples.
-	b.section("tribMun")
+	b.Secao("tribMun")
 	if t := v.TribMun; t != nil {
-		b.kv("tribISSQN", strconv.Itoa(defaultInt(t.TribISSQN, 1)))
-		b.kvIntOpt("tpRetISSQN", t.TpRetISSQN)
-		b.kvOpt("pAliq", moneyOpt(t.PAliq))
-		b.kvIntOpt("tpImunidade", t.TpImunidade)
-		b.kvIntOpt("tpSusp", t.TpSusp)
-		b.kvOpt("nProcesso", t.NProcesso)
-		b.kvOpt("vRedBCBM", moneyOpt(t.VRedBCBM))
-		b.kvOpt("pRedBCBM", moneyOpt(t.PRedBCBM))
-		b.kvOpt("nBM", t.NBM)
+		b.KV("tribISSQN", strconv.Itoa(cmp.Or(t.TribISSQN, 1)))
+		b.KVIntOpt("tpRetISSQN", t.TpRetISSQN)
+		b.KVOpt("pAliq", inifmt.MoneyOpt(t.PAliq))
+		b.KVIntOpt("tpImunidade", t.TpImunidade)
+		b.KVIntOpt("tpSusp", t.TpSusp)
+		b.KVOpt("nProcesso", t.NProcesso)
+		b.KVOpt("vRedBCBM", inifmt.MoneyOpt(t.VRedBCBM))
+		b.KVOpt("pRedBCBM", inifmt.MoneyOpt(t.PRedBCBM))
+		b.KVOpt("nBM", t.NBM)
 	} else {
-		b.kv("tribISSQN", strconv.Itoa(defaultInt(v.TribISSQN, 1)))
-		b.kvOpt("pAliq", moneyOpt(v.PAliq))
+		b.KV("tribISSQN", strconv.Itoa(cmp.Or(v.TribISSQN, 1)))
+		b.KVOpt("pAliq", inifmt.MoneyOpt(v.PAliq))
 	}
 
 	if t := v.TribFed; t != nil {
-		b.section("tribFed")
-		b.kvOpt("CST", t.CST)
-		b.kvOpt("vBCPisCofins", moneyOpt(t.VBCPisCofins))
-		b.kvOpt("pAliqPis", moneyOpt(t.PAliqPis))
-		b.kvOpt("pAliqCofins", moneyOpt(t.PAliqCofins))
-		b.kvOpt("vPis", moneyOpt(t.VPis))
-		b.kvOpt("vCofins", moneyOpt(t.VCofins))
-		b.kvIntOpt("tpRetPisCofins", t.TpRetPisCofins)
-		b.kvOpt("vRetCP", moneyOpt(t.VRetCP))
-		b.kvOpt("vRetIRRF", moneyOpt(t.VRetIRRF))
-		b.kvOpt("vRetCSLL", moneyOpt(t.VRetCSLL))
+		b.Secao("tribFed")
+		b.KVOpt("CST", t.CST)
+		b.KVOpt("vBCPisCofins", inifmt.MoneyOpt(t.VBCPisCofins))
+		b.KVOpt("pAliqPis", inifmt.MoneyOpt(t.PAliqPis))
+		b.KVOpt("pAliqCofins", inifmt.MoneyOpt(t.PAliqCofins))
+		b.KVOpt("vPis", inifmt.MoneyOpt(t.VPis))
+		b.KVOpt("vCofins", inifmt.MoneyOpt(t.VCofins))
+		b.KVIntOpt("tpRetPisCofins", t.TpRetPisCofins)
+		b.KVOpt("vRetCP", inifmt.MoneyOpt(t.VRetCP))
+		b.KVOpt("vRetIRRF", inifmt.MoneyOpt(t.VRetIRRF))
+		b.KVOpt("vRetCSLL", inifmt.MoneyOpt(t.VRetCSLL))
 	}
 
 	if t := v.TotTrib; t != nil {
-		b.section("totTrib")
-		b.kvIntOpt("indTotTrib", t.IndTotTrib)
-		b.kvOpt("pTotTribSN", moneyOpt(t.PTotTribSN))
-		b.kvOpt("vTotTribFed", moneyOpt(t.VTotTribFed))
-		b.kvOpt("vTotTribEst", moneyOpt(t.VTotTribEst))
-		b.kvOpt("vTotTribMun", moneyOpt(t.VTotTribMun))
-		b.kvOpt("pTotTribFed", moneyOpt(t.PTotTribFed))
-		b.kvOpt("pTotTribEst", moneyOpt(t.PTotTribEst))
-		b.kvOpt("pTotTribMun", moneyOpt(t.PTotTribMun))
+		b.Secao("totTrib")
+		b.KVIntOpt("indTotTrib", t.IndTotTrib)
+		b.KVOpt("pTotTribSN", inifmt.MoneyOpt(t.PTotTribSN))
+		b.KVOpt("vTotTribFed", inifmt.MoneyOpt(t.VTotTribFed))
+		b.KVOpt("vTotTribEst", inifmt.MoneyOpt(t.VTotTribEst))
+		b.KVOpt("vTotTribMun", inifmt.MoneyOpt(t.VTotTribMun))
+		b.KVOpt("pTotTribFed", inifmt.MoneyOpt(t.PTotTribFed))
+		b.KVOpt("pTotTribEst", inifmt.MoneyOpt(t.PTotTribEst))
+		b.KVOpt("pTotTribMun", inifmt.MoneyOpt(t.PTotTribMun))
 	}
 
 	b.ibscbs(inf.IBSCBS)
@@ -177,122 +178,91 @@ func (b *iniBuilder) ibscbs(g *IBSCBSDPS) {
 	if g == nil {
 		return
 	}
-	b.section("IBSCBSDPS")
+	b.Secao("IBSCBSDPS")
 	// finNFSe e indDest são obrigatórios quando o grupo existe: o leitor do
 	// ACBrNFSeX estoura no vazio (diferente de indFinal/tpOper, que aceitam ''):
 	// emitimos defaults neutros (0=regular / 0=tomador=adquirente=destinatário).
-	b.kv("finNFSe", defaultStr(g.FinNFSe, "0"))
-	b.kv("indDest", defaultStr(g.IndDest, "0"))
-	b.kvOpt("indFinal", g.IndFinal)
-	b.kvOpt("cIndOp", g.CIndOp)
-	b.kvOpt("tpOper", g.TpOper)
-	b.kvOpt("tpEnteGov", g.TpEnteGov)
+	b.KV("finNFSe", cmp.Or(g.FinNFSe, "0"))
+	b.KV("indDest", cmp.Or(g.IndDest, "0"))
+	b.KVOpt("indFinal", g.IndFinal)
+	b.KVOpt("cIndOp", g.CIndOp)
+	b.KVOpt("tpOper", g.TpOper)
+	b.KVOpt("tpEnteGov", g.TpEnteGov)
 	if d := g.Dest; d != nil {
-		b.section("Destinatario")
-		b.kvOpt("CNPJCPF", firstNonEmpty(d.CNPJ, d.CPF))
-		b.kvOpt("NIF", d.NIF)
-		b.kvOpt("RazaoSocial", d.XNome)
-		b.kvOpt("InscricaoMunicipal", d.IM)
-		b.kvOpt("Logradouro", d.Logradouro)
-		b.kvOpt("Numero", d.Numero)
-		b.kvOpt("Complemento", d.Complemento)
-		b.kvOpt("Bairro", d.Bairro)
-		b.kvOpt("CodigoMunicipio", d.CMun)
-		b.kvOpt("xMunicipio", d.XMun)
-		b.kvOpt("UF", d.UF)
-		b.kvOpt("CEP", d.CEP)
-		b.kvOpt("CodigoPais", d.CPais)
-		b.kvOpt("Email", d.Email)
-		b.kvOpt("Telefone", d.Telefone)
+		b.Secao("Destinatario")
+		b.KVOpt("CNPJCPF", fiscal.Primeiro(d.CNPJ, d.CPF))
+		b.KVOpt("NIF", d.NIF)
+		b.KVOpt("RazaoSocial", d.XNome)
+		b.KVOpt("InscricaoMunicipal", d.IM)
+		b.KVOpt("Logradouro", d.Logradouro)
+		b.KVOpt("Numero", d.Numero)
+		b.KVOpt("Complemento", d.Complemento)
+		b.KVOpt("Bairro", d.Bairro)
+		b.KVOpt("CodigoMunicipio", d.CMun)
+		b.KVOpt("xMunicipio", d.XMun)
+		b.KVOpt("UF", d.UF)
+		b.KVOpt("CEP", d.CEP)
+		b.KVOpt("CodigoPais", d.CPais)
+		b.KVOpt("Email", d.Email)
+		b.KVOpt("Telefone", d.Telefone)
 	}
 	if m := g.Imovel; m != nil {
-		b.section("Imovel")
-		b.kvOpt("inscImobFisc", m.InscImobFisc)
-		b.kvOpt("cCIB", m.CCIB)
-		b.kvOpt("Logradouro", m.Logradouro)
-		b.kvOpt("Numero", m.Numero)
-		b.kvOpt("Complemento", m.Complemento)
-		b.kvOpt("Bairro", m.Bairro)
-		b.kvOpt("CEP", m.CEP)
+		b.Secao("Imovel")
+		b.KVOpt("inscImobFisc", m.InscImobFisc)
+		b.KVOpt("cCIB", m.CCIB)
+		b.KVOpt("Logradouro", m.Logradouro)
+		b.KVOpt("Numero", m.Numero)
+		b.KVOpt("Complemento", m.Complemento)
+		b.KVOpt("Bairro", m.Bairro)
+		b.KVOpt("CEP", m.CEP)
 	}
 	for i, d := range g.Documentos {
-		b.section("Documentos" + seq4(i+1))
+		b.Secao("Documentos" + inifmt.Seq4(i+1))
 		// tipoChaveDFe é lido sempre e estoura no vazio (1=NFSe,2=NFe,3=CTe,
 		// 4=Outro) → default "4" (Outro) quando o consumidor não informa.
-		b.kv("tipoChaveDFe", defaultStr(d.TipoChaveDFe, "4"))
-		b.kvOpt("xTipoChaveDFe", d.XTipoChaveDFe)
-		b.kvOpt("chaveDFe", d.ChaveDFe)
-		b.kvOpt("cMunDocFiscal", d.CMunDocFiscal)
-		b.kvOpt("nDocFiscal", d.NDocFiscal)
-		b.kvOpt("xDocFiscal", d.XDocFiscal)
-		b.kvOpt("nDoc", d.NDoc)
-		b.kvOpt("xDoc", d.XDoc)
-		b.kvOpt("CNPJCPF", firstNonEmpty(d.FornecCNPJ, d.FornecCPF))
-		b.kvOpt("RazaoSocial", d.FornecNome)
-		b.kvOpt("dtEmiDoc", dateBR(d.DtEmiDoc))
-		b.kvOpt("dtCompDoc", dateBROpt(d.DtCompDoc))
-		b.kvOpt("tpReeRepRes", d.TpReeRepRes)
-		b.kvOpt("xTpReeRepRes", d.XTpReeRepRes)
-		b.kvOpt("vlrReeRepRes", moneyOpt(d.VlrReeRepRes))
+		b.KV("tipoChaveDFe", cmp.Or(d.TipoChaveDFe, "4"))
+		b.KVOpt("xTipoChaveDFe", d.XTipoChaveDFe)
+		b.KVOpt("chaveDFe", d.ChaveDFe)
+		b.KVOpt("cMunDocFiscal", d.CMunDocFiscal)
+		b.KVOpt("nDocFiscal", d.NDocFiscal)
+		b.KVOpt("xDocFiscal", d.XDocFiscal)
+		b.KVOpt("nDoc", d.NDoc)
+		b.KVOpt("xDoc", d.XDoc)
+		b.KVOpt("CNPJCPF", fiscal.Primeiro(d.FornecCNPJ, d.FornecCPF))
+		b.KVOpt("RazaoSocial", d.FornecNome)
+		b.KVOpt("dtEmiDoc", inifmt.DataBR(d.DtEmiDoc, b.Local()))
+		b.KVOpt("dtCompDoc", inifmt.DataBROpt(d.DtCompDoc, b.Local()))
+		b.KVOpt("tpReeRepRes", d.TpReeRepRes)
+		b.KVOpt("xTpReeRepRes", d.XTpReeRepRes)
+		b.KVOpt("vlrReeRepRes", inifmt.MoneyOpt(d.VlrReeRepRes))
 	}
 	if c := g.GIBSCBS; c != nil {
-		b.section("gIBSCBS")
-		b.kv("CST", c.CST)
-		b.kvOpt("cClassTrib", c.CClassTrib)
-		b.kvOpt("cCredPres", c.CCredPres)
+		b.Secao("gIBSCBS")
+		b.KV("CST", c.CST)
+		b.KVOpt("cClassTrib", c.CClassTrib)
+		b.KVOpt("cCredPres", c.CCredPres)
 		if r := c.GTribRegular; r != nil {
-			b.section("gTribRegular")
-			b.kv("CSTReg", r.CSTReg)
-			b.kvOpt("cClassTribReg", r.CClassTribReg)
+			b.Secao("gTribRegular")
+			b.KV("CSTReg", r.CSTReg)
+			b.KVOpt("cClassTribReg", r.CClassTribReg)
 		}
 		if d := c.GDif; d != nil {
-			b.section("gDif")
-			b.kvOpt("pDifUF", moneyOpt(d.PDifUF))
-			b.kvOpt("pDifMun", moneyOpt(d.PDifMun))
-			b.kvOpt("pDifCBS", moneyOpt(d.PDifCBS))
+			b.Secao("gDif")
+			b.KVOpt("pDifUF", inifmt.MoneyOpt(d.PDifUF))
+			b.KVOpt("pDifMun", inifmt.MoneyOpt(d.PDifMun))
+			b.KVOpt("pDifCBS", inifmt.MoneyOpt(d.PDifCBS))
 		}
 	}
 }
 
 // --- builder de INI ---------------------------------------------------------
 
-type iniBuilder struct{ sb strings.Builder }
-
-func (b *iniBuilder) section(name string) {
-	if b.sb.Len() > 0 {
-		b.sb.WriteByte('\n')
-	}
-	b.sb.WriteByte('[')
-	b.sb.WriteString(name)
-	b.sb.WriteString("]\n")
-}
-
-// sanitizeINIVal neutraliza CR/LF no valor: o INI é "chave=valor" por linha, então
-// um \n vindo de campo de texto livre do cliente injetaria nova chave/seção que a
-// ACBrLib consumiria (forjar Ambiente, Emitente, etc.). Trocamos por espaço.
-func sanitizeINIVal(s string) string { return inifmt.Sanitize(s) }
-
-// kv escreve sempre a chave (mesmo vazia): útil para campos esperados pelo ACBr.
-func (b *iniBuilder) kv(key, val string) {
-	b.sb.WriteString(key)
-	b.sb.WriteByte('=')
-	b.sb.WriteString(sanitizeINIVal(val))
-	b.sb.WriteByte('\n')
-}
-
-// kvOpt escreve a chave apenas se o valor não for vazio.
-func (b *iniBuilder) kvOpt(key, val string) {
-	if val != "" {
-		b.kv(key, val)
-	}
-}
-
-// kvIntOpt escreve a chave apenas se o inteiro não for zero.
-func (b *iniBuilder) kvIntOpt(key string, v int) {
-	if v != 0 {
-		b.kv(key, strconv.Itoa(v))
-	}
-}
+// iniBuilder é o construtor compartilhado (internal/platform/inifmt) mais os
+// métodos de DOMÍNIO deste documento, logo abaixo. O núcleo (seção, par
+// chave=valor, datas no fuso do emitente) vive num lugar só: era o mesmo código
+// nos quatro documentos, e um ajuste na sanitização precisava ser feito quatro
+// vezes.
+type iniBuilder struct{ inifmt.Builder }
 
 // pessoaCommon escreve os campos comuns de prestador/tomador.
 //
@@ -302,21 +272,21 @@ func (b *iniBuilder) kvIntOpt(key string, v int) {
 // serve para os dois. Mantemos CNPJ/CPF também por compatibilidade.
 func (b *iniBuilder) pessoaCommon(p Pessoa) {
 	if doc := p.CNPJ; doc != "" {
-		b.kv("CNPJCPF", doc)
-		b.kv("CNPJ", doc)
+		b.KV("CNPJCPF", doc)
+		b.KV("CNPJ", doc)
 	} else if doc := p.CPF; doc != "" {
-		b.kv("CNPJCPF", doc)
-		b.kv("CPF", doc)
+		b.KV("CNPJCPF", doc)
+		b.KV("CPF", doc)
 	}
-	b.kvOpt("InscricaoMunicipal", p.IM)
-	b.kvOpt("RazaoSocial", p.XNome)
-	b.kvOpt("Logradouro", p.Logradouro)
-	b.kvOpt("Numero", p.Numero)
-	b.kvOpt("Complemento", p.Complemento)
-	b.kvOpt("Bairro", p.Bairro)
-	b.kvOpt("CodigoMunicipio", p.CMun)
-	b.kvOpt("UF", p.UF)
-	b.kvOpt("CEP", p.CEP)
+	b.KVOpt("InscricaoMunicipal", p.IM)
+	b.KVOpt("RazaoSocial", p.XNome)
+	b.KVOpt("Logradouro", p.Logradouro)
+	b.KVOpt("Numero", p.Numero)
+	b.KVOpt("Complemento", p.Complemento)
+	b.KVOpt("Bairro", p.Bairro)
+	b.KVOpt("CodigoMunicipio", p.CMun)
+	b.KVOpt("UF", p.UF)
+	b.KVOpt("CEP", p.CEP)
 	// CodigoPais é OBRIGATÓRIO mesmo em endereço nacional. No layout ABRASF 2.04
 	// o gravador escolhe nacional × exterior por este campo:
 	//
@@ -330,51 +300,22 @@ func (b *iniBuilder) pessoaCommon(p Pessoa) {
 	// layout 2.04 (ex.: EloTech). O Padrão Nacional decide por CodigoMunicipio e
 	// não sofria disso.
 	if p.CPais > 0 {
-		b.kvIntOpt("CodigoPais", p.CPais) // exterior (ou nacional explícito)
+		b.KVIntOpt("CodigoPais", p.CPais) // exterior (ou nacional explícito)
 	} else if p.CMun != "" {
-		b.kvIntOpt("CodigoPais", codigoPaisBrasil)
+		b.KVIntOpt("CodigoPais", codigoPaisBrasil)
 	}
-	b.kvOpt("xPais", p.XPais)
-	b.kvOpt("Telefone", p.Telefone)
-	b.kvOpt("Email", p.Email)
+	b.KVOpt("xPais", p.XPais)
+	b.KVOpt("Telefone", p.Telefone)
+	b.KVOpt("Email", p.Email)
 }
-
-func (b *iniBuilder) String() string { return b.sb.String() }
 
 // --- helpers ----------------------------------------------------------------
 
 // dateBR converte "YYYY-MM-DD" (ou RFC3339) para "DD/MM/YYYY" (formato do INI).
 // Vazio vira a data de hoje.
-func dateBR(s string) string {
-	if s == "" {
-		return time.Now().Format("02/01/2006")
-	}
-	for _, layout := range []string{"2006-01-02", time.RFC3339, "02/01/2006"} {
-		if t, err := time.Parse(layout, s); err == nil {
-			return t.Format("02/01/2006")
-		}
-	}
-	return s
-}
 
 // money formata com 2 casas e separador decimal VÍRGULA: o ACBr lê floats do
 // INI no padrão brasileiro (vírgula); "1.00" seria interpretado como 0.
-func money(v float64) string    { return inifmt.Money(v) }
-func moneyOpt(v float64) string { return inifmt.MoneyOpt(v) }
-
-func defaultStr(v, def string) string {
-	if v == "" {
-		return def
-	}
-	return v
-}
-
-func defaultInt(v, def int) int {
-	if v == 0 {
-		return def
-	}
-	return v
-}
 
 func optInt(v int) string {
 	if v == 0 {
@@ -383,26 +324,4 @@ func optInt(v int) string {
 	return strconv.Itoa(v)
 }
 
-// seq2 formata um índice com 2 dígitos (ex.: gItemPed01).
-func seq2(n int) string { return inifmt.Seq2(n) }
-
-// seq4 formata um índice com 4 dígitos (ex.: Documentos0001).
-func seq4(n int) string { return inifmt.Seq4(n) }
-
 // dateBROpt converte para DD/MM/YYYY; vazio continua vazio (sem virar "hoje").
-func dateBROpt(s string) string {
-	if s == "" {
-		return ""
-	}
-	return dateBR(s)
-}
-
-// firstNonEmpty devolve o primeiro valor não vazio.
-func firstNonEmpty(vals ...string) string {
-	for _, v := range vals {
-		if v != "" {
-			return v
-		}
-	}
-	return ""
-}

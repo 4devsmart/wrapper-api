@@ -6,7 +6,6 @@ package servidor
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -18,6 +17,7 @@ import (
 	"github.com/4devsmart/wrapper-api/internal/acbr"
 	"github.com/4devsmart/wrapper-api/internal/modulo"
 	"github.com/4devsmart/wrapper-api/internal/platform/config"
+	"github.com/4devsmart/wrapper-api/internal/platform/httpx"
 	"github.com/4devsmart/wrapper-api/internal/platform/versao"
 )
 
@@ -104,7 +104,7 @@ func (s *Servidor) recuperar(next http.Handler) http.Handler {
 		defer func() {
 			if v := recover(); v != nil {
 				slog.Error("panic no handler", "path", r.URL.Path, "panic", v, "stack", string(debug.Stack()))
-				escreverErro(w, http.StatusInternalServerError, "erro_interno", "erro interno")
+				httpx.ErroJSON(w, http.StatusInternalServerError, "erro_interno", "erro interno")
 			}
 		}()
 		next.ServeHTTP(w, r)
@@ -147,7 +147,7 @@ func (s *Servidor) exigirAuth(next http.Handler) http.Handler {
 		if len(cab) <= len(prefixo) || !strings.EqualFold(cab[:len(prefixo)], prefixo) ||
 			!igual(cab[len(prefixo):], s.cfg.AuthToken) {
 			w.Header().Set("WWW-Authenticate", `Bearer realm="wrapper-api"`)
-			escreverErro(w, http.StatusUnauthorized, "nao_autorizado", "token ausente ou inválido")
+			httpx.ErroJSON(w, http.StatusUnauthorized, "nao_autorizado", "token ausente ou inválido")
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -157,7 +157,7 @@ func (s *Servidor) exigirAuth(next http.Handler) http.Handler {
 // --- handlers ---------------------------------------------------------------
 
 func (s *Servidor) handleHealthz(w http.ResponseWriter, _ *http.Request) {
-	escreverJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+	httpx.JSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
 // handleReadyz responde 503 quando o motor fiscal não está atendendo. É a
@@ -165,12 +165,12 @@ func (s *Servidor) handleHealthz(w http.ResponseWriter, _ *http.Request) {
 // sem isso o orquestrador manda tráfego para uma instância sem worker.
 func (s *Servidor) handleReadyz(w http.ResponseWriter, r *http.Request) {
 	if err := s.motorPronto(r.Context()); err != nil {
-		escreverJSON(w, http.StatusServiceUnavailable, map[string]any{
+		httpx.JSON(w, http.StatusServiceUnavailable, map[string]any{
 			"status": "indisponivel", "motivo": err.Error(),
 		})
 		return
 	}
-	escreverJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+	httpx.JSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
 // motorPronto pergunta ao pool de workers se há alguém atendendo. Usa o /healthz
@@ -200,7 +200,7 @@ func (s *Servidor) motorPronto(ctx context.Context) error {
 }
 
 func (s *Servidor) handlePing(w http.ResponseWriter, _ *http.Request) {
-	escreverJSON(w, http.StatusOK, map[string]any{
+	httpx.JSON(w, http.StatusOK, map[string]any{
 		"status": "ok",
 		"versao": versao.Atual(),
 	})
@@ -213,7 +213,7 @@ func (s *Servidor) handleCapacidades(w http.ResponseWriter, _ *http.Request) {
 	for k, v := range s.capsJSON {
 		mods[k] = v
 	}
-	escreverJSON(w, http.StatusOK, map[string]any{
+	httpx.JSON(w, http.StatusOK, map[string]any{
 		"base":    Base,
 		"modulos": mods,
 		"versao":  versao.Atual(),
@@ -273,16 +273,6 @@ func igual(a, b string) bool {
 		d |= a[i] ^ b[i]
 	}
 	return d == 0
-}
-
-func escreverJSON(w http.ResponseWriter, status int, v any) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(v)
-}
-
-func escreverErro(w http.ResponseWriter, status int, codigo, msg string) {
-	escreverJSON(w, status, map[string]any{"erro": map[string]string{"codigo": codigo, "mensagem": msg}})
 }
 
 var errSemMotor = errors.New("nenhum worker fiscal configurado (ACBR_WORKERS)")

@@ -1,6 +1,10 @@
 package cte
 
-import "strconv"
+import (
+	"strconv"
+
+	"github.com/4devsmart/wrapper-api/internal/platform/inifmt"
+)
 
 // PedidoCartaCorrecao é o corpo de POST /v1/cte/eventos/carta-correcao. A chave vem no envelope; o CNPJ é
 // derivado dela. Aqui vão só os grupos de correção.
@@ -26,11 +30,11 @@ func ToINICartaCorrecao(chave, cnpj, dhEvento string, p PedidoCartaCorrecao) str
 	var b iniBuilder
 	eventoHeader(&b, chave, cnpj, dhEvento, "110110", p.NSeqEvento)
 	for i, c := range p.Correcoes {
-		b.section("DETEVENTO" + seq(i+1))
-		b.kv("grupoAlterado", c.GrupoAlterado)
-		b.kv("campoAlterado", c.CampoAlterado)
-		b.kv("valorAlterado", c.ValorAlterado)
-		b.kv("nroItemAlterado", strconv.Itoa(c.NroItemAlterado))
+		b.Secao("DETEVENTO" + inifmt.Seq3(i+1))
+		b.KV("grupoAlterado", c.GrupoAlterado)
+		b.KV("campoAlterado", c.CampoAlterado)
+		b.KV("valorAlterado", c.ValorAlterado)
+		b.KV("nroItemAlterado", strconv.Itoa(c.NroItemAlterado))
 	}
 	return b.String()
 }
