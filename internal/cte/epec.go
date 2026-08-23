@@ -1,6 +1,6 @@
 package cte
 
-// PedidoEPEC é o corpo de POST /cte/{id}/epec (Evento Prévio de Emissão em
+// PedidoEPEC é o corpo de POST /v1/cte/eventos/epec (Evento Prévio de Emissão em
 // Contingência, tpEvento 110113). Valores com vírgula decimal no INI.
 type PedidoEPEC struct {
 	VICMS      float64     `json:"vICMS"`

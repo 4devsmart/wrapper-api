@@ -7,7 +7,7 @@ import (
 	"github.com/4devsmart/wrapper-api/internal/platform/inifmt"
 )
 
-// PedidoComprovanteEntrega é o corpo de POST /cte/{id}/comprovante-entrega
+// PedidoComprovanteEntrega é o corpo de POST /v1/cte/eventos/comprovante-entrega
 // (tpEvento 110180). Registra a entrega da carga (com geolocalização opcional)
 // e as NF-e entregues.
 type PedidoComprovanteEntrega struct {

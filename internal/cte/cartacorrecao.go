@@ -2,8 +2,8 @@ package cte
 
 import "strconv"
 
-// PedidoCartaCorrecao é o corpo de POST /cte/{id}/carta-correcao. chCTe/cnpj
-// vêm do documento; o cliente envia o(s) grupo(s) de correção.
+// PedidoCartaCorrecao é o corpo de POST /v1/cte/eventos/carta-correcao. A chave vem no envelope; o CNPJ é
+// derivado dela. Aqui vão só os grupos de correção.
 type PedidoCartaCorrecao struct {
 	Correcoes  []Correcao `json:"correcoes"`
 	NSeqEvento int        `json:"nSeqEvento,omitempty"` // opcional (default 1)

@@ -27,6 +27,9 @@ jobs:
       # 1 do contrato não assina. É o que torna este job barato e honesto.
       - run: CGO_ENABLED=0 go vet ./...
       - run: CGO_ENABLED=0 go test ./...
+      # A spec é gerada dos modelos Go. Este gate impede que ela envelheça: sem
+      # ele, o campo que alguém adicionar hoje some da documentação amanhã.
+      - run: make openapi-check
 
   cgo:
     name: type-check + link do binding contra as .so reais

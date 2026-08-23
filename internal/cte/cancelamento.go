@@ -2,8 +2,9 @@ package cte
 
 import "strconv"
 
-// PedidoCancelamento é o corpo de POST /cte/{id}/cancelamento (ACBr.API).
-// chave/protocolo vêm do documento persistido (não do cliente).
+// PedidoCancelamento é o corpo de POST /v1/cte/eventos/cancelamento (ACBr.API).
+// A chave e o protocolo vêm no envelope do evento, não daqui: sem estado no
+// servidor, quem os guarda é o cliente.
 type PedidoCancelamento struct {
 	Justificativa string `json:"justificativa"`
 	// nSeqEvento é opcional (default 1).

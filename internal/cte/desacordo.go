@@ -1,6 +1,6 @@
 package cte
 
-// PedidoDesacordo é o corpo de POST /cte/{id}/prestacao-desacordo (tpEvento
+// PedidoDesacordo é o corpo de POST /v1/cte/eventos/prestacao-desacordo (tpEvento
 // 610110). Registrado pelo TOMADOR quando a prestação está em desacordo;
 // xObs descreve o motivo.
 type PedidoDesacordo struct {
