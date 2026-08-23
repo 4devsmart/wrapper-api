@@ -11,3 +11,78 @@ CNAB	1	CNAB 400
 CNAB	2	CNAB 240
 OperacaoRegistro	0	Incluir
 OperacaoRegistro	2	Baixar
+# Tipo de cobrança: identifica o banco E o layout usado.
+#
+# Alguns bancos aparecem mais de uma vez porque emitem em layout de outro
+# (Sofisa no layout do Itaú, por exemplo). Confirme com o seu banco qual
+# layout foi contratado: o número do banco sozinho não decide.
+#
+# Valores extraídos da biblioteca fiscal; rótulos escritos aqui.
+# Formato: enum <TAB> valor <TAB> rótulo
+TipoCobranca	1	Banco do Brasil
+TipoCobranca	2	Santander
+TipoCobranca	3	Caixa Econômica
+TipoCobranca	4	Caixa (SICOB)
+TipoCobranca	5	Bradesco
+TipoCobranca	6	Itaú
+TipoCobranca	7	Banco Mercantil
+TipoCobranca	8	Sicredi
+TipoCobranca	9	Bancoob (SICOOB)
+TipoCobranca	10	Banrisul
+TipoCobranca	11	Banestes
+TipoCobranca	12	HSBC
+TipoCobranca	13	Banco do Nordeste
+TipoCobranca	14	BRB
+TipoCobranca	15	BicBanco
+TipoCobranca	16	Bradesco (SICOOB)
+TipoCobranca	17	Banco Safra
+TipoCobranca	18	Safra (layout Bradesco)
+TipoCobranca	19	CECRED
+TipoCobranca	20	Banco da Amazônia
+TipoCobranca	21	Banco do Brasil (SICOOB)
+TipoCobranca	22	Uniprime
+TipoCobranca	23	Unicred RS
+TipoCobranca	24	Banese
+TipoCobranca	25	CrediSIS
+TipoCobranca	26	Unicred ES
+TipoCobranca	27	Cresol SC/RS
+TipoCobranca	28	Citibank
+TipoCobranca	29	ABC Brasil
+TipoCobranca	30	Daycoval
+TipoCobranca	31	Uniprime Norte do Paraná
+TipoCobranca	32	Banco Pine
+TipoCobranca	33	Banco Pine (layout Bradesco)
+TipoCobranca	34	Unicred SC
+TipoCobranca	35	Banco Alfa
+TipoCobranca	36	Banco do Brasil (API)
+TipoCobranca	37	Banco do Brasil (webservice)
+TipoCobranca	38	Cresol
+TipoCobranca	39	MoneyPlus
+TipoCobranca	40	Banco C6
+TipoCobranca	41	Banco Rendimento
+TipoCobranca	42	Banco Inter
+TipoCobranca	43	Sofisa (layout Santander)
+TipoCobranca	44	BS2
+TipoCobranca	45	PenseBank (API)
+TipoCobranca	46	BTG Pactual
+TipoCobranca	47	Banco Original
+TipoCobranca	48	Banco Votorantim
+TipoCobranca	49	Pefisa
+TipoCobranca	50	Banco Fibra
+TipoCobranca	51	Sofisa (layout Itaú)
+TipoCobranca	52	Banco Industrial do Brasil
+TipoCobranca	53	Athena (layout Bradesco)
+TipoCobranca	54	QI Tech SCD
+TipoCobranca	55	UY3
+TipoCobranca	56	Bocom BBM
+TipoCobranca	57	Sicoob
+TipoCobranca	58	Sisprime
+TipoCobranca	59	Ailos
+TipoCobranca	60	Cora
+TipoCobranca	61	Sulcredi
+TipoCobranca	62	Credisan
+TipoCobranca	63	Banco Sofisa
+TipoCobranca	64	Vórtx
+TipoCobranca	65	Asaas
+TipoCobranca	66	Multiplica (layout Bradesco)
+TipoCobranca	67	Petra (layout Bradesco)

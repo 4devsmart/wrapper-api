@@ -69,6 +69,8 @@ var tmplDocs = template.Must(template.New("docs").Parse(`<!doctype html>
  body{margin:0}
  .swagger-ui .topbar{display:none}
  .swagger-ui .info{margin:2.5rem 0 1.5rem}
+ .swagger-ui .opblock-tag{font-size:1.15rem}
+ .swagger-ui .opblock-tag small{font-size:.8rem}
  .swagger-ui .info hgroup.main a{display:none}
  #swagger-ui{max-width:66rem;margin:0 auto;padding:0 1rem}
 
@@ -112,7 +114,10 @@ var tmplDocs = template.Must(template.New("docs").Parse(`<!doctype html>
    dom_id: "#swagger-ui",
    deepLinking: true,
    persistAuthorization: true,
-   docExpansion: "none",
+   // "list" mostra as operações de cada tag sem abrir o corpo delas. Com
+   // "none" as cinco tags apareciam como palavras soltas e a página parecia
+   // vazia; com "full" seriam 45 operações abertas de uma vez.
+   docExpansion: "list",
    defaultModelsExpandDepth: 0,
    defaultModelExpandDepth: 3,
    tryItOutEnabled: true,

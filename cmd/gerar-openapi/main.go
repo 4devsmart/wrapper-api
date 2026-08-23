@@ -170,7 +170,37 @@ var reEspelha = regexp.MustCompile(`(?i)\b\w+ espelha \w+\.?\s*`)
 // Ela ajuda quem mantém o modelo e não diz nada a quem integra: saber que Toma3
 // espelha CteSefazToma3 não ensina o que preencher.
 func semReferenciaInterna(doc string) string {
-	return strings.TrimSpace(reEspelha.ReplaceAllString(doc, ""))
+	return semDetalheDeImplementacao(reEspelha.ReplaceAllString(doc, ""))
+}
+
+// Detalhes de COMO montamos o documento, que não pertencem ao contrato público:
+// nomes de seção do arquivo intermediário ([Cedente], [TituloN]), o nome da
+// biblioteca e as funções nativas. O comentário no código continua com eles,
+// porque ali são úteis; o que é publicado, não.
+var (
+	reSecaoINI  = regexp.MustCompile(`\s*\((?:seção|grupo|chaves)?\s*\[[^\]]+\](?:[^)]*)\)`)
+	reSecaoSolt = regexp.MustCompile(`\s*(?:seção|grupo)\s+\[[^\]]+\][^,.;]*`)
+	reColchete  = regexp.MustCompile(`\[[A-Za-z][A-Za-z0-9_]*\]`)
+	reNativa    = regexp.MustCompile(`\b(?:NFSE|CTE|MDFE|NFE|Boleto)_[A-Za-z]+\b`)
+	reACBrAPI   = regexp.MustCompile(`(?i)\s*\(?\b(?:espelha o |contrato )?ACBr\.API\b[^),.;]*\)?`)
+	reACBrLib   = regexp.MustCompile(`(?i)\bACBrLib[A-Za-z]*\b|\bACBrNFSeX\b`)
+	reACBr      = regexp.MustCompile(`(?i)\bo ACBr\b|\ba ACBr\b|\bACBr\b`)
+	reINI       = regexp.MustCompile(`(?i)\bdo INI\b|\bno INI\b|\bo INI\b|\bINI\b`)
+	reEspacos   = regexp.MustCompile(`\s{2,}`)
+)
+
+func semDetalheDeImplementacao(doc string) string {
+	doc = reSecaoINI.ReplaceAllString(doc, "")
+	doc = reSecaoSolt.ReplaceAllString(doc, "")
+	doc = reNativa.ReplaceAllString(doc, "a biblioteca fiscal")
+	doc = reACBrAPI.ReplaceAllString(doc, "")
+	doc = reACBrLib.ReplaceAllString(doc, "a biblioteca fiscal")
+	doc = reACBr.ReplaceAllString(doc, "a biblioteca fiscal")
+	doc = reINI.ReplaceAllString(doc, "o documento")
+	doc = reColchete.ReplaceAllString(doc, "")
+	doc = strings.NewReplacer(" ,", ",", " .", ".", " :", ":", " ;", ";", "()", "", "( )", "").Replace(doc)
+	doc = reEspacos.ReplaceAllString(doc, " ")
+	return strings.TrimSpace(strings.Trim(strings.TrimSpace(doc), ",;:-"))
 }
 
 func semTestes(fi os.FileInfo) bool { return !strings.HasSuffix(fi.Name(), "_test.go") }
@@ -351,7 +381,7 @@ func (g *gerador) achatar(b *strings.Builder, pacote, tipo string) {
 // descarta o irmão, e a descrição sumiria justamente nos campos que apontam
 // para outra estrutura.
 func (g *gerador) escreverCampo(b *strings.Builder, pacote, jsonNome string, f *ast.Field, ind string) {
-	desc := descricaoCampo(f)
+	desc := semDetalheDeImplementacao(descricaoCampo(f))
 	if desc == "" {
 		desc = g.glossario[jsonNome]
 	}

@@ -24,18 +24,19 @@ func (p Pedido) SemCredenciais() Pedido {
 	return p
 }
 
-// Conta é a configuração da conta de cobrança ([Banco]+[Conta]+[Cedente]).
+// Conta reúne o banco, a conta corrente e o cedente: quem cobra e por onde.
 type Conta struct {
-	// Banco ([Banco]): número (ex.: "237") + tipo de cobrança (enum ACBr) + CNAB.
-	Banco        string `json:"banco"`                      // número do banco (ex.: 001=BB, 237=Bradesco)
-	TipoCobranca int    `json:"tipoCobranca,omitempty"`     // enum ACBr (BB=1, Santander=2, Caixa=3, Bradesco=5, Itau=6...)
-	CNAB         string `json:"CNAB,omitempty" enum:"CNAB"` // "1"=400, "2"=240
-	// Conta ([Conta]).
-	Agencia       string `json:"agencia"`
+	Banco string `json:"banco"` // número do banco: 001 = BB, 237 = Bradesco, 341 = Itaú
+	// TipoCobranca identifica o banco E o layout de arquivo. Não é o número do
+	// banco: uma instituição que emite no layout de outra tem valor próprio
+	// aqui. Confirme com o seu banco qual layout foi contratado.
+	TipoCobranca  int    `json:"tipoCobranca,omitempty" enum:"TipoCobranca"`
+	CNAB          string `json:"CNAB,omitempty" enum:"CNAB"`
+	Agencia       string `json:"agencia"` // número da agência, sem o dígito
 	DigitoAgencia string `json:"digitoAgencia,omitempty"`
-	NumeroConta   string `json:"conta"`
+	NumeroConta   string `json:"conta"` // número da conta corrente, sem o dígito
 	DigitoConta   string `json:"digitoConta,omitempty"`
-	// Cedente ([Cedente]).
+	// Nome do cedente, quem recebe o pagamento.
 	Nome           string `json:"nome"`
 	Fantasia       string `json:"fantasia,omitempty"`
 	CNPJCPF        string `json:"CNPJCPF"`
@@ -88,7 +89,7 @@ func (c ContaWS) String() string { return "ContaWS{redigido}" }
 // LogValue redige no slog (que não usa String() para structs).
 func (c ContaWS) LogValue() slog.Value { return slog.StringValue("ContaWS{redigido}") }
 
-// Titulo é um boleto da lista ([TituloN]).
+// Titulo é um boleto a ser cobrado. Um pedido pode trazer vários.
 type Titulo struct {
 	NumeroDocumento string   `json:"numeroDocumento"`
 	SeuNumero       string   `json:"seuNumero,omitempty"`
@@ -114,7 +115,7 @@ type Titulo struct {
 	ChaveNFe string `json:"chaveNFe,omitempty"`
 }
 
-// Sacado é o pagador do boleto (chaves Sacado.* no [TituloN]).
+// Sacado é o pagador do boleto.
 type Sacado struct {
 	Nome        string `json:"nome"`
 	CNPJCPF     string `json:"CNPJCPF"`
