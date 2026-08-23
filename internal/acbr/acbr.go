@@ -76,24 +76,24 @@ type Servico interface {
 	// Emitir carrega o INI do documento e o transmite à SEFAZ/provedor.
 	Emitir(t TenantConfig, ini string) (Result, error)
 	// MontarXML carrega o INI e devolve o XML montado pela lib SEM transmitir
-	// (CarregarINI → ObterXml). É a FASE 1 do contrato: o cliente recebe o
+	// (CarregarINI → ObterXml). É a GERAÇÃO: o cliente recebe o
 	// documento e a sua chave antes de qualquer byte sair para a SEFAZ, e é isso
 	// — não a assinatura — que torna uma transmissão perdida recuperável.
 	//
 	// NÃO assina: nenhuma lib assina em CarregarINI, e a NFS-e sequer expõe
-	// assinatura separada. Por isso a fase 1 dispensa certificado.
+	// assinatura separada. Por isso gerar dispensa certificado.
 	MontarXML(t TenantConfig, ini string) (Result, error)
 	// ValidarRegras roda as validações de REGRAS DE NEGÓCIO da lib sobre o INI
 	// carregado, sem certificado e sem rede — as rejeições que a SEFAZ daria,
-	// antecipadas na fase 1.
+	// antecipadas na geração.
 	//
 	// NÃO é validação de XSD: o schema exige a tag Signature, então a estrutura
-	// só pode ser validada depois de assinar — o que acontece na fase 2, ainda
+	// só pode ser validada depois de assinar — o que acontece na transmissão, ainda
 	// antes de transmitir. Devolve ErrNaoSuportado onde a lib não expõe a função
 	// (NFS-e).
 	ValidarRegras(t TenantConfig, ini string) (Result, error)
-	// Transmitir carrega um XML JÁ MONTADO (o da fase 1) e o envia ao webservice
-	// — CarregarXML → Enviar/Emitir. É a FASE 2: o certificado chega aqui, e é
+	// Transmitir carrega um XML JÁ MONTADO (o da geração) e o envia ao webservice
+	// — CarregarXML → Enviar/Emitir. É a TRANSMISSÃO: o certificado chega aqui, e é
 	// a lib que assina no envio.
 	//
 	// Como qualquer envio, NUNCA deve ser repetido às cegas: em falha
@@ -155,11 +155,11 @@ type NFSeServico interface {
 	// interpretada por internal/distribuicao.ParseNFSe.
 	ConsultarDFe(t TenantConfig, nsu int) (Result, error)
 	// ConsultarDPSPorChave consulta a NFS-e gerada a partir de uma DPS, usando a
-	// chave DA DPS — a que a fase 1 devolve, antes de qualquer transmissão.
+	// chave DA DPS — a que a geração devolve, antes de qualquer transmissão.
 	//
 	// É a recuperação da NFS-e: sem estado no servidor, um envio cujo desfecho se
 	// perdeu só é resolvível perguntando ao ADN se aquela DPS virou nota. É o
-	// análogo do Consultar por chave do CT-e, e a razão de a fase 1 devolver o
+	// análogo do Consultar por chave do CT-e, e a razão de a geração devolver o
 	// identificador da DPS.
 	ConsultarDPSPorChave(t TenantConfig, chaveDPS string) (Result, error)
 	// ConsultarPorNumero consulta a NFS-e pelo número (paginação por pagina≥1).
@@ -262,7 +262,7 @@ type BoletoServico interface {
 	Backend() string
 	Version() (string, error)
 	// GerarPDF carrega o INI (config + títulos) e devolve o PDF do boleto (base64
-	// decodificado em Result.PDF). Não transmite a banco (Fase 1: offline).
+	// decodificado em Result.PDF). Geração offline — não fala com o banco.
 	GerarPDF(t TenantConfig, ini string) (Result, error)
 	// GerarRemessa carrega o INI (config + títulos) e gera o arquivo de remessa
 	// CNAB (texto em Result.Resposta). numArquivo = sequencial da remessa.
@@ -271,7 +271,7 @@ type BoletoServico interface {
 	// config do banco (configINI) e devolve o retorno parseado como INI
 	// (títulos + ocorrências) em Result.Resposta.
 	LerRetorno(t TenantConfig, configINI, retornoConteudo string) (Result, error)
-	// Registrar registra o(s) boleto(s) ONLINE via API do banco (Fase 3),
+	// Registrar registra o(s) boleto(s) ONLINE via API do banco,
 	// usando op.INI (títulos+config) e op.Operacao.
 	Registrar(t TenantConfig, op BoletoOnline) (Result, error)
 	// ConsultarTitulos consulta títulos por período na API do banco, usando
@@ -281,7 +281,7 @@ type BoletoServico interface {
 }
 
 // BoletoOnline reúne os parâmetros da integração ONLINE com a API do banco
-// (Fase 3), evitando passar crt/key/operacao posicionais.
+// , evitando passar crt/key/operacao posicionais.
 type BoletoOnline struct {
 	INI       string // Registrar: config + títulos a registrar/baixar
 	ConfigINI string // ConsultarTitulos: config do banco (credenciais WS)

@@ -94,7 +94,7 @@ func (l *mdfeLib) MontarXML(t TenantConfig, ini string) (Result, error) {
 
 // ValidarRegras carrega o INI e roda MDFE_ValidarRegrasdeNegocios: as rejeições
 // que a SEFAZ daria, antecipadas localmente, sem certificado e sem rede. É a
-// validação da fase 1. XSD fica de fora — ver o comentário da interface.
+// validação da geração. XSD fica de fora — ver o comentário da interface.
 func (l *mdfeLib) ValidarRegras(t TenantConfig, ini string) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		cIni := C.CString(ini)
@@ -109,7 +109,7 @@ func (l *mdfeLib) ValidarRegras(t TenantConfig, ini string) (Result, error) {
 	})
 }
 
-// Transmitir envia o XML montado na fase 1 (MDFE_CarregarXML → MDFE_Enviar). A
+// Transmitir envia o XML montado na geração (MDFE_CarregarXML → MDFE_Enviar). A
 // lib assina no envio, então é aqui — e só aqui — que o certificado é preciso.
 func (l *mdfeLib) Transmitir(t TenantConfig, xml string) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {

@@ -246,16 +246,16 @@ func TestConstrutorDeINIMudaComAFamilia(t *testing.T) {
 	}
 }
 
-// --- fase 1 -----------------------------------------------------------------
+// --- gerar -----------------------------------------------------------------
 
-func TestFase1NaoRecebeCertificadoEDevolveOIDdaDPS(t *testing.T) {
+func TestGerarNaoRecebeCertificadoEDevolveOIDdaDPS(t *testing.T) {
 	f := &libFake{resMontar: acbr.Result{XML: xmlFixture("2")}}
 	rec := post(t, muxDe(f), "/nfse/xml", pedidoMinimo(munPadraoNacional))
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d: %s", rec.Code, rec.Body)
 	}
 	if f.tenant.PFXBase64 != "" {
-		t.Errorf("a fase 1 montou tenant com certificado: %+v", f.tenant)
+		t.Errorf("a geração montou tenant com certificado: %+v", f.tenant)
 	}
 	if got := cfgDoTenant(f.tenant, "CodigoMunicipio"); got != munPadraoNacional {
 		t.Errorf("CodigoMunicipio = %q, quero %q", got, munPadraoNacional)
@@ -288,7 +288,7 @@ func TestValidacaoDeclaraQueNaoRodou(t *testing.T) {
 	}
 }
 
-func TestFase1ExigeCNPJDoPrestador(t *testing.T) {
+func TestGerarExigeCNPJDoPrestador(t *testing.T) {
 	p := pedidoMinimo(munPadraoNacional)
 	p["infDPS"].(map[string]any)["prest"] = map[string]any{"cMun": munPadraoNacional}
 	rec := post(t, muxDe(&libFake{}), "/nfse/xml", p)
@@ -297,9 +297,9 @@ func TestFase1ExigeCNPJDoPrestador(t *testing.T) {
 	}
 }
 
-// --- fase 2 -----------------------------------------------------------------
+// --- transmitir -----------------------------------------------------------------
 
-func TestFase2TransmiteComCertificadoEEmitente(t *testing.T) {
+func TestTransmiteComCertificadoEEmitente(t *testing.T) {
 	f := &libFake{resTransmitir: acbr.Result{
 		Resposta: "[Envio]\nSucesso=1\nNumeroNota=123\nLink=chave-da-nfse\nCodigoVerificacao=ABC\nProtocolo=P1\n",
 		XML:      "<NFSe/>",
@@ -383,7 +383,7 @@ func TestDesfechoIndeterminadoMandaConsultar(t *testing.T) {
 
 // --- recuperação ------------------------------------------------------------
 
-// É o fecho do modelo sem estado para a NFS-e: a fase 1 devolve o id_dps, e é
+// É o fecho do modelo sem estado para a NFS-e: a geração devolve o id_dps, e é
 // com ele que se descobre se a DPS virou nota. O ADN atende GET /dps/{chave}
 // com a chave SEM o prefixo "DPS" — o cliente não precisa saber disso.
 func TestConsultaDPSAceitaOIDComOuSemPrefixo(t *testing.T) {

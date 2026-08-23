@@ -3,44 +3,80 @@ info:
   title: wrapper-api
   version: "1"
   description: |
-    API sem estado para documentos fiscais brasileiros (CT-e, MDF-e, NFS-e) e
-    boletos.
+    Gera o XML do documento fiscal a partir do seu JSON e transmite ao fisco.
+    **Nada é guardado no servidor** — nem o certificado.
 
-    ## Duas fases
+    Autentique com `Authorization: Bearer <API_TOKEN>`. Para experimentar aqui,
+    use **Authorize** acima.
 
-    Emitir não é uma chamada só:
+    ## Gerar e transmitir
 
-    1. `POST /v1/{doc}/xml` monta o documento e devolve o XML e a identidade
-       dele (chave, ou `id_dps` na NFS-e). **Não** assina, **não** fala com o
-       fisco e **não** pede certificado.
-    2. `POST /v1/{doc}/transmissao` assina e envia. O certificado entra aqui.
+    **1.** `POST /v1/{doc}/xml` — manda o documento em JSON, recebe o XML e a
+    chave. Não assina, não fala com o fisco, **não pede certificado**.
 
-    A fase 1 põe o documento nas suas mãos antes de qualquer byte sair. É isso
-    que torna recuperável uma transmissão cuja resposta se perdeu: consulte pela
-    chave em vez de reenviar e duplicar.
+    ```
+    { documento } → { "chave": "3526…", "xml_b64": "…", "validacao": { "ok": true } }
+    ```
 
-    ## Nada é persistido
+    **2.** `POST /v1/{doc}/transmissao` — manda o XML de volta com o
+    certificado. Aqui ele assina e envia.
 
-    O certificado A1 viaja no corpo da chamada que transmite, é usado em memória
-    e vai embora com ela. Guardar o XML e o protocolo é responsabilidade sua.
+    ```
+    { "xml_b64", "certificado" } → { "protocolo", "status", "xml_proc_b64" }
+    ```
+
+    **Guarde o `xml_proc_b64`.** Não há segunda via: em CT-e e MDF-e, perder o
+    XML é perder também o PDF.
+
+    São duas chamadas porque a primeira põe a chave nas suas mãos **antes** de
+    qualquer byte sair. Se a transmissão der timeout você não sabe se o
+    documento foi autorizado — e é a chave que permite descobrir.
+
+    ### ⚠️ Timeout na transmissão não autoriza repetir
+
+    `502 desfecho_indeterminado` significa que o documento **pode** ter sido
+    autorizado. Consulte pela chave (`POST /v1/cte/consulta`, ou
+    `POST /v1/nfse/consulta-dps` com o `id_dps`) — repetir duplica documento
+    fiscal. A API nunca reenvia sozinha.
+
+    ## Erros
+
+    Formato único em toda rota: `{"erro":{"codigo","mensagem","detalhes"}}`.
+    Trate por `codigo`, nunca pela mensagem.
+
+    | Código | HTTP | Pode repetir? |
+    |---|---|---|
+    | `json_invalido` — corpo malformado ou **campo com nome desconhecido** | 400 | corrija |
+    | `campo_obrigatorio` | 400 | corrija |
+    | `certificado_invalido` | 400 | corrija |
+    | `regras_de_negocio` — a lib reprovou; nada foi transmitido | 422 | corrija |
+    | `provedor_nao_suportado` — município sem provedor de NFS-e | 422 | — |
+    | `operacao_nao_suportada` — o provedor não implementa | 422 | — |
+    | `desfecho_indeterminado` — **pode ter sido transmitido** | 502 | **não** — consulte |
+    | `lib_indisponivel` — a chamada **não** saiu | 503 | sim |
+    | `falha_na_lib` | 502 | avalie |
+
+    Rejeição do fisco não é erro de protocolo: volta `422` com o corpo completo
+    (`status`, `cstat`, `motivo`, `erros[]`).
+
+    Campo com nome errado é `400`, não é ignorado — campo ignorado em silêncio
+    vira documento transmitido com dado faltando, e isso só aparece depois de o
+    fisco autorizar.
 
     ## Os schemas vêm do código
 
-    Os corpos dos documentos (`CteDocumento`, `MdfeDocumento`, `NfseDocumento`,
-    `BoletoPedido`) e de todos os eventos são **gerados a partir dos modelos
-    Go**, com as descrições vindas dos comentários do fonte. O contrato
-    publicado é o contrato compilado — não há segunda fonte da verdade para
-    divergir, e o CI reprova se a spec ficar desatualizada.
+    Os corpos dos documentos e de todos os eventos são gerados a partir dos
+    modelos Go, com as descrições vindas dos comentários do fonte. O contrato
+    publicado é o contrato compilado.
 
     **Não há `required`.** No domínio fiscal a obrigatoriedade é condicional —
     depende do modal, do provedor do município, do tipo de emitente, do regime
-    tributário. Um `required` estático mentiria em metade dos casos. Quem
-    valida de verdade é a lib: a fase 1 devolve as rejeições em
-    `validacao.mensagens` antes de qualquer coisa ser transmitida.
+    tributário. Um `required` estático mentiria em metade dos casos. Quem valida
+    é a geração, que devolve as rejeições em `validacao.mensagens` antes de
+    qualquer coisa ser transmitida.
 
-    Campo desconhecido é recusado com `400`, então um nome errado aparece na
-    primeira chamada, não depois de a SEFAZ autorizar.
-
+    Exemplos de `curl` completos, limitações e guia de contribuição:
+    [github.com/4devsmart/wrapper-api](https://github.com/4devsmart/wrapper-api).
   license:
     name: AGPL-3.0
     identifier: AGPL-3.0
@@ -143,7 +179,7 @@ paths:
   /v1/cte/xml:
     post:
       tags: [cte]
-      summary: Fase 1 — monta e valida o CT-e
+      summary: Gera o XML do CT-e
       description: |
         Sem certificado e sem rede. Devolve o XML e a **chave**, que é o que
         permite recuperar uma transmissão perdida.
@@ -169,7 +205,7 @@ paths:
   /v1/cte/simp/xml:
     post:
       tags: [cte]
-      summary: Fase 1 do CT-e Simplificado (tpCTe=5)
+      summary: Gera o XML do CT-e Simplificado (tpCTe=5)
       description: |
         Não há rota de transmissão própria: transmitir é a mesma operação, e o
         XML já diz o que é. Use `POST /v1/cte/transmissao`.
@@ -190,7 +226,7 @@ paths:
   /v1/cte/transmissao:
     post:
       tags: [cte]
-      summary: Fase 2 — assina e transmite o CT-e
+      summary: Transmite o CT-e ao fisco
       description: |
         O ambiente sai do `tpAmb` do próprio XML; o campo `ambiente` só é usado
         se a tag faltar. Divergir seria rejeição 252 — ou um documento de
@@ -226,7 +262,7 @@ paths:
       description: |
         Cancela o CT-e. Exige o protocolo da autorização.
 
-        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
         recuperação é consultar o documento — a chave dele você já tem.
       requestBody:
         required: true
@@ -257,7 +293,7 @@ paths:
       description: |
         Carta de Correção (CC-e). Um grupo por campo corrigido.
 
-        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
         recuperação é consultar o documento — a chave dele você já tem.
       requestBody:
         required: true
@@ -288,7 +324,7 @@ paths:
       description: |
         Evento Prévio de Emissão em Contingência.
 
-        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
         recuperação é consultar o documento — a chave dele você já tem.
       requestBody:
         required: true
@@ -319,7 +355,7 @@ paths:
       description: |
         Registra a entrega da carga, com as NF-e entregues.
 
-        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
         recuperação é consultar o documento — a chave dele você já tem.
       requestBody:
         required: true
@@ -350,7 +386,7 @@ paths:
       description: |
         Registra tentativa frustrada de entrega.
 
-        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
         recuperação é consultar o documento — a chave dele você já tem.
       requestBody:
         required: true
@@ -381,7 +417,7 @@ paths:
       description: |
         Registrado pelo TOMADOR quando a prestação está em desacordo.
 
-        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
         recuperação é consultar o documento — a chave dele você já tem.
       requestBody:
         required: true
@@ -499,7 +535,7 @@ paths:
   /v1/mdfe/xml:
     post:
       tags: [mdfe]
-      summary: Fase 1 — monta e valida o MDF-e
+      summary: Gera o XML do MDF-e
       requestBody:
         required: true
         content:
@@ -517,7 +553,7 @@ paths:
   /v1/mdfe/transmissao:
     post:
       tags: [mdfe]
-      summary: Fase 2 — assina e transmite o MDF-e
+      summary: Transmite o MDF-e ao fisco
       requestBody:
         required: true
         content:
@@ -543,7 +579,7 @@ paths:
       description: |
         Encerra o manifesto. Exige o município de encerramento.
 
-        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
         recuperação é consultar o documento — a chave dele você já tem.
       requestBody:
         required: true
@@ -574,7 +610,7 @@ paths:
       description: |
         Cancela o MDF-e. Exige o protocolo da autorização.
 
-        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
         recuperação é consultar o documento — a chave dele você já tem.
       requestBody:
         required: true
@@ -605,7 +641,7 @@ paths:
       description: |
         Inclui condutor no manifesto em trânsito.
 
-        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
         recuperação é consultar o documento — a chave dele você já tem.
       requestBody:
         required: true
@@ -636,7 +672,7 @@ paths:
       description: |
         Inclui documentos (NF-e) no manifesto em trânsito.
 
-        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
         recuperação é consultar o documento — a chave dele você já tem.
       requestBody:
         required: true
@@ -667,7 +703,7 @@ paths:
       description: |
         Registra o pagamento da operação de transporte.
 
-        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
         recuperação é consultar o documento — a chave dele você já tem.
       requestBody:
         required: true
@@ -774,7 +810,7 @@ paths:
   /v1/nfse/xml:
     post:
       tags: [nfse]
-      summary: Fase 1 — monta a DPS
+      summary: Gera o XML da DPS
       description: |
         O município (`infDPS.cLocEmi`, ou o do prestador) decide o provedor, e o
         provedor decide o layout. Município sem provedor conhecido é recusado
@@ -803,7 +839,7 @@ paths:
   /v1/nfse/transmissao:
     post:
       tags: [nfse]
-      summary: Fase 2 — assina e transmite a DPS
+      summary: Transmite a DPS ao provedor
       requestBody:
         required: true
         content:
@@ -830,7 +866,7 @@ paths:
         É o fecho do modelo sem estado para a NFS-e: depois de um desfecho
         indeterminado, é ISTO que se chama — nunca reenviar a DPS.
 
-        Aceita o `id_dps` como a fase 1 devolveu (com o prefixo `DPS`) ou a
+        Aceita o `id_dps` como a geração devolveu (com o prefixo `DPS`) ou a
         chave nua; o webservice quer sem prefixo, e essa diferença não é
         problema seu.
       requestBody:
@@ -912,7 +948,7 @@ paths:
       description: |
         Cancela a NFS-e. Nem todo provedor implementa.
 
-        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
         recuperação é consultar o documento — a chave dele você já tem.
       requestBody:
         required: true
@@ -943,7 +979,7 @@ paths:
       description: |
         Emite a DPS substituta identificando a nota antiga. Nem todo provedor implementa.
 
-        Uma fase só: a lib não expõe o XML do evento antes de enviá-lo. A
+        Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
         recuperação é consultar o documento — a chave dele você já tem.
       requestBody:
         required: true
@@ -1206,7 +1242,7 @@ components:
         xml_b64:
           type: string
           format: byte
-          description: o XML devolvido pela fase 1
+          description: o XML devolvido ao gerar
         ambiente:
           allOf: [{ $ref: "#/components/schemas/Ambiente" }]
           description: FALLBACK — o ambiente sai do tpAmb do XML quando presente
@@ -1441,7 +1477,7 @@ components:
         pixChave:
           type: string
         ws:
-          description: 'WS: credenciais para registro online (Fase 3). Opcional.'
+          description: 'WS: credenciais para registro online. Opcional.'
           allOf:
             - $ref: "#/components/schemas/BoletoContaWS"
     BoletoContaWS:

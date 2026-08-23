@@ -110,9 +110,9 @@ func certValido() map[string]string {
 	return map[string]string{"pfx_b64": base64.StdEncoding.EncodeToString([]byte("pfx-falso")), "senha": "s3nh4"}
 }
 
-// --- fase 1 -----------------------------------------------------------------
+// --- gerar -----------------------------------------------------------------
 
-func TestFase1NaoRecebeCertificado(t *testing.T) {
+func TestGerarNaoRecebeCertificado(t *testing.T) {
 	// É a propriedade que sustenta o desenho: montar e validar não assinam nem
 	// falam com a SEFAZ, então o certificado não tem por que existir aqui.
 	f := &libFake{resMontar: acbr.Result{XML: xmlFixture("2")}}
@@ -122,7 +122,7 @@ func TestFase1NaoRecebeCertificado(t *testing.T) {
 		t.Fatalf("status = %d: %s", rec.Code, rec.Body)
 	}
 	if f.tenantMontar.PFXBase64 != "" || f.tenantMontar.SenhaPFX != "" {
-		t.Errorf("a fase 1 montou tenant com certificado: %+v", f.tenantMontar)
+		t.Errorf("a geração montou tenant com certificado: %+v", f.tenantMontar)
 	}
 
 	var resp RespostaXML
@@ -194,7 +194,7 @@ func TestValidacaoNaoSuportadaNaoFingeSucesso(t *testing.T) {
 	}
 }
 
-func TestFase1ExigeCNPJDoEmitente(t *testing.T) {
+func TestGerarExigeCNPJDoEmitente(t *testing.T) {
 	rec := post(t, muxDe(&libFake{}), "/cte/xml", map[string]any{"ambiente": "homologacao"})
 	if rec.Code != http.StatusBadRequest {
 		t.Fatalf("status = %d, quero 400: %s", rec.Code, rec.Body)
@@ -213,9 +213,9 @@ func TestCampoDesconhecidoEhRecusado(t *testing.T) {
 	}
 }
 
-// --- fase 2 -----------------------------------------------------------------
+// --- transmitir -----------------------------------------------------------------
 
-func TestFase2TransmiteOXMLDaFase1(t *testing.T) {
+func TestTransmiteOXMLGerado(t *testing.T) {
 	f := &libFake{resTransmitir: acbr.Result{
 		Resposta: "[CTe]\ncStat=100\nxMotivo=Autorizado o uso do CT-e\nchCTe=" + chaveFixture + "\nnProt=135240000000001\n",
 		XML:      "<cteProc/>",
@@ -279,7 +279,7 @@ func TestAmbienteVemDoXMLNaoDoCliente(t *testing.T) {
 	}
 }
 
-func TestFase2ExigeCertificado(t *testing.T) {
+func TestTransmissaoExigeCertificado(t *testing.T) {
 	f := &libFake{}
 	casos := map[string]any{
 		"sem certificado": nil,

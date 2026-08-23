@@ -383,11 +383,11 @@ func TestDespachoCobreTodasAsInterfaces(t *testing.T) {
 	}
 }
 
-// --- contrato de duas fases -------------------------------------------------
+// --- contrato de gerar e transmitir -------------------------------------------------
 
-// faseFake registra o que cada fase recebeu, para provar que o certificado só
+// fluxoFake registra o que cada chamada recebeu, para provar que o certificado só
 // aparece na transmissão.
-type faseFake struct {
+type fluxoFake struct {
 	indisponivel
 
 	montarINI     string
@@ -401,23 +401,23 @@ type faseFake struct {
 	errValidar    error
 }
 
-func (f *faseFake) MontarXML(t TenantConfig, ini string) (Result, error) {
+func (f *fluxoFake) MontarXML(t TenantConfig, ini string) (Result, error) {
 	f.montarINI, f.montarTenant = ini, t
 	return f.resMontar, nil
 }
 
-func (f *faseFake) Transmitir(t TenantConfig, xml string) (Result, error) {
+func (f *fluxoFake) Transmitir(t TenantConfig, xml string) (Result, error) {
 	f.transmitirXML, f.transmitirTn = xml, t
 	return f.resTransmitir, nil
 }
 
-func (f *faseFake) ValidarRegras(_ TenantConfig, ini string) (Result, error) {
+func (f *fluxoFake) ValidarRegras(_ TenantConfig, ini string) (Result, error) {
 	f.validarINI = ini
 	return Result{}, f.errValidar
 }
 
-func TestRPC_DuasFasesAtravessamOWorker(t *testing.T) {
-	f := &faseFake{
+func TestRPC_GerarETransmitirAtravessamOWorker(t *testing.T) {
+	f := &fluxoFake{
 		resMontar:     Result{Codigo: 0, XML: "<CTe><infCte Id=\"CTe35...\"/></CTe>"},
 		resTransmitir: Result{Codigo: 0, Resposta: "cStat=100", XML: "<cteProc/>"},
 	}
@@ -425,29 +425,29 @@ func TestRPC_DuasFasesAtravessamOWorker(t *testing.T) {
 	t.Cleanup(ts.Close)
 	cli := clienteDe(t, ts.URL, 1, 5*time.Second).CTe
 
-	// Fase 1: monta e valida SEM certificado. É o que permite testar a camada de
+	// Gerar: monta e valida SEM certificado. É o que permite testar a camada de
 	// montagem — o ativo real do projeto — sem um .pfx no repositório.
 	res, err := cli.MontarXML(TenantConfig{CNPJ: "12345678000199"}, "[infCTe]\nversao=4.00")
 	if err != nil {
 		t.Fatalf("MontarXML: %v", err)
 	}
 	if res.XML != f.resMontar.XML {
-		t.Errorf("XML da fase 1 = %q, quero %q", res.XML, f.resMontar.XML)
+		t.Errorf("XML da geração = %q, quero %q", res.XML, f.resMontar.XML)
 	}
 	if f.montarTenant.PFXBase64 != "" {
-		t.Errorf("fase 1 recebeu certificado (%q): ela existe justamente para não precisar de um", f.montarTenant.PFXBase64)
+		t.Errorf("a geração recebeu certificado (%q): ela existe justamente para não precisar de um", f.montarTenant.PFXBase64)
 	}
 
-	// Fase 2: transmite o XML da fase 1, agora com o certificado no tenant.
+	// Transmitir: envia o XML gerado, agora com o certificado no tenant.
 	res, err = cli.Transmitir(TenantConfig{CNPJ: "12345678000199", PFXBase64: "cGZ4", SenhaPFX: "s3nh4"}, f.resMontar.XML)
 	if err != nil {
 		t.Fatalf("Transmitir: %v", err)
 	}
 	if f.transmitirXML != f.resMontar.XML {
-		t.Errorf("a fase 2 recebeu %q; deveria receber exatamente o XML da fase 1", f.transmitirXML)
+		t.Errorf("a transmissão recebeu %q; deveria receber exatamente o XML gerado", f.transmitirXML)
 	}
 	if f.transmitirTn.PFXBase64 != "cGZ4" || f.transmitirTn.SenhaPFX != "s3nh4" {
-		t.Errorf("certificado não chegou à fase 2: %+v", f.transmitirTn)
+		t.Errorf("certificado não chegou à transmissão: %+v", f.transmitirTn)
 	}
 	if res.XML != "<cteProc/>" || res.Resposta != "cStat=100" {
 		t.Errorf("resposta da transmissão incompleta: %+v", res)
@@ -458,7 +458,7 @@ func TestRPC_DuasFasesAtravessamOWorker(t *testing.T) {
 // distinguir isso de "a lib caiu": um é 422 (não existe), o outro é 503 (tente
 // depois). A sentinela tem de sobreviver ao JSON do RPC.
 func TestRPC_NaoSuportadoNaoViraIndisponivel(t *testing.T) {
-	f := &faseFake{errValidar: ErrNaoSuportado}
+	f := &fluxoFake{errValidar: ErrNaoSuportado}
 	ts := httptest.NewServer(RPCHandler(&Servicos{NFSe: f, CTe: f, MDFe: f, NFe: f, Boleto: f}, 1))
 	t.Cleanup(ts.Close)
 

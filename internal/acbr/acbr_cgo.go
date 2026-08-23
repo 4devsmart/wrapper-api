@@ -9,7 +9,8 @@
 //
 // ATENÇÃO: o agendador do Go troca goroutines de thread; toda sequência de
 // chamadas nativas fixa a thread (runtime.LockOSThread) e opera sobre um
-// handle dedicado. (Pool de handles por empresa fica para a Fase 5.)
+// handle dedicado. Um pool de handles por empresa seria a otimização óbvia —
+// e continua não sendo feita, porque ninguém mediu que o custo importa.
 //
 // Build: CGO_ENABLED=1 go build -tags acbrlib ./...
 package acbr
@@ -57,7 +58,7 @@ var _ NFSeServico = (*cgoLib)(nil)
 
 // newServicos (cgo) liga o binding real da NFSe. CTe/MDFe ainda usam o
 // placeholder indisponível — os bindings reais (libacbrcte64/libacbrmdfe64)
-// entram na Fase 2 (build dos .so + cgo CTE_*/MDFE_*).
+// (build dos .so + cgo CTE_*/MDFE_*).
 func newServicos(cfg config.ACBr) *Servicos {
 	return &Servicos{
 		NFSe:   &cgoLib{cfg: cfg},
@@ -301,7 +302,7 @@ func (l *cgoLib) RenderizarPDF(t TenantConfig, xml string) (Result, error) {
 // ConsultarDPSPorChave pergunta ao provedor se a DPS de chave informada virou
 // NFS-e (no Padrão Nacional, GET /dps/{chave} no ADN).
 //
-// É o que fecha o modelo sem estado para a NFS-e: a fase 1 devolve o
+// É o que fecha o modelo sem estado para a NFS-e: a geração devolve o
 // identificador da DPS antes de qualquer envio, e é com ele que o cliente
 // descobre o desfecho de uma transmissão cuja resposta se perdeu — em vez de
 // reenviar e arriscar duplicar.
@@ -343,9 +344,9 @@ func (l *cgoLib) ValidarRegras(TenantConfig, string) (Result, error) {
 	return Result{}, ErrNaoSuportado
 }
 
-// Transmitir envia a DPS montada na fase 1 (NFSE_CarregarXML → NFSE_Emitir). É
+// Transmitir envia a DPS montada na geração (NFSE_CarregarXML → NFSE_Emitir). É
 // aqui que o provedor assina — a NFS-e não expõe assinatura separada, então a
-// fase 1 entrega a DPS crua e o certificado só é necessário neste ponto.
+// geração entrega a DPS crua e o certificado só é necessário neste ponto.
 func (l *cgoLib) Transmitir(t TenantConfig, xml string) (Result, error) {
 	return l.withSession(t, func(h C.LibHandle) (Result, error) {
 		cXML, free := cstrFree(xml)

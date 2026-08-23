@@ -81,7 +81,7 @@ func AmbienteOrdinal(ambiente string) string {
 // Tenant monta a configuração da sessão nativa. secao é a seção de config do
 // documento na ACBrLib ("CTe", "MDFe", "NFSe").
 //
-// cert zerado é legítimo e é o caso da fase 1: montar e validar não assinam
+// cert zerado é legítimo e é o caso da geração: montar e validar não assinam
 // nem falam com a SEFAZ, então não precisam de certificado.
 func Tenant(cnpj, secao, ambiente string, cert Certificado) acbr.TenantConfig {
 	return acbr.TenantConfig{
@@ -146,7 +146,7 @@ func detalhesDaLib(res acbr.Result) any {
 	return map[string]any{"codigo": res.Codigo, "resposta": res.Resposta}
 }
 
-// --- fase 1: montar e validar -----------------------------------------------
+// --- gerar o XML -----------------------------------------------
 
 // Validacao é o resultado das regras de negócio da lib.
 //
@@ -159,12 +159,12 @@ type Validacao struct {
 	Mensagens []string `json:"mensagens,omitempty"`
 }
 
-// Montar é a fase 1, comum a todo documento: monta o XML a partir do INI e roda
+// Montar gera o documento, e é comum a todos: monta o XML a partir do INI e roda
 // as regras de negócio. Não assina e não fala com a SEFAZ — por isso o Tenant
 // que chega aqui não precisa (nem deve) trazer certificado.
 //
 // São duas sessões nativas. É deliberado: sem certificado, abrir sessão é
-// barato — o custo real, carregar o PFX, só existe na fase 2. Juntar as duas num
+// barato — o custo real, carregar o PFX, só existe na transmissão. Juntar as duas num
 // método do binding é otimização a fazer depois de medir.
 func Montar(svc acbr.Servico, t acbr.TenantConfig, ini string) (xml string, val Validacao, res acbr.Result, err error) {
 	res, err = svc.MontarXML(t, ini)

@@ -27,7 +27,7 @@ func IDdoXML(xml string) string {
 //
 // O atributo Id do XML vem com o prefixo, mas o ADN atende GET /dps/{chave}
 // (PadraoNacional.Provider.pas:503) com a chave nua. Aceitar as duas formas
-// poupa o cliente de saber dessa diferença — ele devolve o que recebeu da fase 1.
+// poupa o cliente de saber dessa diferença — ele devolve o que recebeu da geração.
 func ChaveDPS(id string) string {
 	return strings.TrimPrefix(strings.TrimSpace(id), "DPS")
 }

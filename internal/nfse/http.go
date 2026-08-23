@@ -35,11 +35,11 @@ func (m *Modulo) Capacidades() []string {
 }
 
 func (m *Modulo) Registrar(r modulo.Router) {
-	// Fase 1: monta o XML da DPS. Sem certificado, sem rede.
+	// Gerar: monta o XML da DPS. Sem certificado, sem rede.
 	r.HandleFunc("POST /xml", m.handleXML)
-	// Fase 2: assina e transmite. É aqui que o certificado entra.
+	// Transmitir: assina e envia. É aqui que o certificado entra.
 	r.HandleFunc("POST /transmissao", m.handleTransmissao)
-	// Eventos: cancelamento e substituição — uma fase.
+	// Eventos: cancelamento e substituição — chamada única.
 	r.HandleFunc("POST /eventos/{tipo}", m.handleEvento)
 	// Consultas ao provedor — POST porque levam o certificado no corpo.
 	r.HandleFunc("POST /consulta", m.handleConsulta)
@@ -54,12 +54,12 @@ func (m *Modulo) Registrar(r modulo.Router) {
 	r.HandleFunc("GET /municipios/{codigo}", m.handleMunicipio)
 }
 
-// --- fase 1: montar ---------------------------------------------------------
+// --- gerar o XML -----------------------------------------------------------
 
-// RespostaXML é o retorno da fase 1.
+// RespostaXML é o retorno da geração.
 //
 // Não há "chave" aqui: a chave de acesso da NFS-e é atribuída pelo provedor na
-// autorização. O que a fase 1 entrega é o IDENTIFICADOR DA DPS, que é
+// autorização. O que a geração entrega é o IDENTIFICADOR DA DPS, que é
 // determinístico a partir do pedido — e é ele que recupera uma transmissão
 // perdida, via POST /consulta-dps.
 type RespostaXML struct {
@@ -114,7 +114,7 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// --- fase 2: transmitir -----------------------------------------------------
+// --- transmitir -----------------------------------------------------
 
 // Credenciais são as credenciais de webservice de provedores não-Padrão
 // Nacional (ABRASF e próprios), que exigem login/token além do certificado.
@@ -130,7 +130,7 @@ type Credenciais struct {
 // quanto o certificado.
 func (c Credenciais) String() string { return "Credenciais{redigido}" }
 
-// PedidoTransmissao é o corpo da fase 2.
+// PedidoTransmissao é o corpo da transmissão.
 type PedidoTransmissao struct {
 	XMLBase64 string `json:"xml_b64"`
 	// Municipio decide o provedor. A DPS não o carrega em lugar previsível o
@@ -151,7 +151,7 @@ type Emitente struct {
 	RazaoSocial string `json:"razao_social,omitempty"`
 }
 
-// RespostaTransmissao é o retorno da fase 2.
+// RespostaTransmissao é o retorno da transmissão.
 type RespostaTransmissao struct {
 	Numero            string     `json:"numero,omitempty"`
 	Chave             string     `json:"chave,omitempty"`
@@ -368,8 +368,8 @@ func (m *Modulo) handleConsulta(w http.ResponseWriter, r *http.Request) {
 
 // handleConsultaDPS é a recuperação de uma transmissão de desfecho desconhecido.
 //
-// Depois de um timeout na fase 2, é ISTO que se chama — nunca reenviar a DPS.
-// Aceita o id_dps como a fase 1 devolveu (com o prefixo "DPS") ou a chave nua: o
+// Depois de um timeout na transmissão, é ISTO que se chama — nunca reenviar a DPS.
+// Aceita o id_dps como a geração devolveu (com o prefixo "DPS") ou a chave nua: o
 // webservice quer a chave sem prefixo, e essa diferença não é problema do cliente.
 func (m *Modulo) handleConsultaDPS(w http.ResponseWriter, r *http.Request) {
 	p, t, ok := m.lerConsulta(w, r)
@@ -379,7 +379,7 @@ func (m *Modulo) handleConsultaDPS(w http.ResponseWriter, r *http.Request) {
 	chave := ChaveDPS(p.Chave)
 	if chave == "" {
 		httpx.ErroJSON(w, http.StatusBadRequest, "campo_obrigatorio",
-			"chave (o id_dps devolvido pela fase 1) é obrigatória")
+			"chave (o id_dps devolvido ao gerar) é obrigatória")
 		return
 	}
 	res, err := m.svc.ConsultarDPSPorChave(t, chave)
@@ -576,7 +576,7 @@ func (m *Modulo) layout(w http.ResponseWriter, cmun string) (Layout, bool) {
 	return l, true
 }
 
-// tenant monta a sessão a partir do prestador do próprio pedido (fase 1).
+// tenant monta a sessão a partir do prestador do próprio pedido (ao gerar).
 func (m *Modulo) tenant(cnpj, cmun string, prest Pessoa, ambiente string, layout Layout,
 	cert fiscal.Certificado, cred Credenciais) acbr.TenantConfig {
 	return m.tenantEmitente(Emitente{

@@ -94,7 +94,7 @@ func TestToINI_ReformaETributacaoCompleta(t *testing.T) {
 	}
 }
 
-func TestToINI_Fase2_ServicoIntermComExtInfoCompl(t *testing.T) {
+func TestToINI_ServicoIntermComExtInfoCompl(t *testing.T) {
 	p := pedidoSintetico()
 	p.InfDPS.Interm = &Pessoa{CNPJ: "11222333000181", XNome: "Intermediario X", CMun: "4314902", UF: "RS"}
 	p.InfDPS.Serv.CNBS = "123456789"
@@ -120,7 +120,7 @@ func TestToINI_Fase2_ServicoIntermComExtInfoCompl(t *testing.T) {
 	}
 }
 
-func TestToINI_Fase3_DocumentosReeRepRes(t *testing.T) {
+func TestToINI_DocumentosReeRepRes(t *testing.T) {
 	p := pedidoSintetico()
 	p.InfDPS.IBSCBS = &IBSCBSDPS{
 		GIBSCBS: &GIBSCBSDPS{CST: "000"},

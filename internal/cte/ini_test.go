@@ -258,7 +258,7 @@ func TestToINI_CampoSoData(t *testing.T) {
 // TestToINI_TpAmb tranca o campo que faltava e que a lib rejeitava com 252.
 //
 // Sem tpAmb no INI, a lib escreve o default (produção) no XML enquanto a sessão
-// está configurada para o ambiente pedido. Como a fase 2 do contrato deriva o
+// está configurada para o ambiente pedido. Como a transmissão deriva o
 // ambiente do tpAmb do XML, um documento pedido em homologação acabaria
 // apontando para o webservice de PRODUÇÃO.
 func TestToINI_TpAmb(t *testing.T) {

@@ -93,7 +93,7 @@ func (l *cteLib) MontarXML(t TenantConfig, ini string) (Result, error) {
 
 // ValidarRegras carrega o INI e roda CTE_ValidarRegrasdeNegocios: as rejeições
 // que a SEFAZ daria, antecipadas localmente, sem certificado e sem rede. É a
-// validação da fase 1. XSD fica de fora — ver o comentário da interface.
+// validação da geração. XSD fica de fora — ver o comentário da interface.
 func (l *cteLib) ValidarRegras(t TenantConfig, ini string) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		cIni := C.CString(ini)
@@ -108,7 +108,7 @@ func (l *cteLib) ValidarRegras(t TenantConfig, ini string) (Result, error) {
 	})
 }
 
-// Transmitir envia o XML montado na fase 1 (CTE_CarregarXML → CTE_Enviar). A lib
+// Transmitir envia o XML montado na geração (CTE_CarregarXML → CTE_Enviar). A lib
 // assina no envio, então é aqui — e só aqui — que o certificado é necessário.
 func (l *cteLib) Transmitir(t TenantConfig, xml string) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
