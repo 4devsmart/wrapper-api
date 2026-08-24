@@ -4,6 +4,17 @@
 #
 # Rode UMA VEZ por revisão do ACBr, depois de compilar as libs do fonte. Exige o
 # gh CLI autenticado.
+#
+# ORDEM, na estreia do repositório: um release precisa de um commit para ancorar
+# a tag, então NÃO dá para publicar as libs antes de empurrar alguma coisa. E
+# empurrar a main primeiro estreia o CI em vermelho, porque o job cgo baixa
+# justamente estes .so. O caminho sem os dois problemas é empurrar só a TAG, que
+# não casa com gatilho nenhum (ci.yml e publicar.yml pedem branch, release.yml
+# pede v*):
+#
+#   git tag acbrlib-rNNNNN main && git push origin acbrlib-rNNNNN
+#   make acbr-libs-publicar
+#   git push -u origin main
 set -euo pipefail
 
 REPO="${ACBR_REPO:-4devsmart/wrapper-api}"
@@ -23,6 +34,18 @@ done
 # O SHA256SUMS é gerado aqui e vai junto: é ele que o download verifica.
 (cd "$ORIGEM" && sha256sum "${ARQUIVOS[@]}" > SHA256SUMS)
 echo "checksums:"; sed 's/^/  /' "$ORIGEM/SHA256SUMS"
+
+# Sem nenhum ref no repositório, o gh falha com um 422 "Repository is empty" que
+# não diz o que fazer. Antecipa com a saída acionável.
+if [[ "$(gh repo view "$REPO" --json isEmpty --jq .isEmpty 2>/dev/null)" == "true" ]]; then
+  echo "ERRO: $REPO está vazio, e um release precisa de um commit para ancorar a tag." >&2
+  echo "      Empurre a tag primeiro (ela não dispara workflow nenhum):" >&2
+  echo >&2
+  echo "        git tag $TAG main && git push origin $TAG" >&2
+  echo "        make acbr-libs-publicar" >&2
+  echo "        git push -u origin main" >&2
+  exit 1
+fi
 
 if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
   echo "release $TAG já existe: subindo/atualizando anexos"
