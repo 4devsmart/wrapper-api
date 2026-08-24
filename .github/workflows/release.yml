@@ -15,7 +15,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  # write, e não read, porque este workflow cria a página do Release. É a única
+  # elevação aqui: ele não empurra código nem move branch.
+  contents: write
   packages: write
 
 env:
@@ -25,6 +27,12 @@ jobs:
   promover:
     runs-on: ubuntu-latest
     steps:
+      # Precisa do histórico e das tags para montar as notas a partir dos
+      # commits desde a versão anterior.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -59,3 +67,44 @@ jobs:
           docker buildx imagetools create $TAGS "$ORIGEM"
           docker buildx imagetools inspect "${IMAGEM}:${VERSAO}"
           echo "tags publicadas: $(echo "$TAGS" | tr ' ' '\n' | grep -v '^-t$' | tr '\n' ' ')"
+
+      # Promover a imagem sem criar a página deixa a aba de Releases atrás das
+      # tags, e quem abre o repositório vê como "Latest" o que estiver lá, que
+      # já foi um pacote de binários de biblioteca.
+      - name: "publica a página do Release"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          VERSAO="${GITHUB_REF_NAME}"
+          ANTERIOR="$(git describe --tags --abbrev=0 --match 'v*' "${VERSAO}^" 2>/dev/null || true)"
+
+          {
+            printf 'Imagem: `%s:%s`' "$IMAGEM" "$VERSAO"
+            case "$VERSAO" in
+              *-*) printf ' (pré-release: não move `:stable` nem a tag maior)\n' ;;
+              *)   printf ', que é o mesmo digest de `:%s` e `:stable`.\n' "${VERSAO%%.*}" ;;
+            esac
+            printf '\n'
+            if [ -n "$ANTERIOR" ]; then
+              printf '## Mudanças desde %s\n\n' "$ANTERIOR"
+              git log --no-merges --pretty='- %s' "${ANTERIOR}..${VERSAO}"
+            else
+              printf '## Primeira versão\n\nHistórico completo em `git log`.\n'
+            fi
+            printf '\n\nComo subir, escopo e o que conferir antes de apontar para produção:\n'
+            printf '[README](../blob/%s/README.md) e [docs/LIMITACOES.md](../blob/%s/docs/LIMITACOES.md).\n' "$VERSAO" "$VERSAO"
+          } > /tmp/notas.md
+
+          PRE=""
+          case "$VERSAO" in *-*) PRE="--prerelease --latest=false" ;; esac
+
+          # Idempotente: reexecutar o workflow atualiza as notas em vez de falhar.
+          if gh release view "$VERSAO" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release edit "$VERSAO" --repo "$GITHUB_REPOSITORY" \
+              --notes-file /tmp/notas.md $PRE
+          else
+            gh release create "$VERSAO" --repo "$GITHUB_REPOSITORY" \
+              --title "$VERSAO" --notes-file /tmp/notas.md --verify-tag $PRE
+          fi
+          echo "página: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/tag/${VERSAO}"
