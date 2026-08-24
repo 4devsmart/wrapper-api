@@ -51,18 +51,25 @@ jobs:
       - name: "fumaça: a lib carrega e o serviço responde"
         run: |
           set -eu
+          # Nomes de container precisam de 2+ caracteres: o daemon recusa "w" e
+          # "a" com "Invalid container name". Não encurte.
           docker network create fumaca
-          docker run -d --name w --network fumaca \
-            -v /tmp/run:/run/wrapper "${IMAGEM}:${GITHUB_SHA}" worker
-          docker run -d --name a --network fumaca -p 8080:8080 \
+          # Volume NOMEADO, como no compose. Bind mount de diretório do host não
+          # serve: ele nasce do root, e a imagem roda como app (uid 10001), então
+          # o worker leva "permission denied" ao criar o socket. Um volume nomeado
+          # herda a dona do /run/wrapper da imagem.
+          docker volume create fumaca-run
+          docker run -d --name fumaca-worker --network fumaca \
+            -v fumaca-run:/run/wrapper "${IMAGEM}:${GITHUB_SHA}" worker
+          docker run -d --name fumaca-api --network fumaca -p 8080:8080 \
             -e API_TOKEN=fumaca -e ACBR_WORKERS=/run/wrapper/fiscal.sock \
-            -v /tmp/run:/run/wrapper "${IMAGEM}:${GITHUB_SHA}"
+            -v fumaca-run:/run/wrapper "${IMAGEM}:${GITHUB_SHA}"
           for i in $(seq 1 30); do
             curl -fsS localhost:8080/healthz >/dev/null 2>&1 && break || sleep 1
           done
           curl -fsS localhost:8080/healthz
           curl -fsS localhost:8080/readyz
           # backend "cgo" nos cinco serviços = a lib nativa realmente carregou.
-          docker logs w 2>&1 | grep -c '"backend":"cgo"' | grep -q '^5$' \
-            || { echo "::error::a lib nativa não carregou nos 5 serviços"; docker logs w; exit 1; }
+          docker logs fumaca-worker 2>&1 | grep -c '"backend":"cgo"' | grep -q '^5$' \
+            || { echo "::error::a lib nativa não carregou nos 5 serviços"; docker logs fumaca-worker; exit 1; }
           echo "fumaça OK"
