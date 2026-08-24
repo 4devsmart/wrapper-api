@@ -10,7 +10,7 @@ jobs:
     name: fmt + vet + test (domínio puro, sem .so)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v5
         with:
           go-version: "1.25.13"
@@ -42,7 +42,7 @@ jobs:
     name: type-check + link do binding contra as .so reais
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v5
         with:
           go-version: "1.25.13"
@@ -66,7 +66,7 @@ jobs:
     name: govulncheck (CVEs alcançadas pelo código)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v5
         with:
           go-version: "1.25.13"
@@ -80,7 +80,7 @@ jobs:
     env:
       CGO_ENABLED: "0"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v5
         with:
           go-version: "1.25.13"
@@ -97,7 +97,7 @@ jobs:
     name: nenhum segredo no repositório
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # Este projeto recebe certificado alheio por payload. Um .pfx ou .env que
       # escape para o repositório PÚBLICO é irreversível: vale um gate barato.
       - name: procura certificados, chaves e .env

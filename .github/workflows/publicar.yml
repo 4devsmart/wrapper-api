@@ -18,7 +18,7 @@ jobs:
   publicar:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # A imagem precisa dos .so, que não estão no repositório: vêm dos anexos de
       # release. Como o repositório é público, o download é sem token.
