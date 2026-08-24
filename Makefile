@@ -9,9 +9,16 @@ SHELL   := /bin/bash
 # do release a partir dela, e o snapshot de chaves do lockstep é regenerado em
 # lockstep com ela. Ao bumpar, republique as libs e regenere os snapshots.
 ACBR_REV ?= 47859
+# O FortesReport CE entra nos .so junto com o ACBr (ele rasteriza DACTE/DAMDFE/
+# DANFSE). Seguia o master, o que fazia METADE do binário flutuar enquanto o
+# ACBr era pinado com cuidado: um build de 2026-08 pegou um FortesReport de
+# 2026-08-06 onde o anterior tinha usado o de 2025-09-22, quase um ano antes.
+ACBR_FRCE_REF ?= 9c29ee7152a6293d3920ff44a2bf3cd384d7b081
 OUT     := out
 PKGS    := ./...
 ACBRLIBS ?= ./acbr-libs
+ACBR_BASE_IMAGE ?= wrapper-api/acbrlib-base
+ACBR_SRC ?= ./acbr-source
 APP_IMAGE ?= wrapper-api:dev
 LDFLAGS := -X github.com/4devsmart/wrapper-api/internal/platform/versao.Commit=$(shell git rev-parse HEAD 2>/dev/null) \
            -X github.com/4devsmart/wrapper-api/internal/platform/versao.Build=$(shell date -u +%Y-%m-%dT%H:%M:%SZ)
@@ -91,6 +98,39 @@ fmt-check:
 tidy:
 	go mod tidy
 
+## acbr-fonte: baixa/atualiza o fonte do ACBr e do FortesReport em acbr-source/
+acbr-fonte:
+	mkdir -p $(ACBR_SRC)
+	docker run --rm \
+		-v "$(abspath $(ACBR_SRC)):/work" \
+		-v "$(abspath scripts/acbr-fonte.sh):/acbr-fonte.sh:ro" \
+		-e ACBR_REV=$(ACBR_REV) -e FRCE_REF=$(ACBR_FRCE_REF) \
+		-e LANG=C.UTF-8 -e LC_ALL=C.UTF-8 \
+		debian:bookworm-slim sh -c \
+		'apt-get update -qq && apt-get install -y -qq --no-install-recommends subversion git ca-certificates >/dev/null && sh /acbr-fonte.sh'
+
+## acbr-compilar: compila as .so a partir de acbr-source/ (offline, LENTO)
+acbr-compilar:
+	@test -d $(ACBR_SRC)/acbr && test -d $(ACBR_SRC)/frce || { \
+	  echo "falta o fonte em $(ACBR_SRC): rode 'make acbr-fonte'"; exit 1; }
+	docker build -f docker/acbrlib.Dockerfile --build-arg ACBR_REV=$(ACBR_REV) \
+		-t $(ACBR_BASE_IMAGE):dev \
+		-t $(ACBR_BASE_IMAGE):r$(ACBR_REV) $(ACBR_SRC)
+
+## acbr-extrair: extrai as .so e os schemas da imagem compilada para acbr-libs/
+acbr-extrair:
+	@docker image inspect $(ACBR_BASE_IMAGE):dev >/dev/null 2>&1 || { \
+	  echo "imagem ausente: rode 'make acbr-compilar'"; exit 1; }
+	mkdir -p $(ACBRLIBS)
+	@cid=$$(docker create $(ACBR_BASE_IMAGE):dev); \
+		rm -rf $(ACBRLIBS)/_art && mkdir -p $(ACBRLIBS)/_art; \
+		docker cp $$cid:/artifacts/. $(ACBRLIBS)/_art/; \
+		docker rm $$cid >/dev/null; \
+		cp $(ACBRLIBS)/_art/*.so $(ACBRLIBS)/; \
+		tar -C $(ACBRLIBS)/_art -czf $(ACBRLIBS)/schemas.tar.gz schemas schemas-cte schemas-mdfe; \
+		rm -rf $(ACBRLIBS)/_art
+	@$(MAKE) --no-print-directory acbr-libs-conferir
+
 ## acbr-libs-baixar: baixa as libs nativas dos anexos de release (cache local)
 acbr-libs-baixar:
 	@ACBR_REV=$(ACBR_REV) ACBR_LIBS_DIR=$(ACBRLIBS) ./scripts/baixar-acbr-libs.sh
@@ -132,4 +172,5 @@ help:
 	@grep -hE '^## ' $(MAKEFILE_LIST) | sed 's/^## /  /' | sort
 
 .PHONY: build build-cgo run test test-cgo openapi openapi-check openapi-valida yaml-valida enums-conferir vet fmt fmt-check tidy limpar help \
+	acbr-fonte acbr-compilar acbr-extrair \
 	acbr-libs-baixar acbr-libs-publicar acbr-libs-conferir docker-build up down
