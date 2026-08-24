@@ -111,6 +111,12 @@ aceita. Dois testes comparam em direções opostas:
 1. a lib aceita e **não enviamos** → lacuna de cobertura;
 2. **enviamos** e a lib não lê → chave morta, o dado é descartado em silêncio.
 
+A comparação normaliza o índice das seções repetidas (`Comp001` e `Comp` são a
+mesma coisa). Cuidado: **nem todo dígito no fim é índice.** `ICMS60` e `toma4`
+são nomes do layout, e achatá-los fundia as sete variantes de ICMS numa só,
+deixando o teste cego. Seção numerada nova exige uma decisão explícita, e há um
+teste que a cobra.
+
 Falhar ali não é "conserte o código": é **decida**: passar a enviar, ou declarar
 com o motivo. Foi um desses baselines que registrou por meses que o CT-e não
 enviava `tpAmb`.
