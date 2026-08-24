@@ -11,10 +11,14 @@ make test        # unidade, sem lib nativa e sem certificado
 make acbr-libs-baixar && make up   # o stack de verdade
 ```
 
+As libs nativas não estão no repositório: vêm de anexos de release, e
+[docs/ACBRLIB.md](docs/ACBRLIB.md) explica o ciclo inteiro, de como consumir a
+como publicar uma revisão nova.
+
 O domínio inteiro é testável **sem a lib nativa e sem certificado**. Isso não é
-sorte: a geração não assina, e é justamente o que torna a camada de
-tradução JSON→INI: o ativo real do projeto: verificável por quem não tem um
-A1 na mão.
+sorte: a geração não assina, e é justamente o que torna a camada de tradução
+JSON para INI, o ativo real do projeto, verificável por quem não tem um A1 na
+mão.
 
 ## Armadilhas que já custaram tempo
 
@@ -117,7 +121,7 @@ são nomes do layout, e achatá-los fundia as sete variantes de ICMS numa só,
 deixando o teste cego. Seção numerada nova exige uma decisão explícita, e há um
 teste que a cobra.
 
-Falhar ali não é "conserte o código": é **decida**: passar a enviar, ou declarar
+Falhar ali não é "conserte o código", é **decida**: passar a enviar, ou declarar
 com o motivo. Foi um desses baselines que registrou por meses que o CT-e não
 enviava `tpAmb`.
 
