@@ -12,18 +12,6 @@ type Pedido struct {
 	Titulos []Titulo `json:"titulos"`
 }
 
-// SemCredenciais devolve uma cópia do Pedido SEM o bloco de credenciais de WS
-// (Conta.WS: ClientSecret, CertKEY/CertCRT).
-//
-// No projeto de origem ela sanitizava o registro de auditoria antes de gravar.
-// Aqui não há persistência, então o risco mudou de lugar: o que sobra é ecoar ou
-// logar o pedido. Use esta cópia em qualquer ponto que devolva o Pedido ao
-// cliente. Receiver por valor: a cópia é sanitizada, o original fica intacto.
-func (p Pedido) SemCredenciais() Pedido {
-	p.Conta.WS = nil
-	return p
-}
-
 // Conta reúne o banco, a conta corrente e o cedente: quem cobra e por onde.
 type Conta struct {
 	Banco string `json:"banco"` // número do banco: 001 = BB, 237 = Bradesco, 341 = Itaú
