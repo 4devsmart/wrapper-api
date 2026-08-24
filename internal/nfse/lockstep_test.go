@@ -209,6 +209,9 @@ func carregarSnapshot(t *testing.T) map[string]map[string]bool {
 		if len(partes) != 2 {
 			continue
 		}
+		// Todo dígito no fim é índice AQUI: o layout da NFS-e não tem seção
+		// cujo nome termine em número, ao contrário do CT-e (ICMS60, toma4),
+		// onde achatar cegava o teste. TestNenhumaSecaoNumerada guarda isso.
 		secao := regexp.MustCompile(`\d+$`).ReplaceAllString(partes[0], "") // Itens001 → Itens
 		if gruposNaoSuportados[secao] != "" {
 			continue
@@ -294,4 +297,29 @@ func chavesDosBuilders(t *testing.T) map[string]map[string]bool {
 		}
 	}
 	return uniao
+}
+
+// O achatamento de índice acima só é seguro enquanto NENHUMA seção da NFS-e
+// tiver dígito no nome. No CT-e havia, e o teste ficou cego nas variantes de
+// ICMS por meses. Aqui a guarda é mais simples porque a resposta hoje é zero.
+func TestNenhumaSecaoNumerada(t *testing.T) {
+	b, err := os.ReadFile("testdata/lerini_chaves.tsv")
+	if err != nil {
+		t.Fatal(err)
+	}
+	comDigito := map[string]bool{}
+	for _, l := range strings.Split(string(b), "\n") {
+		l = strings.TrimSpace(l)
+		if l == "" || strings.HasPrefix(l, "#") {
+			continue
+		}
+		if c := strings.SplitN(l, "\t", 2); len(c) == 2 && regexp.MustCompile(`\d+$`).MatchString(c[0]) {
+			comDigito[c[0]] = true
+		}
+	}
+	for nome := range comDigito {
+		t.Errorf("a seção %q termina em dígito: se for NOME e não índice, o "+
+			"achatamento em carregarSnapshot deixa o lockstep cego nela. "+
+			"Ver secoesComNomeNumerado em internal/cte/lockstep_test.go", nome)
+	}
 }

@@ -47,9 +47,27 @@ var chavesMortas = map[string]string{
 // a comparação acusaria "Exped" × "exped" e "EVENTO" × "EVENTO001" como
 // divergência: ruído puro.
 func par(secao, chave string) string {
-	return strings.ToLower(semIndice(secao)) + "/" + strings.ToLower(semIndice(chave))
+	return strings.ToLower(baseDaSecao(secao)) + "/" + strings.ToLower(semIndice(chave))
 }
 
+// secoesComNomeNumerado são as seções cujo dígito final é NOME, não índice. No
+// CT-e são as variantes de ICMS e os tipos de tomador; o layout do MDF-e não
+// tem nenhuma hoje, e o teste abaixo cobra uma decisão no dia em que tiver:
+// achatar em silêncio faria o lockstep ficar cego naquela seção.
+var secoesComNomeNumerado = map[string]bool{}
+
+// secoesIndexadasNaLib são seções que a biblioteca declara COM o índice no nome.
+var secoesIndexadasNaLib = map[string]bool{}
+
+func baseDaSecao(s string) string {
+	if secoesComNomeNumerado[strings.ToLower(s)] {
+		return s
+	}
+	return semIndice(s)
+}
+
+// semIndice vale para CHAVE, onde todo dígito no fim é índice. O snapshot da
+// biblioteca já vem com as chaves nessa forma (capM, não capM3).
 func semIndice(s string) string { return reIndice.ReplaceAllString(s, "") }
 
 var (
@@ -298,4 +316,34 @@ func TestLockstep_MDFE_BaselineSemLinhaMorta(t *testing.T) {
 	t.Errorf("%d linha(s) de testdata/nao_enviadas.tsv que não valem mais.\n"+
 		"Remova para travar o ganho, senão a lista vira depósito:\n  %s",
 		len(mortas), strings.Join(mortas, "\n  "))
+}
+
+// Ver o comentário do teste equivalente em internal/cte: lista à mão envelhece,
+// e uma seção numerada nova voltaria a ser achatada sem nada acusar.
+func TestSecoesNumeradas_TodasDecididas(t *testing.T) {
+	b, err := os.ReadFile("testdata/lerini_chaves.tsv")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var semDecisao []string
+	for _, l := range strings.Split(string(b), "\n") {
+		l = strings.TrimSpace(l)
+		if l == "" || strings.HasPrefix(l, "#") {
+			continue
+		}
+		c := strings.SplitN(l, "\t", 2)
+		if len(c) != 2 {
+			continue
+		}
+		nome := strings.ToLower(c[0])
+		if reIndice.MatchString(nome) && secoesComNomeNumerado[nome] == secoesIndexadasNaLib[nome] {
+			semDecisao = append(semDecisao, nome)
+		}
+	}
+	if len(semDecisao) > 0 {
+		sort.Strings(semDecisao)
+		t.Errorf("%d seção(ões) terminadas em dígito sem decisão.\n"+
+			"Diga se o dígito é NOME (secoesComNomeNumerado) ou ÍNDICE (secoesIndexadasNaLib):\n  %s",
+			len(semDecisao), strings.Join(semDecisao, "\n  "))
+	}
 }

@@ -51,10 +51,47 @@ var chavesMortas = map[string]string{
 // chaves repetidas com sufixo numérico (det001, cInfManu002). Sem normalizar,
 // a comparação acusaria "Exped" × "exped" e "EVENTO" × "EVENTO001" como
 // divergência: ruído puro.
+//
+// Só que nem todo dígito no fim é índice: ICMS60 e toma4 são NOMES do layout.
+// Tirar o dígito deles achatava as sete variantes de ICMS numa só, e bastava
+// enviar uma chave em ICMS20 para o teste dar por enviada a mesma chave em
+// ICMS60. Foi assim que a desoneração faltando em ICMS60 e ICMS90 passou meses
+// despercebida, até o teste de espelho encontrá-la por outro caminho.
 func par(secao, chave string) string {
-	return strings.ToLower(semIndice(secao)) + "/" + strings.ToLower(semIndice(chave))
+	return strings.ToLower(baseDaSecao(secao)) + "/" + strings.ToLower(semIndice(chave))
 }
 
+// secoesComNomeNumerado são as seções cujo dígito final é NOME, não índice.
+//
+// A lista é à mão porque o dado não decide: "ICMS60" e "EVENTO001" são a mesma
+// forma, e só a semântica do layout separa as duas. Ela é curta e estável, e
+// vem do layout do CT-e: as variantes de ICMS saem do CST, e o tomador é o 3
+// (um dos participantes) ou o 4 (um terceiro). Um teste confere que cada linha
+// daqui ainda existe no snapshot da biblioteca.
+var secoesComNomeNumerado = map[string]bool{
+	"icms00": true, "icms20": true, "icms45": true, "icms60": true, "icms90": true,
+	"toma3": true, "toma4": true,
+}
+
+// secoesIndexadasNaLib são seções que a biblioteca declara COM o índice no
+// nome, e que portanto precisam ser achatadas para casar com o prefixo que o
+// nosso builder escreve. Existe para o teste abaixo poder cobrar uma decisão
+// sobre cada seção numerada, em vez de achatar as desconhecidas em silêncio.
+var secoesIndexadasNaLib = map[string]bool{
+	"infctecomp01": true, // a lib tem o [infCteComp] do laço e este literal
+}
+
+// baseDaSecao tira o índice da seção, preservando o dígito que faz parte do nome.
+func baseDaSecao(s string) string {
+	if secoesComNomeNumerado[strings.ToLower(s)] {
+		return s
+	}
+	return semIndice(s)
+}
+
+// semIndice vale para CHAVE, onde todo dígito no fim é índice. O snapshot da
+// biblioteca já vem com as chaves nessa forma (capM, não capM3), então mexer
+// aqui exigiria refazê-lo.
 func semIndice(s string) string { return reIndice.ReplaceAllString(s, "") }
 
 var (
@@ -303,4 +340,66 @@ func TestLockstep_CTE_BaselineSemLinhaMorta(t *testing.T) {
 	t.Errorf("%d linha(s) de testdata/nao_enviadas.tsv que não valem mais.\n"+
 		"Remova para travar o ganho, senão a lista vira depósito:\n  %s",
 		len(mortas), strings.Join(mortas, "\n  "))
+}
+
+// A lista de nomes numerados é à mão, e lista à mão envelhece: um nome que sai
+// do layout vira linha morta, e um nome NOVO que aparece num bump da biblioteca
+// volta a ser achatado em silêncio, deixando o teste cego naquela variante sem
+// nada acusar. Este teste cobra uma decisão sobre cada seção numerada que a
+// biblioteca declara.
+func TestSecoesNumeradas_TodasDecididas(t *testing.T) {
+	secoes := secoesDoSnapshot(t, "testdata/lerini_chaves.tsv")
+
+	var semDecisao []string
+	for nome := range secoes {
+		if !reIndice.MatchString(nome) {
+			continue
+		}
+		if secoesComNomeNumerado[nome] == secoesIndexadasNaLib[nome] {
+			// Em nenhuma das duas listas, ou nas duas: os dois casos são engano.
+			semDecisao = append(semDecisao, nome)
+		}
+	}
+	if len(semDecisao) > 0 {
+		sort.Strings(semDecisao)
+		t.Errorf("%d seção(ões) terminadas em dígito sem decisão.\n"+
+			"Diga se o dígito é NOME (secoesComNomeNumerado) ou ÍNDICE (secoesIndexadasNaLib):\n  %s",
+			len(semDecisao), strings.Join(semDecisao, "\n  "))
+	}
+
+	for nome := range secoesComNomeNumerado {
+		if !secoes[nome] {
+			t.Errorf("secoesComNomeNumerado cita %q, que não existe mais no snapshot: "+
+				"remova, senão a lista vira depósito", nome)
+		}
+	}
+	for nome := range secoesIndexadasNaLib {
+		if !secoes[nome] {
+			t.Errorf("secoesIndexadasNaLib cita %q, que não existe mais no snapshot", nome)
+		}
+	}
+}
+
+// secoesDoSnapshot lê os nomes de seção CRUS do snapshot, sem normalizar: é a
+// forma em que a biblioteca os declara.
+func secoesDoSnapshot(t *testing.T, arquivo string) map[string]bool {
+	t.Helper()
+	b, err := os.ReadFile(arquivo)
+	if err != nil {
+		t.Fatalf("snapshot ausente: %v", err)
+	}
+	out := map[string]bool{}
+	for _, l := range strings.Split(string(b), "\n") {
+		l = strings.TrimSpace(l)
+		if l == "" || strings.HasPrefix(l, "#") {
+			continue
+		}
+		if c := strings.SplitN(l, "\t", 2); len(c) == 2 {
+			out[strings.ToLower(c[0])] = true
+		}
+	}
+	if len(out) == 0 {
+		t.Fatalf("nenhuma seção lida de %s", arquivo)
+	}
+	return out
 }
