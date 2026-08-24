@@ -50,8 +50,42 @@ https://svn.code.sf.net/p/acbr/code/trunk2
 **Nunca use o mirror do GitHub**: ele fica meses atrasado, e a tabela de
 provedor por município da NFS-e muda rápido.
 
-A revisão em uso está em `ACBR_REV`, no `Makefile`. O que fazer com os binários
-depois de compilar está em [O ciclo do release](#o-ciclo-do-release).
+São três comandos, e o build em si é **offline**: o download e a compilação são
+etapas separadas de propósito, para que compilar de novo não dependa do
+SourceForge estar de pé.
+
+```bash
+make acbr-fonte      # SVN do ACBr + git do FortesReport em acbr-source/ (~640 MB)
+make acbr-compilar   # as 5 .so e os schemas, num container (LENTO, ~10 min)
+make acbr-extrair    # copia os artefatos da imagem para acbr-libs/
+```
+
+`acbr-source/` é cache local e está no `.gitignore`. O `acbr-fonte` é retomável:
+o SVN do SourceForge derruba conexão em checkout grande, e o script tem retry.
+
+### O que é pinado, e o que não é
+
+Duas entradas entram no binário, e **as duas** precisam de pino:
+
+| entrada | pino | onde |
+|---|---|---|
+| fonte do ACBr | revisão do SVN | `ACBR_REV` |
+| Fortes Report CE | commit do git | `ACBR_FRCE_REF` |
+
+O FortesReport rasteriza o DACTE, o DAMDFE e o DANFSE, então ele está dentro
+dos `.so` tanto quanto o ACBr. Ele seguia o `master`, o que fazia metade do
+binário flutuar enquanto o ACBr era pinado com cuidado: uma recompilação em
+2026-08 pegou um FortesReport de **2026-08-06** onde a anterior tinha usado o de
+**2025-09-22**. Quase um ano de diferença, sem nada apontando.
+
+Hoje o script **recusa rodar** sem `FRCE_REF`, em vez de cair no `master`: build
+irreprodutível é pior que build que não roda, porque a divergência só aparece
+meses depois, num binário diferente do que foi testado.
+
+Fica de fora do pino o que vem do Debian: a imagem base `bookworm-slim` e os
+pacotes `fpc`/`lazarus` do builder. Dentro de uma mesma release do Debian a
+variação é pequena, mas ela existe, e é o que sobra entre "reprodutível" e
+"idêntico bit a bit".
 
 ## O ciclo do release
 
@@ -71,7 +105,9 @@ São sete arquivos: os cinco `.so`, o `schemas.tar.gz` e o `SHA256SUMS`.
 
 ### Publicando uma revisão nova
 
-1. Compile do SVN na revisão desejada e deixe os seis arquivos em `acbr-libs/`.
+1. `make acbr-fonte && make acbr-compilar && make acbr-extrair`, com `ACBR_REV`
+   e `ACBR_FRCE_REF` já apontando para o que você quer. Os seis arquivos ficam
+   em `acbr-libs/`.
 2. `make acbr-libs-publicar`. Ele gera o `SHA256SUMS` a partir do que está no
    diretório, cria a tag `acbrlib-r<REV>` e o release, e sobe os sete arquivos.
    Rodar de novo na mesma tag **atualiza** os anexos em vez de falhar.

@@ -23,7 +23,8 @@ oficial do Projeto ACBr.
 - Licença: GNU LGPL.
 - Fonte oficial (SVN `trunk2`): https://svn.code.sf.net/p/acbr/code/trunk2
 - Revisão usada: pinada em `ACBR_REV` (ver `Makefile`); reprodutível com
-  `make acbr-update && make acbr-base` (ver `docs/ACBRLIB.md`).
+  `make acbr-fonte && make acbr-compilar && make acbr-extrair`
+  (ver `docs/ACBRLIB.md`).
 - Site: https://projetoacbr.com.br/
 
 --------------------------------------------------------------------------------
@@ -42,8 +43,11 @@ Cumprimento da LGPL (relink)
 Os `.so` são bibliotecas dinâmicas, carregadas pela aplicação Go via cgo (dlopen).
 Conforme a LGPL, você pode obter o código-fonte correspondente nos endereços acima
 (na revisão pinada) e **substituir os `.so`** por uma versão modificada da
-ACBrLib/Fortes: basta recompilá-los (`make acbr-base`) ou trocar os arquivos em
-`acbr-libs/` por binários próprios de mesma ABI.
+ACBrLib/Fortes. Há dois caminhos, e os dois funcionam sem tocar no código Go:
+
+1. recompilar aqui, com o fonte e o toolchain que este repositório traz:
+   `make acbr-fonte && make acbr-compilar && make acbr-extrair`;
+2. trocar os arquivos em `acbr-libs/` por binários próprios de mesma ABI.
 
 ================================================================================
 Bibliotecas de sistema (NÃO redistribuídas aqui)

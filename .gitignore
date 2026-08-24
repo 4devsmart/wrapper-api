@@ -31,3 +31,6 @@
 
 # Configuração local do Claude Code (por usuário)
 .claude/settings.local.json
+
+# Cache do fonte do ACBr (~640 MB), populado por "make acbr-fonte".
+/acbr-source/
