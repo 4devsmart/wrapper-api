@@ -175,7 +175,6 @@ tpDoc	Tipo do documento.
 tpEnteGov	Tipo do ente governamental.
 ISUF	Inscrição na SUFRAMA.
 autXML	CNPJ ou CPF autorizados a baixar o XML do documento.
-versaoModal	Versão do leiaute do grupo do modal.
 PIN	PIN SUFRAMA, quando aplicável.
 idCSRT	Identificador do Código de Segurança do Responsável Técnico.
 CSRT	Código de Segurança do Responsável Técnico.

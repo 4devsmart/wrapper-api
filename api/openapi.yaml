@@ -3103,9 +3103,6 @@ components:
       type: object
       description: 'Grupo do modal. Preencha apenas o modal declarado em ide.modal.'
       properties:
-        versaoModal:
-          type: string
-          description: 'Versão do leiaute do grupo do modal.'
         rodo:
           allOf:
             - $ref: "#/components/schemas/CteRodo"
@@ -3443,20 +3440,14 @@ components:
           description: 'Ordens de Coleta de Carga.'
     CteSemData:
       type: object
-      description: 'Entrega sem data definida.'
-      properties:
-        tpPer:
-          type: integer
-          enum: [0, 1, 2, 3, 4]
-          description: 'Tipo de período de entrega. Valores: 0 = Sem data definida; 1 = Na data; 2 = Até a data; 3 = A partir da data; 4 = No período.'
+      description: 'Entrega sem data definida: a presença do grupo é a informação, e por isso ele não carrega campo nenhum.'
+      properties: {}
+      additionalProperties: false
     CteSemHora:
       type: object
-      description: 'Entrega sem hora definida.'
-      properties:
-        tpHor:
-          type: integer
-          enum: [0, 1, 2, 3, 4]
-          description: 'Tipo de horário de entrega. Valores: 0 = Sem hora definida; 1 = No horário; 2 = Até o horário; 3 = A partir do horário; 4 = No intervalo de tempo.'
+      description: 'Entrega sem hora definida: a presença do grupo é a informação, e por isso ele não carrega campo nenhum.'
+      properties: {}
+      additionalProperties: false
     CteToma:
       type: object
       description: 'O tomador único do CT-e Simplificado/OS.'
@@ -4280,9 +4271,6 @@ components:
       type: object
       description: 'Grupo do modal. Preencha apenas o modal declarado em ide.modal.'
       properties:
-        versaoModal:
-          type: string
-          description: 'Versão do leiaute do grupo do modal.'
         rodo:
           allOf:
             - $ref: "#/components/schemas/MdfeRodo"

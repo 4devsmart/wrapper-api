@@ -473,9 +473,17 @@ func (g *gerador) emitir(pacote, tipo string) {
 		g.escreverCampo(&b, pacote, jsonNome, f, "          ")
 	}
 	if vazio {
-		// properties: {} vazio é YAML inválido no contexto; usa objeto livre.
+		// Struct sem campo publicado é MARCADOR: o que informa é a presença dele.
+		// Reescreve porque "properties:" sem nada embaixo é inválido, mas mantém a
+		// descrição (a versão anterior dava Reset e a perdia) e FECHA o objeto: o
+		// servidor recusa campo desconhecido, então additionalProperties: true
+		// prometeria o que o handler nega.
 		b.Reset()
-		fmt.Fprintf(&b, "    %s:\n      type: object\n      additionalProperties: true\n", nome)
+		fmt.Fprintf(&b, "    %s:\n      type: object\n", nome)
+		if doc != "" {
+			fmt.Fprintf(&b, "      description: %s\n", yamlStr(doc))
+		}
+		fmt.Fprintf(&b, "      properties: {}\n      additionalProperties: false\n")
 	}
 	g.saida[nome] = b.String()
 }

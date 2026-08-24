@@ -130,7 +130,7 @@ func TestEscopo_GrupoDeModalForaDoContrato(t *testing.T) {
 	for _, grupo := range []string{"aereo", "aquav", "ferrov"} {
 		p := pedidoMinimo()
 		p["infMDFe"].(map[string]any)["infModal"] = map[string]any{
-			"versaoModal": "3.00", grupo: map[string]any{},
+			grupo: map[string]any{},
 		}
 		rec := post(t, mux, "/mdfe/xml", p)
 		if rec.Code != http.StatusBadRequest {

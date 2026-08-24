@@ -131,8 +131,8 @@ e uma linha que deixa de valer é acusada: lista que vira depósito para de
 significar alguma coisa.
 
 Ele achou, entre outros, o `versaoModal` que os dois documentos aceitavam sem
-ter para onde mandar, e o `autXML` que saía com índice de três casas onde a
-biblioteca lê duas.
+ter para onde mandar, e que por isso saiu do contrato, e o `autXML` que saía com
+índice de três casas onde a biblioteca lê duas.
 
 ## A especificação é gerada
 

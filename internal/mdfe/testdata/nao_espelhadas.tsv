@@ -16,7 +16,6 @@ infMDFe.infModal.rodo.infANTT.infCIOT[].CPF	um CNPJ ou um CPF viaja em CNPJCPF, 
 infMDFe.infModal.rodo.infANTT.infContratante[].CPF	um CNPJ ou um CPF viaja em CNPJCPF, nunca os dois
 infMDFe.infModal.rodo.infANTT.infPag[].CPF	um CNPJ ou um CPF viaja em CNPJCPF, nunca os dois
 infMDFe.infModal.rodo.infANTT.valePed.disp[].CPFPg	a biblioteca lê um pagador só, em CNPJPg: o CPF entra ali quando é o que veio
-infMDFe.infModal.versaoModal	a biblioteca deriva a versão do modal da versão do MDF-e e não lê esta chave do arquivo intermediário
 infMDFe.infRespTec.CSRT	só idCSRT e hashCSRT entram no XML, e nem esses a biblioteca lê do arquivo intermediário
 infMDFe.infSolicNFF.xSolic	a biblioteca não lê a solicitação de NFF do arquivo intermediário
 infMDFeSupl.qrCodMDFe	o QR Code é gerado pela biblioteca na assinatura
