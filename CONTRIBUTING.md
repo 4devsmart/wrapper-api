@@ -89,6 +89,20 @@ em CT-e e MDF-e, mas o que muda entre elas é o dado (a expressão da chave, o
 tipo da resposta), e compartilhá-las custaria mais do que a cópia de cinco
 linhas.
 
+## O despacho RPC é escrito à mão, duas vezes
+
+A API não abre a biblioteca nativa: ela fala com o `fiscal-worker` por RPC. Do
+lado do cliente, cada método monta `Pedido{Metodo, Args}`; do lado do worker,
+um `switch` lê aquele `Args` de volta para chamar o método. **Nada no
+compilador liga as duas pontas**: um nome de método com typo, ou um campo de
+`Args` trocado, compila e vira dado errado atravessando a fronteira em silêncio.
+
+Por isso o teste percorre todos os métodos das cinco interfaces, chama cada um
+pelo cliente com uma sentinela distinta por posição, e cobra do outro lado o
+mesmo nome e os mesmos valores. O espião que recebe as chamadas **não embute
+nada**: método novo numa interface quebra a compilação, e quem o acrescentar é
+obrigado a passar por ali.
+
 ## Testes de lockstep
 
 `internal/{cte,mdfe,nfse}/testdata/*.tsv` guardam as chaves de INI que a lib
