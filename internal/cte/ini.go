@@ -545,9 +545,6 @@ func (b *iniBuilder) icms(ic ICMS) {
 
 // --- builder de INI (local ao pacote cte) -----------------------------------
 
-// iniBuilder acumula o INI. Carrega o fuso do documento porque data-hora só faz
-// sentido com ele: o cliente informa um instante (RFC 3339) e o documento fiscal
-// precisa desse instante no relógio do emitente.
 // iniBuilder é o construtor compartilhado (internal/platform/inifmt) mais os
 // métodos de DOMÍNIO deste documento, logo abaixo. O núcleo (seção, par
 // chave=valor, datas no fuso do emitente) vive num lugar só: era o mesmo código

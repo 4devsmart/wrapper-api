@@ -215,7 +215,8 @@ type VeicTracao struct {
 	UF       string     `json:"UF,omitempty"`
 }
 
-// Prop espelha MdfeSefazProp.
+// Prop é o proprietário do veículo, e vale tanto para a tração quanto para o
+// reboque. Havia um tipo por posição, com os mesmos campos.
 type Prop struct {
 	CPF    string `json:"CPF,omitempty"`
 	CNPJ   string `json:"CNPJ,omitempty"`
@@ -234,26 +235,15 @@ type Condutor struct {
 
 // VeicReboque espelha MdfeSefazVeicReboque.
 type VeicReboque struct {
-	CInt    string           `json:"cInt,omitempty"`
-	Placa   string           `json:"placa"`
-	RENAVAM string           `json:"RENAVAM,omitempty"`
-	Tara    int              `json:"tara"`
-	CapKG   int              `json:"capKG"`
-	CapM3   int              `json:"capM3,omitempty"`
-	Prop    *VeicReboqueProp `json:"prop,omitempty"`
-	TpCar   string           `json:"tpCar" enum:"TipoCarroceria"`
-	UF      string           `json:"UF,omitempty"`
-}
-
-// VeicReboqueProp espelha MdfeSefazVeicReboque_Prop.
-type VeicReboqueProp struct {
-	CPF    string `json:"CPF,omitempty"`
-	CNPJ   string `json:"CNPJ,omitempty"`
-	RNTRC  string `json:"RNTRC"`
-	XNome  string `json:"xNome"`
-	IE     string `json:"IE,omitempty"`
-	UF     string `json:"UF,omitempty"`
-	TpProp int    `json:"tpProp" enum:"TipoPropriedadeVeiculo"`
+	CInt    string `json:"cInt,omitempty"`
+	Placa   string `json:"placa"`
+	RENAVAM string `json:"RENAVAM,omitempty"`
+	Tara    int    `json:"tara"`
+	CapKG   int    `json:"capKG"`
+	CapM3   int    `json:"capM3,omitempty"`
+	Prop    *Prop  `json:"prop,omitempty"`
+	TpCar   string `json:"tpCar" enum:"TipoCarroceria"`
+	UF      string `json:"UF,omitempty"`
 }
 
 // LacRodo espelha MdfeSefazLacRodo.
@@ -314,7 +304,9 @@ type LacUnidCarga struct {
 	NLacre string `json:"nLacre"`
 }
 
-// Peri espelha MdfeSefazPeri.
+// Peri é o produto perigoso transportado, e vale para os três documentos da
+// descarga (NF-e, CT-e e MDF-e). Havia um tipo por documento, com os mesmos
+// campos: acertar um deles e esquecer os outros dois era só questão de tempo.
 type Peri struct {
 	NONU      string `json:"nONU"`
 	XNomeAE   string `json:"xNomeAE,omitempty"`
@@ -341,35 +333,15 @@ type InfNFe struct {
 	SegCodBarra   string          `json:"SegCodBarra,omitempty"`
 	IndReentrega  int             `json:"indReentrega,omitempty" enum:"Sim"`
 	InfUnidTransp []UnidadeTransp `json:"infUnidTransp,omitempty"`
-	Peri          []InfNFePeri    `json:"peri,omitempty"`
-}
-
-// InfNFePeri espelha MdfeSefazInfNFe_Peri.
-type InfNFePeri struct {
-	NONU      string `json:"nONU"`
-	XNomeAE   string `json:"xNomeAE,omitempty"`
-	XClaRisco string `json:"xClaRisco,omitempty"`
-	GrEmb     string `json:"grEmb,omitempty"`
-	QTotProd  string `json:"qTotProd"`
-	QVolTipo  string `json:"qVolTipo,omitempty"`
+	Peri          []Peri          `json:"peri,omitempty"`
 }
 
 // InfMDFeTransp espelha MdfeSefazInfMDFeTransp.
 type InfMDFeTransp struct {
-	ChMDFe        string              `json:"chMDFe"`
-	IndReentrega  int                 `json:"indReentrega,omitempty" enum:"Sim"`
-	InfUnidTransp []UnidadeTransp     `json:"infUnidTransp,omitempty"`
-	Peri          []InfMDFeTranspPeri `json:"peri,omitempty"`
-}
-
-// InfMDFeTranspPeri espelha MdfeSefazInfMDFeTransp_Peri.
-type InfMDFeTranspPeri struct {
-	NONU      string `json:"nONU"`
-	XNomeAE   string `json:"xNomeAE,omitempty"`
-	XClaRisco string `json:"xClaRisco,omitempty"`
-	GrEmb     string `json:"grEmb,omitempty"`
-	QTotProd  string `json:"qTotProd"`
-	QVolTipo  string `json:"qVolTipo,omitempty"`
+	ChMDFe        string          `json:"chMDFe"`
+	IndReentrega  int             `json:"indReentrega,omitempty" enum:"Sim"`
+	InfUnidTransp []UnidadeTransp `json:"infUnidTransp,omitempty"`
+	Peri          []Peri          `json:"peri,omitempty"`
 }
 
 // Seg espelha MdfeSefazSeg.
