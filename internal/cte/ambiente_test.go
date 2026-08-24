@@ -168,7 +168,7 @@ func TestEscopo_GrupoDeModalForaDoContrato(t *testing.T) {
 	mux := muxDe(&libFake{resMontar: acbr.Result{XML: xmlFixture("2")}})
 	for _, grupo := range []string{"aereo", "aquav", "ferrov", "duto", "multimodal"} {
 		corpo := `{"ambiente":"homologacao","infCte":{"emit":{"CNPJ":"12345678000190"},` +
-			`"infCTeNorm":{"infModal":{"versaoModal":"4.00","` + grupo + `":{}}}}}`
+			`"infCTeNorm":{"infModal":{"` + grupo + `":{}}}}}`
 		rec := postCru(t, mux, "/cte/xml", corpo)
 		if rec.Code != http.StatusBadRequest {
 			t.Errorf("infModal.%s: HTTP %d, esperava 400", grupo, rec.Code)

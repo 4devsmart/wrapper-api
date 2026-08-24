@@ -15,8 +15,6 @@ referencia	correlação do cliente, volta na resposta e não entra no documento
 infCte.Id	atributo Id do XML, montado pela biblioteca a partir da chave
 infCte.ide.cDV	dígito verificador da chave, calculado pela biblioteca
 infCte.ide.tpAmb	redundante com ambiente: o handler recusa se divergir, e quem manda é o ambiente do pedido
-infCte.compl.Entrega.semData.tpPer	"sem data" é a ausência de agendamento; não há período a informar
-infCte.compl.Entrega.semHora.tpHor	"sem hora" é a ausência de agendamento; não há horário a informar
 infCte.emit.CPF	um CNPJ ou um CPF viaja em CNPJCPF, nunca os dois
 infCte.rem.CPF	um CNPJ ou um CPF viaja em CNPJCPF, nunca os dois
 infCte.exped.CPF	um CNPJ ou um CPF viaja em CNPJCPF, nunca os dois
@@ -25,7 +23,6 @@ infCte.dest.CPF	um CNPJ ou um CPF viaja em CNPJCPF, nunca os dois
 infCte.ide.toma4.CPF	um CNPJ ou um CPF viaja em CNPJCPF, nunca os dois
 infCte.autXML[].CPF	um CNPJ ou um CPF viaja em CNPJCPF, nunca os dois
 infCte.infCTeNorm.docAnt.emiDocAnt[].CPF	um CNPJ ou um CPF viaja em CNPJCPF, nunca os dois
-infCte.infCTeNorm.infModal.versaoModal	a biblioteca deriva a versão do modal da versão do CT-e e não lê esta chave do arquivo intermediário
 infCte.infRespTec.CSRT	só idCSRT e hashCSRT entram no XML, e nem esses a biblioteca lê do arquivo intermediário
 infCte.infSolicNFF.xSolic	a biblioteca não lê a solicitação de NFF do arquivo intermediário
 infCTeSupl.qrCodCTe	o QR Code é gerado pela biblioteca na assinatura

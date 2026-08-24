@@ -103,8 +103,7 @@ type EndeEmi struct {
 
 // InfModal espelha MdfeSefazInfModal.
 type InfModal struct {
-	VersaoModal string `json:"versaoModal"`
-	Rodo        *Rodo  `json:"rodo,omitempty"`
+	Rodo *Rodo `json:"rodo,omitempty"`
 }
 
 // Rodo espelha MdfeSefazRodo.

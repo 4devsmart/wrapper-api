@@ -164,10 +164,9 @@ type Entrega struct {
 	NoInter   *NoInter   `json:"noInter,omitempty"`
 }
 
-// SemData espelha CteSefazSemData.
-type SemData struct {
-	TpPer int `json:"tpPer" enum:"TipoPeriodoEntrega"`
-}
+// SemData espelha CteSefazSemData. Entrega sem data definida: a presença do
+// grupo é a informação, e por isso ele não carrega campo nenhum.
+type SemData struct{}
 
 // ComData espelha CteSefazComData.
 type ComData struct {
@@ -182,10 +181,9 @@ type NoPeriodo struct {
 	DFim  string `json:"dFim"`
 }
 
-// SemHora espelha CteSefazSemHora.
-type SemHora struct {
-	TpHor int `json:"tpHor" enum:"TipoHorarioEntrega"`
-}
+// SemHora espelha CteSefazSemHora. Entrega sem hora definida: a presença do
+// grupo é a informação, e por isso ele não carrega campo nenhum.
+type SemHora struct{}
 
 // ComHora espelha CteSefazComHora.
 type ComHora struct {
@@ -634,8 +632,7 @@ type IdDocAntEle struct {
 
 // InfModal espelha CteSefazInfModal.
 type InfModal struct {
-	VersaoModal string `json:"versaoModal"`
-	Rodo        *Rodo  `json:"rodo,omitempty"`
+	Rodo *Rodo `json:"rodo,omitempty"`
 }
 
 // Rodo espelha CteSefazRodo.
