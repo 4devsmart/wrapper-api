@@ -64,9 +64,22 @@ jobs:
           docker run -d --name fumaca-api --network fumaca -p 8080:8080 \
             -e API_TOKEN=fumaca -e ACBR_WORKERS=/run/wrapper/fiscal.sock \
             -v fumaca-run:/run/wrapper "${IMAGEM}:${GITHUB_SHA}"
-          for i in $(seq 1 30); do
-            curl -fsS localhost:8080/healthz >/dev/null 2>&1 && break || sleep 1
+          # A espera é pelo /readyz, NÃO pelo /healthz. O healthz responde assim
+          # que a API abre a porta e não toca no worker, então esperar por ele é
+          # esperar por nada: quem depende da lib nativa ter carregado e do
+          # socket existir é o readyz. Com a espera no healthz, o readyz era
+          # consultado 0,25s depois de subir e devolvia 503 num runner frio.
+          pronto=0
+          for _ in $(seq 1 60); do
+            if curl -fsS localhost:8080/readyz >/dev/null 2>&1; then pronto=1; break; fi
+            sleep 2
           done
+          if [ "$pronto" != 1 ]; then
+            echo "::error::/readyz não ficou pronto em 120s"
+            docker logs fumaca-worker || true
+            docker logs fumaca-api || true
+            exit 1
+          fi
           curl -fsS localhost:8080/healthz
           curl -fsS localhost:8080/readyz
           # backend "cgo" nos cinco serviços = a lib nativa realmente carregou.
