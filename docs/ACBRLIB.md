@@ -50,10 +50,78 @@ https://svn.code.sf.net/p/acbr/code/trunk2
 **Nunca use o mirror do GitHub**: ele fica meses atrasado, e a tabela de
 provedor por município da NFS-e muda rápido.
 
-A revisão em uso está em `ACBR_REV`, no `Makefile`. Ao bumpar, regenere também o
-snapshot de chaves do lockstep (`internal/{cte,mdfe,nfse}/testdata/`): é ele que
-denuncia campo que a lib passou a aceitar e nós não enviamos, ou que escrevemos
-e ela ignora em silêncio.
+A revisão em uso está em `ACBR_REV`, no `Makefile`. O que fazer com os binários
+depois de compilar está em [O ciclo do release](#o-ciclo-do-release).
+
+## O ciclo do release
+
+As libs entram e saem do repositório por dois comandos, e os dois passam por
+`acbr-libs/`:
+
+| ponta | comando | quem roda |
+|---|---|---|
+| publicar | `make acbr-libs-publicar` | quem mantém, uma vez por revisão |
+| consumir | `make acbr-libs-baixar` | qualquer clone, e os jobs `cgo` e `publicar` do CI |
+
+`ACBR_REV`, no `Makefile`, é a **fonte única** da revisão. Dela sai o nome da
+tag (`acbrlib-r<REV>`), e é dela que o download monta a URL. Trocar a revisão
+num lugar só é o que mantém as duas pontas em acordo.
+
+São sete arquivos: os cinco `.so`, o `schemas.tar.gz` e o `SHA256SUMS`.
+
+### Publicando uma revisão nova
+
+1. Compile do SVN na revisão desejada e deixe os seis arquivos em `acbr-libs/`.
+2. `make acbr-libs-publicar`. Ele gera o `SHA256SUMS` a partir do que está no
+   diretório, cria a tag `acbrlib-r<REV>` e o release, e sobe os sete arquivos.
+   Rodar de novo na mesma tag **atualiza** os anexos em vez de falhar.
+3. Suba o `ACBR_REV` no `Makefile`.
+4. Regenere o snapshot de chaves do lockstep
+   (`internal/{cte,mdfe,nfse}/testdata/lerini_chaves.tsv`). **Não há script
+   aqui**: ele sai dos procedimentos de leitura de INI do fonte, que não vem no
+   clone, então é trabalho manual a partir da árvore que você acabou de
+   compilar. É o que denuncia chave que a lib passou a aceitar e nós não
+   enviamos, ou que enviamos e ela ignora em silêncio.
+5. Rode `make enums-conferir`, que compara os valores publicados com os XSD do
+   pacote de schemas. É por ali que uma nota técnica que mexe em código
+   aparece.
+6. Commite. Quem clonar depois disso baixa a revisão nova.
+
+O `SHA256SUMS` é gerado na publicação e conferido no download **antes** de os
+arquivos entrarem em `acbr-libs/`: download truncado que chega ao diretório vira
+`.so` corrompido embutido na imagem, e SIGSEGV em runtime longe da causa. Como o
+repositório é público, o download não usa token.
+
+### Na estreia do repositório
+
+Isto acontece uma vez só, e a ordem intuitiva não funciona nas duas direções.
+
+Um repositório recém-criado não tem commit, e **um release precisa de um commit
+para ancorar a tag**. Publicar antes de empurrar falha com um 422 do GitHub que
+só diz `Repository is empty.`
+
+Empurrar a `main` primeiro resolve isso e cria o problema oposto: os jobs `cgo`
+e `publicar` do CI baixam justamente esses `.so`, então o primeiro run do
+repositório nasce vermelho, no commit inicial.
+
+A saída é empurrar só a **tag**. Ela popula o repositório sem acordar o Actions,
+porque gatilho nenhum casa com ela:
+
+| workflow | gatilho | tag `acbrlib-r*` |
+|---|---|---|
+| `ci.yml` | `branches: ["**"]` | não, só push de branch |
+| `publicar.yml` | `branches: [main]` | não |
+| `release.yml` | `tags: ["v*"]` | não casa o padrão |
+
+```bash
+git tag acbrlib-r47859 main && git push origin acbrlib-r47859
+make acbr-libs-publicar
+git push -u origin main
+```
+
+Assim a `main` estreia com o CI verde. O `scripts/publicar-acbr-libs.sh` detecta
+o repositório vazio antes de chamar o `gh` e imprime essas três linhas, com a
+revisão já preenchida.
 
 ## Licença
 
