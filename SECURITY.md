@@ -53,9 +53,15 @@ da requisição que transmite.
 Consequências que valem um olhar extra em qualquer contribuição:
 
 - **Log é a única forma realista de um segredo escapar do processo.** Por isso
-  `fiscal.Certificado`, `boleto.ContaWS` e `nfse.Credenciais` redigem a si
-  mesmos em `String()`/`LogValue()`, e o middleware de log nunca registra corpo
-  nem cabeçalho de autorização. Um `%v` distraído desfaz isso.
+  todo tipo que carrega credencial redige a si mesmo em `String()` **e**
+  `LogValue()`, e o middleware de log nunca registra corpo nem cabeçalho de
+  autorização. Um `%v` distraído desfaz isso.
+
+  Os dois métodos são necessários por motivos diferentes: `String()` cobre o
+  `fmt`; `LogValue()` cobre o `slog`, que é o que o serviço usa. O manipulador
+  JSON do `slog` **não** consulta `Stringer`: ele serializa a struct campo a
+  campo, então só com `String()` o segredo sai inteiro no log. Um teste varre o
+  repositório e recusa tipo novo com credencial sem `LogValue()`.
 - **O log da ACBrLib em nível 3+ grava XML e certificado em disco.** O boot
   **recusa** essa combinação com `MODO=producao`. Não afrouxe esse gate.
 - **O PFX vai da API ao worker por socket unix** e não sai do host. Se um dia o

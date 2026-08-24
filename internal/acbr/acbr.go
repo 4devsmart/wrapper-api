@@ -16,6 +16,7 @@ package acbr
 
 import (
 	"errors"
+	"log/slog"
 
 	"github.com/4devsmart/wrapper-api/internal/platform/config"
 )
@@ -55,6 +56,18 @@ type TenantConfig struct {
 	SenhaPFX  string
 	Config    []ConfigKV // chaves adicionais (Ambiente, CodigoMunicipio, etc.)
 }
+
+// String e LogValue redigem o tipo inteiro: ele carrega o PFX do cliente e a
+// senha dele, e log é a única forma realista de um segredo escapar deste
+// processo. Um %v distraído num handler, ou alguém logando a struct para
+// depurar, bastaria.
+//
+// A serialização JSON continua carregando tudo, de propósito: é por ela que o
+// certificado atravessa o socket até o worker. A redação é contra LOG, não
+// contra transporte, e confundir as duas quebraria a transmissão.
+func (t TenantConfig) String() string { return "TenantConfig{redigido}" }
+
+func (t TenantConfig) LogValue() slog.Value { return slog.StringValue("TenantConfig{redigido}") }
 
 // Result é o retorno cru de uma operação da ACBrLib: o código de retorno e a
 // resposta (JSON ou INI, conforme a config TipoResposta da lib).
@@ -290,6 +303,13 @@ type BoletoOnline struct {
 	CertCRT   []byte // certificado mTLS (.crt): pode ser nil
 	CertKEY   []byte // chave privada mTLS (.key): pode ser nil
 }
+
+// String e LogValue redigem o tipo inteiro. Os três INIs carregam as
+// credenciais de webservice do banco (ClientID, ClientSecret) em texto, e
+// CertKEY é a chave PRIVADA do mTLS: nenhum deles pode aparecer num log.
+func (o BoletoOnline) String() string { return "BoletoOnline{redigido}" }
+
+func (o BoletoOnline) LogValue() slog.Value { return slog.StringValue("BoletoOnline{redigido}") }
 
 // Servicos agrupa os bindings por documento. Campos podem apontar para stubs
 // (lib indisponível) sem afetar os demais.

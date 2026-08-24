@@ -9,6 +9,7 @@ package config
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -85,6 +86,32 @@ type ACBr struct {
 	// diferença entre não persistir nada e persistir o pior.
 	LogNivel string
 	LogPath  string
+}
+
+// String e LogValue existem porque a Config carrega o AuthToken, que é o Bearer
+// aceito pela API: vazado num log, ele permite a qualquer um transmitir
+// documentos com o certificado que enviar.
+//
+// Em vez de redigir o tipo INTEIRO, como fazem os que só carregam segredo, aqui
+// vale a pena emitir o resto: problema de configuração é o que mais se depura,
+// e uma config ilegível empurra quem depura a logar os campos na mão, que é o
+// caminho de volta para o vazamento. Do token sai só se ele existe.
+func (c Config) LogValue() slog.Value {
+	return slog.GroupValue(
+		slog.String("http_addr", c.HTTPAddr),
+		slog.String("modo", c.Modo),
+		slog.Bool("com_token", c.AuthToken != ""),
+		slog.Int("rate_por_min", c.APIRatePerMin),
+		slog.Int64("max_body_bytes", c.MaxBodyBytes),
+		slog.Bool("confia_no_proxy", c.TrustProxyHeaders),
+		slog.Int("workers", len(c.ACBr.Workers)),
+		slog.Int("slots_por_worker", c.ACBr.WorkerSlots),
+		slog.String("log_nivel_acbr", c.ACBr.LogNivel),
+	)
+}
+
+func (c Config) String() string {
+	return fmt.Sprintf("Config{modo:%s com_token:%t workers:%d}", c.Modo, c.AuthToken != "", len(c.ACBr.Workers))
 }
 
 // EmProducao indica implantação de produção (endurece o boot).

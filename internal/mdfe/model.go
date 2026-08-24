@@ -10,6 +10,8 @@
 // sem erro de consumo.
 package mdfe
 
+import "log/slog"
+
 // PedidoEmissao é o MDF-e a ser gerado, no contrato da Nuvem Fiscal / ACBr.API.
 type PedidoEmissao struct {
 	InfMDFe     InfMDFe      `json:"infMDFe"`
@@ -431,6 +433,17 @@ type RespTec struct {
 	CSRT     string `json:"CSRT,omitempty"`
 	HashCSRT string `json:"hashCSRT,omitempty"`
 }
+
+// String e LogValue redigem o tipo inteiro por causa do CSRT: ele é o código de
+// segurança do responsável técnico, um segredo compartilhado com o fisco, e com
+// ele se assina em nome de quem o registrou. Vai no payload, e log é a única
+// forma realista de ele escapar deste processo.
+//
+// A serialização JSON continua carregando tudo: a redação é contra LOG, não
+// contra transporte.
+func (r RespTec) String() string { return "RespTec{redigido}" }
+
+func (r RespTec) LogValue() slog.Value { return slog.StringValue("RespTec{redigido}") }
 
 // InfSolicNFF espelha MdfeSefazInfSolicNFF.
 type InfSolicNFF struct {
