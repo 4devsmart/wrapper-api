@@ -29,7 +29,7 @@ RUN tar -xzf /tmp/schemas.tar.gz -C /artifacts && rm /tmp/schemas.tar.gz \
     && mkdir -p /artifacts/schemas-nfe
 
 # --- build Go ---------------------------------------------------------------
-FROM --platform=linux/amd64 golang:1.25.13-bookworm AS gobuild
+FROM --platform=linux/amd64 golang:1.27.0-bookworm AS gobuild
 WORKDIR /app
 
 # Libs NEEDED pelo .so: o linker precisa delas para resolver as referências

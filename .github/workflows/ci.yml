@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
-          go-version: "1.25.13"
+          go-version: "1.27.0"
           cache: true
       # Gate de formatação: falha se algum .go rastreado não estiver gofmt-limpo.
       - name: gofmt
@@ -45,7 +45,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
-          go-version: "1.25.13"
+          go-version: "1.27.0"
           cache: true
       # As libs NEEDED pelo .so: o linker precisa delas para resolver as
       # referências transitivas.
@@ -69,7 +69,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
-          go-version: "1.25.13"
+          go-version: "1.27.0"
           cache: true
       - run: go install golang.org/x/vuln/cmd/govulncheck@latest
       - run: CGO_ENABLED=0 govulncheck ./...
@@ -83,11 +83,11 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
-          go-version: "1.25.13"
+          go-version: "1.27.0"
           cache: true
       - uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.5.0
+          version: v2.13.1
           # verify baixa o JSON Schema do site do golangci a cada run só para
           # validar o .golangci.yml: dependência de rede externa que já derrubou
           # CI por timeout, sem nada a ver com o código.
