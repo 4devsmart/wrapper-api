@@ -4274,30 +4274,8 @@ components:
         peri:
           type: array
           items:
-            $ref: "#/components/schemas/MdfeInfMDFeTranspPeri"
+            $ref: "#/components/schemas/MdfePeri"
           description: 'Produtos perigosos transportados, conforme a ONU.'
-    MdfeInfMDFeTranspPeri:
-      type: object
-      description: 'Produtos perigosos no MDF-e vinculado.'
-      properties:
-        nONU:
-          type: string
-          description: 'Número ONU do produto perigoso, 4 dígitos.'
-        xNomeAE:
-          type: string
-          description: 'Nome apropriado para embarque do produto perigoso.'
-        xClaRisco:
-          type: string
-          description: 'Classe ou subclasse de risco do produto perigoso.'
-        grEmb:
-          type: string
-          description: 'Grupo de embalagem do produto perigoso.'
-        qTotProd:
-          type: string
-          description: 'Quantidade total do produto.'
-        qVolTipo:
-          type: string
-          description: 'Quantidade e tipo de volumes transportados.'
     MdfeInfModal:
       type: object
       description: 'Grupo do modal. Preencha apenas o modal declarado em ide.modal.'
@@ -4365,30 +4343,8 @@ components:
         peri:
           type: array
           items:
-            $ref: "#/components/schemas/MdfeInfNFePeri"
+            $ref: "#/components/schemas/MdfePeri"
           description: 'Produtos perigosos transportados, conforme a ONU.'
-    MdfeInfNFePeri:
-      type: object
-      description: 'Produtos perigosos na NF-e transportada.'
-      properties:
-        nONU:
-          type: string
-          description: 'Número ONU do produto perigoso, 4 dígitos.'
-        xNomeAE:
-          type: string
-          description: 'Nome apropriado para embarque do produto perigoso.'
-        xClaRisco:
-          type: string
-          description: 'Classe ou subclasse de risco do produto perigoso.'
-        grEmb:
-          type: string
-          description: 'Grupo de embalagem do produto perigoso.'
-        qTotProd:
-          type: string
-          description: 'Quantidade total do produto.'
-        qVolTipo:
-          type: string
-          description: 'Quantidade e tipo de volumes transportados.'
     MdfeInfNFePrestParcial:
       type: object
       description: 'Prestação parcial da NF-e transportada.'
@@ -4539,7 +4495,7 @@ components:
           description: 'Número do lacre.'
     MdfePeri:
       type: object
-      description: 'Produtos perigosos, conforme a resolução da ANTT.'
+      description: 'O produto perigoso transportado, e vale para os três documentos da descarga (NF-e, CT-e e MDF-e). Havia um tipo por documento, com os mesmos campos: acertar um deles e esquecer os outros dois era só questão de tempo.'
       properties:
         nONU:
           type: string
@@ -4581,7 +4537,7 @@ components:
             - $ref: "#/components/schemas/MdfeInfLotacao"
     MdfeProp:
       type: object
-      description: 'Proprietário do veículo, quando não é o emitente.'
+      description: 'O proprietário do veículo, e vale tanto para a tração quanto para o reboque. Havia um tipo por posição, com os mesmos campos.'
       properties:
         CPF:
           type: string
@@ -4774,7 +4730,7 @@ components:
           description: 'Capacidade em metros cúbicos.'
         prop:
           allOf:
-            - $ref: "#/components/schemas/MdfeVeicReboqueProp"
+            - $ref: "#/components/schemas/MdfeProp"
         tpCar:
           type: string
           enum: ["00", "01", "02", "03", "04", "05"]
@@ -4782,32 +4738,6 @@ components:
         UF:
           type: string
           description: 'Sigla da unidade federativa, duas letras.'
-    MdfeVeicReboqueProp:
-      type: object
-      description: 'Proprietário do reboque, quando não é o emitente.'
-      properties:
-        CPF:
-          type: string
-          description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
-        CNPJ:
-          type: string
-          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
-        RNTRC:
-          type: string
-          description: 'Registro Nacional de Transportadores Rodoviários de Carga.'
-        xNome:
-          type: string
-          description: 'Razão social ou nome.'
-        IE:
-          type: string
-          description: 'Inscrição estadual. Use ISENTO quando isento.'
-        UF:
-          type: string
-          description: 'Sigla da unidade federativa, duas letras.'
-        tpProp:
-          type: integer
-          enum: [0, 1, 2]
-          description: 'Tipo de propriedade do veículo. Valores: 0 = TAC agregado; 1 = TAC independente; 2 = Outros.'
     MdfeVeicTracao:
       type: object
       description: 'Veículo de tração.'
