@@ -48,7 +48,7 @@ jobs:
 
       # Prova que a imagem sobe e que a lib nativa carrega de verdade, antes de
       # alguém puxá-la. Uma imagem que publica e não sobe é pior que build falho.
-      - name: fumaça: a lib carrega e o serviço responde
+      - name: "fumaça: a lib carrega e o serviço responde"
         run: |
           set -eu
           docker network create fumaca

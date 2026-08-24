@@ -70,6 +70,10 @@ openapi-check: openapi-valida
 	fi
 	@echo "openapi.yaml em dia com os modelos"
 
+## yaml-valida: confere que todo YAML rastreado parseia (workflows, compose, spec)
+yaml-valida:
+	@python3 scripts/validar-yaml.py
+
 ## vet: go vet (build padrão)
 vet:
 	CGO_ENABLED=0 go vet $(PKGS)
@@ -127,5 +131,5 @@ limpar:
 help:
 	@grep -hE '^## ' $(MAKEFILE_LIST) | sed 's/^## /  /' | sort
 
-.PHONY: build build-cgo run test test-cgo openapi openapi-check openapi-valida enums-conferir vet fmt fmt-check tidy limpar help \
+.PHONY: build build-cgo run test test-cgo openapi openapi-check openapi-valida yaml-valida enums-conferir vet fmt fmt-check tidy limpar help \
 	acbr-libs-baixar acbr-libs-publicar acbr-libs-conferir docker-build up down
