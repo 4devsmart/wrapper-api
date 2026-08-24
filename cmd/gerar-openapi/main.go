@@ -17,6 +17,7 @@ import (
 	"go/parser"
 	"go/token"
 	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
@@ -133,28 +134,34 @@ func carregarTipos(pacotes []string) (map[string]tipoInfo, error) {
 	fset := token.NewFileSet()
 	for _, p := range pacotes {
 		dir := "internal/" + p
-		pkgs, err := parser.ParseDir(fset, dir, semTestes, parser.ParseComments)
+		entradas, err := os.ReadDir(dir)
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", dir, err)
 		}
-		for _, pkg := range pkgs {
-			for _, arq := range pkg.Files {
-				for _, d := range arq.Decls {
-					gd, ok := d.(*ast.GenDecl)
-					if !ok || gd.Tok != token.TYPE {
+		for _, e := range entradas {
+			if e.IsDir() || !ehFonte(e.Name()) {
+				continue
+			}
+			caminho := filepath.Join(dir, e.Name())
+			arq, err := parser.ParseFile(fset, caminho, nil, parser.ParseComments)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", caminho, err)
+			}
+			for _, d := range arq.Decls {
+				gd, ok := d.(*ast.GenDecl)
+				if !ok || gd.Tok != token.TYPE {
+					continue
+				}
+				for _, s := range gd.Specs {
+					ts, ok := s.(*ast.TypeSpec)
+					if !ok {
 						continue
 					}
-					for _, s := range gd.Specs {
-						ts, ok := s.(*ast.TypeSpec)
-						if !ok {
-							continue
-						}
-						doc := semReferenciaInterna(textoDoc(ts.Doc))
-						if doc == "" {
-							doc = semReferenciaInterna(textoDoc(gd.Doc))
-						}
-						out[chave(p, ts.Name.Name)] = tipoInfo{pacote: p, spec: ts, doc: doc}
+					doc := semReferenciaInterna(textoDoc(ts.Doc))
+					if doc == "" {
+						doc = semReferenciaInterna(textoDoc(gd.Doc))
 					}
+					out[chave(p, ts.Name.Name)] = tipoInfo{pacote: p, spec: ts, doc: doc}
 				}
 			}
 		}
@@ -330,7 +337,12 @@ func normalizarPontuacao(doc string) string {
 	return doc
 }
 
-func semTestes(fi os.FileInfo) bool { return !strings.HasSuffix(fi.Name(), "_test.go") }
+// ehFonte aceita o .go que não é teste. Substitui o filtro os.FileInfo que o
+// parser.ParseDir recebia: ele saiu no Go 1.25 porque associava arquivo a
+// pacote sem olhar build tag, e aqui o diretório é lido à mão.
+func ehFonte(nome string) bool {
+	return strings.HasSuffix(nome, ".go") && !strings.HasSuffix(nome, "_test.go")
+}
 
 // opcao é um valor aceito por um campo, com o rótulo do layout fiscal.
 type opcao struct{ Valor, Rotulo string }
