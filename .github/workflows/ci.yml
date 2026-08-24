@@ -33,6 +33,10 @@ jobs:
       # quebra: descrição com ": " sem aspas vira escalar inválido, e o Swagger
       # deixa de renderizar sem erro nenhum no build.
       - run: make openapi-check
+      # YAML quebrado não avisa: o GitHub ignora o arquivo em silêncio. Um
+      # workflow que não parseia nunca roda. Aconteceu com publicar.yml e com
+      # ISSUE_TEMPLATE/config.yml, os dois por escalar sem aspas com ": ".
+      - run: make yaml-valida
 
   cgo:
     name: type-check + link do binding contra as .so reais
