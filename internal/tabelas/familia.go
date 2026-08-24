@@ -52,20 +52,6 @@ func (f Familia) LayoutBase() string {
 // Por ora, só o Padrão Nacional.
 func (f Familia) Suportada() bool { return f == FamiliaPadraoNacional }
 
-// Rotulo devolve um nome curto e neutro da família (para UI/relatórios).
-func (f Familia) Rotulo() string {
-	switch f {
-	case FamiliaPadraoNacional:
-		return "Padrão Nacional"
-	case FamiliaABRASFv1, FamiliaABRASFv2, FamiliaABRASFv1v2:
-		return "ABRASF"
-	case FamiliaProprio, FamiliaProprioABRASF:
-		return "Próprio"
-	default:
-		return "Desconhecido"
-	}
-}
-
 var (
 	famOnce   sync.Once
 	famByProv map[string]Familia // chave: nome do provedor em minúsculas
