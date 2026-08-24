@@ -353,7 +353,9 @@ Leia **[docs/LIMITACOES.md](docs/LIMITACOES.md)**. O essencial:
   `/v1/nfse/municipios/{codigo}` antes de montar;
 - **a validação da geração não é XSD** (o schema exige assinatura); o XSD roda na
   transmissão, ainda antes de o documento sair;
-- **não paralelize a distribuição DF-e do mesmo CNPJ.** O cursor é seu.
+- **não paralelize a distribuição DF-e do mesmo CNPJ.** O cursor é seu;
+- **o envio à SEFAZ não é exercitado em CI**, porque exige um certificado A1
+  real. Transmita em homologação com o seu certificado antes de mudar `MODO`.
 
 ---
 

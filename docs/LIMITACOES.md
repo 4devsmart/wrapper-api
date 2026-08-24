@@ -26,6 +26,26 @@ O que isso implica, e não é negociável:
 - **Sem métricas nem tracing.** Há `/healthz` (o processo está vivo) e `/readyz`
   (o motor fiscal atende). Nada de Prometheus ou OTel.
 
+## O que ainda não foi exercitado contra o fisco
+
+O caminho até a montagem do documento é verificado contra a biblioteca real, em
+container: o XML é montado, a chave é calculada, a validação de regras da
+biblioteca aprova, e o XML volta a ser aceito por ela (o DACTE é gerado a partir
+dele). A imagem publicada é testada a cada build, e as libs nativas são
+compiladas a partir do fonte pinado.
+
+O que **não** foi exercitado é o último passo: o envio de verdade à SEFAZ, que
+exige um certificado A1 válido. Ele não roda em CI e não roda sem certificado
+real de alguém.
+
+Na prática, antes de apontar para produção:
+
+1. transmita em **homologação** com o seu certificado, e confira que volta
+   protocolo e `cstat`;
+2. confira o `verProc` do XML autorizado: é ele que identifica quem gerou o
+   documento, e o default é o nome deste serviço mais o commit;
+3. só então mude `MODO` para `producao`.
+
 ## Transmissão: o que fazer quando a resposta se perde
 
 **Timeout na transmissão não é falha: é desfecho desconhecido.** O documento pode ter
