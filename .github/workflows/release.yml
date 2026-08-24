@@ -44,10 +44,18 @@ jobs:
 
           TAGS="-t ${IMAGEM}:${VERSAO}"
           case "$VERSAO" in
-            *-*) echo "Pré-release ($VERSAO): não move :stable." ;;
-            *)   TAGS="$TAGS -t ${IMAGEM}:stable" ;;
+            *-*) echo "Pré-release ($VERSAO): não move :stable nem a tag maior." ;;
+            *)
+              # A tag maior (:v1) é a que o compose do README usa: ela acompanha
+              # correção e recurso dentro da major, e para de andar na virada,
+              # que é onde há quebra. Sem ela o exemplo do README aponta para
+              # uma tag que não existe.
+              MAIOR="${VERSAO%%.*}"
+              TAGS="$TAGS -t ${IMAGEM}:stable -t ${IMAGEM}:${MAIOR}"
+              ;;
           esac
 
           # imagetools create copia o manifesto (mesmo digest) para as tags novas.
           docker buildx imagetools create $TAGS "$ORIGEM"
           docker buildx imagetools inspect "${IMAGEM}:${VERSAO}"
+          echo "tags publicadas: $(echo "$TAGS" | tr ' ' '\n' | grep -v '^-t$' | tr '\n' ' ')"
