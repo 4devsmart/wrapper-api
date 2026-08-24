@@ -43,6 +43,12 @@ gate para isso, mas ele é a última linha, não a primeira. O log da ACBr em n�
 
 **Fixtures são sintéticas.** Nunca use XML, CNPJ ou certificado reais em teste.
 
+**Tipo que carrega segredo redige a si mesmo**, com `String()` **e**
+`LogValue()`. Os dois: o `fmt` usa o primeiro, e o `slog` usa o segundo. O
+manipulador JSON do `slog`, que é o do serviço, não consulta `Stringer` e
+serializa a struct campo a campo, então só com `String()` a senha sai inteira no
+log. Um teste varre o repositório e recusa o tipo novo sem redação.
+
 ## O que o código já decidiu
 
 Antes de propor uma mudança estrutural, saiba o que está fechado e por quê:

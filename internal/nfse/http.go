@@ -3,6 +3,7 @@ package nfse
 import (
 	"encoding/base64"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -132,6 +133,11 @@ type Credenciais struct {
 // String redige o conteúdo: senha e token de prefeitura são segredo tanto
 // quanto o certificado.
 func (c Credenciais) String() string { return "Credenciais{redigido}" }
+
+// LogValue é obrigatório junto com String: o serviço loga em JSON, e o
+// manipulador JSON do slog NÃO usa Stringer, ele serializa a struct campo a
+// campo. Só com String() a senha e o token saíam inteiros no log. Verificado.
+func (c Credenciais) LogValue() slog.Value { return slog.StringValue("Credenciais{redigido}") }
 
 // PedidoTransmissao é o corpo da transmissão.
 type PedidoTransmissao struct {

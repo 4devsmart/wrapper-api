@@ -1,6 +1,9 @@
 package config
 
 import (
+	"bytes"
+	"fmt"
+	"log/slog"
 	"strings"
 	"testing"
 )
@@ -135,5 +138,44 @@ func TestTrustProxyHeadersNaoConfiaPorPadrao(t *testing.T) {
 	t.Setenv("TRUST_PROXY_HEADERS", "true")
 	if cfg, _ := Load(); !cfg.TrustProxyHeaders {
 		t.Error("quem tem proxy de verdade precisa conseguir ligar")
+	}
+}
+
+// A Config carrega o Bearer aceito pela API: vazado num log, ele permite a
+// qualquer um transmitir documentos com o certificado que enviar. E como
+// problema de configuração é o que mais se depura, ela é candidata natural a
+// ser logada inteira.
+func TestConfig_NaoVazaOToken(t *testing.T) {
+	const segredo = "token-super-secreto-do-bearer"
+	t.Setenv("API_TOKEN", segredo)
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, f := range []string{"%v", "%+v", "%s"} {
+		if strings.Contains(fmt.Sprintf(f, cfg), segredo) {
+			t.Errorf("fmt %s vazou o token", f)
+		}
+	}
+
+	var buf bytes.Buffer
+	log := slog.New(slog.NewJSONHandler(&buf, nil))
+	log.Info("subindo", "cfg", cfg)
+	log.Info("subindo", slog.Any("cfg", cfg))
+	if strings.Contains(buf.String(), segredo) {
+		t.Errorf("o slog vazou o token:\n%s", buf.String())
+	}
+
+	// Redigir não pode significar ficar sem informação: config ilegível empurra
+	// quem depura a logar os campos na mão, que é o caminho de volta ao
+	// vazamento. O que interessa é se HÁ token, não qual é.
+	for _, quero := range []string{"com_token", "modo", "workers"} {
+		if !strings.Contains(buf.String(), quero) {
+			t.Errorf("o log da config perdeu %q e virou inútil:\n%s", quero, buf.String())
+		}
+	}
+	if !strings.Contains(buf.String(), `"com_token":true`) {
+		t.Errorf("o log precisa dizer que existe token:\n%s", buf.String())
 	}
 }
