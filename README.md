@@ -172,6 +172,48 @@ binário, com todos os campos de todos os documentos.
 Para embutir na stack de outro projeto, veja [Como ele roda](#como-ele-roda).
 A imagem é pública: não há `docker login`.
 
+### Sem clonar nada, só com `docker run`
+
+O jeito mais curto de ver o serviço de pé. Não precisa do repositório nem do
+`make acbr-libs-baixar`: as libs nativas já estão dentro da imagem.
+
+São **dois containers**, e não um: a biblioteca fiscal é nativa e pode receber
+SIGSEGV, então ela roda isolada no worker. Quando ela morre, leva só a
+requisição que atendia. O worker não publica porta, quem escuta é a API.
+
+```bash
+docker network create wrapper
+docker volume create wrapper-run
+
+docker run -d --name wrapper-worker --network wrapper \
+  -v wrapper-run:/run/wrapper \
+  ghcr.io/4devsmart/wrapper-api/api:latest worker
+
+docker run -d --name wrapper-api --network wrapper -p 8080:8080 \
+  -e API_TOKEN=troque-este-token \
+  -e ACBR_WORKERS=/run/wrapper/fiscal.sock \
+  -v wrapper-run:/run/wrapper \
+  ghcr.io/4devsmart/wrapper-api/api:latest
+
+curl localhost:8080/readyz     # espere o {"status":"ok"}
+```
+
+O `/run/wrapper` é um volume **nomeado** nos dois containers, e é por ele que o
+socket RPC aparece para a API. Não troque por um diretório do host: ele nasce do
+root, a imagem roda como usuário sem privilégio, e o worker fica sem permissão
+para criar o socket. A API sobe, responde `/healthz`, e devolve 503 no
+`/readyz` para sempre.
+
+Espere pelo **`/readyz`**, não pelo `/healthz`: o segundo responde assim que a
+porta abre e não diz nada sobre a biblioteca ter carregado.
+
+Para desfazer:
+
+```bash
+docker rm -f wrapper-api wrapper-worker
+docker network rm wrapper && docker volume rm wrapper-run
+```
+
 Configuração é **só por variável de ambiente**, e o `.env.example` lista todas:
 um teste recusa a lista incompleta, dos dois lados. Na prática você define
 `API_TOKEN` e `MODO`; o resto tem default de imagem.
