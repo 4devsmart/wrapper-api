@@ -143,7 +143,7 @@ func ToINI(p DPSPedido) string {
 	}
 
 	if t := v.TribFed; t != nil {
-		b.Secao("tribFed")
+		b.Secao("tribFederal")
 		b.KVOpt("CST", t.CST)
 		b.KVOpt("vBCPisCofins", inifmt.MoneyOpt(t.VBCPisCofins))
 		b.KVOpt("pAliqPis", inifmt.MoneyOpt(t.PAliqPis))

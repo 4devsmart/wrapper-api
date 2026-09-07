@@ -83,7 +83,10 @@ func TestToINI_ReformaETributacaoCompleta(t *testing.T) {
 	for _, frag := range []string{
 		"DescontoIncondicionado=10,00", "ValorDeducoes=20,00",
 		"[tribMun]", "tpRetISSQN=1", "pAliq=3,50",
-		"[tribFed]", "CST=01", "vPis=6,50",
+		// A SEÇÃO do INI é [tribFederal]; a TAG do XML é <tribFed>. Este teste
+		// cobrava "[tribFed]" e por isso carimbava o bug: a lib não lia a
+		// seção, e as retenções federais sumiam antes do XML.
+		"[tribFederal]", "CST=01", "vPis=6,50",
 		"[totTrib]", "indTotTrib=1", "vTotTribFed=36,50",
 		// IBS/CBS: finNFSe/indDest com default neutro (a lib estoura no vazio).
 		"[IBSCBSDPS]", "finNFSe=0", "indDest=0",
