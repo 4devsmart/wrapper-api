@@ -14,6 +14,11 @@ ACBR_REV ?= 48100
 # ACBr era pinado com cuidado: um build de 2026-08 pegou um FortesReport de
 # 2026-08-06 onde o anterior tinha usado o de 2025-09-22, quase um ano antes.
 ACBR_FRCE_REF ?= 9c29ee7152a6293d3920ff44a2bf3cd384d7b081
+# Release que CARREGA os binários da ACBrLib. É uma tag v*, não um release
+# próprio: a aba de Releases passa a ter só versões deste serviço. O arquivo
+# revisao.txt vai junto dos .so e precisa bater com ACBR_REV, senão o download
+# recusa: sem o nome da revisão na tag, nada mais amarraria as duas coisas.
+ACBR_LIBS_RELEASE ?= v1.1.0
 OUT     := out
 PKGS    := ./...
 ACBRLIBS ?= ./acbr-libs
@@ -164,11 +169,13 @@ acbr-chaves-conferir:
 
 ## acbr-libs-baixar: baixa as libs nativas dos anexos de release (cache local)
 acbr-libs-baixar:
-	@ACBR_REV=$(ACBR_REV) ACBR_LIBS_DIR=$(ACBRLIBS) ./scripts/baixar-acbr-libs.sh
+	@ACBR_REV=$(ACBR_REV) ACBR_LIBS_DIR=$(ACBRLIBS) \
+	  ACBR_LIBS_RELEASE=$(ACBR_LIBS_RELEASE) ./scripts/baixar-acbr-libs.sh
 
 ## acbr-libs-publicar: publica o cache local como release (uma vez por revisão)
 acbr-libs-publicar:
-	@ACBR_REV=$(ACBR_REV) ACBR_LIBS_DIR=$(ACBRLIBS) ./scripts/publicar-acbr-libs.sh
+	@ACBR_REV=$(ACBR_REV) ACBR_LIBS_DIR=$(ACBRLIBS) \
+	  ACBR_LIBS_RELEASE=$(ACBR_LIBS_RELEASE) ./scripts/publicar-acbr-libs.sh
 
 ## acbr-libs-conferir: valida o cache local antes do build
 acbr-libs-conferir:
