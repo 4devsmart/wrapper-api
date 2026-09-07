@@ -17,7 +17,7 @@ ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 
 # Revisão dos fontes (apenas informativo aqui; o checkout real é feito por
 # `make acbr-fonte`, que popula ./acbr-source, o contexto deste build).
-ARG ACBR_REV=47859
+ARG ACBR_REV=48100
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates make \

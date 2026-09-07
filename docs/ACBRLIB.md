@@ -106,22 +106,34 @@ São sete arquivos: os cinco `.so`, o `schemas.tar.gz` e o `SHA256SUMS`.
 ### Publicando uma revisão nova
 
 1. `make acbr-fonte && make acbr-compilar && make acbr-extrair`, com `ACBR_REV`
-   e `ACBR_FRCE_REF` já apontando para o que você quer. Os seis arquivos ficam
-   em `acbr-libs/`.
+   e `ACBR_FRCE_REF` já apontando para o que você quer. Os sete arquivos ficam
+   em `acbr-libs/`. O `acbr-fonte` **confere** a revisão diretório a diretório e
+   falha se o working copy ficou misturado; o `acbr-extrair` puxa da tag
+   `:r<REV>`, não da `:dev`, e regera o `SHA256SUMS` do que acabou de extrair.
 2. `make acbr-libs-publicar`. Ele gera o `SHA256SUMS` a partir do que está no
    diretório, cria a tag `acbrlib-r<REV>` e o release, e sobe os sete arquivos.
    Rodar de novo na mesma tag **atualiza** os anexos em vez de falhar.
 3. Suba o `ACBR_REV` no `Makefile`.
-4. Regenere o snapshot de chaves do lockstep
-   (`internal/{cte,mdfe,nfse}/testdata/lerini_chaves.tsv`). **Não há script
-   aqui**: ele sai dos procedimentos de leitura de INI do fonte, que não vem no
-   clone, então é trabalho manual a partir da árvore que você acabou de
+4. `make acbr-tabelas`, que regenera `internal/tabelas/municipios_provedor.tsv`
+   a partir do `ACBrNFSeXServicos.ini` do fonte. Município que muda de provedor
+   lá e não muda aqui vira roteamento errado, silencioso. O script **recusa**
+   emitir se algum provedor não tiver família em `provedor_familia.tsv`, que é
+   a tabela mantida à mão: classifique o provedor novo pela classe ancestral
+   dele (o próprio script imprime a herança) e rode de novo.
+5. Decida se o snapshot de chaves do lockstep
+   (`internal/{cte,mdfe,nfse}/testdata/lerini_chaves.tsv`) precisa ser refeito.
+   **Confira antes de trabalhar**: se
+   `svn diff -r <velha>:<nova>` nos três leitores de INI
+   (`ACBrCTe.IniReader.pas`, `ACBrMDFe.IniReader.pas`, `ACBrNFSeX.LerIni.pas`)
+   der zero linha, não precisa. De r47859 para r48100 foi exatamente esse o
+   caso. Quando precisar, **não há script aqui**: o snapshot sai daqueles
+   procedimentos, e é trabalho manual a partir da árvore que você acabou de
    compilar. É o que denuncia chave que a lib passou a aceitar e nós não
    enviamos, ou que enviamos e ela ignora em silêncio.
-5. Rode `make enums-conferir`, que compara os valores publicados com os XSD do
+6. Rode `make enums-conferir`, que compara os valores publicados com os XSD do
    pacote de schemas. É por ali que uma nota técnica que mexe em código
    aparece.
-6. Commite. Quem clonar depois disso baixa a revisão nova.
+7. Commite. Quem clonar depois disso baixa a revisão nova.
 
 O `SHA256SUMS` é gerado na publicação e conferido no download **antes** de os
 arquivos entrarem em `acbr-libs/`: download truncado que chega ao diretório vira
