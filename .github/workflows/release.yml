@@ -89,6 +89,26 @@ jobs:
           LIBS_REL="$(sed -n 's/^ACBR_LIBS_RELEASE[[:space:]]*?*=[[:space:]]*//p' Makefile | head -1)"
           ACBR_R="$(sed -n 's/^ACBR_REV[[:space:]]*?*=[[:space:]]*//p' Makefile | head -1)"
 
+          # Conferir antes de afirmar. A linha abaixo diz ao leitor onde estão os
+          # .so, e o ci.yml e o publicar.yml só descobririam um release vazio no
+          # próximo push, depois da página já publicada com a promessa errada.
+          if [ -n "$LIBS_REL" ] && [ "$LIBS_REL" != "$VERSAO" ]; then
+            FALTA=""
+            TEM="$(gh release view "$LIBS_REL" --repo "$GITHUB_REPOSITORY" \
+                     --json assets --jq '.assets[].name' 2>/dev/null || true)"
+            for a in libacbrnfse64.so libacbrcte64.so libacbrmdfe64.so \
+                     libacbrnfe64.so libacbrboleto64.so schemas.tar.gz \
+                     SHA256SUMS revisao.txt; do
+              printf '%s\n' "$TEM" | grep -qxF "$a" || FALTA="$FALTA $a"
+            done
+            if [ -n "$FALTA" ]; then
+              echo "::error::ACBR_LIBS_RELEASE aponta para $LIBS_REL, que não tem:$FALTA"
+              echo "::error::Publique com 'make acbr-libs-publicar' ou corrija ACBR_LIBS_RELEASE."
+              exit 1
+            fi
+            echo "anexos da ACBrLib conferidos em $LIBS_REL"
+          fi
+
           {
             printf 'Imagem: `%s:%s`' "$IMAGEM" "$VERSAO"
             case "$VERSAO" in
