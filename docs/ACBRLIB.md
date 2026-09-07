@@ -113,6 +113,13 @@ São sete arquivos: os cinco `.so`, o `schemas.tar.gz` e o `SHA256SUMS`.
 2. `make acbr-libs-publicar`. Ele gera o `SHA256SUMS` a partir do que está no
    diretório, cria a tag `acbrlib-r<REV>` e o release, e sobe os sete arquivos.
    Rodar de novo na mesma tag **atualiza** os anexos em vez de falhar.
+
+   O release sai como **pré-lançamento e não-latest**. Ele é um pacote de
+   binários de terceiro, não uma versão deste serviço: versão daqui é tag `v*`,
+   em versionamento semântico. Sem isso o GitHub dá o selo "Latest" ao release
+   mais recente, e a aba de Releases passa a anunciar `ACBrLib r<REV>` no lugar
+   da `v1.0.0`. O script confere o selo no fim e falha se ele estiver numa tag
+   que não seja `v*`.
 3. Suba o `ACBR_REV` no `Makefile`.
 4. `make acbr-tabelas`, que regenera `internal/tabelas/municipios_provedor.tsv`
    a partir do `ACBrNFSeXServicos.ini` do fonte. Município que muda de provedor

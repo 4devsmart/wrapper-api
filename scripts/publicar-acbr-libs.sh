@@ -51,8 +51,16 @@ if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
   echo "release $TAG já existe: subindo/atualizando anexos"
   gh release upload "$TAG" --repo "$REPO" --clobber \
     "${ARQUIVOS[@]/#/$ORIGEM/}" "$ORIGEM/SHA256SUMS"
+  # Idempotente, e corrige release antigo criado antes destas flags.
+  gh release edit "$TAG" --repo "$REPO" --prerelease --latest=false >/dev/null
 else
-  gh release create "$TAG" --repo "$REPO" \
+  # --prerelease e --latest=false: este release é um pacote de binários de
+  # terceiro, não uma versão deste serviço. Sem as duas flags o GitHub marca o
+  # mais recente como "Latest", e a aba de Releases passa a anunciar
+  # "ACBrLib r48100" no lugar da v1.0.0 para quem abre o repositório. Aconteceu
+  # em 2026-08 e de novo em 2026-09; das duas vezes foi corrigido à mão.
+  # Versão deste serviço é tag v*, em versionamento semântico.
+  gh release create "$TAG" --repo "$REPO" --prerelease --latest=false \
     --title "ACBrLib r${REV}" \
     --notes "Binários da ACBrLib (variante MT, linux/amd64) compilados do SVN oficial trunk2, revisão ${REV}.
 
@@ -62,3 +70,22 @@ Este release existe para que os ~56 MB de binário fiquem FORA do clone." \
     "${ARQUIVOS[@]/#/$ORIGEM/}" "$ORIGEM/SHA256SUMS"
 fi
 echo "publicado: https://github.com/${REPO}/releases/tag/${TAG}"
+
+# Confere o resultado em vez de confiar nas flags. A pergunta que importa para
+# quem abre o repositório é qual release leva o selo "Latest": tem de ser uma
+# tag v*, nunca um pacote da ACBrLib.
+ultimo=$(gh release list --repo "$REPO" --limit 30 \
+  --json tagName,isLatest --jq '.[] | select(.isLatest) | .tagName' 2>/dev/null || true)
+case "$ultimo" in
+  v*)
+    echo "latest do repositório: $ultimo"
+    ;;
+  "")
+    echo "AVISO: nenhum release marcado como latest" >&2
+    ;;
+  *)
+    echo "ERRO: o latest do repositório é '$ultimo', e deveria ser uma tag v*." >&2
+    echo "      Conserte com: gh release edit $ultimo --repo $REPO --prerelease --latest=false" >&2
+    exit 1
+    ;;
+esac
