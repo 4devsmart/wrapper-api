@@ -148,6 +148,19 @@ acbr-tabelas:
 	@test -d $(ACBR_SRC)/acbr || { \
 	  echo "falta o fonte em $(ACBR_SRC): rode 'make acbr-fonte'"; exit 1; }
 	@python3 scripts/gerar-tabelas-nfse.py
+## acbr-chaves: regenera os snapshots de chaves de INI que a lib aceita
+# Gerado do fonte Pascal pinado. O TSV era editado à mão e tinha três erros:
+# chave de fallback ausente (segundo argumento de ReadString aninhado), capM3
+# gravado como capM porque o dígito final era tratado como índice, e onze chaves
+# de [prop] gravadas em [veic].
+acbr-chaves:
+	@test -d $(ACBR_SRC)/acbr || { \
+	  echo "falta o fonte em $(ACBR_SRC): rode 'make acbr-fonte'"; exit 1; }
+	@python3 scripts/gerar-chaves-lerini.py
+
+## acbr-chaves-conferir: falha se os snapshots divergirem do fonte pinado
+acbr-chaves-conferir:
+	@python3 scripts/gerar-chaves-lerini.py --conferir
 
 ## acbr-libs-baixar: baixa as libs nativas dos anexos de release (cache local)
 acbr-libs-baixar:

@@ -34,3 +34,6 @@
 
 # Cache do fonte do ACBr (~640 MB), populado por "make acbr-fonte".
 /acbr-source/
+
+# Cache do Python (scripts/)
+__pycache__/

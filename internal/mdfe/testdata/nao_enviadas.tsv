@@ -12,16 +12,7 @@
 # Formato: <secao>/<chave>  (minúsculas; seções e chaves indexadas pelo prefixo)
 aquav/cnpjagenav
 emit/cnpj
-evento/cmun
-evento/cmuncarrega
-evento/cpf
-evento/cuf
-evento/dtenc
 evento/indencporterceiro
-evento/nprot
-evento/xjust
-evento/xmuncarrega
-evento/xnome
 infembcomb/cembcomb
 infembcomb/xbalsa
 inftermcarreg/ctermcarreg
