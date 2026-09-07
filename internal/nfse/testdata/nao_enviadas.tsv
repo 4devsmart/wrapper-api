@@ -137,3 +137,29 @@ Valores/ValorRepasse
 Valores/ValorTotalNotaFiscal
 Valores/ValorTotalRecebido
 Valores/ValorTotalTributos
+
+# Apareceram em 2026-09-07, quando o snapshot passou a ser GERADO do fonte
+# Pascal em vez de mantido à mão. Não são regressão: a extração manual não tinha
+# estas chaves, então nunca foram comparadas. Ver scripts/gerar-chaves-lerini.py.
+tribFederal/vBCCSLL	base de cálculo da CSLL: mandamos vRetCSLL, a base não está no contrato
+tribFederal/vBCPCP	idem, base da contribuição previdenciária (vRetCP)
+tribFederal/vBCPIRRF	idem, base do IRRF (vRetIRRF)
+tribMun/cPaisResult	país de resultado do serviço (exportação), sem demanda até agora
+IBSCBSDPS/ConsumoPessoal	IBS/CBS: consumo pessoal, fora do contrato
+IBSCBSDPS/IdLocalIncidencia	IBS/CBS: local de incidência, derivado do município
+IBSCBSDPS/IndOpeOne	IBS/CBS: operação com alíquota única, sem demanda
+IBSCBSDPS/OperExterior	IBS/CBS: operação com o exterior, fora do escopo
+IBSCBSDPS/OperUF	idem, UF da operação com o exterior
+IBSCBSDPS/OperxCidade	idem, cidade
+Destinatario/InscricaoEstadual	destinatário do IBS/CBS: IE não está no contrato
+Destinatario/TipoServico	idem, tipo de serviço do destinatário
+Destinatario/cNaoNIF	destinatário no exterior: fora do escopo atual
+Destinatario/xPais	idem
+Documentos/NIF	documento de reembolso com parte no exterior: fora do escopo
+Documentos/cNaoNIF	idem
+Documentos/xNome	nome no documento de reembolso, sem demanda
+Imovel/CodigoMunicipio	imóvel: o município vem do serviço, não se repete aqui
+Imovel/cEndPost	imóvel: código de endereçamento postal do provedor
+Imovel/cPais	imóvel no exterior: fora do escopo
+Imovel/xCidade	idem
+Imovel/xEstProvReg	idem

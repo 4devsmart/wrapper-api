@@ -210,6 +210,46 @@ type Caso struct {
 }
 
 // Conferir roda todas as passadas e cobra cada folha do modelo.
+// SecoesEChaves roda o construtor sobre o modelo cheio, em TODAS as passadas, e
+// devolve as seções e chaves que o INI de fato recebeu.
+//
+// Existe para tirar do lockstep a única ponta que ainda era palpite. Antes, o
+// conjunto "o que escrevemos" era raspado do FONTE do builder por expressão
+// regular, e a raspagem errava calada: não casava seção montada por
+// concatenação ("Documentos" + Seq4(i)), não voltava ao normal na fronteira de
+// função, e não enxergava chave escrita por helper. Aqui não há leitura de
+// fonte: roda-se o builder e lê-se o que saiu, que é o mesmo texto que a
+// biblioteca vai receber.
+//
+// As seções voltam VERBATIM, com índice e tudo (det001, Itens002). Cada
+// documento normaliza do seu jeito, porque as regras diferem: no CT-e o dígito
+// final às vezes é nome de layout (ICMS60, toma4) e no NFS-e é sempre índice.
+func SecoesEChaves(c Caso) map[string]map[string]bool {
+	out := map[string]map[string]bool{}
+	for passo := range Passos(c.Grupos) {
+		alvo := c.Novo()
+		Preencher(alvo, passo, c.Grupos)
+		secao := ""
+		for _, linha := range strings.Split(c.Gerar(alvo), "\n") {
+			l := strings.TrimSpace(linha)
+			switch {
+			case l == "" || strings.HasPrefix(l, ";"):
+				continue
+			case strings.HasPrefix(l, "[") && strings.HasSuffix(l, "]"):
+				secao = l[1 : len(l)-1]
+				if out[secao] == nil {
+					out[secao] = map[string]bool{}
+				}
+			case secao != "":
+				if i := strings.IndexByte(l, '='); i > 0 {
+					out[secao][l[:i]] = true
+				}
+			}
+		}
+	}
+	return out
+}
+
 func Conferir(t Reportador, c Caso) {
 	t.Helper()
 	excecoes := carregarTSV(t, c.Permitidas)

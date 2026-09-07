@@ -1,12 +1,12 @@
 package nfse
 
 import (
-	"bufio"
-	"os"
-	"regexp"
 	"sort"
 	"strings"
 	"testing"
+
+	"github.com/4devsmart/wrapper-api/internal/platform/espelho"
+	"github.com/4devsmart/wrapper-api/internal/platform/lockstep"
 )
 
 // Este arquivo é a rede contra a classe de bug que já apareceu três vezes
@@ -14,11 +14,19 @@ import (
 // lib aceita, ou que um builder envia, e o outro caminho descarta em silêncio.
 // O cliente manda, a API aceita, e o dado some antes do XML.
 //
-// São duas comparações:
+// São três comparações:
 //
-//  1. chaves que a LIB aceita × chaves que ENVIAMOS (snapshot em testdata,
-//     refeito a cada bump do .so, a partir do fonte do ACBr);
-//  2. campos do contrato consumidos por UM builder e ignorados pelo OUTRO.
+//  1. chaves que a LIB aceita e que NÃO enviamos (lacuna de cobertura);
+//  2. chaves que ENVIAMOS e a LIB não lê (chave morta: pior que a primeira,
+//     porque parece que funciona). Esta faltava aqui, e foi por isso que o
+//     grupo [tribFed] passou meses sendo descartado: a biblioteca lê
+//     [tribFederal], e nada comparava essa direção no NFS-e;
+//  3. campos do contrato consumidos por UM builder e ignorados pelo OUTRO.
+//
+// As duas pontas são mecânicas, e nenhuma lê fonte com expressão regular: o que
+// escrevemos sai do INI que o construtor gerou (espelho.SecoesEChaves), e o que
+// a biblioteca lê sai do fonte Pascal (scripts/gerar-chaves-lerini.py).
+// Ver internal/platform/lockstep.
 //
 // Falhar aqui não significa "corrija o código", significa "decida": passar a
 // enviar o campo, ou declará-lo nas listas abaixo com o motivo.
@@ -67,25 +75,73 @@ var gruposNaoSuportados = map[string]string{
 	"ValoresNFSe":                "valores de RESPOSTA",
 	"Emitente":                   "config de emitente vai por ConfigGravarValor",
 	"DeclaracaoPrestacaoServico": "agregador do layout, sem chaves nossas",
+
+	// Apareceram quando o snapshot passou a ser GERADO do fonte: antes a
+	// direção 1 só olhava seis seções, então estas nunca foram comparadas.
+	// Todas são layout de provedor específico, fora do contrato.
+	"CondicaoPagamento":        "parcelamento por provedor, fora do contrato",
+	"Parcelas":                 "idem, as parcelas em si",
+	"Deducoes":                 "dedução por documento referenciado, sem demanda",
+	"DocumentosDeducaoReducao": "idem, os documentos da dedução",
+	"Despesas":                 "despesas reembolsáveis, sem demanda",
+	"Quartos":                  "hotelaria (diárias por quarto), sem demanda",
+	"Genericos":                "campos livres de provedor, sem contrato possível",
+	"Fornecedor":               "fornecedor do item, layout de provedor",
+	"Transportadora":           "transportadora, layout de provedor",
+	"Impostos":                 "quebra de imposto por item, layout de provedor",
+	"OrgaoGerador":             "órgão gerador, preenchido pelo provedor",
+	"EnderecoServico":          "endereço do local da prestação por ITEM",
+	"Email":                    "lista de e-mails do provedor",
+	"Itens":                    "detalhe por item do RPS: o contrato tem um serviço só",
+	"IBSCBSNFSE":               "grupo IBS/CBS de RESPOSTA",
+	"IBSCBSValoresNFSE":        "idem, os valores",
+	"TotCIBS":                  "totais IBS/CBS de RESPOSTA",
+	"TotgCBS":                  "idem",
+	"TotgIBS":                  "idem",
+	"gRefNFSe":                 "referência a NFS-e anterior, sem demanda",
+	"gTribCompraGov":           "compra governamental, sem demanda",
+	"gTribRegularNFSe":         "tributação regular de RESPOSTA",
 }
 
-// secoesQueEnviamos são as seções que nossos builders realmente escrevem.
-var secoesQueEnviamos = []string{"IdentificacaoRps", "Prestador", "Tomador", "Intermediario", "Servico", "Valores"}
+// escritas é o que os DOIS construtores de fato escrevem, lido do INI que eles
+// geraram. Não há leitura de fonte Go aqui: era ela que não via seção montada
+// por concatenação e atribuía chave à seção errada.
+func escritas(t *testing.T) lockstep.Escritas {
+	t.Helper()
+	caso := func(g func(DPSPedido) string) espelho.Caso {
+		return espelho.Caso{
+			Novo:   func() any { return &DPSPedido{} },
+			Gerar:  func(a any) string { return g(*a.(*DPSPedido)) },
+			Grupos: gruposNFSe,
+		}
+	}
+	return lockstep.Uniao(
+		espelho.SecoesEChaves(caso(ToINI)),
+		espelho.SecoesEChaves(caso(ToINIAbrasf)),
+	)
+}
+
+func snapshot(t *testing.T) *lockstep.Snapshot {
+	t.Helper()
+	s, err := lockstep.Carregar("testdata/lerini_chaves.tsv")
+	if err != nil {
+		t.Fatalf("%v (rode 'make acbr-chaves')", err)
+	}
+	return s
+}
 
 func TestLockstep_ChavesDaLibQueNaoEnviamos(t *testing.T) {
-	lib := carregarSnapshot(t)
-	nossas := chavesDosBuilders(t)
-
+	snap, nossas := snapshot(t), escritas(t)
 	baseline := carregarBaseline(t)
+
 	var novas []string
-	for _, secao := range secoesQueEnviamos {
-		for chave := range lib[secao] {
-			id := secao + "/" + chave
-			if nossas[secao][chave] || naoEnviadas[id] != "" || baseline[id] {
-				continue
-			}
-			novas = append(novas, id)
+	for _, e := range snap.Entradas() {
+		id := e.ID()
+		if nossas.Enviamos(e) || naoEnviadas[id] != "" || baseline[e.IDLower()] ||
+			gruposNaoSuportados[e.Secao] != "" {
+			continue
 		}
+		novas = append(novas, id)
 	}
 	sort.Strings(novas)
 	if len(novas) > 0 {
@@ -96,6 +152,51 @@ Não são todas as lacunas: só as que apareceram depois do último baseline
 acrescentar a testdata/nao_enviadas.tsv, com o motivo.
 
 %s`, len(novas), "  "+strings.Join(novas, "\n  "))
+	}
+}
+
+// chavesMortas são chaves que NÓS escrevemos e o leitor de INI da lib não lê.
+// Cada uma é uma decisão registrada, não um bug tolerado.
+var chavesMortas = map[string]string{
+	// O leitor lê CNPJCPF para os dois, e só o PRESTADOR tem o CNPJ como
+	// segunda opção (ReadString(s,'CNPJCPF', ReadString(s,'CNPJ',''))). No
+	// tomador e no intermediário o CNPJ sozinho é ignorado. Continuamos
+	// escrevendo os dois porque o valor viaja no CNPJCPF, que é lido, e alguns
+	// provedores esperam o par.
+	"Tomador/CNPJ":       "a lib só lê CNPJCPF no tomador; o valor vai por lá",
+	"Intermediario/CNPJ": "idem no intermediário",
+}
+
+func TestLockstep_NFSe_ChavesQueEnviamosEALibIgnora(t *testing.T) {
+	snap, nossas := snapshot(t), escritas(t)
+
+	var mortas, ressuscitadas []string
+	for _, id := range nossas.Mortas(snap) {
+		if chavesMortas[id] == "" {
+			mortas = append(mortas, id)
+		}
+	}
+	for id := range chavesMortas {
+		sc := strings.SplitN(id, "/", 2)
+		if len(sc) == 2 && snap.Aceita(sc[0], sc[1]) {
+			ressuscitadas = append(ressuscitadas, id)
+		}
+	}
+	if len(mortas) > 0 {
+		sort.Strings(mortas)
+		t.Errorf(`%d chave(s) que ESCREVEMOS e a lib não lê: o dado é aceito e
+descartado em silêncio, e a emissão parece ter funcionado.
+
+Foi assim que o grupo inteiro de retenções federais sumiu: escrevíamos a seção
+[tribFed] e a lib lê [tribFederal]. Corrija o builder (nome ou seção errados?)
+ou declare em chavesMortas com o motivo:
+
+%s`, len(mortas), "  "+strings.Join(mortas, "\n  "))
+	}
+	if len(ressuscitadas) > 0 {
+		sort.Strings(ressuscitadas)
+		t.Errorf("estas estão em chavesMortas mas a lib passou a lê-las: "+
+			"remova-as da lista para travar o ganho:\n  %s", strings.Join(ressuscitadas, "\n  "))
 	}
 }
 
@@ -123,21 +224,22 @@ func TestLockstep_UmBuilderEnviaEOOutroNao(t *testing.T) {
 
 		"Prestador/DataOptanteSimplesNacional": "ABRASF: não existe no PN",
 		"Prestador/RegimeEspTrib":              "ABRASF: no PN é regTrib.regEspTrib",
+		"Prestador/Regime":                     "PN: o regime especial, que no ABRASF é RegimeEspTrib",
+		"Prestador/opSimpNac":                  "PN: optante do Simples, que no ABRASF é OptanteSN",
 		"IdentificacaoRps/verAplic":            "PN: versão do aplicativo emissor",
 		"Servico/xMunicipioIncidencia":         "descritivo; o ABRASF recebe só o código",
 	}
 
-	pn := chavesDoArquivo(t, "ini.go")
-	abrasf := chavesDoArquivo(t, "ini_abrasf.go")
-	// pessoaCommon vive no ini.go e serve aos dois builders.
-	for _, s := range []string{"Prestador", "Tomador", "Intermediario"} {
-		if abrasf[s] == nil {
-			continue
-		}
-		for k := range pn[s] {
-			abrasf[s][k] = true
-		}
-	}
+	pn := espelho.SecoesEChaves(espelho.Caso{
+		Novo:   func() any { return &DPSPedido{} },
+		Gerar:  func(a any) string { return ToINI(*a.(*DPSPedido)) },
+		Grupos: gruposNFSe,
+	})
+	abrasf := espelho.SecoesEChaves(espelho.Caso{
+		Novo:   func() any { return &DPSPedido{} },
+		Gerar:  func(a any) string { return ToINIAbrasf(*a.(*DPSPedido)) },
+		Grupos: gruposNFSe,
+	})
 
 	var divergentes []string
 	for secao := range pn {
@@ -170,156 +272,11 @@ emitir nos dois, ou registrar em exclusivos com o motivo.
 
 // --- helpers ---------------------------------------------------------------
 
-// carregarBaseline lê as lacunas JÁ CONHECIDAS. O teste não cobra o passado:
-// cobra o que aparecer depois, que é onde mora o campo silenciosamente
-// descartado. Regenerar exige revisão humana: cada linha nova é uma decisão.
 func carregarBaseline(t *testing.T) map[string]bool {
 	t.Helper()
-	b, err := os.ReadFile("testdata/nao_enviadas.tsv")
-	if err != nil {
-		t.Fatalf("baseline ausente: %v", err)
-	}
-	out := map[string]bool{}
-	for _, l := range strings.Split(string(b), "\n") {
-		l = strings.TrimSpace(l)
-		if l == "" || strings.HasPrefix(l, "#") {
-			continue
-		}
-		out[strings.SplitN(l, "\t", 2)[0]] = true
-	}
-	return out
-}
-
-func carregarSnapshot(t *testing.T) map[string]map[string]bool {
-	t.Helper()
-	f, err := os.Open("testdata/lerini_chaves.tsv")
-	if err != nil {
-		t.Fatalf("snapshot ausente: %v", err)
-	}
-	defer func() { _ = f.Close() }()
-
-	out := map[string]map[string]bool{}
-	sc := bufio.NewScanner(f)
-	for sc.Scan() {
-		linha := sc.Text()
-		if strings.HasPrefix(linha, "#") || strings.TrimSpace(linha) == "" {
-			continue
-		}
-		partes := strings.SplitN(linha, "\t", 2)
-		if len(partes) != 2 {
-			continue
-		}
-		// Todo dígito no fim é índice AQUI: o layout da NFS-e não tem seção
-		// cujo nome termine em número, ao contrário do CT-e (ICMS60, toma4),
-		// onde achatar cegava o teste. TestNenhumaSecaoNumerada guarda isso.
-		secao := regexp.MustCompile(`\d+$`).ReplaceAllString(partes[0], "") // Itens001 → Itens
-		if gruposNaoSuportados[secao] != "" {
-			continue
-		}
-		if out[secao] == nil {
-			out[secao] = map[string]bool{}
-		}
-		out[secao][partes[1]] = true
-	}
-	return out
-}
-
-var (
-	reSecao  = regexp.MustCompile(`b\.Secao\("([^"]+)"\)`)
-	reChave  = regexp.MustCompile(`b\.KV\w*\("([^"]+)"`)
-	rePessoa = regexp.MustCompile(`b\.pessoaCommon\(`)
-)
-
-// chavesDoArquivo extrai, do fonte de um builder, as chaves escritas por seção.
-func chavesDoArquivo(t *testing.T, arquivo string) map[string]map[string]bool {
-	t.Helper()
-	b, err := os.ReadFile(arquivo)
-	if err != nil {
-		t.Fatalf("lendo %s: %v", arquivo, err)
-	}
-	txt := string(b)
-
-	// chaves do helper compartilhado de pessoa
-	pessoa := map[string]bool{}
-	if i := strings.Index(txt, "func (b *iniBuilder) pessoaCommon"); i >= 0 {
-		for _, m := range reChave.FindAllStringSubmatch(txt[i:], -1) {
-			pessoa[m[1]] = true
-		}
-	}
-
-	out := map[string]map[string]bool{}
-	secao := ""
-	for _, linha := range strings.Split(txt, "\n") {
-		if m := reSecao.FindStringSubmatch(linha); m != nil {
-			secao = m[1]
-			if out[secao] == nil {
-				out[secao] = map[string]bool{}
-			}
-			continue
-		}
-		if secao == "" {
-			continue
-		}
-		if rePessoa.MatchString(linha) {
-			for k := range pessoa {
-				out[secao][k] = true
-			}
-		}
-		if m := reChave.FindStringSubmatch(linha); m != nil {
-			out[secao][m[1]] = true
-		}
-	}
-	return out
-}
-
-// chavesDosBuilders é a união do que os dois builders enviam.
-func chavesDosBuilders(t *testing.T) map[string]map[string]bool {
-	t.Helper()
-	uniao := map[string]map[string]bool{}
-	for _, arq := range []string{"ini.go", "ini_abrasf.go"} {
-		for secao, chaves := range chavesDoArquivo(t, arq) {
-			if uniao[secao] == nil {
-				uniao[secao] = map[string]bool{}
-			}
-			for k := range chaves {
-				uniao[secao][k] = true
-			}
-		}
-	}
-	// pessoaCommon (ini.go) vale para as três seções de pessoa nos dois builders.
-	pessoa := chavesDoArquivo(t, "ini.go")
-	for _, s := range []string{"Prestador", "Tomador", "Intermediario"} {
-		if uniao[s] == nil {
-			uniao[s] = map[string]bool{}
-		}
-		for k := range pessoa[s] {
-			uniao[s][k] = true
-		}
-	}
-	return uniao
-}
-
-// O achatamento de índice acima só é seguro enquanto NENHUMA seção da NFS-e
-// tiver dígito no nome. No CT-e havia, e o teste ficou cego nas variantes de
-// ICMS por meses. Aqui a guarda é mais simples porque a resposta hoje é zero.
-func TestNenhumaSecaoNumerada(t *testing.T) {
-	b, err := os.ReadFile("testdata/lerini_chaves.tsv")
+	b, err := lockstep.CarregarBaseline("testdata/nao_enviadas.tsv")
 	if err != nil {
 		t.Fatal(err)
 	}
-	comDigito := map[string]bool{}
-	for _, l := range strings.Split(string(b), "\n") {
-		l = strings.TrimSpace(l)
-		if l == "" || strings.HasPrefix(l, "#") {
-			continue
-		}
-		if c := strings.SplitN(l, "\t", 2); len(c) == 2 && regexp.MustCompile(`\d+$`).MatchString(c[0]) {
-			comDigito[c[0]] = true
-		}
-	}
-	for nome := range comDigito {
-		t.Errorf("a seção %q termina em dígito: se for NOME e não índice, o "+
-			"achatamento em carregarSnapshot deixa o lockstep cego nela. "+
-			"Ver secoesComNomeNumerado em internal/cte/lockstep_test.go", nome)
-	}
+	return b
 }
