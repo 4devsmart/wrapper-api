@@ -12,7 +12,11 @@ set -euo pipefail
 REPO="${ACBR_REPO:-4devsmart/wrapper-api}"
 REV="${ACBR_REV:?defina ACBR_REV (o Makefile passa)}"
 DESTINO="${ACBR_LIBS_DIR:-acbr-libs}"
-TAG="acbrlib-r${REV}"
+# Os binários são anexos de um release v*, não de um release próprio: a aba de
+# Releases tem só versões deste serviço. Como a tag não carrega mais o número da
+# revisão, o revisao.txt é o que amarra os .so ao ACBR_REV pinado, e ele é
+# conferido antes dos checksums.
+TAG="${ACBR_LIBS_RELEASE:?defina ACBR_LIBS_RELEASE (o Makefile passa)}"
 BASE="https://github.com/${REPO}/releases/download/${TAG}"
 
 ARQUIVOS=(
@@ -25,14 +29,17 @@ mkdir -p "$DESTINO"
 # Cache quente: se tudo já bate com o SHA256SUMS local, não baixa nada.
 if [[ -f "$DESTINO/SHA256SUMS" ]]; then
   if quebrados="$(cd "$DESTINO" && sha256sum -c --quiet SHA256SUMS 2>/dev/null)"; then
-    echo "acbr-libs: cache já íntegro para $TAG: nada a baixar."
-    exit 0
+    if [[ "$(tr -d '[:space:]' < "$DESTINO/revisao.txt" 2>/dev/null)" == "$REV" ]]; then
+      echo "acbr-libs: cache já íntegro para r${REV}: nada a baixar."
+      exit 0
+    fi
+    echo "acbr-libs: cache íntegro mas de outra revisão, rebaixando"
   fi
   echo "acbr-libs: cache inválido, rebaixando:"
   sed 's/^/  · /' <<<"$quebrados"
 fi
 
-echo "acbr-libs: baixando $TAG de $REPO"
+echo "acbr-libs: baixando r${REV} do release $TAG de $REPO"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
@@ -51,6 +58,19 @@ for f in "${ARQUIVOS[@]}"; do
   baixar "$f"
 done
 baixar SHA256SUMS
+baixar revisao.txt
+
+# A tag do release não diz mais qual revisão do ACBr está ali dentro. Sem esta
+# conferência, apontar ACBR_LIBS_RELEASE para um release de outra revisão traria
+# .so de fonte diferente do pinado, com os checksums batendo, que é a
+# divergência silenciosa que o pino existe para evitar.
+publicada="$(tr -d '[:space:]' < "$tmp/revisao.txt")"
+if [[ "$publicada" != "$REV" ]]; then
+  echo "ERRO: o release '$TAG' carrega a revisão r${publicada}, e ACBR_REV pina r${REV}." >&2
+  echo "      Aponte ACBR_LIBS_RELEASE para o release da revisão certa," >&2
+  echo "      ou publique esta revisão com: make acbr-libs-publicar" >&2
+  exit 1
+fi
 
 # Verificar ANTES de mover: um download truncado que chega em acbr-libs/ vira
 # .so corrompido embutido na imagem e SIGSEGV em runtime, longe da causa.
@@ -62,4 +82,4 @@ fi
 
 mv "$tmp"/* "$DESTINO"/
 chmod +x "$DESTINO"/*.so
-echo "acbr-libs: pronto em $DESTINO (revisão $REV)"
+echo "acbr-libs: pronto em $DESTINO (revisão $REV, release $TAG)"

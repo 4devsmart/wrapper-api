@@ -97,82 +97,73 @@ As libs entram e saem do repositório por dois comandos, e os dois passam por
 | publicar | `make acbr-libs-publicar` | quem mantém, uma vez por revisão |
 | consumir | `make acbr-libs-baixar` | qualquer clone, e os jobs `cgo` e `publicar` do CI |
 
-`ACBR_REV`, no `Makefile`, é a **fonte única** da revisão. Dela sai o nome da
-tag (`acbrlib-r<REV>`), e é dela que o download monta a URL. Trocar a revisão
-num lugar só é o que mantém as duas pontas em acordo.
+Os binários são **anexos de um release `v*`**, não de um release próprio: a aba
+de Releases tem só versões deste serviço, em versionamento semântico.
+`ACBR_LIBS_RELEASE`, no `Makefile`, diz qual release os carrega.
 
-São sete arquivos: os cinco `.so`, o `schemas.tar.gz` e o `SHA256SUMS`.
+`ACBR_REV` continua sendo a fonte única da revisão do ACBr. Como a tag do
+release não carrega mais esse número, vai junto um `revisao.txt`, e o download
+o confere **antes** dos checksums: apontar `ACBR_LIBS_RELEASE` para um release
+de outra revisão passaria com os checksums batendo, e é exatamente a divergência
+silenciosa que o pino existe para evitar.
+
+São oito arquivos: os cinco `.so`, o `schemas.tar.gz`, o `SHA256SUMS` e o
+`revisao.txt`.
 
 ### Publicando uma revisão nova
 
 1. `make acbr-fonte && make acbr-compilar && make acbr-extrair`, com `ACBR_REV`
-   e `ACBR_FRCE_REF` já apontando para o que você quer. Os sete arquivos ficam
-   em `acbr-libs/`. O `acbr-fonte` **confere** a revisão diretório a diretório e
+   e `ACBR_FRCE_REF` já apontando para o que você quer. Os oito arquivos ficam
+   em `acbr-libs/`. O `acbr-fonte` confere a revisão diretório a diretório e
    falha se o working copy ficou misturado; o `acbr-extrair` puxa da tag
-   `:r<REV>`, não da `:dev`, e regera o `SHA256SUMS` do que acabou de extrair.
-2. `make acbr-libs-publicar`. Ele gera o `SHA256SUMS` a partir do que está no
-   diretório, cria a tag `acbrlib-r<REV>` e o release, e sobe os sete arquivos.
-   Rodar de novo na mesma tag **atualiza** os anexos em vez de falhar.
-
-   O release sai como **pré-lançamento e não-latest**. Ele é um pacote de
-   binários de terceiro, não uma versão deste serviço: versão daqui é tag `v*`,
-   em versionamento semântico. Sem isso o GitHub dá o selo "Latest" ao release
-   mais recente, e a aba de Releases passa a anunciar `ACBrLib r<REV>` no lugar
-   da `v1.0.0`. O script confere o selo no fim e falha se ele estiver numa tag
-   que não seja `v*`.
-3. Suba o `ACBR_REV` no `Makefile`.
-4. `make acbr-tabelas`, que regenera `internal/tabelas/municipios_provedor.tsv`
+   `:r<REV>`, não da `:dev`, e regera o `SHA256SUMS`.
+2. `make acbr-tabelas`, que regenera `internal/tabelas/municipios_provedor.tsv`
    a partir do `ACBrNFSeXServicos.ini` do fonte. Município que muda de provedor
    lá e não muda aqui vira roteamento errado, sem aviso. O script recusa emitir
    se algum provedor não tiver família em `provedor_familia.tsv`, que é a tabela
    mantida à mão: classifique o provedor novo pela classe ancestral dele (o
    script imprime a herança) e rode de novo.
-5. `make acbr-chaves`, que regenera o snapshot de chaves do lockstep
+3. `make acbr-chaves`, que regenera o snapshot de chaves do lockstep
    (`internal/{cte,mdfe,nfse}/testdata/lerini_chaves.tsv`) a partir dos três
    leitores de INI do fonte. É o que denuncia chave que a lib passou a aceitar e
    nós não enviamos, ou que enviamos e ela ignora. Reveja o diff: cada chave
    nova é uma decisão, e o teste cobra uma a uma. `make acbr-chaves-conferir`
    falha quando o snapshot versionado diverge do fonte pinado.
-6. Rode `make enums-conferir`, que compara os valores publicados com os XSD do
-   pacote de schemas. É por ali que uma nota técnica que mexe em código
-   aparece.
-7. Commite. Quem clonar depois disso baixa a revisão nova.
+4. `make enums-conferir`, que compara os valores publicados com os XSD do pacote
+   de schemas. É por ali que uma nota técnica que mexe em código aparece.
+5. Suba `ACBR_REV` e `ACBR_LIBS_RELEASE` no `Makefile`, commite e mescle.
+6. Empurre a tag da versão: `git tag -a vX.Y.Z -m vX.Y.Z && git push origin
+   vX.Y.Z`. O `release.yml` cria a página do release e promove as tags da
+   imagem (`:vX.Y.Z`, `:vX`, `:stable`, `:latest`).
+7. `make acbr-libs-publicar`, que anexa os oito arquivos ao release da versão.
+   Rodar de novo atualiza os anexos em vez de falhar. O script recusa rodar se o
+   release ainda não existir, e confere no fim que o selo "Latest" está numa tag
+   `v*`.
+
+A ordem importa: o CI baixa os `.so` do release apontado por
+`ACBR_LIBS_RELEASE`, então o passo 7 precisa acontecer antes de o próximo push
+na `main` rodar os jobs `cgo` e `publicar`.
 
 O `SHA256SUMS` é gerado na publicação e conferido no download **antes** de os
 arquivos entrarem em `acbr-libs/`: download truncado que chega ao diretório vira
 `.so` corrompido embutido na imagem, e SIGSEGV em runtime longe da causa. Como o
 repositório é público, o download não usa token.
 
-### Na estreia do repositório
+### Num repositório novo, ou num fork
 
-Isto acontece uma vez só, e a ordem intuitiva não funciona nas duas direções.
+Os jobs `cgo` e `publicar` do CI baixam os `.so` do release apontado por
+`ACBR_LIBS_RELEASE`. Enquanto esse release não existir com os anexos, os dois
+nascem vermelhos.
 
-Um repositório recém-criado não tem commit, e **um release precisa de um commit
-para ancorar a tag**. Publicar antes de empurrar falha com um 422 do GitHub que
-só diz `Repository is empty.`
-
-Empurrar a `main` primeiro resolve isso e cria o problema oposto: os jobs `cgo`
-e `publicar` do CI baixam justamente esses `.so`, então o primeiro run do
-repositório nasce vermelho, no commit inicial.
-
-A saída é empurrar só a **tag**. Ela popula o repositório sem acordar o Actions,
-porque gatilho nenhum casa com ela:
-
-| workflow | gatilho | tag `acbrlib-r*` |
-|---|---|---|
-| `ci.yml` | `branches: ["**"]` | não, só push de branch |
-| `publicar.yml` | `branches: [main]` | não |
-| `release.yml` | `tags: ["v*"]` | não casa o padrão |
+A saída é empurrar a tag da versão antes do primeiro push na branch: `release.yml`
+casa só com `tags: ["v*"]`, e `ci.yml` e `publicar.yml` pedem push de branch,
+então a tag cria o release sem acordar os jobs que dependem dele.
 
 ```bash
-git tag acbrlib-r47859 main && git push origin acbrlib-r47859
+git tag -a v0.1.0 -m v0.1.0 && git push origin v0.1.0
 make acbr-libs-publicar
 git push -u origin main
 ```
-
-Assim a `main` estreia com o CI verde. O `scripts/publicar-acbr-libs.sh` detecta
-o repositório vazio antes de chamar o `gh` e imprime essas três linhas, com a
-revisão já preenchida.
 
 ## Licença
 
