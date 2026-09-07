@@ -11,10 +11,11 @@ import (
 // ACBrNFSeXServicos.ini do FONTE OFICIAL do ACBr (SVN trunk2), a MESMA tabela
 // que é compilada dentro da `.so` e usada pelo ACBrNFSeX para selecionar o
 // provedor pelo município. Só entram municípios COM provedor configurado
-// (4.674 de 5.571); "PadraoNacional" é o Padrão Nacional ADN/SEFIN.
+// (4.740 de 5.571); "PadraoNacional" é o Padrão Nacional ADN/SEFIN.
 //
-// Regenerar (em lockstep com a `.so`, ao bumpar a revisão): `make acbr-tabelas`
-// : ver scripts/gerar-tabelas-nfse.sh. Já é chamado por `make acbr-libs`.
+// Regenerar (em lockstep com a `.so`, ao bumpar a revisão): `make acbr-tabelas`,
+// que roda scripts/gerar-tabelas-nfse.py sobre o fonte em acbr-source/. Ele
+// recusa emitir a tabela se algum provedor não tiver família classificada.
 //
 //go:embed municipios_provedor.tsv
 var municipiosProvedorTSV string
@@ -30,7 +31,7 @@ type MunicipioNFSe struct {
 	// o provedor não versiona. Importa porque o mesmo provedor serve layouts
 	// diferentes por cidade: o fintelISS atende Juiz de Fora em 2.00 e Itatiba em
 	// 2.02, e só o 2.02 exige lista de itens. A superfície real do NFS-e são os
-	// ~120 pares (provedor, versão), não os 106 provedores.
+	// 122 pares (provedor, versão), não os 101 provedores.
 	Versao string `json:"versao,omitempty"`
 }
 

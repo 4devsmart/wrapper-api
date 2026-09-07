@@ -51,7 +51,32 @@ for svc in NFSe CTe MDFe; do
 		echo "retry $n em schemas $svc..."; svn cleanup; sleep 5
 	done
 done
-echo "ACBr: $(svn info | grep -i '^Revision' || true)"
+# A raiz do checkout precisa ser atualizada explicitamente. Sem isto ela fica na
+# revisão do "svn checkout" inicial para sempre, e o "svn info" da raiz (que era
+# o que este script imprimia) anuncia a revisão VELHA depois de um bump: a única
+# linha que confirma o que você baixou mentia.
+svn update $SVNFLAGS -r "$ACBR_REV" --depth empty .
+
+# Conferir, não só informar. Um "svn update" que falhou no meio deixa o working
+# copy com revisões misturadas, e isso vira .so compilada de fonte que ninguém
+# pinou. svnversion não serve: ele quebra ao ler nomes de arquivo em latin-1
+# desta árvore (E000022).
+divergiu=0
+for dir in . Fontes Pacotes Projetos \
+           Exemplos/ACBrDFe/Schemas/NFSe \
+           Exemplos/ACBrDFe/Schemas/CTe \
+           Exemplos/ACBrDFe/Schemas/MDFe; do
+	rev=$(svn info $SVNFLAGS --show-item revision "$dir" 2>/dev/null | tr -d '[:space:]')
+	if [ "$rev" != "$ACBR_REV" ]; then
+		echo "ACBr: $dir está em r${rev:-?}, esperado r$ACBR_REV"
+		divergiu=1
+	fi
+done
+if [ "$divergiu" = 1 ]; then
+	echo "ACBr: working copy com revisão misturada, NÃO compile a partir dele"
+	exit 1
+fi
+echo "ACBr: r$ACBR_REV conferido em todos os diretórios do checkout"
 cd /work
 
 # --- FortesReport CE (git, pinado) ---

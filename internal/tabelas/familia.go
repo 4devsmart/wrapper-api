@@ -11,8 +11,14 @@ import (
 // ProviderManager: Padrão Nacional / ABRASF v1 / ABRASF v2 / v1+v2 / próprio).
 // É a base do roteamento: a família decide qual tradução JSON→layout aplicar.
 //
-// Regenerar (em lockstep com a `.so`, ao bumpar a revisão): `make acbr-tabelas`
-// : ver scripts/gerar-tabelas-nfse.sh. Já é chamado por `make acbr-libs`.
+// Esta tabela é mantida à MÃO, e de propósito. A família sai da herança de
+// classes dos provedores no fonte, mas a classificação carrega julgamento que
+// nenhuma regra mecânica reproduz: o Betha declara ABRASFv1, ABRASFv2 e uma
+// APIPropria descendente do Padrão Nacional e está como abrasf_v1_v2, enquanto
+// o Fiorilli, com ABRASFv2 e a mesma APIPropria, está como proprio_abrasf.
+// Gerar isso por regra reclassificaria provedores em produção sem ninguém
+// olhar. Quem cobra a atualização é `make acbr-tabelas`, que RECUSA emitir
+// municipios_provedor.tsv enquanto houver provedor sem família aqui.
 //
 //go:embed provedor_familia.tsv
 var provedorFamiliaTSV string

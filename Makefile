@@ -8,7 +8,7 @@ SHELL   := /bin/bash
 # ACBR_REV é a FONTE ÚNICA da revisão do ACBr: o script de download monta a tag
 # do release a partir dela, e o snapshot de chaves do lockstep é regenerado em
 # lockstep com ela. Ao bumpar, republique as libs e regenere os snapshots.
-ACBR_REV ?= 47859
+ACBR_REV ?= 48100
 # O FortesReport CE entra nos .so junto com o ACBr (ele rasteriza DACTE/DAMDFE/
 # DANFSE). Seguia o master, o que fazia METADE do binário flutuar enquanto o
 # ACBr era pinado com cuidado: um build de 2026-08 pegou um FortesReport de
@@ -118,18 +118,36 @@ acbr-compilar:
 		-t $(ACBR_BASE_IMAGE):r$(ACBR_REV) $(ACBR_SRC)
 
 ## acbr-extrair: extrai as .so e os schemas da imagem compilada para acbr-libs/
+# Extrai da tag :r$(ACBR_REV), NÃO de :dev. A :dev é a última coisa compilada,
+# que não é necessariamente a revisão pinada: compilar uma e extrair outra
+# passava sem aviso e punha .so de revisão errada dentro da imagem.
 acbr-extrair:
-	@docker image inspect $(ACBR_BASE_IMAGE):dev >/dev/null 2>&1 || { \
-	  echo "imagem ausente: rode 'make acbr-compilar'"; exit 1; }
+	@docker image inspect $(ACBR_BASE_IMAGE):r$(ACBR_REV) >/dev/null 2>&1 || { \
+	  echo "imagem ausente para r$(ACBR_REV): rode 'make acbr-compilar'"; exit 1; }
 	mkdir -p $(ACBRLIBS)
-	@cid=$$(docker create $(ACBR_BASE_IMAGE):dev); \
+	@cid=$$(docker create $(ACBR_BASE_IMAGE):r$(ACBR_REV)); \
 		rm -rf $(ACBRLIBS)/_art && mkdir -p $(ACBRLIBS)/_art; \
 		docker cp $$cid:/artifacts/. $(ACBRLIBS)/_art/; \
 		docker rm $$cid >/dev/null; \
 		cp $(ACBRLIBS)/_art/*.so $(ACBRLIBS)/; \
 		tar -C $(ACBRLIBS)/_art -czf $(ACBRLIBS)/schemas.tar.gz schemas schemas-cte schemas-mdfe; \
 		rm -rf $(ACBRLIBS)/_art
+	@# Reger o SHA256SUMS aqui. Antes a extração trocava as .so e deixava o
+	@# arquivo da revisão anterior, então o diretório ficava se contradizendo:
+	@# "sha256sum -c" acusava as seis, e acbr-libs-conferir, que só olha tamanho,
+	@# dizia OK do mesmo jeito.
+	@cd $(ACBRLIBS) && sha256sum libacbrnfse64.so libacbrcte64.so libacbrmdfe64.so \
+		libacbrnfe64.so libacbrboleto64.so schemas.tar.gz > SHA256SUMS
 	@$(MAKE) --no-print-directory acbr-libs-conferir
+
+## acbr-tabelas: regenera municipios_provedor.tsv a partir do fonte do ACBr
+# Anda em lockstep com ACBR_REV: a tabela de provedor por município é a mesma
+# que está compilada dentro da .so. Recusa emitir se aparecer provedor sem
+# família classificada, em vez de gravar e deixar o teste pegar depois.
+acbr-tabelas:
+	@test -d $(ACBR_SRC)/acbr || { \
+	  echo "falta o fonte em $(ACBR_SRC): rode 'make acbr-fonte'"; exit 1; }
+	@python3 scripts/gerar-tabelas-nfse.py
 
 ## acbr-libs-baixar: baixa as libs nativas dos anexos de release (cache local)
 acbr-libs-baixar:
