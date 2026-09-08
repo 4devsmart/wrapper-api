@@ -1,6 +1,10 @@
 package nfse
 
-import "github.com/4devsmart/wrapper-api/internal/tabelas"
+import (
+	"regexp"
+
+	"github.com/4devsmart/wrapper-api/internal/tabelas"
+)
 
 // Layout é a família de layout de entrada resolvida para um município.
 type Layout string
@@ -56,3 +60,36 @@ func MunicipioDoPedido(p DPSPedido) string {
 // desconhecido). Serve para a resposta dizer QUEM atende, não só se é atendido:
 // é a informação que o cliente leva ao suporte da prefeitura.
 func provedorDoMunicipio(cmun string) string { return tabelas.ProvedorNFSe(cmun) }
+
+// MunicipioDoXML descobre o município emissor a partir do XML de uma NFS-e já
+// autorizada. É o par de MunicipioDoPedido para quem só tem o documento.
+//
+// Serve ao DANFSE por XML: quem LÊ o XML é a classe do provedor, e o provedor
+// só é selecionado pelo CodigoMunicipio (ACBrNFSeXConfiguracoes.pas:686,
+// SetCodigoMunicipio → LerParamsMunicipio → SetProvider). Sem ele a lib recusa o
+// documento sem sequer olhá-lo: "Nenhum provedor selecionado" (ERR_SEM_PROVEDOR
+// em ACBrNFSeX.pas:48). Exigir o município do cliente resolveria, mas ele já
+// está dentro do XML: pedir de novo é atrito à toa.
+//
+// A ordem segue quem responde "que prefeitura emitiu": cLocEmi no Padrão
+// Nacional; o CodigoMunicipio do OrgaoGerador no ABRASF (o do prestador e o da
+// prestação também aparecem no documento, e nem sempre são o mesmo município);
+// e, por último, cLocIncid, que é o município da incidência do ISS.
+func MunicipioDoXML(xml string) string {
+	for _, re := range []*regexp.Regexp{reCLocEmi, reOrgaoGerador, reCLocIncid} {
+		if m := re.FindStringSubmatch(xml); len(m) == 2 {
+			return m[1]
+		}
+	}
+	return ""
+}
+
+// Tags com prefixo de namespace (<ns2:CodigoMunicipio>) aparecem em provedores
+// ABRASF, então o prefixo é opcional em todos os padrões.
+const abre = `<(?:[A-Za-z0-9_.-]+:)?` // abertura de tag, com prefixo opcional
+
+var (
+	reCLocEmi      = regexp.MustCompile(abre + `cLocEmi>([0-9]{7})<`)
+	reCLocIncid    = regexp.MustCompile(abre + `cLocIncid>([0-9]{7})<`)
+	reOrgaoGerador = regexp.MustCompile(`(?s)` + abre + `OrgaoGerador>.*?` + abre + `CodigoMunicipio>([0-9]{7})<`)
+)

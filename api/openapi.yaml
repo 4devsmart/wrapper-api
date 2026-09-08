@@ -1111,6 +1111,12 @@ paths:
         Diferente de CT-e e MDF-e, a NFS-e **recupera o PDF pela chave**
         (`ObterDANFSE`): perder o XML aqui não é definitivo. Por chave fala com
         o provedor e exige certificado; por XML é render local e não exige.
+
+        O `municipio` é obrigatório por chave e opcional por XML: quem lê o XML
+        é a classe do provedor, e ela é escolhida pelo município. No caminho do
+        XML ele sai do próprio documento (`cLocEmi` no Padrão Nacional, o
+        `CodigoMunicipio` do `OrgaoGerador` no ABRASF) quando não vem no pedido;
+        informe-o para vencer o que está no XML.
       requestBody:
         required: true
         content:
@@ -1121,7 +1127,7 @@ paths:
               properties:
                 chave: { type: string, description: "Chave de acesso da NFS-e. Alternativa ao xml_b64: com ela o PDF é buscado no provedor." }
                 xml_b64: { type: string, format: byte, description: "XML autorizado da NFS-e, em base64. Com ele o PDF sai localmente, sem falar com o provedor." }
-                municipio: { type: string, description: "Código IBGE do município, que é o que decide o provedor." }
+                municipio: { type: string, description: "Código IBGE do município, que é o que decide o provedor. Obrigatório com chave; com xml_b64, sai do próprio XML quando omitido." }
                 ambiente: { $ref: "#/components/schemas/Ambiente" }
                 emitente: { $ref: "#/components/schemas/Emitente" }
                 certificado: { $ref: "#/components/schemas/Certificado" }
