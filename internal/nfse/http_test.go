@@ -28,12 +28,31 @@ type libFake struct {
 	acbr.NFSeServico // nil: método não sobrescrito estoura, o que é bom num teste
 
 	iniMontar, iniCancelar, iniSubstituir             string
+	iniEvento, iniEmitir                              string
 	xmlTransmitido, chaveDPS, chaveConsulta, chavePDF string
 	tenant                                            acbr.TenantConfig
 	sub                                               acbr.SubstituicaoNFSe
 
 	resMontar, resTransmitir, resCancelar, resConsulta acbr.Result
+	resEvento, resProvedor                             acbr.Result
 	errTransmitir                                      error
+}
+
+func (f *libFake) Emitir(t acbr.TenantConfig, ini string) (acbr.Result, error) {
+	f.iniEmitir, f.tenant = ini, t
+	return f.resTransmitir, nil
+}
+
+func (f *libFake) EnviarEvento(t acbr.TenantConfig, ini string) (acbr.Result, error) {
+	f.iniEvento, f.tenant = ini, t
+	return f.resEvento, nil
+}
+
+// InformacoesProvedor NÃO registra o tenant: ela é chamada DEPOIS da operação,
+// para enriquecer um erro, e sobrescrever f.tenant aqui apagaria a sessão que os
+// testes da operação conferem.
+func (f *libFake) InformacoesProvedor(acbr.TenantConfig) (acbr.Result, error) {
+	return f.resProvedor, nil
 }
 
 func (f *libFake) MontarXML(t acbr.TenantConfig, ini string) (acbr.Result, error) {
@@ -442,27 +461,91 @@ func TestConsultaDPSExigeChave(t *testing.T) {
 
 // A capacidade de cada provedor é descoberta em RUNTIME, não há tabela dizendo
 // o que cada município aceita. O erro nativo vira 422 tipado em vez de 502.
+//
+// E a FRASE importa tanto quanto o código. A anterior dizia que o provedor do
+// município não oferecia a operação por webservice, e isso é falso: quem não
+// implementa é a biblioteca fiscal, que decide antes de qualquer byte sair. Um
+// cliente que lesse aquilo ligava para a prefeitura errada.
 func TestOperacaoNaoImplementadaViraErroTipado(t *testing.T) {
-	f := &libFake{resCancelar: acbr.Result{
-		Resposta: "[Erro1]\nCodigo=E999\nDescricao=Metodo nao implementado para este provedor\n",
-	}}
+	f := &libFake{
+		resCancelar: acbr.Result{
+			Resposta: "[Erro1]\nCodigo=E999\nDescricao=Metodo nao implementado para este provedor\n",
+		},
+		resProvedor: acbr.Result{
+			Resposta: "[ObterInformacoesProvedor]\n" +
+				"IdentificacaoProvedor=Nome:WebISS|Versao:2.02\n" +
+				"ServicosDisponibilizados=EnviarLoteSincrono|ConsultarNfse|\n",
+		},
+	}
 	rec := post(t, muxDe(f), "/nfse/eventos/cancelamento", envelope(munAbrasf, map[string]any{
 		"chave":  "chave-da-nfse",
-		"evento": map[string]any{"motivo": "erro na emissao"},
+		"evento": map[string]any{"motivo": "erro na emissao", "numero": "100"},
 	}))
 	if rec.Code != http.StatusUnprocessableEntity {
 		t.Fatalf("status = %d, quero 422: %s", rec.Code, rec.Body)
 	}
-	if !strings.Contains(rec.Body.String(), "operacao_nao_suportada") {
-		t.Errorf("código do erro inesperado: %s", rec.Body)
+	corpo := rec.Body.String()
+	if !strings.Contains(corpo, "operacao_nao_suportada") {
+		t.Errorf("código do erro inesperado: %s", corpo)
+	}
+	if !strings.Contains(corpo, "biblioteca fiscal") {
+		t.Errorf("a mensagem não diz de quem é o limite: %s", corpo)
+	}
+	if strings.Contains(corpo, "não oferece") {
+		t.Errorf("a mensagem voltou a culpar o município: %s", corpo)
+	}
+	// O que o provedor DE FATO expõe vem junto: é o que transforma "não dá" em
+	// "não dá, e o que dá é isto".
+	if !strings.Contains(corpo, "ConsultarNfse") {
+		t.Errorf("os serviços do provedor não vieram nos detalhes: %s", corpo)
 	}
 }
 
 // --- eventos ----------------------------------------------------------------
 
-func TestCancelamentoMontaINI(t *testing.T) {
+// O cancelamento tem DOIS webservices, e o município escolhe qual. Estes dois
+// testes são a rede contra a regressão que existiu: chamar o CancelaNFSe num
+// município do Padrão Nacional devolvia "não implementado para este provedor"
+// em 300 ms, sem nada sair para o ADN, e o cliente lia que a prefeitura dele
+// não oferecia cancelamento.
+func TestCancelamentoAbrasfVaiPeloCancelaNFSe(t *testing.T) {
 	f := &libFake{resCancelar: acbr.Result{
 		Resposta: "[Cancelamento]\nSucesso=1\nProtocolo=P9\n", XML: "<evento/>",
+	}}
+	rec := post(t, muxDe(f), "/nfse/eventos/cancelamento", envelope(munAbrasf, map[string]any{
+		"chave": "chave-da-nfse",
+		"evento": map[string]any{
+			"codigo": "2", "motivo": "servico nao prestado",
+			"numero": "100", "serie": "A", "codigo_verificacao": "XYZ",
+		},
+	}))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d: %s", rec.Code, rec.Body)
+	}
+	// NumeroNFSe não é detalhe: o ABRASF v2 recusa de saída sem ele, antes de
+	// ir ao webservice, e era a segunda forma de o cancelamento nunca funcionar.
+	for _, quero := range []string{
+		"[CancelarNFSe]", "ChaveNFSe=chave-da-nfse", "CodCancelamento=2",
+		"MotCancelamento=servico nao prestado", "NumeroNFSe=100", "SerieNFSe=A",
+		"CodVerificacao=XYZ",
+	} {
+		if !strings.Contains(f.iniCancelar, quero) {
+			t.Errorf("INI não tem %q:\n%s", quero, f.iniCancelar)
+		}
+	}
+	if f.iniEvento != "" {
+		t.Errorf("mandou evento num município ABRASF:\n%s", f.iniEvento)
+	}
+	var resp RespostaEvento
+	_ = json.Unmarshal(rec.Body.Bytes(), &resp)
+	if resp.Status != "concluido" || resp.Protocolo != "P9" {
+		t.Errorf("resposta = %+v", resp)
+	}
+}
+
+func TestCancelamentoPadraoNacionalVaiPorEvento(t *testing.T) {
+	f := &libFake{resEvento: acbr.Result{
+		Resposta: "[EnviarEvento]\nSucessoCanc=1\nDescSituacao=Nota Cancelada\nXmlRetorno=<procEveNFSe/>\n",
 	}}
 	rec := post(t, muxDe(f), "/nfse/eventos/cancelamento", envelope(munPadraoNacional, map[string]any{
 		"chave":  "chave-da-nfse",
@@ -471,15 +554,45 @@ func TestCancelamentoMontaINI(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d: %s", rec.Code, rec.Body)
 	}
-	for _, quero := range []string{"[CancelarNFSe]", "ChaveNFSe=chave-da-nfse", "CodCancelamento=2", "MotCancelamento=servico nao prestado"} {
-		if !strings.Contains(f.iniCancelar, quero) {
-			t.Errorf("INI não tem %q:\n%s", quero, f.iniCancelar)
+	if f.iniCancelar != "" {
+		t.Errorf("chamou o CancelaNFSe no Padrão Nacional:\n%s", f.iniCancelar)
+	}
+	for _, quero := range []string{
+		"[Evento]", "tpEvento=e101101", "chNFSe=chave-da-nfse",
+		"cMotivo=2", "xMotivo=servico nao prestado", "tpAmb=2",
+	} {
+		if !strings.Contains(f.iniEvento, quero) {
+			t.Errorf("INI do evento não tem %q:\n%s", quero, f.iniEvento)
 		}
 	}
 	var resp RespostaEvento
 	_ = json.Unmarshal(rec.Body.Bytes(), &resp)
-	if resp.Status != "concluido" || resp.Protocolo != "P9" {
+	if resp.Status != "concluido" || resp.Situacao != "Nota Cancelada" {
 		t.Errorf("resposta = %+v", resp)
+	}
+}
+
+// xMotivo é obrigatório e tem mínimo de 15 caracteres no schema do evento. Sem
+// esta recusa o ADN devolve erro de schema, que não diz qual campo faltou.
+func TestCancelamentoPadraoNacionalExigeMotivoDeQuinzeCaracteres(t *testing.T) {
+	for _, caso := range []struct{ nome, motivo, codigo string }{
+		{"sem motivo", "", "1"},
+		{"motivo curto", "erro", "1"},
+		{"código fora da lista", "servico nao prestado", "3"},
+	} {
+		t.Run(caso.nome, func(t *testing.T) {
+			f := &libFake{}
+			rec := post(t, muxDe(f), "/nfse/eventos/cancelamento", envelope(munPadraoNacional, map[string]any{
+				"chave":  "chave-da-nfse",
+				"evento": map[string]any{"codigo": caso.codigo, "motivo": caso.motivo},
+			}))
+			if rec.Code != http.StatusBadRequest {
+				t.Fatalf("status = %d, quero 400: %s", rec.Code, rec.Body)
+			}
+			if f.iniEvento != "" {
+				t.Error("transmitiu um evento que o schema recusaria")
+			}
+		})
 	}
 }
 
@@ -516,6 +629,114 @@ func TestSubstituicaoPassaOsIdentificadoresDaNotaAntiga(t *testing.T) {
 	}
 	if f.iniSubstituir == "" {
 		t.Error("a DPS substituta não foi montada")
+	}
+}
+
+// O Padrão Nacional não tem webservice de substituição: a nota nova carrega o
+// grupo subst apontando a chave da antiga, e emiti-la É a substituição. Chamar
+// o SubstituiNFSe aqui era a mesma recusa local do cancelamento.
+func TestSubstituicaoPadraoNacionalEmiteDPSComGrupoSubst(t *testing.T) {
+	f := &libFake{resTransmitir: acbr.Result{Resposta: "[Envio]\nSucesso=1\nNumeroNota=999\n"}}
+	rec := post(t, muxDe(f), "/nfse/eventos/substituicao", envelope(munPadraoNacional, map[string]any{
+		"evento": map[string]any{
+			"dps":         pedidoMinimo(munPadraoNacional),
+			"substituida": map[string]any{"chave": "chave-da-antiga"},
+			"codigo":      "05",
+			"motivo":      "rejeitada pelo tomador",
+		},
+	}))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d: %s", rec.Code, rec.Body)
+	}
+	if f.iniSubstituir != "" {
+		t.Errorf("chamou o SubstituiNFSe no Padrão Nacional:\n%s", f.iniSubstituir)
+	}
+	for _, quero := range []string{
+		"[NFSeSubstituicao]", "chSubstda=chave-da-antiga", "cMotivo=05",
+		"xMotivo=rejeitada pelo tomador",
+	} {
+		if !strings.Contains(f.iniEmitir, quero) {
+			t.Errorf("INI da DPS substituta não tem %q:\n%s", quero, f.iniEmitir)
+		}
+	}
+	// A DPS inteira continua ali: o grupo subst é um acréscimo à nota, não um
+	// documento separado.
+	if !strings.Contains(f.iniEmitir, "[IdentificacaoRps]") {
+		t.Errorf("a DPS substituta não foi montada:\n%s", f.iniEmitir)
+	}
+}
+
+// O cMotivo da substituição tem lista PRÓPRIA (dois dígitos) e a lib converte o
+// que não reconhece no primeiro da enumeração. Escolher um default seria emitir
+// uma nota com justificativa que ninguém pediu.
+func TestSubstituicaoPadraoNacionalExigeChaveECodigoDaLista(t *testing.T) {
+	for _, caso := range []struct {
+		nome   string
+		evento map[string]any
+	}{
+		{"sem chave da substituída", map[string]any{"codigo": "05"}},
+		{"sem código", map[string]any{"chave": "chave-da-antiga"}},
+		{"código do cancelamento, não da substituição", map[string]any{"chave": "chave-da-antiga", "codigo": "1"}},
+	} {
+		t.Run(caso.nome, func(t *testing.T) {
+			f := &libFake{}
+			ev := map[string]any{"dps": pedidoMinimo(munPadraoNacional)}
+			if c, ok := caso.evento["codigo"]; ok {
+				ev["codigo"] = c
+			}
+			ev["substituida"] = map[string]any{"chave": caso.evento["chave"]}
+			rec := post(t, muxDe(f), "/nfse/eventos/substituicao", envelope(munPadraoNacional, map[string]any{"evento": ev}))
+			if rec.Code != http.StatusBadRequest {
+				t.Fatalf("status = %d, quero 400: %s", rec.Code, rec.Body)
+			}
+			if f.iniEmitir != "" {
+				t.Error("emitiu a substituta sem a justificativa certa")
+			}
+		})
+	}
+}
+
+// A resposta de capacidades tem que dizer o que ESTA API faz no município, não
+// repassar a lista crua do provedor: o Padrão Nacional declara CancelarNfse
+// falso e mesmo assim cancela, por evento.
+func TestCapacidadesDoMunicipioRespondemPeloCaminhoQueUsamos(t *testing.T) {
+	f := &libFake{resProvedor: acbr.Result{
+		Resposta: "[ObterInformacoesProvedor]\n" +
+			"IdentificacaoProvedor=Nome:PadraoNacional|Versao:1.01\n" +
+			"ServicosDisponibilizados=EnviarUnitario|EnviarEvento|ConsultarEvento|\n",
+	}}
+	rec := chamar(t, muxDe(f), http.MethodGet, "/nfse/municipios/"+munPadraoNacional+"?capacidades=1", nil)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d: %s", rec.Code, rec.Body)
+	}
+	var resp struct {
+		Operacoes   map[string]bool `json:"operacoes"`
+		Capacidades Capacidades     `json:"capacidades"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("resposta ilegível: %v", err)
+	}
+	if !resp.Operacoes["cancelamento"] {
+		t.Error("disse que o Padrão Nacional não cancela; cancela por evento")
+	}
+	if !resp.Operacoes["substituicao"] {
+		t.Error("disse que o Padrão Nacional não substitui; substitui pelo grupo subst da DPS")
+	}
+	if resp.Capacidades.Provedor != "PadraoNacional" {
+		t.Errorf("provedor lido da lib = %q", resp.Capacidades.Provedor)
+	}
+}
+
+// Sem o parâmetro, o endpoint continua sendo consulta de tabela: nada de sessão
+// nativa numa rota que hoje responde na hora.
+func TestCapacidadesSoQuandoPedidas(t *testing.T) {
+	f := &libFake{}
+	rec := chamar(t, muxDe(f), http.MethodGet, "/nfse/municipios/"+munPadraoNacional, nil)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d: %s", rec.Code, rec.Body)
+	}
+	if strings.Contains(rec.Body.String(), "operacoes") {
+		t.Errorf("consultou a lib sem ninguém pedir: %s", rec.Body)
 	}
 }
 

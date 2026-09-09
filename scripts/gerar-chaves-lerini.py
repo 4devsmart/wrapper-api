@@ -40,7 +40,17 @@ DOCUMENTOS = {
     "mdfe": (["ACBrMDFe/Base/ACBrMDFe.IniReader.pas",
               "ACBrMDFe/Base/Servicos/ACBrMDFe.EnvEvento.pas"],
              "internal/mdfe/testdata/lerini_chaves.tsv"),
-    "nfse": (["ACBrNFSeX/Base/Provedores/ACBrNFSeX.LerIni.pas"],
+    # A NFS-e tinha a MESMA lacuna: o segundo arquivo é onde vivem as seções
+    # dos pedidos que não são a nota ([CancelarNFSe], [Evento], as consultas),
+    # e nenhuma delas era comparada. O INI de cancelamento que já enviávamos
+    # nunca passou pelo gate, e o de evento também não passaria.
+    #
+    # As duas fontes têm uma seção de mesmo nome, [Evento]: no leitor da nota é
+    # a atividade de evento (show, feira), no dos pedidos é o pedido de registro
+    # de evento. Aqui elas se juntam, e o snapshot vira superconjunto das duas,
+    # o que afrouxa o gate só nessa seção.
+    "nfse": (["ACBrNFSeX/Base/Provedores/ACBrNFSeX.LerIni.pas",
+              "ACBrNFSeX/Base/WebServices/ACBrNFSeXWebserviceBase.pas"],
              "internal/nfse/testdata/lerini_chaves.tsv"),
 }
 

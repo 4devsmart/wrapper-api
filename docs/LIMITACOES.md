@@ -109,9 +109,18 @@ transmitir: falhou ali, nada saiu.
   viaja. "Aceito e descartado em silêncio" deixou de ser um estado possível.
 - **NFS-e é multi-provedor e a capacidade é descoberta em runtime.** Não existe
   tabela do que cada município aceita: quando o provedor não implementa a
-  operação, a resposta é `422 operacao_nao_suportada`. Cancelamento e
-  substituição não existem em todos. Consulte
-  `GET /v1/nfse/municipios/{codigo}` antes.
+  operação, a resposta é `422 operacao_nao_suportada`, com o que aquele provedor
+  de fato expõe nos detalhes. Nesse caso o limite é da biblioteca fiscal desta
+  integração, não da prefeitura, e a mensagem diz isso. Para saber antes do
+  clique, use `GET /v1/nfse/municipios/{codigo}?capacidades=1`, que devolve os
+  webservices do provedor e quais eventos funcionam ali.
+- **Cancelamento e substituição têm dois caminhos, e não é escolha nossa.** No
+  Padrão Nacional o provedor não implementa os webservices `CancelaNFSe` e
+  `SubstituiNFSe`: o cancelamento é o evento `e101101`, e a substituição é o
+  grupo `subst` da própria DPS, emitido junto com a nota nova. Nos provedores
+  ABRASF e próprios é o contrário, e a nota é identificada por NÚMERO, não por
+  chave. A API roteia pelo município; o que muda para quem chama são os campos
+  obrigatórios de cada caminho, descritos na spec.
 - **Não dá para escolher o provedor de NFS-e.** Quem decide é o município, pela
   tabela embutida na biblioteca fiscal. Testado contra a lib: a chave de
   configuração `Provedor` é recusada em todas as formas, então não há override

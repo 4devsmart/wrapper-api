@@ -145,6 +145,10 @@ func chamarNFSe(sv NFSeServico, p Pedido) (Resposta, bool) {
 			sub = *a.Sub
 		}
 		return resposta(sv.SubstituirNFSe(p.Tenant, a.INI, sub)), true
+	case "EnviarEvento":
+		return resposta(sv.EnviarEvento(p.Tenant, a.INI)), true
+	case "InformacoesProvedor":
+		return resposta(sv.InformacoesProvedor(p.Tenant)), true
 	case "ConsultarDFe":
 		return resposta(sv.ConsultarDFe(p.Tenant, a.NSU)), true
 	case "ConsultarDPSPorChave":

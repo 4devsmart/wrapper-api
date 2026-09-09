@@ -51,6 +51,9 @@ func (indisponivel) DistribuicaoDFe(TenantConfig, DistDFeParams) (Result, error)
 func (indisponivel) SubstituirNFSe(TenantConfig, string, SubstituicaoNFSe) (Result, error) {
 	return Result{}, ErrUnavailable
 }
+func (indisponivel) InformacoesProvedor(TenantConfig) (Result, error) {
+	return Result{}, ErrUnavailable
+}
 func (indisponivel) ConsultarDFe(TenantConfig, int) (Result, error) {
 	return Result{}, ErrUnavailable
 }

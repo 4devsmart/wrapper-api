@@ -395,6 +395,47 @@ func (l *cgoLib) Cancelar(t TenantConfig, iniCancel string) (Result, error) {
 	})
 }
 
+// EnviarEvento transmite um evento de NFS-e (NFSE_EnviarEvento). aInfEvento é o
+// INI [Evento] montado por internal/nfse.ToINIEvento, passado direto (não via
+// CarregarINI, como no Cancelar).
+//
+// É o caminho do cancelamento no Padrão Nacional: o provedor dele herda de
+// TACBrNFSeProviderProprio sem sobrescrever PrepararCancelaNFSe, então
+// NFSE_Cancelar levanta ERR_NAO_IMP antes de qualquer byte sair
+// (ACBrNFSeXProviderProprio.pas:682). O que o PN implementa é o pedido de
+// registro de evento, e o cancelamento é o tpEvento e101101.
+func (l *cgoLib) EnviarEvento(t TenantConfig, ini string) (Result, error) {
+	return l.withSession(t, func(h C.LibHandle) (Result, error) {
+		cIni, freeIni := cstrFree(ini)
+		defer freeIni()
+		code, resp := callBuffer(h, func(buf *C.char, size *C.int) C.int {
+			return C.NFSE_EnviarEvento(h, cIni, buf, size)
+		})
+		res := Result{Codigo: code, Resposta: resp}
+		if code == 0 {
+			if _, xml := callBuffer(h, func(buf *C.char, size *C.int) C.int {
+				return C.NFSE_ObterXml(h, 0, buf, size)
+			}); xml != "" {
+				res.XML = xml
+			}
+		}
+		return res, nil
+	})
+}
+
+// InformacoesProvedor lê as capacidades declaradas do provedor do município
+// configurado no tenant (NFSE_ObterInformacoesProvedor). Sem rede e sem
+// certificado: a resposta sai de ConfiguracoesGeral, preenchida quando o
+// provedor foi selecionado pelo CodigoMunicipio.
+func (l *cgoLib) InformacoesProvedor(t TenantConfig) (Result, error) {
+	return l.withSession(t, func(h C.LibHandle) (Result, error) {
+		code, resp := callBuffer(h, func(buf *C.char, size *C.int) C.int {
+			return C.NFSE_ObterInformacoesProvedor(h, buf, size)
+		})
+		return Result{Codigo: code, Resposta: resp}, nil
+	})
+}
+
 // salvarPDF chama NFSE_SalvarPDF: gera o DANFSE da nota emitida/carregada e
 // devolve o PDF (decodificado de base64). Best-effort: nil se nao gerar um PDF
 // valido. A resposta e grande (base64), relida via UltimoRetorno por callBuffer.

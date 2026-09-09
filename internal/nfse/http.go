@@ -1,6 +1,7 @@
 package nfse
 
 import (
+	"cmp"
 	"encoding/base64"
 	"encoding/json"
 	"log/slog"
@@ -202,7 +203,7 @@ func (m *Modulo) handleTransmissao(w http.ResponseWriter, r *http.Request) {
 		m.responderErro(w, res, err)
 		return
 	}
-	if m.naoSuportada(w, res.Resposta, "emissão") {
+	if m.naoSuportada(w, t, p.Municipio, res.Resposta, "emissão") {
 		return
 	}
 
@@ -247,6 +248,7 @@ type RespostaEvento struct {
 	Tipo      string     `json:"tipo"`
 	Chave     string     `json:"chave,omitempty"`
 	Status    string     `json:"status"`
+	Situacao  string     `json:"situacao,omitempty"`
 	Protocolo string     `json:"protocolo,omitempty"`
 	DataHora  string     `json:"data_hora,omitempty"`
 	XMLBase64 string     `json:"xml_b64,omitempty"`
@@ -283,7 +285,17 @@ func (m *Modulo) handleEvento(w http.ResponseWriter, r *http.Request) {
 		m.substituir(w, t, layout, p)
 		return
 	}
+	m.cancelar(w, t, layout, p)
+}
 
+// cancelar escolhe o caminho do cancelamento pelo layout do município.
+//
+// São dois webservices distintos, não duas variações do mesmo. O Padrão
+// Nacional cancela por EVENTO (pedido de registro de evento, tpEvento e101101);
+// os demais provedores cancelam pelo webservice CancelaNFSe. Chamar o segundo
+// num município do Padrão Nacional é o que devolvia "não implementado para este
+// provedor" em 300 ms, sem nada sair para o ADN.
+func (m *Modulo) cancelar(w http.ResponseWriter, t acbr.TenantConfig, layout Layout, p PedidoEvento) {
 	if strings.TrimSpace(p.Chave) == "" {
 		httpx.ErroJSON(w, http.StatusBadRequest, "campo_obrigatorio", "chave da NFS-e é obrigatória")
 		return
@@ -293,30 +305,82 @@ func (m *Modulo) handleEvento(w http.ResponseWriter, r *http.Request) {
 		httpx.ErroJSON(w, http.StatusBadRequest, "pedido_invalido", msg)
 		return
 	}
+
+	if layout == LayoutPadraoNacional {
+		m.cancelarPorEvento(w, t, p, e)
+		return
+	}
+
 	res, err := m.svc.Cancelar(t, ToINICancelamento(p.Chave, p.Municipio, e))
 	if err != nil {
 		m.responderErro(w, res, err)
 		return
 	}
-	if m.naoSuportada(w, res.Resposta, "cancelamento") {
+	if m.naoSuportada(w, t, p.Municipio, res.Resposta, "cancelamento") {
 		return
 	}
 	c := ParseCancelamento(res.Resposta)
 	httpx.JSON(w, fiscal.StatusDoEvento(StatusCancelamento(c)), RespostaEvento{
-		Tipo: tipo, Chave: p.Chave, Status: StatusCancelamento(c),
+		Tipo: "cancelamento", Chave: p.Chave, Status: StatusCancelamento(c),
 		Protocolo: c.Protocolo, DataHora: c.DataHora,
 		XMLBase64: fiscal.Base64(res.XML),
 		Erros:     c.Erros, Alertas: c.Alertas,
 	})
 }
 
+// cancelarPorEvento cancela no Padrão Nacional, que é o evento e101101.
+//
+// A validação do motivo é local de propósito: xMotivo é obrigatório e tem
+// mínimo de 15 caracteres no schema do evento, e o ADN recusa por schema sem
+// dizer qual campo faltou.
+func (m *Modulo) cancelarPorEvento(w http.ResponseWriter, t acbr.TenantConfig,
+	p PedidoEvento, e CancelamentoPedido) {
+
+	if msg := ValidarCancelamentoPN(e); msg != "" {
+		httpx.ErroJSON(w, http.StatusBadRequest, "pedido_invalido", msg)
+		return
+	}
+	res, err := m.svc.EnviarEvento(t, ToINIEvento(EventoPN{
+		Chave:     p.Chave,
+		TpEvento:  TpEventoCancelamento,
+		TpAmb:     fiscal.TpAmb(p.Ambiente),
+		CodMotivo: cmp.Or(e.Codigo, "1"),
+		Motivo:    strings.TrimSpace(e.Motivo),
+	}))
+	if err != nil {
+		m.responderErro(w, res, err)
+		return
+	}
+	if m.naoSuportada(w, t, p.Municipio, res.Resposta, "cancelamento") {
+		return
+	}
+	ev := ParseEvento(res.Resposta)
+	httpx.JSON(w, fiscal.StatusDoEvento(StatusEvento(ev)), RespostaEvento{
+		Tipo: "cancelamento", Chave: p.Chave, Status: StatusEvento(ev),
+		Situacao:  ev.Situacao,
+		XMLBase64: fiscal.Base64(fiscal.Primeiro(res.XML, ev.XML)),
+		Erros:     ev.Erros, Alertas: ev.Alertas,
+	})
+}
+
 // substituir emite a DPS substituta identificando a NFS-e antiga.
+//
+// Como no cancelamento, são dois caminhos. O Padrão Nacional NÃO tem webservice
+// de substituição: a nota nova carrega o grupo subst apontando a chave da
+// antiga, e é a emissão dela que substitui. Os demais provedores usam o
+// SubstituiNFSe, que identifica a antiga por número.
 func (m *Modulo) substituir(w http.ResponseWriter, t acbr.TenantConfig, layout Layout, p PedidoEvento) {
 	var e SubstituicaoPedido
 	if msg := fiscal.DecodarAninhado("evento", p.Evento, &e); msg != "" {
 		httpx.ErroJSON(w, http.StatusBadRequest, "pedido_invalido", msg)
 		return
 	}
+
+	if layout == LayoutPadraoNacional {
+		m.substituirPorDPS(w, t, p.Municipio, e)
+		return
+	}
+
 	if strings.TrimSpace(e.Substituida.Numero) == "" {
 		httpx.ErroJSON(w, http.StatusBadRequest, "campo_obrigatorio",
 			"evento.substituida.numero (NFS-e a substituir) é obrigatório")
@@ -335,12 +399,38 @@ func (m *Modulo) substituir(w http.ResponseWriter, t acbr.TenantConfig, layout L
 		m.responderErro(w, res, err)
 		return
 	}
-	if m.naoSuportada(w, res.Resposta, "substituição") {
+	if m.naoSuportada(w, t, p.Municipio, res.Resposta, "substituição") {
 		return
 	}
+	m.responderSubstituicao(w, res)
+}
+
+// substituirPorDPS é a substituição do Padrão Nacional: emitir a DPS nova com o
+// grupo subst. A chamada é a MESMA da emissão, e a resposta também: o que
+// identifica a substituição é o grupo dentro do documento.
+func (m *Modulo) substituirPorDPS(w http.ResponseWriter, t acbr.TenantConfig,
+	cmun string, e SubstituicaoPedido) {
+
+	if msg := ValidarSubstituicaoPN(e); msg != "" {
+		httpx.ErroJSON(w, http.StatusBadRequest, "pedido_invalido", msg)
+		return
+	}
+	res, err := m.svc.Emitir(t, ToINISubstituicaoPN(e))
+	if err != nil {
+		m.responderErro(w, res, err)
+		return
+	}
+	if m.naoSuportada(w, t, cmun, res.Resposta, "substituição") {
+		return
+	}
+	m.responderSubstituicao(w, res)
+}
+
+func (m *Modulo) responderSubstituicao(w http.ResponseWriter, res acbr.Result) {
 	em := ParseEnvio(res.Resposta)
 	httpx.JSON(w, fiscal.StatusDoDesfecho(statusEmissao(em)), RespostaEvento{
 		Tipo: "substituicao", Chave: em.Chave, Status: statusEmissao(em),
+		Situacao:  em.Situacao,
 		Protocolo: em.Protocolo, XMLBase64: fiscal.Base64(res.XML),
 		Erros: em.Erros, Alertas: em.Alertas,
 	})
@@ -378,7 +468,7 @@ func (m *Modulo) handleConsulta(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	res, err := m.svc.Consultar(t, p.Chave)
-	m.responderConsulta(w, res, err)
+	m.responderConsulta(w, t, p.Municipio, res, err)
 }
 
 // handleConsultaDPS é a recuperação de uma transmissão de desfecho desconhecido.
@@ -398,7 +488,7 @@ func (m *Modulo) handleConsultaDPS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	res, err := m.svc.ConsultarDPSPorChave(t, chave)
-	m.responderConsulta(w, res, err)
+	m.responderConsulta(w, t, p.Municipio, res, err)
 }
 
 func (m *Modulo) handleConsultas(w http.ResponseWriter, r *http.Request) {
@@ -418,27 +508,27 @@ func (m *Modulo) handleConsultas(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		res, err := m.svc.ConsultarPorNumero(t, p.Numero, pagina)
-		m.responderConsulta(w, res, err)
+		m.responderConsulta(w, t, p.Municipio, res, err)
 	case "faixa":
 		if p.Numero == "" || p.NumeroFinal == "" {
 			httpx.ErroJSON(w, http.StatusBadRequest, "campo_obrigatorio", "numero e numero_final são obrigatórios")
 			return
 		}
 		res, err := m.svc.ConsultarPorFaixa(t, p.Numero, p.NumeroFinal, pagina)
-		m.responderConsulta(w, res, err)
+		m.responderConsulta(w, t, p.Municipio, res, err)
 	case "rps":
 		if p.Numero == "" {
 			httpx.ErroJSON(w, http.StatusBadRequest, "campo_obrigatorio", "numero (do RPS) é obrigatório")
 			return
 		}
 		res, err := m.svc.ConsultarPorRps(t, p.Numero, p.Serie, p.Tipo, p.CodigoVerificacao)
-		m.responderConsulta(w, res, err)
+		m.responderConsulta(w, t, p.Municipio, res, err)
 	case "situacao":
 		res, err := m.svc.ConsultarSituacao(t, p.Protocolo, p.NumeroLote)
-		m.responderConsulta(w, res, err)
+		m.responderConsulta(w, t, p.Municipio, res, err)
 	case "lote-rps":
 		res, err := m.svc.ConsultarLoteRps(t, p.Protocolo, p.NumeroLote)
-		m.responderConsulta(w, res, err)
+		m.responderConsulta(w, t, p.Municipio, res, err)
 	default:
 		httpx.ErroJSON(w, http.StatusNotFound, "consulta_desconhecida",
 			"consulta '"+tipo+"' não existe; use numero, faixa, rps, situacao ou lote-rps")
@@ -456,7 +546,7 @@ func (m *Modulo) handleDistribuicao(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	res, err := m.svc.ConsultarDFe(t, p.NSU)
-	m.responderConsulta(w, res, err)
+	m.responderConsulta(w, t, p.Municipio, res, err)
 }
 
 func (m *Modulo) lerConsulta(w http.ResponseWriter, r *http.Request) (PedidoConsulta, acbr.TenantConfig, bool) {
@@ -480,12 +570,14 @@ func (m *Modulo) lerConsulta(w http.ResponseWriter, r *http.Request) (PedidoCons
 	return p, t, true
 }
 
-func (m *Modulo) responderConsulta(w http.ResponseWriter, res acbr.Result, err error) {
+func (m *Modulo) responderConsulta(w http.ResponseWriter, t acbr.TenantConfig,
+	cmun string, res acbr.Result, err error) {
+
 	if err != nil {
 		m.responderErro(w, res, err)
 		return
 	}
-	if m.naoSuportada(w, res.Resposta, "esta consulta") {
+	if m.naoSuportada(w, t, cmun, res.Resposta, "esta consulta") {
 		return
 	}
 	corpo := map[string]any{"codigo": res.Codigo, "resposta": res.Resposta}
@@ -523,6 +615,10 @@ func (m *Modulo) handlePDF(w http.ResponseWriter, r *http.Request) {
 
 	var res acbr.Result
 	var err error
+	// A sessão e o município usados sobrevivem ao switch: são eles que dizem
+	// QUAL provedor recusou, quando a lib recusa.
+	var t acbr.TenantConfig
+	var cmun string
 	switch {
 	case strings.TrimSpace(p.XMLBase64) != "":
 		xml, ok := fiscal.XMLdeBase64(w, "xml_b64", p.XMLBase64)
@@ -534,12 +630,12 @@ func (m *Modulo) handlePDF(w http.ResponseWriter, r *http.Request) {
 		// isso a lib recusa o documento sem olhá-lo ("Nenhum provedor
 		// selecionado"). O município vem do pedido; na falta dele, do próprio
 		// XML, que já o carrega.
-		cmun := fiscal.Primeiro(fiscal.SoDigitos(p.Municipio), MunicipioDoXML(xml))
+		cmun = fiscal.Primeiro(fiscal.SoDigitos(p.Municipio), MunicipioDoXML(xml))
 		if _, ok := m.layout(w, cmun); !ok {
 			return
 		}
 		// Render local: não fala com o provedor, então não pede certificado.
-		t := fiscal.Tenant("", secaoACBr, "", fiscal.Certificado{})
+		t = fiscal.Tenant("", secaoACBr, "", fiscal.Certificado{})
 		t.Config = append(t.Config,
 			acbr.ConfigKV{Section: secaoACBr, Key: "CodigoMunicipio", Value: cmun})
 		res, err = m.svc.RenderizarPDF(t, xml)
@@ -555,7 +651,8 @@ func (m *Modulo) handlePDF(w http.ResponseWriter, r *http.Request) {
 		if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 			return
 		}
-		t := m.tenantEmitente(p.Emitente, p.Municipio, p.Ambiente,
+		cmun = fiscal.SoDigitos(p.Municipio)
+		t = m.tenantEmitente(p.Emitente, p.Municipio, p.Ambiente,
 			layout, p.Certificado, p.Credenciais)
 		res, err = m.svc.ObterPDF(t, p.Chave)
 	default:
@@ -567,7 +664,7 @@ func (m *Modulo) handlePDF(w http.ResponseWriter, r *http.Request) {
 		m.responderErro(w, res, err)
 		return
 	}
-	if m.naoSuportada(w, res.Resposta, "geração do DANFSE") {
+	if m.naoSuportada(w, t, cmun, res.Resposta, "geração do DANFSE") {
 		return
 	}
 	if len(res.PDF) == 0 {
@@ -581,15 +678,28 @@ func (m *Modulo) handlePDF(w http.ResponseWriter, r *http.Request) {
 
 // handleMunicipio diz se um município é atendido e por qual provedor. É como o
 // cliente descobre isso ANTES de montar um documento que seria recusado.
+//
+// Com ?capacidades=1 a resposta ganha o que o provedor DE FATO expõe, lido da
+// lib, e quais eventos desta API funcionam ali. É opcional porque a leitura
+// abre uma sessão nativa (sem rede, mas nada barata), e o resto do endpoint é
+// consulta de tabela.
 func (m *Modulo) handleMunicipio(w http.ResponseWriter, r *http.Request) {
 	codigo := fiscal.SoDigitos(r.PathValue("codigo"))
 	layout, ok := LayoutDoMunicipio(codigo)
-	httpx.JSON(w, http.StatusOK, map[string]any{
+	corpo := map[string]any{
 		"codigo":    codigo,
 		"provedor":  provedorDoMunicipio(codigo),
 		"layout":    string(layout),
 		"suportado": ok,
-	})
+	}
+	if ok && r.URL.Query().Get("capacidades") == "1" {
+		t := m.tenantEmitente(Emitente{}, codigo, "", layout, fiscal.Certificado{}, Credenciais{})
+		if c, lido := m.capacidades(t); lido {
+			corpo["capacidades"] = c
+			corpo["operacoes"] = Operacoes(layout, c)
+		}
+	}
+	httpx.JSON(w, http.StatusOK, corpo)
 }
 
 // --- apoio ------------------------------------------------------------------
@@ -655,16 +765,49 @@ func (m *Modulo) tenantEmitente(e Emitente, cmun, ambiente string, layout Layout
 
 // naoSuportada mapeia o erro nativo de "provedor não implementa" num 422 claro.
 //
-// A capacidade de cada provedor é descoberta em RUNTIME: não existe tabela
-// dizendo o que cada município aceita, e cancelamento/substituição não existem
-// em todos. O marcador é a mensagem da lib.
-func (m *Modulo) naoSuportada(w http.ResponseWriter, resposta, operacao string) bool {
+// A frase importa. A anterior dizia que "o provedor deste município não oferece
+// a operação por webservice", e isso é um diagnóstico ERRADO: o que a lib
+// levanta é ERR_NAO_IMP ("Serviço %s não implementado para este provedor"), uma
+// decisão da CLASSE do provedor dentro da biblioteca fiscal, tomada antes de
+// qualquer byte sair. A prefeitura pode muito bem oferecer o serviço. Quem
+// mandava o cliente ligar para a prefeitura estava sendo mandado ao lugar
+// errado por nós.
+//
+// Os detalhes trazem o que aquele provedor DE FATO expõe, perguntado à lib
+// (ObterInformacoesProvedor). É o que transforma "não dá" em "não dá, e o que
+// dá é isto".
+func (m *Modulo) naoSuportada(w http.ResponseWriter, t acbr.TenantConfig,
+	cmun, resposta, operacao string) bool {
+
 	if !OperacaoNaoSuportada(resposta) {
 		return false
 	}
-	httpx.ErroJSON(w, http.StatusUnprocessableEntity, "operacao_nao_suportada",
-		"o provedor de NFS-e deste município não oferece "+operacao+" por webservice")
+	det := map[string]any{"municipio": cmun, "resposta": resposta}
+	provedor := provedorDoMunicipio(cmun)
+	alvo := "este provedor"
+	if provedor != "" {
+		det["provedor"] = provedor
+		alvo = "o provedor " + provedor
+	}
+	if c, ok := m.capacidades(t); ok {
+		det["servicos_do_provedor"] = c.Servicos
+	}
+	httpx.ErroDetalhado(w, http.StatusUnprocessableEntity, "operacao_nao_suportada",
+		"a biblioteca fiscal não implementa "+operacao+" para "+alvo+
+			": o limite é desta integração, não do município", det)
 	return true
+}
+
+// capacidades pergunta à lib o que o provedor do tenant expõe. Best-effort: a
+// resposta só enriquece um erro que já vai ser devolvido, e falhar aqui não
+// pode trocar o erro real por outro.
+func (m *Modulo) capacidades(t acbr.TenantConfig) (Capacidades, bool) {
+	res, err := m.svc.InformacoesProvedor(t)
+	if err != nil || strings.TrimSpace(res.Resposta) == "" {
+		return Capacidades{}, false
+	}
+	c := ParseCapacidades(res.Resposta)
+	return c, len(c.Servicos) > 0
 }
 
 func (m *Modulo) responderErro(w http.ResponseWriter, res acbr.Result, err error) {

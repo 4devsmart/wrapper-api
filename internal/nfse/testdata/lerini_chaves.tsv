@@ -1,11 +1,28 @@
 # Chaves de INI aceitas pelo leitor de NFSE do ACBr (snapshot).
 # NÃO editar à mão: gerado por scripts/gerar-chaves-lerini.py a partir de
-# ACBrNFSeX/Base/Provedores/ACBrNFSeX.LerIni.pas, na revisão fixada em ACBR_REV.
+# ACBrNFSeX/Base/Provedores/ACBrNFSeX.LerIni.pas, ACBrNFSeX/Base/WebServices/ACBrNFSeXWebserviceBase.pas, na revisão fixada em ACBR_REV.
 # Regenerar com `make acbr-chaves`; conferir com `make acbr-chaves-conferir`.
 # Seção INDEXADA sai marcada com "*" (det* casa [det001], [det002]...).
 # Seção sem "*" casa exata: [ICMS60] e [toma4] são NOMES, não índices.
 # Chave sai literal, sempre: nenhuma é montada por concatenação no fonte.
 # Formato: <secao>\t<chave>
+CancelarNFSe	ChaveNFSe
+CancelarNFSe	CNPJCPFTomador
+CancelarNFSe	CodCancelamento
+CancelarNFSe	CodMunicipio
+CancelarNFSe	CodServ
+CancelarNFSe	CodVerificacao
+CancelarNFSe	DataEmissaoNFSe
+CancelarNFSe	email
+CancelarNFSe	MotCancelamento
+CancelarNFSe	NumeroLote
+CancelarNFSe	NumeroNFSe
+CancelarNFSe	NumeroNFSeSubst
+CancelarNFSe	NumeroRps
+CancelarNFSe	SerieNFSe
+CancelarNFSe	SerieNFSeSubst
+CancelarNFSe	SerieRps
+CancelarNFSe	ValorNFSe
 ComercioExterior	mdic
 ComercioExterior	mdPrestacao
 ComercioExterior	mecAFComexP
@@ -41,6 +58,38 @@ ConstrucaoCivil	ObrasOpcao
 ConstrucaoCivil	ReformaCivil
 ConstrucaoCivil	UF
 ConstrucaoCivil	xMunicipio
+ConsultarLinkNFSe	CnpjCpfToma
+ConsultarLinkNFSe	Competencia
+ConsultarLinkNFSe	DtEmissao
+ConsultarLinkNFSe	NumeroNFSe
+ConsultarLinkNFSe	NumeroRps
+ConsultarLinkNFSe	Pagina
+ConsultarLinkNFSe	SerieNFSe
+ConsultarLinkNFSe	SerieRps
+ConsultarLinkNFSe	TipoRps
+ConsultarNFSe	CadEconomico
+ConsultarNFSe	ChaveNFSe
+ConsultarNFSe	CNPJInter
+ConsultarNFSe	CNPJPrestador
+ConsultarNFSe	CNPJTomador
+ConsultarNFSe	CodServ
+ConsultarNFSe	CodVerificacao
+ConsultarNFSe	DataFinal
+ConsultarNFSe	DataInicial
+ConsultarNFSe	DataRecibo
+ConsultarNFSe	IMInter
+ConsultarNFSe	IMPrestador
+ConsultarNFSe	IMTomador
+ConsultarNFSe	NumeroFinNFSe
+ConsultarNFSe	NumeroIniNFSe
+ConsultarNFSe	NumeroLote
+ConsultarNFSe	NumeroRps
+ConsultarNFSe	Pagina
+ConsultarNFSe	RazaoInter
+ConsultarNFSe	SerieNFSe
+ConsultarNFSe	tpConsulta
+ConsultarNFSe	tpPeriodo
+ConsultarNFSe	tpRetorno
 Deducoes*	CNPJCPF
 Deducoes*	DeducaoPor
 Deducoes*	NumeroNFReferencia
@@ -136,15 +185,24 @@ EnderecoServico*	xPais
 Evento	AtividadeEventoOpcao
 Evento	Bairro
 Evento	CEP
+Evento	chNFSe
+Evento	chSubstituta
+Evento	cMotivo
 Evento	CodigoMunicipio
 Evento	Complemento
+Evento	dhEvento
 Evento	dtFim
 Evento	dtIni
 Evento	idAtvEvt
 Evento	Logradouro
+Evento	nPedRegEvento
 Evento	Numero
 Evento	RazaoSocial
+Evento	tpAmb
+Evento	tpEvento
 Evento	UF
+Evento	verAplic
+Evento	xMotivo
 Evento	xMunicipio
 Evento	xNome
 Fornecedor*	Bairro

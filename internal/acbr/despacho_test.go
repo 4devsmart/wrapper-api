@@ -80,6 +80,9 @@ func (e *espiao) XmlParaIni(t TenantConfig, xml string) (Result, error) {
 func (e *espiao) SubstituirNFSe(t TenantConfig, ini string, sub SubstituicaoNFSe) (Result, error) {
 	return e.reg("SubstituirNFSe", t, ini, sub)
 }
+func (e *espiao) InformacoesProvedor(t TenantConfig) (Result, error) {
+	return e.reg("InformacoesProvedor", t)
+}
 func (e *espiao) ConsultarDFe(t TenantConfig, nsu int) (Result, error) {
 	return e.reg("ConsultarDFe", t, nsu)
 }

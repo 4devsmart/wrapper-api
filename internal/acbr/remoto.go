@@ -309,6 +309,12 @@ func (r remoto) SubstituirNFSe(t TenantConfig, iniNovaDPS string, sub Substituic
 	return r.chamar("SubstituirNFSe", t, Args{INI: iniNovaDPS, Sub: &sub})
 }
 
+// InformacoesProvedor não leva argumento: o provedor sai do CodigoMunicipio que
+// já viaja no tenant.
+func (r remoto) InformacoesProvedor(t TenantConfig) (Result, error) {
+	return r.chamar("InformacoesProvedor", t, Args{})
+}
+
 func (r remoto) ConsultarDFe(t TenantConfig, nsu int) (Result, error) {
 	return r.chamar("ConsultarDFe", t, Args{NSU: nsu})
 }
