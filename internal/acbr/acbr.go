@@ -163,6 +163,19 @@ type NFSeServico interface {
 	// via NFSE_CarregarINI) e envia a substituição identificando a NFS-e antiga
 	// (sub). O componente exige a DPS nova carregada antes (NotasFiscais.Count>0).
 	SubstituirNFSe(t TenantConfig, iniNovaDPS string, sub SubstituicaoNFSe) (Result, error)
+	// EnviarEvento transmite um evento de NFS-e a partir do INI [Evento]
+	// (NFSE_EnviarEvento). É por aqui que o Padrão Nacional cancela: o provedor
+	// dele não implementa o webservice CancelaNFSe, e o cancelamento é o evento
+	// e101101 do pedido de registro de evento.
+	EnviarEvento(t TenantConfig, ini string) (Result, error)
+	// InformacoesProvedor devolve o que o provedor do município configurado no
+	// tenant de fato expõe (NFSE_ObterInformacoesProvedor): identificação,
+	// autenticações exigidas e a lista de serviços disponibilizados.
+	//
+	// Não vai à prefeitura: é a capacidade que a própria lib declara para aquele
+	// provedor. Existe para que "não dá para cancelar aqui" seja uma resposta
+	// verificada, e não um palpite nosso.
+	InformacoesProvedor(t TenantConfig) (Result, error)
 	// ConsultarDFe consulta a Distribuição DF-e do ADN (Padrão Nacional) por NSU.
 	// O CNPJ vem da config do tenant (não é parâmetro). A resposta crua é
 	// interpretada por internal/distribuicao.ParseNFSe.

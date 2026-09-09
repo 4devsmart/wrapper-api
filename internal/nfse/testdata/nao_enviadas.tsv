@@ -163,3 +163,20 @@ Imovel/cEndPost	imóvel: código de endereçamento postal do provedor
 Imovel/cPais	imóvel no exterior: fora do escopo
 Imovel/xCidade	idem
 Imovel/xEstProvReg	idem
+
+# [CancelarNFSe]: campos que só alguns provedores exigem no pedido de
+# cancelamento. Entraram no gate em 2026-09, quando o leitor de PEDIDOS
+# (ACBrNFSeXWebserviceBase.pas) passou a fazer parte do snapshot: até então
+# nenhuma chave desta seção era comparada, embora já enviássemos quatro delas.
+# O contrato cobre chave, número, série, código de verificação e lote, que é o
+# que o ABRASF v2 e os próprios pedem; o resto fica para quando um município
+# concreto exigir.
+CancelarNFSe/CNPJCPFTomador	exigido por um punhado de provedores; sem demanda
+CancelarNFSe/CodServ	idem, código de serviço no cancelamento
+CancelarNFSe/DataEmissaoNFSe	idem, data de emissão da nota cancelada
+CancelarNFSe/NumeroNFSeSubst	cancelamento COM substituição por número: o produto substitui por endpoint próprio
+CancelarNFSe/SerieNFSeSubst	idem, a série da substituta
+CancelarNFSe/NumeroRps	identificação pelo RPS de origem; o contrato usa a NFS-e
+CancelarNFSe/SerieRps	idem
+CancelarNFSe/ValorNFSe	conferência de valor por alguns provedores; sem demanda
+CancelarNFSe/email	e-mail de aviso do cancelamento; o produto não dispara e-mail

@@ -25,6 +25,8 @@ extern int NFSE_ObterXml(LibHandle handle, int AIndex, char* sResposta, int* esT
 extern int NFSE_ObterXmlRps(LibHandle handle, int AIndex, char* sResposta, int* esTamanho);
 extern int NFSE_Emitir(LibHandle handle, const char* aLote, int aModoEnvio, unsigned char aImprimir, char* sResposta, int* esTamanho);
 extern int NFSE_Cancelar(LibHandle handle, const char* eInfCancelamento, char* sResposta, int* esTamanho);
+extern int NFSE_EnviarEvento(LibHandle handle, const char* aInfEvento, char* sResposta, int* esTamanho);
+extern int NFSE_ObterInformacoesProvedor(LibHandle handle, char* sResposta, int* esTamanho);
 extern int NFSE_SubstituirNFSe(LibHandle handle, const char* aNumeroNFSe, const char* aSerieNFSe, const char* aCodigoCancelamento, const char* aMotivoCancelamento, const char* aNumeroLote, const char* aCodigoVerificacao, char* sResposta, int* esTamanho);
 extern int NFSE_SalvarPDF(LibHandle handle, char* sResposta, int* esTamanho);
 extern int NFSE_ConsultarNFSePorChave(LibHandle handle, const char* aChaveNFSe, char* sResposta, int* esTamanho);

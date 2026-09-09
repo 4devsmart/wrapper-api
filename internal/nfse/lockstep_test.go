@@ -65,13 +65,11 @@ var naoEnviadas = map[string]string{
 // snapshot da lib mas não são lacuna: são escopo que decidimos não atender.
 var gruposNaoSuportados = map[string]string{
 	"ConstrucaoCivil":            "obra/ART, sem demanda até agora",
-	"Evento":                     "atividade de evento, sem demanda",
 	"Rodoviaria":                 "pedágio/vale, sem demanda",
 	"LocacaoSubLocacao":          "locação de postes/dutos, sem demanda",
 	"IdentificacaoNFSe":          "campos de RESPOSTA (cStat, dhProc, verAplic…)",
-	"NFSeSubstituicao":           "substituição usa endpoint próprio",
-	"RpsSubstituido":             "idem",
-	"NFSeCancelamento":           "cancelamento tem INI próprio",
+	"RpsSubstituido":             "RPS substituído do ABRASF; a substituição do PN é por chave",
+	"NFSeCancelamento":           "campos de RESPOSTA do cancelamento",
 	"ValoresNFSe":                "valores de RESPOSTA",
 	"Emitente":                   "config de emitente vai por ConfigGravarValor",
 	"DeclaracaoPrestacaoServico": "agregador do layout, sem chaves nossas",
@@ -101,11 +99,26 @@ var gruposNaoSuportados = map[string]string{
 	"gRefNFSe":                 "referência a NFS-e anterior, sem demanda",
 	"gTribCompraGov":           "compra governamental, sem demanda",
 	"gTribRegularNFSe":         "tributação regular de RESPOSTA",
+
+	// Seções do leitor de PEDIDOS (ACBrNFSeXWebserviceBase.pas), que entrou no
+	// snapshot junto com [CancelarNFSe] e [Evento].
+	"ConsultarNFSe":     "as consultas não vão por INI: cada uma tem função própria na lib, com parâmetros posicionais",
+	"ConsultarLinkNFSe": "idem; o link da NFS-e não é exposto por este produto",
+
+	// [Evento] existe nos DOIS leitores com o mesmo nome: a atividade de evento
+	// da nota (show, feira), que o contrato não cobre, e o pedido de registro de
+	// evento, que ESCREVEMOS (ToINIEvento). Como o snapshot funde as duas, esta
+	// direção não consegue separá-las e fica de fora; a direção de chave morta
+	// continua cobrindo o que escrevemos.
+	"Evento": "atividade de evento (sem demanda) colide com o pedido de registro de evento",
 }
 
-// escritas é o que os DOIS construtores de fato escrevem, lido do INI que eles
+// escritas é o que os construtores de fato escrevem, lido do INI que eles
 // geraram. Não há leitura de fonte Go aqui: era ela que não via seção montada
 // por concatenação e atribuía chave à seção errada.
+//
+// São cinco: os dois da nota (Padrão Nacional e ABRASF) e os três dos pedidos
+// (cancelamento, evento e a DPS substituta do Padrão Nacional).
 func escritas(t *testing.T) lockstep.Escritas {
 	t.Helper()
 	caso := func(g func(DPSPedido) string) espelho.Caso {
@@ -118,6 +131,23 @@ func escritas(t *testing.T) lockstep.Escritas {
 	return lockstep.Uniao(
 		espelho.SecoesEChaves(caso(ToINI)),
 		espelho.SecoesEChaves(caso(ToINIAbrasf)),
+		// Os INIs que NÃO são a nota. O de cancelamento já era enviado e nunca
+		// passou por aqui: o leitor de pedidos não estava no snapshot.
+		espelho.SecoesEChaves(espelho.Caso{
+			Novo: func() any { return &CancelamentoPedido{} },
+			Gerar: func(a any) string {
+				return ToINICancelamento("chave", "3550308", *a.(*CancelamentoPedido))
+			},
+		}),
+		espelho.SecoesEChaves(espelho.Caso{
+			Novo:  func() any { return &EventoPN{} },
+			Gerar: func(a any) string { return ToINIEvento(*a.(*EventoPN)) },
+		}),
+		espelho.SecoesEChaves(espelho.Caso{
+			Novo:   func() any { return &SubstituicaoPedido{} },
+			Gerar:  func(a any) string { return ToINISubstituicaoPN(*a.(*SubstituicaoPedido)) },
+			Grupos: gruposNFSe,
+		}),
 	)
 }
 
