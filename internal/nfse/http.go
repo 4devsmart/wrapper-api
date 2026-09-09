@@ -501,6 +501,10 @@ func (m *Modulo) responderConsulta(w http.ResponseWriter, res acbr.Result, err e
 // pela CHAVE (ObterDANFSE no provedor), então perder o XML não é definitivo.
 // Por chave a operação fala com o provedor e exige certificado; por XML é render
 // local e não exige.
+//
+// O município é obrigatório por chave e opcional por XML: é ele que decide o
+// provedor, e no caminho do XML sai do próprio documento quando não vem no
+// pedido. Informe-o para vencer o que está no XML.
 type PedidoPDF struct {
 	Chave       string             `json:"chave,omitempty"`
 	XMLBase64   string             `json:"xml_b64,omitempty"`
@@ -525,8 +529,20 @@ func (m *Modulo) handlePDF(w http.ResponseWriter, r *http.Request) {
 		if !ok {
 			return
 		}
+		// O provedor precisa estar selecionado ANTES do CarregarXML: quem LÊ o
+		// XML é a classe do provedor, e ela só é escolhida pelo município. Sem
+		// isso a lib recusa o documento sem olhá-lo ("Nenhum provedor
+		// selecionado"). O município vem do pedido; na falta dele, do próprio
+		// XML, que já o carrega.
+		cmun := fiscal.Primeiro(fiscal.SoDigitos(p.Municipio), MunicipioDoXML(xml))
+		if _, ok := m.layout(w, cmun); !ok {
+			return
+		}
 		// Render local: não fala com o provedor, então não pede certificado.
-		res, err = m.svc.RenderizarPDF(fiscal.Tenant("", secaoACBr, "", fiscal.Certificado{}), xml)
+		t := fiscal.Tenant("", secaoACBr, "", fiscal.Certificado{})
+		t.Config = append(t.Config,
+			acbr.ConfigKV{Section: secaoACBr, Key: "CodigoMunicipio", Value: cmun})
+		res, err = m.svc.RenderizarPDF(t, xml)
 	case strings.TrimSpace(p.Chave) != "":
 		if errCert := p.Certificado.Validar(); errCert != nil {
 			httpx.ErroJSON(w, http.StatusBadRequest, "certificado_invalido", errCert.Error())

@@ -106,7 +106,8 @@ const idDPSFixture = "DPS330455721234567800019000001000000000000001"
 func xmlFixture(tpAmb string) string {
 	return `<?xml version="1.0"?><DPS xmlns="http://www.sped.fazenda.gov.br/nfse">` +
 		`<infDPS versao="1.00" Id="` + idDPSFixture + `">` +
-		`<tpAmb>` + tpAmb + `</tpAmb></infDPS></DPS>`
+		`<tpAmb>` + tpAmb + `</tpAmb>` +
+		`<cLocEmi>` + munPadraoNacional + `</cLocEmi></infDPS></DPS>`
 }
 
 func muxDe(f *libFake) *http.ServeMux {
@@ -189,6 +190,32 @@ func cfgDoTenant(t acbr.TenantConfig, chave string) string {
 }
 
 // --- roteamento por município -----------------------------------------------
+
+// O município do XML é o que seleciona o provedor no render do DANFSE. A ordem
+// importa: no ABRASF o documento traz vários CodigoMunicipio (prestador,
+// prestação, órgão gerador) e só o do OrgaoGerador diz quem emitiu.
+func TestMunicipioDoXML(t *testing.T) {
+	casos := []struct {
+		nome, xml, quero string
+	}{
+		{"padrão nacional: cLocEmi", `<DPS><infDPS><cLocEmi>4314902</cLocEmi>` +
+			`<prest><cMun>3550308</cMun></prest></infDPS></DPS>`, "4314902"},
+		{"abrasf: o município do OrgaoGerador, não o do prestador", `<Nfse><InfNfse>` +
+			`<PrestadorServico><Endereco><CodigoMunicipio>3550308</CodigoMunicipio></Endereco></PrestadorServico>` +
+			`<OrgaoGerador><CodigoMunicipio>3304557</CodigoMunicipio><Uf>RJ</Uf></OrgaoGerador>` +
+			`</InfNfse></Nfse>`, "3304557"},
+		{"abrasf com prefixo de namespace", `<ns2:Nfse><ns2:OrgaoGerador>` +
+			`<ns2:CodigoMunicipio>1100015</ns2:CodigoMunicipio></ns2:OrgaoGerador></ns2:Nfse>`, "1100015"},
+		{"sem emissor: cai na incidência do ISS", `<NFSe><infNFSe><cLocIncid>4314902</cLocIncid></infNFSe></NFSe>`, "4314902"},
+		{"nada identificável", `<NFSe><infNFSe><nNFSe>18</nNFSe></infNFSe></NFSe>`, ""},
+		{"código truncado não passa por município", `<DPS><cLocEmi>431490</cLocEmi></DPS>`, ""},
+	}
+	for _, c := range casos {
+		if got := MunicipioDoXML(c.xml); got != c.quero {
+			t.Errorf("%s: MunicipioDoXML = %q, quero %q", c.nome, got, c.quero)
+		}
+	}
+}
 
 // O roteamento é o que a NFS-e tem de diferente: o município decide o provedor,
 // o provedor decide a família, e a família decide o construtor de INI.
@@ -526,6 +553,44 @@ func TestPDFPorChaveEPorXML(t *testing.T) {
 	}
 	if !strings.Contains(rec.Body.String(), "pdf_b64") {
 		t.Errorf("resposta sem pdf_b64: %s", rec.Body)
+	}
+	// Sem CodigoMunicipio a lib nem lê o XML: quem lê é a classe do provedor, e
+	// ela é escolhida pelo município. O pedido não trouxe nenhum, então tem de
+	// sair do próprio XML.
+	if got := cfgDoTenant(f2.tenant, "CodigoMunicipio"); got != munPadraoNacional {
+		t.Errorf("CodigoMunicipio = %q, quero %q: sem ele a lib responde "+
+			"\"Nenhum provedor selecionado\"", got, munPadraoNacional)
+	}
+}
+
+// O município do pedido vence o do XML: é o escape para documento cujo emissor
+// a tabela embutida atribui a outro provedor.
+func TestPDFPorXMLPrefereOMunicipioDoPedido(t *testing.T) {
+	f := &libFake{}
+	rec := post(t, muxDe(f), "/nfse/pdf", map[string]any{
+		"xml_b64":   base64.StdEncoding.EncodeToString([]byte(xmlFixture("2"))),
+		"municipio": munAbrasf,
+	})
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d: %s", rec.Code, rec.Body)
+	}
+	if got := cfgDoTenant(f.tenant, "CodigoMunicipio"); got != munAbrasf {
+		t.Errorf("CodigoMunicipio = %q, quero %q", got, munAbrasf)
+	}
+}
+
+// XML sem município identificável para ANTES da lib: recusar aqui diz o que
+// falta, enquanto a lib só devolveria "Nenhum provedor selecionado".
+func TestPDFPorXMLSemMunicipioRecusaAntesDaLib(t *testing.T) {
+	f := &libFake{}
+	rec := post(t, muxDe(f), "/nfse/pdf", map[string]any{
+		"xml_b64": base64.StdEncoding.EncodeToString([]byte(`<NFSe><infNFSe/></NFSe>`)),
+	})
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, quero 400: %s", rec.Code, rec.Body)
+	}
+	if f.tenant.Config != nil {
+		t.Error("o pedido chegou à lib mesmo sem município")
 	}
 }
 
