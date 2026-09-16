@@ -39,9 +39,6 @@ var naoEnviadas = map[string]string{
 	"Servico/xItemListaServico":          "descritivo devolvido pelo provedor",
 	"Servico/xCodigoTributacaoMunicipio": "descritivo devolvido pelo provedor",
 	"Servico/xNBS":                       "descritivo devolvido pelo provedor",
-	"Prestador/xMunicipio":               "descritivo devolvido pelo provedor",
-	"Tomador/xMunicipio":                 "descritivo devolvido pelo provedor",
-	"Intermediario/xMunicipio":           "descritivo devolvido pelo provedor",
 
 	// Prefixo do logradouro ("Rua", "Avenida"). O contrato: espelhando a Nuvem
 	// Fiscal: carrega o logradouro inteiro num campo só (xLgr), então não há o
@@ -49,68 +46,49 @@ var naoEnviadas = map[string]string{
 	// no bump para r47859, quando o endereço do local da prestação ganhou seção
 	// própria no LerIni.
 	"Servico/TipoLogradouro": "o contrato usa um logradouro único (xLgr), sem prefixo separado",
-
-	// Endereço do TOMADOR no exterior: coberto por CodigoPais/xPais.
-	"Tomador/DocEstrangeiro":  "tomador no exterior: fora do escopo atual",
-	"Tomador/NIF":             "tomador no exterior: fora do escopo atual",
-	"Tomador/cNaoNIF":         "tomador no exterior: fora do escopo atual",
-	"Tomador/TomadorExterior": "derivado de CodigoPais; default da lib já é 'não'",
-	"Prestador/NIF":           "prestador é sempre nacional neste produto",
-	"Prestador/cNaoNIF":       "prestador é sempre nacional neste produto",
-	"Intermediario/NIF":       "intermediário no exterior: fora do escopo",
-	"Intermediario/cNaoNIF":   "intermediário no exterior: fora do escopo",
 }
 
 // gruposNaoSuportados são seções inteiras que o contrato não cobre. Aparecem no
 // snapshot da lib mas não são lacuna: são escopo que decidimos não atender.
 var gruposNaoSuportados = map[string]string{
-	"ConstrucaoCivil":            "obra/ART, sem demanda até agora",
-	"Rodoviaria":                 "pedágio/vale, sem demanda",
-	"LocacaoSubLocacao":          "locação de postes/dutos, sem demanda",
-	"IdentificacaoNFSe":          "campos de RESPOSTA (cStat, dhProc, verAplic…)",
-	"RpsSubstituido":             "RPS substituído do ABRASF; a substituição do PN é por chave",
-	"NFSeCancelamento":           "campos de RESPOSTA do cancelamento",
-	"ValoresNFSe":                "valores de RESPOSTA",
-	"Emitente":                   "config de emitente vai por ConfigGravarValor",
-	"DeclaracaoPrestacaoServico": "agregador do layout, sem chaves nossas",
+	// As quatro abaixo foram conferidas no fonte: são lidas SÓ pelo LerIniNfse,
+	// o caminho que carrega uma NFS-e pronta. O LerIniRps, que é o que o nosso
+	// INI alimenta, não passa por nenhuma delas, então não há como enviá-las
+	// num RPS. Conferir com o mapa de chamadas do ACBrNFSeX.LerIni.pas.
+	//
+	// A justificativa antiga de [Emitente] dizia que o emitente ia por
+	// ConfigGravarValor. É falsa: não existe seção de emitente na config da lib
+	// (nem ACBrLibNFSeConfig.pas nem o DataModule têm uma), e o nosso
+	// ConfigGravarValor só escreve NFSe, DANFSe e DFe. O que a seção faz é
+	// copiar CNPJ, IM, razão social, endereço e contato para NFSe.Prestador,
+	// que já mandamos: escrevê-la seria um segundo caminho para o mesmo dado,
+	// com a chance de sobrescrever o prestador se divergirem.
+	"Emitente":         "lida só pelo LerIniNfse, e copia para Prestador, que já enviamos",
+	"ValoresNFSe":      "lida só pelo LerIniNfse: os valores calculados da nota emitida",
+	"NFSeCancelamento": "lida só pelo LerIniNfse: o desfecho do cancelamento, que lemos da resposta",
+	"OrgaoGerador":     "lida só pelo LerIniNfse: órgão gerador, preenchido pelo provedor",
 
-	// Apareceram quando o snapshot passou a ser GERADO do fonte: antes a
-	// direção 1 só olhava seis seções, então estas nunca foram comparadas.
-	// Todas são layout de provedor específico, fora do contrato.
-	"CondicaoPagamento":        "parcelamento por provedor, fora do contrato",
-	"Parcelas":                 "idem, as parcelas em si",
-	"Deducoes":                 "dedução por documento referenciado, sem demanda",
-	"DocumentosDeducaoReducao": "idem, os documentos da dedução",
-	"Despesas":                 "despesas reembolsáveis, sem demanda",
-	"Quartos":                  "hotelaria (diárias por quarto), sem demanda",
-	"Genericos":                "campos livres de provedor, sem contrato possível",
-	"Fornecedor":               "fornecedor do item, layout de provedor",
-	"Transportadora":           "transportadora, layout de provedor",
-	"Impostos":                 "quebra de imposto por item, layout de provedor",
-	"OrgaoGerador":             "órgão gerador, preenchido pelo provedor",
-	"EnderecoServico":          "endereço do local da prestação por ITEM",
-	"Email":                    "lista de e-mails do provedor",
-	"Itens":                    "detalhe por item do RPS: o contrato tem um serviço só",
-	"IBSCBSNFSE":               "grupo IBS/CBS de RESPOSTA",
-	"IBSCBSValoresNFSE":        "idem, os valores",
-	"TotCIBS":                  "totais IBS/CBS de RESPOSTA",
-	"TotgCBS":                  "idem",
-	"TotgIBS":                  "idem",
-	"gRefNFSe":                 "referência a NFS-e anterior, sem demanda",
-	"gTribCompraGov":           "compra governamental, sem demanda",
-	"gTribRegularNFSe":         "tributação regular de RESPOSTA",
+	// Esta o LerIniRps LÊ, e é por isso que escrevemos TipoXML=RPS nela. As 16
+	// chaves que faltam são da nota já emitida (Id, cStat, dhProc, nNFSe,
+	// ambGer, procEmi, tpEmis) ou descritivos que o provedor devolve (xLocEmi,
+	// xTribNac, xNBS): quem preenche é o fisco, não quem emite.
+	"IdentificacaoNFSe": "alcançável pelo RPS, mas são os campos que o fisco atribui",
 
 	// Seções do leitor de PEDIDOS (ACBrNFSeXWebserviceBase.pas), que entrou no
 	// snapshot junto com [CancelarNFSe] e [Evento].
-	"ConsultarNFSe":     "as consultas não vão por INI: cada uma tem função própria na lib, com parâmetros posicionais",
-	"ConsultarLinkNFSe": "idem; o link da NFS-e não é exposto por este produto",
-
-	// [Evento] existe nos DOIS leitores com o mesmo nome: a atividade de evento
-	// da nota (show, feira), que o contrato não cobre, e o pedido de registro de
-	// evento, que ESCREVEMOS (ToINIEvento). Como o snapshot funde as duas, esta
-	// direção não consegue separá-las e fica de fora; a direção de chave morta
-	// continua cobrindo o que escrevemos.
-	"Evento": "atividade de evento (sem demanda) colide com o pedido de registro de evento",
+	//
+	// A justificativa anterior dizia que consulta não vai por INI. É falsa: a
+	// lib exporta NFSE_ConsultarNFSeGenerico e NFSE_ConsultarLinkNFSe, e as
+	// duas recebem exatamente estas seções (TInfConsultaNFSe.LerFromIni e
+	// TInfConsultaLinkNFSe.LerFromIni, ACBrLibNFSeBase.pas:977 e :1024). O que
+	// é verdade é outra coisa: não ligamos esses dois símbolos. O acbrlib.h não
+	// os declara, e as nossas consultas usam as entradas POSICIONAIS (PorChave,
+	// PorNumero, PorFaixa, PorRps), que não leem INI nenhum.
+	//
+	// Enquanto o binding não existir, as 32 chaves não têm para onde ir. No dia
+	// em que existir, estas duas linhas saem daqui e viram contrato.
+	"ConsultarNFSe":     "INI da consulta genérica; falta ligar NFSE_ConsultarNFSeGenerico",
+	"ConsultarLinkNFSe": "INI da consulta de link; falta ligar NFSE_ConsultarLinkNFSe",
 }
 
 // escritas é o que os construtores de fato escrevem, lido do INI que eles
@@ -244,13 +222,13 @@ func TestLockstep_UmBuilderEnviaEOOutroNao(t *testing.T) {
 		"IdentificacaoRps/Tipo":             "ABRASF: não existe no PN",
 		"Valores/IssRetido":                 "ABRASF: no PN é tribMun.tpRetISSQN",
 
-		// Retenções federais: o PN as envia na seção própria [tribFed]; no ABRASF
-		// elas ficam dentro de [Valores]. Mesmo dado, seções diferentes.
-		"Valores/ValorPis":    "PN envia em [tribFed]",
-		"Valores/ValorCofins": "PN envia em [tribFed]",
-		"Valores/ValorInss":   "PN envia em [tribFed]",
-		"Valores/ValorIr":     "PN envia em [tribFed]",
-		"Valores/ValorCsll":   "PN envia em [tribFed]",
+		// Retenções federais: os dois builders enviam o grupo [tribFederal], e o
+		// ABRASF as repete dentro de [Valores], que é onde os layouts ABRASF leem.
+		"Valores/ValorPis":    "ABRASF: repete em [Valores] o que vai em [tribFederal]",
+		"Valores/ValorCofins": "ABRASF: repete em [Valores] o que vai em [tribFederal]",
+		"Valores/ValorInss":   "ABRASF: repete em [Valores] o que vai em [tribFederal]",
+		"Valores/ValorIr":     "ABRASF: repete em [Valores] o que vai em [tribFederal]",
+		"Valores/ValorCsll":   "ABRASF: repete em [Valores] o que vai em [tribFederal]",
 
 		"Prestador/DataOptanteSimplesNacional": "ABRASF: não existe no PN",
 		"Prestador/RegimeEspTrib":              "ABRASF: no PN é regTrib.regEspTrib",

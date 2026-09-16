@@ -35,6 +35,16 @@ WORKDIR /src
 # .dockerignore do contexto exclui .svn/.git.
 COPY acbr /src/acbr
 COPY frce /src/frce
+# Patches locais sobre o fonte pinado (docker/acbr-patches), em ordem. Cada um
+# corrige um defeito da lib que o trunk2 ainda não tem, e diz no cabeçalho o que
+# corrige e a revisão base. O build falha se um deles não aplicar limpo: patch
+# que não entra devolveria o defeito sem ninguém ver.
+COPY --from=patches . /patches
+RUN set -eux; apt-get update; apt-get install -y --no-install-recommends patch; \
+    rm -rf /var/lib/apt/lists/*; \
+    for p in /patches/*.patch; do [ -e "$p" ] || continue; \
+      patch -p1 --binary --forward -d /src/acbr < "$p"; \
+    done
 
 # Registra TODOS os .lpk necessários como package links do lazbuild:
 #   - Fortes Report CE (frce + cairo_canvas, se houver)

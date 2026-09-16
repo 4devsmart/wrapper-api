@@ -97,6 +97,14 @@ func (e *estado) andar(v reflect.Value, caminho string, prof int) {
 			if !c.IsExported() || pular[c.Name] {
 				continue
 			}
+			// Struct EMBUTIDA sem tag não é um nível no JSON: os campos dela saem
+			// inline. Tratá-la como nível produzia caminhos que o cliente nunca
+			// manda (infDPS.prest.Pessoa.CPF em vez de infDPS.prest.CPF), e quem
+			// lê o TSV de exceções está olhando para o payload.
+			if c.Anonymous && c.Tag.Get("json") == "" {
+				e.andar(v.Field(i), caminho, prof+1)
+				continue
+			}
 			e.andar(v.Field(i), juntar(caminho, nomeJSON(c)), prof+1)
 		}
 
@@ -105,6 +113,14 @@ func (e *estado) andar(v reflect.Value, caminho string, prof int) {
 		// quantos itens ele aguenta.
 		v.Set(reflect.MakeSlice(v.Type(), 1, 1))
 		e.andar(v.Index(0), caminho+"[]", prof+1)
+
+	case reflect.Bool:
+		// O INI da biblioteca lê booleano como INTEIRO (TCustomIniFile.ReadBool é
+		// ReadInteger <> 0), então o construtor escreve 1/0 e é isso que a
+		// sentinela procura. É a única sentinela fraca daqui: "1" aparece em
+		// outros lugares do INI, então quem garante o campo é o teste de unidade.
+		v.SetBool(true)
+		e.anotar(caminho, "1", "true")
 
 	case reflect.String:
 		e.n++

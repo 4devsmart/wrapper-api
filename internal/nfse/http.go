@@ -41,6 +41,8 @@ func (m *Modulo) Registrar(r modulo.Router) {
 	r.HandleFunc("POST /xml", m.handleXML)
 	// Transmitir: assina e envia. É aqui que o certificado entra.
 	r.HandleFunc("POST /transmissao", m.handleTransmissao)
+	// Desfecho de um lote assíncrono, pelo protocolo que a transmissão devolveu.
+	r.HandleFunc("POST /transmissao/lote", m.handleLote)
 	// Eventos (cancelamento e substituição): chamada única.
 	r.HandleFunc("POST /eventos/{tipo}", m.handleEvento)
 	// Consultas ao provedor: POST porque levam o certificado no corpo.
@@ -92,7 +94,7 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t := m.tenant(cnpj, cmun, p.InfDPS.Prest, p.Ambiente, layout, fiscal.Certificado{}, Credenciais{})
+	t := m.tenant(cnpj, cmun, p.InfDPS.Prest.Pessoa, p.Ambiente, layout, fiscal.Certificado{}, Credenciais{})
 	xml, val, res, err := fiscal.Montar(m.svc, t, ToINIDoLayout(layout, p))
 	if err != nil {
 		m.responderErro(w, res, err)
@@ -221,6 +223,8 @@ func (m *Modulo) handleTransmissao(w http.ResponseWriter, r *http.Request) {
 // statusEmissao traduz a Emissao no vocabulário comum aos módulos.
 func statusEmissao(e Emissao) string {
 	switch {
+	case e.Sucesso && e.AguardaProcessamento():
+		return "processando"
 	case e.Sucesso:
 		return "autorizado"
 	case len(e.Erros) > 0:
@@ -228,6 +232,44 @@ func statusEmissao(e Emissao) string {
 	default:
 		return "erro"
 	}
+}
+
+// handleLote devolve o desfecho de um lote assíncrono no mesmo formato da
+// transmissão: é a segunda metade dela. O cliente que recebeu "processando"
+// chama isto com o protocolo até ter autorizado ou rejeitado.
+//
+// Na autorização o XML é o da NFS-e que o provedor devolveu na consulta, e não
+// o do RPS enviado: é o documento que se guarda e de onde sai o DANFSE.
+func (m *Modulo) handleLote(w http.ResponseWriter, r *http.Request) {
+	p, t, ok := m.lerConsulta(w, r)
+	if !ok {
+		return
+	}
+	if strings.TrimSpace(p.Protocolo) == "" && strings.TrimSpace(p.NumeroLote) == "" {
+		httpx.ErroJSON(w, http.StatusBadRequest, "campo_obrigatorio",
+			"protocolo (devolvido pela transmissão) é obrigatório")
+		return
+	}
+	res, err := m.svc.ConsultarLoteRps(t, p.Protocolo, p.NumeroLote)
+	if err != nil {
+		m.responderErro(w, res, err)
+		return
+	}
+	if m.naoSuportada(w, t, p.Municipio, res.Resposta, "consulta de lote") {
+		return
+	}
+	l := ParseLoteRps(res.Resposta)
+	resp := RespostaTransmissao{
+		Numero: l.Numero, CodigoVerificacao: l.CodigoVerificacao,
+		Protocolo: fiscal.Primeiro(l.Protocolo, p.Protocolo),
+		Situacao:  l.DescSituacao,
+		Status:    l.Status(),
+		Erros:     l.Erros, Alertas: l.Alertas,
+	}
+	if resp.Status == "autorizado" {
+		resp.XMLBase64 = fiscal.Base64(res.XML)
+	}
+	httpx.JSON(w, fiscal.StatusDoDesfecho(resp.Status), resp)
 }
 
 // --- eventos ----------------------------------------------------------------
@@ -295,8 +337,14 @@ func (m *Modulo) handleEvento(w http.ResponseWriter, r *http.Request) {
 // os demais provedores cancelam pelo webservice CancelaNFSe. Chamar o segundo
 // num município do Padrão Nacional é o que devolvia "não implementado para este
 // provedor" em 300 ms, sem nada sair para o ADN.
+//
+// A identificação da nota também muda com o layout. O evento do Padrão Nacional
+// aponta a chave de acesso. O ABRASF não tem chave: o que a wrapper devolve
+// nesse campo é o link da nota, quando o provedor manda um, e o CancelaNFSe
+// localiza a nota pelo número. Exigir a chave ali recusava o cancelamento de
+// nota GISS autorizada sem link, com o número em mãos.
 func (m *Modulo) cancelar(w http.ResponseWriter, t acbr.TenantConfig, layout Layout, p PedidoEvento) {
-	if strings.TrimSpace(p.Chave) == "" {
+	if layout == LayoutPadraoNacional && strings.TrimSpace(p.Chave) == "" {
 		httpx.ErroJSON(w, http.StatusBadRequest, "campo_obrigatorio", "chave da NFS-e é obrigatória")
 		return
 	}
@@ -311,6 +359,12 @@ func (m *Modulo) cancelar(w http.ResponseWriter, t acbr.TenantConfig, layout Lay
 		return
 	}
 
+	if strings.TrimSpace(p.Chave) == "" && strings.TrimSpace(e.Numero) == "" {
+		httpx.ErroJSON(w, http.StatusBadRequest, "campo_obrigatorio",
+			"evento.numero (NFS-e a cancelar) é obrigatório fora do Padrão Nacional")
+		return
+	}
+
 	res, err := m.svc.Cancelar(t, ToINICancelamento(p.Chave, p.Municipio, e))
 	if err != nil {
 		m.responderErro(w, res, err)
@@ -320,10 +374,18 @@ func (m *Modulo) cancelar(w http.ResponseWriter, t acbr.TenantConfig, layout Lay
 		return
 	}
 	c := ParseCancelamento(res.Resposta)
+	// O XML que o worker pega depois do cancelamento é o da lista de notas, e a
+	// sessão começa vazia: o que volta ali é a mensagem de índice inválido. O
+	// documento do evento ABRASF é a resposta do provedor, que só vale guardar
+	// quando o cancelamento foi confirmado.
+	xmlDoEvento := res.XML
+	if c.Sucesso && strings.HasPrefix(c.XmlRetorno, "<") {
+		xmlDoEvento = c.XmlRetorno
+	}
 	httpx.JSON(w, fiscal.StatusDoEvento(StatusCancelamento(c)), RespostaEvento{
 		Tipo: "cancelamento", Chave: p.Chave, Status: StatusCancelamento(c),
 		Protocolo: c.Protocolo, DataHora: c.DataHora,
-		XMLBase64: fiscal.Base64(res.XML),
+		XMLBase64: fiscal.Base64(xmlDoEvento),
 		Erros:     c.Erros, Alertas: c.Alertas,
 	})
 }

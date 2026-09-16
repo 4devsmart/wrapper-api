@@ -1,0 +1,22 @@
+O leitor de INI do RPS passa a ler [IBSCBSNFSE] e [IBSCBSValoresNFSE].
+
+Giss, Ginfes, IPM, ISSNatal, Saatri, SpeedGov, Tinus, GeisWeb e iiBrasil gravam
+no RPS valores de IBS/CBS tirados de NFSe.infNFSe.IBSCBS (cLocalidadeIncid,
+pRedutor, vBC). So o LerIniNfse le essas secoes, entao no RPS o grupo ficava
+zerado: o GISS 2.04 saia com cLocalidadeIncid=0000000 e pRedutor=0.00.
+
+Base: ACBr trunk2 r48100. Ainda nao reportado ao projeto ACBr.
+
+--- a/Fontes/ACBrDFe/ACBrNFSeX/Base/Provedores/ACBrNFSeX.LerIni.pas
++++ b/Fontes/ACBrDFe/ACBrNFSeX/Base/Provedores/ACBrNFSeX.LerIni.pas
+@@ -220,6 +220,10 @@
+ 
+   // Reforma Tributária
+   LerINIIBSCBS(AINIRec, NFSe.IBSCBS);
++  // wrapper-api: o RPS de alguns provedores (Giss, Ginfes, IPM, ISSNatal,
++  // Saatri, SpeedGov, Tinus...) grava cLocalidadeIncid, pRedutor e vBC
++  // tirados de infNFSe.IBSCBS, que so o LerIniNfse preenchia.
++  LerINIIBSCBSNFSe(AINIRec, NFSe.infNFSe.IBSCBS);
+ 
+   LerINIQuartos(AINIRec);
+   LerINIDespesas(AINIRec);

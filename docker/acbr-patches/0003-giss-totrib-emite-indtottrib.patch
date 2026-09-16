@@ -1,0 +1,45 @@
+Giss 2.04: o terceiro ramo de totTrib (indTotTrib) passa a sair no XML.
+
+O TCTribTotal do GISS e um xsd:choice de tres ramos: pTotTrib (percentuais),
+pTotTribSN (Simples Nacional) e indTotTrib (nao destaque do Decreto 8.264/2014,
+cujo unico valor aceito e 0). O GerarXMLTotalTributos so produzia os dois
+primeiros: sem percentuais e sem pTotTribSN ele emitia
+<pTotTribSN>0.00</pTotTribSN>, e a prefeitura recusa o lote com
+
+  E160 - Obrigatorio informar a carga tributaria aproximada. O RPS nao contem
+  os valores percentuais dos tributos (totTrib) e nao apresenta o indicador de
+  opcao pelo nao destaque (Decreto 8.264/2014).
+
+O indTotTrib ja era gravado no INI (GerarINIValoresTotalTrib), e o releitor ja
+o le de volta, entao so faltava o XML.
+
+Reproduzido em producao no GISS 2.04.
+
+A mudanca fica confinada ao caso que hoje produz 0.00: quem emite percentuais,
+ou um pTotTribSN com valor, continua gerando XML byte a byte igual.
+
+Base: ACBr trunk2 r48100. Ainda nao reportado ao projeto ACBr.
+
+--- a/Fontes/ACBrDFe/ACBrNFSeX/Provedores/Giss.GravarXml.pas
++++ b/Fontes/ACBrDFe/ACBrNFSeX/Provedores/Giss.GravarXml.pas
+@@ -448,9 +448,18 @@
+      (NFSe.Servico.Valores.totTrib.pTotTribEst > 0) or
+      (NFSe.Servico.Valores.totTrib.pTotTribMun > 0) then
+     Result.AppendChild(GerarXMLPercentualTotalTributos)
+-  else
++  else if NFSe.Servico.Valores.totTrib.pTotTribSN > 0 then
+     Result.AppendChild(AddNode(tcDe2, '#1', 'pTotTribSN', 1, 5, 1,
+-                                  NFSe.Servico.Valores.totTrib.pTotTribSN, ''));
++                                  NFSe.Servico.Valores.totTrib.pTotTribSN, ''))
++  else
++    // wrapper-api: sem percentuais e sem pTotTribSN, o codigo original
++    // emitia <pTotTribSN>0.00</pTotTribSN>. O GISS recusa isso com E160
++    // ("Obrigatorio informar a carga tributaria aproximada... ou envie a
++    // tag indicadora de nao preenchimento"). O terceiro ramo do choice
++    // TCTribTotal e o indTotTrib, unico valor aceito 0 (Decreto 8.264/2014),
++    // que o gravador nunca emitia: so ia para o INI.
++    Result.AppendChild(AddNode(tcStr, '#1', 'indTotTrib', 1, 1, 1,
++                                  indTotTribToStr(indNao), ''));
+ end;
+ 
+ function TNFSeW_Giss204.GerarXMLPercentualTotalTributos: TACBrXmlNode;

@@ -119,6 +119,7 @@ acbr-compilar:
 	@test -d $(ACBR_SRC)/acbr && test -d $(ACBR_SRC)/frce || { \
 	  echo "falta o fonte em $(ACBR_SRC): rode 'make acbr-fonte'"; exit 1; }
 	docker build -f docker/acbrlib.Dockerfile --build-arg ACBR_REV=$(ACBR_REV) \
+		--build-context patches=docker/acbr-patches \
 		-t $(ACBR_BASE_IMAGE):dev \
 		-t $(ACBR_BASE_IMAGE):r$(ACBR_REV) $(ACBR_SRC)
 

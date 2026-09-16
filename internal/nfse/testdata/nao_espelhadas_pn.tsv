@@ -16,5 +16,6 @@ infDPS.serv.naturezaOperacao	campo do RPS do ABRASF; o Padrão Nacional deriva a
 infDPS.serv.responsavelRetencao	campo do RPS do ABRASF; no Padrão Nacional a retenção é o tpRetISSQN de tribMun
 infDPS.prest.regTrib.incentivadorCultural	campo do RPS do ABRASF, sem equivalente no Padrão Nacional
 infDPS.prest.regTrib.dataOptanteSimplesNacional	campo do RPS do ABRASF, sem equivalente no Padrão Nacional
-infDPS.toma.regTrib.*	a biblioteca lê o regime tributário só do prestador: quem emite é quem declara o próprio regime
-infDPS.interm.regTrib.*	a biblioteca lê o regime tributário só do prestador: quem emite é quem declara o próprio regime
+infDPS.rpsSubstituido.numero	seção do RPS do ABRASF; no Padrão Nacional a substituição é por chave
+infDPS.rpsSubstituido.serie	idem
+infDPS.rpsSubstituido.tipo	idem

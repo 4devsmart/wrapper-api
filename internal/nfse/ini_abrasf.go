@@ -16,11 +16,16 @@ import (
 // proprietário é só o XML de SAÍDA, gerado pela engine por município.
 //
 // Diferenças em relação ao Padrão Nacional (ToINI):
-//   - OMITE os grupos exclusivos do PN: [tribMun] detalhado, [tribFed],
-//     [totTrib] e [IBSCBSDPS] (Reforma Tributária).
 //   - Emite os campos que o ABRASF exige: regime/optante/incentivador no
 //     [Prestador] e Status/Tipo/NaturezaOperacao no [IdentificacaoRps].
-//   - Retenções federais vão DENTRO de [Valores] (não numa seção separada).
+//   - Retenções federais vão também DENTRO de [Valores], que é onde os
+//     layouts ABRASF as leem.
+//
+// Os grupos detalhados ([tribMun], [tribFederal], [totTrib],
+// [ComercioExterior], [InformacoesComplementares]) e a Reforma Tributária vão
+// igual nos dois. Eram omitidos aqui por serem "do Padrão Nacional", mas o
+// leitor de INI é um só e há gravador municipal que os leva ao XML: no GISS 2.04
+// o PIS/COFINS com CST, os totais e o IBS/CBS sumiam da nota.
 //
 // Mapeamento dos campos do contrato único: serv.itemListaServico (LC116) com
 // fallback para serv.cServ; serv.cTribMun → CodigoTributacaoMunicipio;
@@ -46,9 +51,18 @@ func ToINIAbrasf(p DPSPedido) string {
 	// Só o builder do PN emitia, e o campo do contrato era descartado nos
 	// municípios não-PN. Achado pelo teste de espelho.
 	b.KV("verAplic", cmp.Or(inf.VerAplic, versao.Emissor()))
+	b.identificacaoRps(inf)
+
+	if r := inf.RpsSubst; r != nil {
+		b.Secao("RpsSubstituido")
+		b.KVOpt("Numero", r.Numero)
+		b.KVOpt("Serie", r.Serie)
+		b.KVOpt("Tipo", r.Tipo)
+	}
 
 	b.Secao("Prestador")
-	b.pessoaCommon(inf.Prest)
+	b.pessoaCommon(inf.Prest.Pessoa)
+	b.pessoaPrestador(inf.Prest)
 	if rt := inf.Prest.RegTrib; rt != nil {
 		b.KV("OptanteSN", strconv.Itoa(optanteSN(rt.OpSimpNac)))
 		b.KVIntOpt("RegimeEspTrib", rt.RegEspTrib)
@@ -59,11 +73,13 @@ func ToINIAbrasf(p DPSPedido) string {
 
 	if inf.Toma != nil {
 		b.Secao("Tomador")
-		b.pessoaCommon(*inf.Toma)
+		b.pessoaCommon(inf.Toma.Pessoa)
+		b.pessoaTomador(*inf.Toma)
 	}
 	if inf.Interm != nil {
 		b.Secao("Intermediario")
-		b.pessoaCommon(*inf.Interm)
+		b.pessoaCommon(inf.Interm.Pessoa)
+		b.pessoaIntermediario(*inf.Interm)
 	}
 
 	s := inf.Serv
@@ -88,17 +104,17 @@ func ToINIAbrasf(p DPSPedido) string {
 	b.KVIntOpt("ExigibilidadeISS", s.ExigibISS)
 	b.KVOpt("MunicipioIncidencia", s.MunIncidencia)
 	b.KVOpt("xMunicipioIncidencia", s.XMunIncidencia)
-	// País do LOCAL DA PRESTAÇÃO (serviço prestado no exterior). O ABRASF aceita
-	// (tcDadosServico tem CodigoPais) e só o builder do PN enviava: mesma
-	// família do CodigoPais do tomador, que fazia o endereço nacional virar
-	// exterior. Achado pelo teste de lockstep.
-	b.KVOpt("CodigoPais", s.CodigoPais)
+	// País do LOCAL DA PRESTAÇÃO, com default para serviço prestado no Brasil:
+	// ver codigoPaisServico.
+	b.KVOpt("CodigoPais", codigoPaisServico(s))
 	b.KVOpt("xPais", s.XPais)
 	// NumeroProcesso (processo judicial/administrativo que suspende a
 	// exigibilidade do ISS). Existe nos dois layouts: o builder do Padrão
 	// Nacional já enviava e este descartava. Máx. 30 no ABRASF.
 	b.KVOpt("NumeroProcesso", s.NumeroProcesso)
 	b.KVIntOpt("ResponsavelRetencao", s.RespRetencao)
+	b.servicoProvedor(s)
+	b.complementosServico(s)
 
 	v := inf.Valores
 	aliq := v.PAliq
@@ -115,7 +131,8 @@ func ToINIAbrasf(p DPSPedido) string {
 	b.KVOpt("DescontoCondicionado", inifmt.MoneyOpt(v.VDescCond))
 	b.KVOpt("ValorDeducoes", inifmt.MoneyOpt(v.VDeducoes))
 	b.KVOpt("AliquotaDeducoes", inifmt.MoneyOpt(v.PDeducoes))
-	// Retenções federais: no ABRASF ficam dentro de [Valores] (não há [tribFed]).
+	// Retenções federais: os layouts ABRASF as leem de [Valores]. O grupo
+	// detalhado vai também, em [tribFederal] (ver tributacao).
 	if t := v.TribFed; t != nil {
 		b.KVOpt("ValorPis", inifmt.MoneyOpt(t.VPis))
 		b.KVOpt("ValorCofins", inifmt.MoneyOpt(t.VCofins))
@@ -123,7 +140,12 @@ func ToINIAbrasf(p DPSPedido) string {
 		b.KVOpt("ValorIr", inifmt.MoneyOpt(t.VRetIRRF))
 		b.KVOpt("ValorCsll", inifmt.MoneyOpt(t.VRetCSLL))
 	}
+	b.valoresProvedor(v)
 
+	b.tributacao(v)
+	b.ibscbs(inf.IBSCBS)
+	b.gruposDoServico(s)
+	b.gruposDoDocumento(inf)
 	b.itemServico(s, v, aliq)
 	return b.String()
 }
@@ -144,6 +166,9 @@ func ToINIAbrasf(p DPSPedido) string {
 //
 // Nosso contrato tem um serviço só, então emitimos exatamente um item.
 func (b *iniBuilder) itemServico(s Servico, v Valores, aliq float64) {
+	if len(s.Itens) > 0 {
+		return // a lista veio do pedido: quem escreve é gruposDoServico
+	}
 	if s.XDescServ == "" {
 		return // sem descrição não há âncora: a lib pararia no índice 1 de qualquer forma
 	}
@@ -165,6 +190,28 @@ func (b *iniBuilder) itemServico(s Servico, v Valores, aliq float64) {
 	b.KVOpt("ValorDeducoes", inifmt.MoneyOpt(v.VDeducoes))
 	b.KVOpt("DescontoIncondicionado", inifmt.MoneyOpt(v.VDescIncond))
 	b.KVOpt("DescontoCondicionado", inifmt.MoneyOpt(v.VDescCond))
+}
+
+// codigoPaisServico é o CodigoPais do local da prestação no ABRASF. Município
+// brasileiro da prestação decide, como nas pessoas (codigoPais), e sem ele vale
+// o codigoPais informado. O município de incidência decide por último, porque
+// numa exportação ele pode ser brasileiro com a prestação lá fora.
+//
+// O default não é conveniência: a homologação do GISS recusa a nota sem ele,
+// com "E383 - Código do pais não informado". Há ainda gravador que compara o
+// campo com 1058 e trata o 0 da chave ausente como exterior: o Tecnos escrevia
+// <CodigoPaisPrestacao>0000</CodigoPaisPrestacao> e o SigISSWeb
+// exterior_prestacao_servico=1 em nota prestada no Brasil.
+func codigoPaisServico(s Servico) string {
+	switch {
+	case municipioBrasileiro(s.CMunPrestacao):
+		return strconv.Itoa(codigoPaisBrasil)
+	case s.CodigoPais != "":
+		return s.CodigoPais
+	case municipioBrasileiro(s.MunIncidencia):
+		return strconv.Itoa(codigoPaisBrasil)
+	}
+	return ""
 }
 
 // optanteSN converte o opSimpNac do Padrão Nacional (1=não optante, 2=MEI,

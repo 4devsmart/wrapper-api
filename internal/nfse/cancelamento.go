@@ -1,5 +1,11 @@
 package nfse
 
+import (
+	"strings"
+
+	"github.com/4devsmart/wrapper-api/internal/platform/inifmt"
+)
+
 // CancelamentoPedido é o corpo do pedido de cancelamento (espelha o
 // NfsePedidoCancelamento do ACBr.API). Códigos e motivos exigidos variam por
 // prefeitura; no Padrão Nacional o código default é 1 (erro na emissão).
@@ -17,16 +23,40 @@ type CancelamentoPedido struct {
 	// NumeroLote é o número do lote em que a nota foi enviada, exigido por
 	// alguns provedores para localizar o documento a cancelar.
 	NumeroLote string `json:"numero_lote,omitempty"`
+	// Identificação pelo RPS que originou a nota, em vez da NFS-e: é assim que
+	// parte dos provedores localiza o documento a cancelar.
+	NumeroRps int    `json:"numero_rps,omitempty"`
+	SerieRps  string `json:"serie_rps,omitempty"` // Série do RPS de origem.
+	// Conferências: há provedor que recusa o cancelamento quando a data de
+	// emissão ou o valor não batem com a nota que está lá.
+	DataEmissao string  `json:"data_emissao,omitempty"`
+	Valor       float64 `json:"valor,omitempty"` // Valor total da nota cancelada.
+	// Documento do tomador da nota, mais uma conferência pedida por alguns
+	// provedores.
+	CNPJCPFTomador string `json:"cnpj_cpf_tomador,omitempty"`
+	// Código do serviço da nota cancelada.
+	CodigoServico string `json:"codigo_servico,omitempty"`
+	// Cancelamento COM substituição em uma chamada só, que alguns provedores
+	// oferecem aqui. O caminho normal deste produto é o endpoint de
+	// substituição, que emite a nota nova; estes campos existem para o
+	// município que só aceita a forma combinada.
+	NumeroSubstituta string `json:"numero_substituta,omitempty"`
+	SerieSubstituta  string `json:"serie_substituta,omitempty"` // Série da nota substituta.
+	// Endereço que recebe o aviso de cancelamento, nos provedores que o disparam.
+	Email string `json:"email,omitempty"`
 }
 
 // Cancelamento é o resultado estruturado de um cancelamento, extraído da
 // resposta INI do ACBr (NFSE_Cancelar).
 type Cancelamento struct {
-	Sucesso   bool       `json:"-"`
-	DataHora  string     `json:"data_hora,omitempty"`
-	Protocolo string     `json:"protocolo,omitempty"`
-	Erros     []Mensagem `json:"mensagens,omitempty"`
-	Alertas   []Mensagem `json:"alertas,omitempty"`
+	Sucesso bool `json:"-"`
+	// XmlRetorno é a resposta do provedor ao pedido ([CancelarNFSe]), que no
+	// ABRASF traz o <NfseCancelamento> com a confirmação: é o documento do evento.
+	XmlRetorno string     `json:"-"`
+	DataHora   string     `json:"data_hora,omitempty"`
+	Protocolo  string     `json:"protocolo,omitempty"`
+	Erros      []Mensagem `json:"mensagens,omitempty"`
+	Alertas    []Mensagem `json:"alertas,omitempty"`
 }
 
 // ToINICancelamento monta o INI [CancelarNFSe] consumido por NFSE_Cancelar.
@@ -51,30 +81,72 @@ func ToINICancelamento(chave, cMun string, p CancelamentoPedido) string {
 	b.KVOpt("SerieNFSe", p.Serie)
 	b.KVOpt("CodVerificacao", p.CodigoVerificacao)
 	b.KVOpt("NumeroLote", p.NumeroLote)
+	// O resto da seção: identificação pelo RPS, conferências e o cancelamento
+	// com substituição. Cada provedor pede um subconjunto disto, e o que não
+	// for informado não vai ao INI.
+	b.KVIntOpt("NumeroRps", p.NumeroRps)
+	b.KVOpt("SerieRps", p.SerieRps)
+	b.KVOpt("DataEmissaoNFSe", b.Data(p.DataEmissao))
+	b.KVOpt("ValorNFSe", inifmt.MoneyOpt(p.Valor))
+	b.KVOpt("CNPJCPFTomador", p.CNPJCPFTomador)
+	b.KVOpt("CodServ", p.CodigoServico)
+	b.KVOpt("NumeroNFSeSubst", p.NumeroSubstituta)
+	b.KVOpt("SerieNFSeSubst", p.SerieSubstituta)
+	b.KVOpt("email", p.Email)
 	return b.String()
 }
 
-// ParseCancelamento interpreta a resposta INI do ACBr (NFSE_Cancelar). A
-// resposta traz uma seção [Cancelamento] (ou [Envio]) com Sucesso/Data/Protocolo
-// e seções [ErroN]/[AlertaN].
+// ParseCancelamento interpreta a resposta INI do ACBr (NFSE_Cancelar), com as
+// seções [ErroN]/[AlertaN].
+//
+// O desfecho vem em [RetCancelamento]: é onde a ACBrLib (TCancelarNFSeResposta)
+// põe Sucesso, Situacao e DataHora, e o ABRASF v2 grava Sucesso=Sim quando o
+// provedor devolve a confirmação. Ler só [Cancelamento]/[Envio] com Sucesso=1
+// fazia todo cancelamento ABRASF bem-sucedido voltar como erro 502: a nota era
+// cancelada no GISS e o cliente ouvia "desfecho indeterminado".
+// As duas seções antigas continuam lidas.
 func ParseCancelamento(resp string) Cancelamento {
 	var c Cancelamento
 	c.Erros, c.Alertas = lerRespostaINI(resp, func(secao, key, val string) {
-		if secao != "Cancelamento" && secao != "Envio" {
-			return
-		}
-		switch key {
-		case "Sucesso":
-			c.Sucesso = val == "1"
-		case "Protocolo":
-			c.Protocolo = val
-		case "DataHora", "Data", "DhRecbto":
-			if val != "" {
-				c.DataHora = val
+		switch secao {
+		case "CancelarNFSe":
+			if key == "XmlRetorno" {
+				c.XmlRetorno = val
+			}
+		case "RetCancelamento":
+			switch key {
+			case "Sucesso":
+				c.Sucesso = c.Sucesso || sucessoDaLib(val)
+			case "DataHora":
+				if dataPreenchida(val) {
+					c.DataHora = val
+				}
+			}
+		case "Cancelamento", "Envio":
+			switch key {
+			case "Sucesso":
+				c.Sucesso = c.Sucesso || val == "1"
+			case "Protocolo":
+				c.Protocolo = val
+			case "DataHora", "Data", "DhRecbto":
+				if val != "" {
+					c.DataHora = val
+				}
 			}
 		}
 	})
 	return c
+}
+
+// sucessoDaLib aceita as formas que o campo texto Sucesso assume nos provedores:
+// "Sim" no ABRASF v2, "1" e "True" em outros.
+func sucessoDaLib(val string) bool {
+	return strings.EqualFold(val, "sim") || val == "1" || strings.EqualFold(val, "true")
+}
+
+// dataPreenchida descarta o TDateTime zerado, que a lib escreve como 30/12/1899.
+func dataPreenchida(val string) bool {
+	return val != "" && val != "0" && !strings.HasPrefix(val, "30/12/1899")
 }
 
 // StatusCancelamento mapeia o resultado para o enum do ACBr.API
