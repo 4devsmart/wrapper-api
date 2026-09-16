@@ -381,10 +381,15 @@ func DecodarAninhado(rotulo string, bruto json.RawMessage, dst any) string {
 // StatusDoDesfecho mapeia o desfecho de uma transmissão para HTTP. Rejeitado é
 // 422 (o documento do cliente não passou), não 200, mas o corpo vai completo,
 // com cStat e motivo, porque é isso que ele precisa para corrigir.
+//
+// Processando é 202: o provedor aceitou o lote e ainda não decidiu. Não é
+// sucesso para gravar a nota como emitida, nem falha para reenviar.
 func StatusDoDesfecho(status string) int {
 	switch status {
 	case "autorizado":
 		return http.StatusOK
+	case "processando":
+		return http.StatusAccepted
 	case "rejeitado":
 		return http.StatusUnprocessableEntity
 	default:

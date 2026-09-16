@@ -936,6 +936,12 @@ paths:
     post:
       tags: [nfse]
       summary: Transmite a DPS ao provedor
+      description: |
+        Nos provedores que recebem por lote assíncrono (o GISS 2.04, por
+        exemplo), o envio só entrega o lote: a resposta é 202 com status
+        processando e o protocolo, e a nota ainda não existe. O desfecho sai de
+        POST /v1/nfse/transmissao/lote, com esse protocolo. Não reenvie a DPS
+        enquanto o lote não tiver desfecho.
       requestBody:
         required: true
         content:
@@ -947,8 +953,57 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/RespostaTransmissaoNFSe" }
+        "202":
+          description: Lote recebido, ainda sem desfecho; consulte pelo protocolo
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaTransmissaoNFSe" }
         "422":
           description: Rejeitada, ou operação não suportada pelo provedor
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaTransmissaoNFSe" }
+        "502": { $ref: "#/components/responses/Erro502" }
+
+  /v1/nfse/transmissao/lote:
+    post:
+      tags: [nfse]
+      summary: Desfecho de um lote assíncrono
+      description: |
+        A segunda metade da transmissão nos provedores assíncronos. Pergunta
+        pelo protocolo e responde no mesmo formato da transmissão: autorizado,
+        com número, código de verificação e o XML da NFS-e que o provedor
+        devolveu; rejeitado, com as mensagens; ou processando, enquanto o
+        provedor não decidiu.
+
+        Situação 4 sem nota e provedor que não informa a situação voltam como
+        erro (502): não há o que gravar.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PedidoConsultaNFSe"
+                - type: object
+                  required: [protocolo]
+                  properties:
+                    protocolo: { type: string, description: "O protocolo que a transmissão devolveu." }
+                    numero_lote: { type: string, description: "Número do lote, para os provedores que o pedem junto." }
+      responses:
+        "200":
+          description: Autorizada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaTransmissaoNFSe" }
+        "202":
+          description: O provedor ainda não processou o lote
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespostaTransmissaoNFSe" }
+        "400": { $ref: "#/components/responses/Erro400" }
+        "422":
+          description: Lote processado com erro
           content:
             application/json:
               schema: { $ref: "#/components/schemas/RespostaTransmissaoNFSe" }
@@ -1048,10 +1103,14 @@ paths:
       description: |
         Cancela a NFS-e. São dois webservices diferentes, e quem escolhe é o
         município: no Padrão Nacional o cancelamento é um evento (pedido de
-        registro de evento e101101) e basta a chave; nos provedores ABRASF e
-        próprios é o webservice de cancelamento, que identifica a nota por
-        NÚMERO, então informe evento.numero (e a série ou o código de
-        verificação, se a prefeitura exigir).
+        registro de evento e101101) e a chave é obrigatória; nos provedores
+        ABRASF e próprios é o webservice de cancelamento, que identifica a nota
+        por NÚMERO, então informe evento.numero (e a série ou o código de
+        verificação, se a prefeitura exigir). Ali a chave é dispensável: sem
+        ela e sem evento.numero, a resposta é 400 campo_obrigatorio.
+
+        Número e código de verificação podem ir sempre, sem conhecer o layout:
+        no Padrão Nacional eles não entram no evento.
 
         No Padrão Nacional evento.motivo é obrigatório e precisa ter de 15 a 255
         caracteres, e evento.codigo é 1 (erro na emissão), 2 (serviço não
@@ -1458,7 +1517,7 @@ components:
         chave: { type: string , description: "Chave de acesso da NFS-e." }
         codigo_verificacao: { type: string , description: "Código de verificação da nota, usado na consulta pública." }
         protocolo: { type: string , description: "Protocolo do provedor." }
-        status: { type: string, enum: [autorizado, rejeitado, erro] , description: "Desfecho: autorizado, rejeitado ou erro." }
+        status: { type: string, enum: [autorizado, processando, rejeitado, erro] , description: "Desfecho: autorizado, processando (lote assíncrono ainda sem decisão), rejeitado ou erro." }
         situacao: { type: string , description: "Situação da nota no provedor." }
         xml_b64: { type: string, format: byte , description: "XML da NFS-e autorizada. Guarde: não há segunda via." }
         erros:
@@ -1490,7 +1549,7 @@ components:
       description: "Envelope do evento de NFS-e. Os campos do tipo vão em evento."
       required: [municipio, certificado]
       properties:
-        chave: { type: string, description: exigida no cancelamento }
+        chave: { type: string, description: "exigida no cancelamento do Padrão Nacional; nos demais layouts, a nota se identifica por evento.numero" }
         municipio: { type: string , description: "Código IBGE do município, 7 dígitos." }
         ambiente: { $ref: "#/components/schemas/Ambiente" }
         emitente: { $ref: "#/components/schemas/Emitente" }
@@ -4857,6 +4916,138 @@ components:
         mdic:
           type: integer
           description: 'Informações exigidas pelo MDIC.'
+    NfseCondicaoPagamento:
+      type: object
+      description: 'O parcelamento do documento.'
+      properties:
+        qtdParcela:
+          type: integer
+          description: 'quantidade de parcelas.'
+        condicao:
+          type: string
+          description: 'condição de pagamento.'
+        dataCriacao:
+          type: string
+          format: date
+          description: 'data de criação. Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
+        dataVencimento:
+          type: string
+          format: date
+          description: 'vencimento. Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
+        instrucaoPagamento:
+          type: string
+          description: 'instrução de pagamento.'
+        codigoVencimento:
+          type: string
+          description: 'código de vencimento do provedor.'
+        parcelas:
+          type: array
+          items:
+            $ref: "#/components/schemas/NfseParcela"
+          description: 'parcelas do parcelamento.'
+    NfseConstrucaoCivil:
+      type: object
+      description: 'A obra a que o serviço se refere. O endereço da obra vai achatado na mesma seção.'
+      properties:
+        codigoObra:
+          type: string
+          description: 'código da obra (CNO).'
+        inscImobFisc:
+          type: string
+          description: 'inscrição imobiliária fiscal.'
+        cib:
+          type: integer
+          description: 'cadastro imobiliário brasileiro.'
+        art:
+          type: string
+          description: 'anotação de responsabilidade técnica.'
+        obrasOpcao:
+          type: integer
+          description: 'opção de informação da obra.'
+        localConstrucao:
+          type: string
+          description: 'local da construção.'
+        reformaCivil:
+          type: integer
+          description: '1=Sim, 2=Não.'
+        nCei:
+          type: string
+          description: 'número do CEI da obra.'
+        nProj:
+          type: string
+          description: 'número do projeto.'
+        nMatri:
+          type: string
+          description: 'número da matrícula.'
+        nNumeroEncapsulamento:
+          type: string
+          description: 'número de encapsulamento.'
+        logradouro:
+          type: string
+          description: 'logradouro da obra.'
+        numero:
+          type: string
+          description: 'número.'
+        complemento:
+          type: string
+          description: 'complemento.'
+        bairro:
+          type: string
+          description: 'bairro.'
+        CEP:
+          type: string
+          description: 'CEP.'
+        codigoMunicipio:
+          type: string
+          description: 'município da obra (IBGE).'
+        xMunicipio:
+          type: string
+          description: 'nome do município.'
+        UF:
+          type: string
+          description: 'UF.'
+    NfseDeducao:
+      type: object
+      description: 'Uma dedução por documento referenciado.'
+      properties:
+        tipoDeducao:
+          type: string
+          description: 'tipo da dedução.'
+        CNPJCPF:
+          type: string
+          description: 'documento do referenciado.'
+        numeroNFReferencia:
+          type: string
+          description: 'número da nota referenciada.'
+        valorTotalReferencia:
+          type: number
+          description: 'valor total da nota referenciada.'
+        percentualDeduzir:
+          type: number
+          description: 'percentual a deduzir.'
+        valorDeduzir:
+          type: number
+          description: 'valor a deduzir.'
+        deducaoPor:
+          type: string
+          description: 'dedução por valor ou percentual.'
+    NfseDespesa:
+      type: object
+      description: 'Uma despesa reembolsável.'
+      properties:
+        nItemDesp:
+          type: string
+          description: 'número do item da despesa.'
+        xDesp:
+          type: string
+          description: 'descrição da despesa.'
+        dDesp:
+          type: string
+          format: date
+          description: 'data da despesa. Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
+        vDesp:
+          type: number
+          description: 'valor da despesa.'
     NfseDestIBS:
       type: object
       description: 'O destinatário da operação na Reforma.'
@@ -4909,6 +5100,72 @@ components:
         telefone:
           type: string
           description: 'Telefone, só dígitos, com DDD.'
+        IE:
+          type: string
+          description: 'Inscrição estadual do destinatário (SigISSWeb).'
+        xPais:
+          type: string
+          description: 'Nome do país, no destinatário do exterior.'
+        cNaoNIF:
+          type: string
+          description: 'Motivo de não informar o NIF.'
+        tipoServico:
+          type: string
+          description: 'Tipo de serviço do destinatário (Publica).'
+    NfseDocDeducaoReducao:
+      type: object
+      description: 'Um documento que embasa dedução ou redução da base.'
+      properties:
+        dtEmiDoc:
+          type: string
+          format: date
+          description: 'emissão do documento. Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
+        tpDedRed:
+          type: string
+          description: 'tipo de dedução ou redução.'
+        xDescOutDed:
+          type: string
+          description: 'descrição de outra dedução.'
+        vDedutivelRedutivel:
+          type: number
+          description: 'valor dedutível ou redutível.'
+        vDeducaoReducao:
+          type: number
+          description: 'valor deduzido ou reduzido.'
+        chNFSe:
+          type: string
+          description: 'chave da NFS-e nacional.'
+        chNFe:
+          type: string
+          description: 'chave da NF-e.'
+        nDocFisc:
+          type: string
+          description: 'número do documento fiscal.'
+        nDoc:
+          type: string
+          description: 'número do documento não fiscal.'
+        cMunNFSeMun:
+          type: string
+          description: 'município da NFS-e municipal.'
+        nNFSeMun:
+          type: string
+          description: 'número da NFS-e municipal.'
+        cVerifNFSeMun:
+          type: string
+          description: 'código de verificação da NFS-e municipal.'
+        nNFS:
+          type: string
+          description: 'número da nota fiscal de serviço.'
+        modNFS:
+          type: string
+          description: 'modelo da nota fiscal de serviço.'
+        serieNFS:
+          type: string
+          description: 'série da nota fiscal de serviço.'
+        fornecedor:
+          description: 'quem emitiu o documento.'
+          allOf:
+            - $ref: "#/components/schemas/NfseFornecedor"
     NfseDocReeRep:
       type: object
       description: 'Um documento de reembolso/representação/ressarcimento. Identifica o doc por chave DFe, doc fiscal de outro município ou doc avulso, o fornecedor e o tipo/valor de reembolso.'
@@ -4946,6 +5203,12 @@ components:
         fornecNome:
           type: string
           description: 'Nome do fornecedor do documento referenciado.'
+        fornecNIF:
+          type: string
+          description: 'Identificação fiscal do fornecedor no exterior.'
+        fornecCNaoNIF:
+          type: string
+          description: 'Motivo de não informar o NIF do fornecedor.'
         dtEmiDoc:
           type: string
           description: 'Data de emissão do documento referenciado.'
@@ -4975,6 +5238,77 @@ components:
         infDPS:
           allOf:
             - $ref: "#/components/schemas/NfseInfDPS"
+    NfseEnderecoPrestacao:
+      type: object
+      description: 'O endereço do local da prestação do serviço, lido das chaves de endereço da.'
+      properties:
+        logradouro:
+          type: string
+          description: 'Logradouro.'
+        tipoLogradouro:
+          type: string
+          description: 'tipo do logradouro (Rua, Avenida).'
+        numero:
+          type: string
+          description: 'Número do documento.'
+        complemento:
+          type: string
+          description: 'Complemento do endereço.'
+        bairro:
+          type: string
+          description: 'Bairro.'
+        CEP:
+          type: string
+          description: 'CEP, 8 dígitos, sem hífen.'
+        UF:
+          type: string
+          description: 'Sigla da unidade federativa, duas letras.'
+    NfseEnderecoServico:
+      type: object
+      description: 'O endereço de execução do serviço.'
+      properties:
+        enderecoInformado:
+          type: string
+          description: '1=Sim, 2=Não, endereço informado.'
+        tipoLogradouro:
+          type: string
+          description: 'tipo do logradouro (Rua, Avenida).'
+        endereco:
+          type: string
+          description: 'logradouro.'
+        numero:
+          type: string
+          description: 'número.'
+        complemento:
+          type: string
+          description: 'complemento.'
+        tipoBairro:
+          type: string
+          description: 'tipo do bairro.'
+        bairro:
+          type: string
+          description: 'bairro.'
+        codigoMunicipio:
+          type: string
+          description: 'município (IBGE).'
+        UF:
+          type: string
+          description: 'UF.'
+        CEP:
+          type: string
+          description: 'CEP.'
+        xMunicipio:
+          type: string
+          description: 'nome do município.'
+        codigoPais:
+          type: integer
+          description: 'país (BACEN; 1058 = Brasil).'
+        xPais:
+          type: string
+          description: 'nome do país.'
+        pontoReferencia:
+          type: string
+          description: 'ponto de referência.'
     NfseEventoCancelamento:
       type: object
       description: 'O corpo do pedido de cancelamento. Códigos e motivos exigidos variam por prefeitura; no Padrão Nacional o código default é 1 (erro na emissão).'
@@ -4997,6 +5331,78 @@ components:
         numero_lote:
           type: string
           description: 'O número do lote em que a nota foi enviada, exigido por alguns provedores para localizar o documento a cancelar.'
+        numero_rps:
+          type: integer
+          description: 'Identificação pelo RPS que originou a nota, em vez da NFS-e: é assim que parte dos provedores localiza o documento a cancelar.'
+        serie_rps:
+          type: string
+          description: 'Série do RPS de origem.'
+        data_emissao:
+          type: string
+          description: 'Conferências: há provedor que recusa o cancelamento quando a data de emissão ou o valor não batem com a nota que está lá.'
+        valor:
+          type: number
+          description: 'Valor total da nota cancelada.'
+        cnpj_cpf_tomador:
+          type: string
+          description: 'Documento do tomador da nota, mais uma conferência pedida por alguns provedores.'
+        codigo_servico:
+          type: string
+          description: 'Código do serviço da nota cancelada.'
+        numero_substituta:
+          type: string
+          description: 'Cancelamento COM substituição em uma chamada só, que alguns provedores oferecem aqui. O caminho normal deste produto é o endpoint de substituição, que emite a nota nova; estes campos existem para o município que só aceita a forma combinada.'
+        serie_substituta:
+          type: string
+          description: 'Série da nota substituta.'
+        email:
+          type: string
+          description: 'Endereço que recebe o aviso de cancelamento, nos provedores que o disparam.'
+    NfseEventoServico:
+      type: object
+      description: 'A atividade de evento a que o serviço se refere (show, feira, congresso), na. Não confundir com EventoPN, que é o pedido de registro de evento. São INIs diferentes, de chamadas diferentes, que a biblioteca nomeia igual: o leitor da nota lê esta seção, e o leitor de pedidos lê a outra.'
+      properties:
+        xNome:
+          type: string
+          description: 'Nome do evento.'
+        dtIni:
+          type: string
+          format: date
+          description: 'Data de início do evento. Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
+        dtFim:
+          type: string
+          format: date
+          description: 'Data de encerramento do evento. Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
+        idAtvEvt:
+          type: string
+          description: 'Identificador da atividade do evento.'
+        atividadeEventoOpcao:
+          type: integer
+          description: 'Opção da atividade, no layout do provedor.'
+        CEP:
+          type: string
+          description: 'CEP do local do evento.'
+        xMunicipio:
+          type: string
+          description: 'Nome do município do evento.'
+        cMun:
+          type: string
+          description: 'Código IBGE do município do evento.'
+        UF:
+          type: string
+          description: 'UF do evento.'
+        logradouro:
+          type: string
+          description: 'Logradouro.'
+        numero:
+          type: string
+          description: 'Número do documento.'
+        complemento:
+          type: string
+          description: 'Complemento do endereço.'
+        bairro:
+          type: string
+          description: 'Bairro.'
     NfseEventoSubstituicao:
       type: object
       description: 'O corpo de POST /v1/nfse/eventos/substituicao: a DPS substituta (nova nota) + os identificadores da NFS-e antiga + o motivo do cancelamento. São dois caminhos, e quem escolhe é o provedor do município. No Padrão Nacional não existe webservice de substituição: a nota nova aponta a chave da substituída, e é a emissão dela que substitui a antiga; identifique a antiga em substituida.chave. Nos provedores ABRASF e próprios que oferecem o webservice de substituição a nota antiga é identificada por número, série e código de verificação.'
@@ -5015,6 +5421,55 @@ components:
         motivo:
           type: string
           description: 'Descrição do status devolvido pelo fisco.'
+    NfseFornecedor:
+      type: object
+      description: 'Quem emitiu o documento de dedução. Tem struct própria porque a seção lê menos campos que uma pessoa do documento: mandar o resto viraria chave morta.'
+      properties:
+        CNPJCPF:
+          type: string
+          description: 'CNPJ ou CPF.'
+        inscricaoMunicipal:
+          type: string
+          description: 'inscrição municipal.'
+        NIF:
+          type: string
+          description: 'identificação fiscal no exterior.'
+        cNaoNIF:
+          type: string
+          description: 'motivo de não informar o NIF.'
+        CAEPF:
+          type: string
+          description: 'cadastro de atividade econômica de pessoa física.'
+        razaoSocial:
+          type: string
+          description: 'razão social.'
+        logradouro:
+          type: string
+          description: 'logradouro.'
+        numero:
+          type: string
+          description: 'número.'
+        complemento:
+          type: string
+          description: 'complemento.'
+        bairro:
+          type: string
+          description: 'bairro.'
+        CEP:
+          type: string
+          description: 'CEP.'
+        xMunicipio:
+          type: string
+          description: 'nome do município.'
+        UF:
+          type: string
+          description: 'UF.'
+        telefone:
+          type: string
+          description: 'telefone.'
+        email:
+          type: string
+          description: 'e-mail.'
     NfseGDifDPS:
       type: object
       description: 'O diferimento por ente.'
@@ -5047,6 +5502,28 @@ components:
         gDif:
           allOf:
             - $ref: "#/components/schemas/NfseGDifDPS"
+    NfseGTribCompraGov:
+      type: object
+      description: 'A tributação da compra governamental.'
+      properties:
+        pIBSUF:
+          type: number
+          description: 'Alíquota do IBS estadual na compra governamental (%).'
+        vIBSUF:
+          type: number
+          description: 'Valor do IBS estadual.'
+        pIBSMun:
+          type: number
+          description: 'Alíquota do IBS municipal (%).'
+        vIBSMun:
+          type: number
+          description: 'Valor do IBS municipal.'
+        pCBS:
+          type: number
+          description: 'Alíquota da CBS (%).'
+        vCBS:
+          type: number
+          description: 'Valor da CBS.'
     NfseGTribRegularDPS:
       type: object
       description: 'A tributação regular de referência.'
@@ -5057,6 +5534,38 @@ components:
         cClassTribReg:
           type: string
           description: 'Classificação tributária do regime específico (Reforma Tributária).'
+    NfseGTribRegularNFSe:
+      type: object
+      description: 'A tributação regular de referência da NFS-e: o que seria devido fora do regime diferenciado. Não confundir com GTribRegularDPS, que é o grupo equivalente da DPS.'
+      properties:
+        pAliqEfeRegIBSUF:
+          type: number
+          description: 'Alíquota efetiva regular do IBS estadual (%).'
+        vTribRegIBSUF:
+          type: number
+          description: 'Tributo regular do IBS estadual.'
+        pAliqEfeRegIBSMun:
+          type: number
+          description: 'Alíquota efetiva regular do IBS municipal (%).'
+        vTribRegIBSMun:
+          type: number
+          description: 'Tributo regular do IBS municipal.'
+        pAliqEfeRegCBS:
+          type: number
+          description: 'Alíquota efetiva regular da CBS (%).'
+        vTribRegCBS:
+          type: number
+          description: 'Tributo regular da CBS.'
+    NfseGenerico:
+      type: object
+      description: 'Um campo livre do provedor.'
+      properties:
+        titulo:
+          type: string
+          description: 'título do campo.'
+        descricao:
+          type: string
+          description: 'conteúdo do campo.'
     NfseIBSCBSDPS:
       type: object
       description: 'O grupo da Reforma Tributária no DPS.'
@@ -5079,6 +5588,24 @@ components:
         indDest:
           type: string
           description: 'Indicador do destinatário.'
+        operExterior:
+          type: string
+          description: 'Campos que provedores específicos leem deste grupo: SigISSWeb (operação com o exterior e consumo pessoal), Conam (alíquota única) e eGoverneISS (local de incidência). Todos default "0" na lib, então o que não for informado não muda nada.'
+        operUF:
+          type: string
+          description: 'UF da operação com o exterior.'
+        operxCidade:
+          type: string
+          description: 'Cidade da operação com o exterior.'
+        consumoPessoal:
+          type: string
+          description: 'Indica consumo pessoal (0 ou 1).'
+        indOpeOne:
+          type: string
+          description: 'Indica operação com alíquota única (0 ou 1).'
+        idLocalIncidencia:
+          type: string
+          description: 'Local de incidência, no vocabulário do eGoverneISS.'
         dest:
           description: 'destinatário.'
           allOf:
@@ -5092,9 +5619,75 @@ components:
           items:
             $ref: "#/components/schemas/NfseDocReeRep"
           description: 'gReeRepRes.'
+        gRefNFSe:
+          type: array
+          items:
+            type: string
+          description: 'Chaves das NFS-e que este documento referencia.'
         gIBSCBS:
           allOf:
             - $ref: "#/components/schemas/NfseGIBSCBSDPS"
+        nfse:
+          description: 'Os valores de IBS/CBS que parte dos layouts municipais pede DENTRO do RPS. No Padrão Nacional quem os calcula é o fisco; no GISS 2.04, por exemplo, o gravador os lê daqui, e sem eles a nota sai com cLocalidadeIncid zerado.'
+          allOf:
+            - $ref: "#/components/schemas/NfseIBSCBSNFSe"
+    NfseIBSCBSNFSe:
+      type: object
+      description: 'Os valores de IBS/CBS do lado da NFS-e.'
+      properties:
+        cLocalidadeIncid:
+          type: string
+          description: 'município de incidência (IBGE).'
+        xLocalidadeIncid:
+          type: string
+          description: 'nome da localidade de incidência.'
+        pRedutor:
+          type: number
+          description: 'redutor da base (%).'
+        valores:
+          allOf:
+            - $ref: "#/components/schemas/NfseIBSCBSValoresNFSe"
+        totCIBS:
+          description: 'Totais consolidados de IBS/CBS.'
+          allOf:
+            - $ref: "#/components/schemas/NfseTotCIBS"
+    NfseIBSCBSValoresNFSe:
+      type: object
+      description: 'A base e as alíquotas de IBS/CBS: estadual (UF), municipal (Mun) e federal (CBS).'
+      properties:
+        vBC:
+          type: number
+          description: 'base de cálculo.'
+        vCalcReeRepRes:
+          type: number
+          description: 'base de reembolso/repasse/ressarcimento.'
+        pIBSUF:
+          type: number
+          description: 'alíquota do IBS estadual (%).'
+        pRedAliqUF:
+          type: number
+          description: 'redução da alíquota estadual (%).'
+        pAliqEfetUF:
+          type: number
+          description: 'alíquota efetiva estadual (%).'
+        pIBSMun:
+          type: number
+          description: 'alíquota do IBS municipal (%).'
+        pRedAliqMun:
+          type: number
+          description: 'redução da alíquota municipal (%).'
+        pAliqEfetMun:
+          type: number
+          description: 'alíquota efetiva municipal (%).'
+        pCBS:
+          type: number
+          description: 'alíquota da CBS (%).'
+        pRedAliqCBS:
+          type: number
+          description: 'redução da alíquota da CBS (%).'
+        pAliqEfetCBS:
+          type: number
+          description: 'alíquota efetiva da CBS (%).'
     NfseImovelIBS:
       type: object
       description: 'O imóvel da operação.'
@@ -5120,6 +5713,37 @@ components:
         CEP:
           type: string
           description: 'CEP, 8 dígitos, sem hífen.'
+        cMun:
+          type: string
+          description: 'Código IBGE do município do imóvel.'
+        cEndPost:
+          type: string
+          description: 'Imóvel no exterior: o endereço vai nestes campos, e não nos de cima.'
+        xCidade:
+          type: string
+          description: 'Cidade do imóvel no exterior.'
+        xEstProvReg:
+          type: string
+          description: 'Estado, província ou região.'
+        cPais:
+          type: string
+          description: 'País do imóvel (BACEN).'
+    NfseImposto:
+      type: object
+      description: 'A quebra de imposto do serviço.'
+      properties:
+        codigo:
+          type: integer
+          description: 'código do imposto.'
+        descricao:
+          type: string
+          description: 'descrição do imposto.'
+        aliquota:
+          type: number
+          description: 'alíquota (%).'
+        valor:
+          type: number
+          description: 'valor do imposto.'
     NfseInfDPS:
       type: object
       description: 'As informações da DPS (Declaração de Prestação de Serviços).'
@@ -5150,14 +5774,14 @@ components:
           description: 'município emissor (IBGE); vazio = cMun do prestador.'
         prest:
           allOf:
-            - $ref: "#/components/schemas/NfsePessoa"
+            - $ref: "#/components/schemas/NfsePrestador"
         toma:
           allOf:
-            - $ref: "#/components/schemas/NfsePessoa"
+            - $ref: "#/components/schemas/NfseTomador"
         interm:
           description: 'intermediário.'
           allOf:
-            - $ref: "#/components/schemas/NfsePessoa"
+            - $ref: "#/components/schemas/NfseIntermediario"
         serv:
           allOf:
             - $ref: "#/components/schemas/NfseServico"
@@ -5168,6 +5792,133 @@ components:
           description: 'Reforma Tributária (grupo IBSCBSDPS).'
           allOf:
             - $ref: "#/components/schemas/NfseIBSCBSDPS"
+        rpsSubstituido:
+          description: 'O RPS que este documento substitui.'
+          allOf:
+            - $ref: "#/components/schemas/NfseRpsSubstituido"
+        dataEmissaoRPS:
+          type: string
+          format: date
+          description: 'Campos que a. São layout municipal: cada provedor lê os seus. Ver identificacaoRps. Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
+        dataFatoGerador:
+          type: string
+          format: date
+          description: 'data do fato gerador. Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
+        dataPagamento:
+          type: string
+          format: date
+          description: 'data do pagamento. Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
+        vencimento:
+          type: string
+          format: date
+          description: 'vencimento do documento. Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
+        dhRecebimento:
+          type: string
+          format: date
+          description: 'data e hora do recebimento. Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
+        tipoRecolhimento:
+          type: string
+          description: 'tipo de recolhimento do ISS.'
+        tipoTributacaoRPS:
+          type: string
+          description: 'tipo de tributação do RPS.'
+        situacaoTrib:
+          type: string
+          description: 'situação tributária do RPS.'
+        situacao:
+          type: integer
+          description: 'situação do RPS no layout do provedor.'
+        tipoNota:
+          type: integer
+          description: 'tipo da nota no layout do provedor.'
+        numeroParcelas:
+          type: integer
+          description: 'quantidade de parcelas.'
+        formaPagamento:
+          type: string
+          description: 'forma de pagamento.'
+        especieDocumento:
+          type: string
+          description: 'espécie do documento.'
+        serieTalonario:
+          type: string
+          description: 'série do talonário.'
+        seriePrestacao:
+          type: string
+          description: 'série da prestação.'
+        siglaUF:
+          type: string
+          description: 'UF do RPS no layout do provedor.'
+        outrasInformacoes:
+          type: string
+          description: 'outras informações do RPS.'
+        informacoesComplementares:
+          type: string
+          description: 'informações complementares do RPS.'
+        identificacaoRemessa:
+          type: string
+          description: 'identificação da remessa.'
+        eqptoRecibo:
+          type: string
+          description: 'equipamento emissor do recibo.'
+        regRec:
+          type: string
+          description: 'regime de recolhimento.'
+        frmRec:
+          type: string
+          description: 'forma de recolhimento.'
+        producao:
+          type: integer
+          description: '1=Sim, 2=Não, documento de produção.'
+        deducaoMateriais:
+          type: integer
+          description: '1=Sim, 2=Não, dedução de materiais.'
+        cMotivoEmisTI:
+          type: string
+          description: 'motivo da emissão em contingência.'
+        id_sis_legado:
+          type: integer
+          description: 'identificador no sistema legado.'
+        percentualCargaTributariaMunicipal:
+          type: number
+          description: 'carga tributária municipal (%).'
+        valorCargaTributariaMunicipal:
+          type: number
+          description: 'carga tributária municipal.'
+        percentualCargaTributariaEstadual:
+          type: number
+          description: 'carga tributária estadual (%).'
+        valorCargaTributariaEstadual:
+          type: number
+          description: 'carga tributária estadual.'
+        condicaoPagamento:
+          description: 'Grupos do documento que a biblioteca lê em seções próprias.'
+          allOf:
+            - $ref: "#/components/schemas/NfseCondicaoPagamento"
+        transportadora:
+          description: 'transportadora.'
+          allOf:
+            - $ref: "#/components/schemas/NfseTransportadora"
+        emails:
+          type: array
+          items:
+            type: string
+          description: 'e-mails em cópia (emailCC).'
+        quartos:
+          type: array
+          items:
+            $ref: "#/components/schemas/NfseQuarto"
+          description: 'diárias de hotelaria.'
+        despesas:
+          type: array
+          items:
+            $ref: "#/components/schemas/NfseDespesa"
+          description: 'despesas reembolsáveis.'
+        genericos:
+          type: array
+          items:
+            $ref: "#/components/schemas/NfseGenerico"
+          description: 'campos livres do provedor.'
     NfseInfoCompl:
       type: object
       description: 'Informações complementares.'
@@ -5189,28 +5940,9 @@ components:
           items:
             type: string
           description: 'itens do pedido.'
-    NfseNFSeSubstituidaRef:
+    NfseIntermediario:
       type: object
-      description: 'A NFS-e que está sendo substituída. Os valores vêm da emissão original (número/série/cód. verificação retornados pelo provedor). No Padrão Nacional nada disso existe: lá a substituída é apontada pela chave de acesso, e só por ela.'
-      properties:
-        chave:
-          type: string
-          description: 'Chave de acesso do documento, 44 dígitos.'
-        numero:
-          type: string
-          description: 'Número do documento.'
-        serie:
-          type: string
-          description: 'Série do documento.'
-        codigo_verificacao:
-          type: string
-          description: 'Código de verificação da NFS-e, devolvido pelo provedor.'
-        numero_lote:
-          type: string
-          description: 'Número do lote da nota substituída.'
-    NfsePessoa:
-      type: object
-      description: 'Prestador ou tomador.'
+      description: 'O intermediário do serviço. A.'
       properties:
         CNPJ:
           type: string
@@ -5253,14 +5985,507 @@ components:
           description: 'Telefone, só dígitos, com DDD.'
         cPais:
           type: integer
-          description: 'CPais/XPais só precisam ser informados para endereço NO EXTERIOR. Endereço nacional (com cMun) recebe 1058 (Brasil) automaticamente: ver pessoaCommon.'
+          description: 'CPais/XPais só precisam ser informados para endereço NO EXTERIOR, com o código da tabela BACEN, não o ISO (o Brasil é 1058, não 76). Com cMun de município brasileiro o país é sempre 1058.'
         xPais:
           type: string
           description: 'nome do país.'
+        NIF:
+          type: string
+          description: 'Identificação no exterior: as três seções o documento leem estas três.'
+        cNaoNIF:
+          type: string
+          description: 'motivo de não informar o NIF.'
+        CAEPF:
+          type: string
+          description: 'cadastro de atividade econômica de pessoa física.'
+        xMunicipio:
+          type: string
+          description: 'nome do município do endereço.'
+        issRetido:
+          type: integer
+          description: '1=Sim, 2=Não.'
+    NfseItemServico:
+      type: object
+      description: 'Um item da lista de serviços do RPS. O contrato tem um serviço único em serv; esta lista existe porque o documento tem a dela, e há layout que só monta a nota a partir dos itens. Quando itens vem preenchido, é ele que vai ao o documento; sem ele, o item é derivado do serviço.'
+      properties:
+        descricao:
+          type: string
+          description: 'discriminação do item; é a âncora da lista.'
+        itemListaServico:
+          type: string
+          description: 'item da LC 116.'
+        xItemListaServico:
+          type: string
+          description: 'descrição do item da lista.'
+        codServico:
+          type: string
+          description: 'código do serviço no provedor.'
+        codLCServico:
+          type: string
+          description: 'código da LC do serviço.'
+        codigoCnae:
+          type: string
+          description: 'CNAE do item.'
+        codigoTributacaoMunicipio:
+          type: string
+          description: 'código de tributação municipal.'
+        xCodigoTributacaoMunicipio:
+          type: string
+          description: 'descrição do código de tributação.'
+        codigoServicoNacional:
+          type: string
+          description: 'código nacional do serviço.'
+        codigoTributacaoNacional:
+          type: string
+          description: 'código de tributação nacional.'
+        codigoNBS:
+          type: string
+          description: 'código NBS.'
+        xNBS:
+          type: string
+          description: 'descrição do código NBS.'
+        codigoInterContr:
+          type: string
+          description: 'código interno do contribuinte.'
+        codCNO:
+          type: string
+          description: 'cadastro nacional de obra.'
+        CFPS:
+          type: string
+          description: 'código fiscal de prestação de serviço.'
+        cClassTrib:
+          type: string
+          description: 'classificação tributária.'
+        INDOP:
+          type: string
+          description: 'indicador de operação.'
+        infAdicional:
+          type: string
+          description: 'informação adicional do item.'
+        numeroProcesso:
+          type: string
+          description: 'processo de suspensão.'
+        identifNaoExigibilidade:
+          type: string
+          description: 'identificador da não exigibilidade.'
+        tipoLancamento:
+          type: string
+          description: 'tipo de lançamento.'
+        operacao:
+          type: string
+          description: 'operação do item.'
+        tributacao:
+          type: string
+          description: 'tributação do item.'
+        localPrestacao:
+          type: string
+          description: 'local da prestação.'
+        xFormaPagamento:
+          type: string
+          description: 'forma de pagamento.'
+        fonteCargaTributaria:
+          type: string
+          description: 'fonte da carga tributária.'
+        xJustDeducao:
+          type: string
+          description: 'justificativa da dedução.'
+        descricaoOutrasRetencoes:
+          type: string
+          description: 'descrição de outras retenções.'
+        unidade:
+          type: string
+          description: 'unidade de medida.'
+        tipoUnidade:
+          type: string
+          description: 'tipo da unidade.'
+        xMunicipioIncidencia:
+          type: string
+          description: 'nome do município de incidência.'
+        codigoMunicipio:
+          type: string
+          description: 'município da prestação do item (IBGE).'
+        municipioIncidencia:
+          type: integer
+          description: 'município de incidência do ISS (IBGE).'
+        codigoPais:
+          type: integer
+          description: 'país da prestação (BACEN).'
+        exigibilidadeISS:
+          type: integer
+          description: 'exigibilidade do ISS.'
+        responsavelRetencao:
+          type: integer
+          description: 'responsável pela retenção.'
+        situacaoTributaria:
+          type: integer
+          description: 'situação tributária do item.'
+        issRetido:
+          type: integer
+          description: '1=Sim, 2=Não.'
+        tributavel:
+          type: integer
+          description: '1=Sim, 2=Não.'
+        tribMunPrestador:
+          type: integer
+          description: '1=Sim, 2=Não, tributado no município do prestador.'
+        prestadoEmViasPublicas:
+          type: boolean
+          description: 'prestado em vias públicas.'
+        quantidade:
+          type: number
+          description: 'quantidade.'
+        valorUnitario:
+          type: number
+          description: 'valor unitário.'
+        valorTotal:
+          type: number
+          description: 'valor total do item.'
+        valorServicos:
+          type: number
+          description: 'valor dos serviços do item.'
+        qtdeDiaria:
+          type: number
+          description: 'quantidade de diárias.'
+        valorTaxaTurismo:
+          type: number
+          description: 'taxa de turismo.'
+        aliquotaDeducoes:
+          type: number
+          description: 'alíquota de deduções (%).'
+        valorDeducoes:
+          type: number
+          description: 'valor das deduções.'
+        aliqReducao:
+          type: number
+          description: 'alíquota de redução (%).'
+        valorReducao:
+          type: number
+          description: 'valor da redução.'
+        aliquota:
+          type: number
+          description: 'alíquota do ISS (%).'
+        aliquotaSN:
+          type: number
+          description: 'alíquota do Simples Nacional (%).'
+        baseCalculo:
+          type: number
+          description: 'base de cálculo do ISS.'
+        valorISS:
+          type: number
+          description: 'ISS do item.'
+        valorISSRetido:
+          type: number
+          description: 'ISS retido do item.'
+        aliqISSST:
+          type: number
+          description: 'alíquota do ISS substituição (%).'
+        valorISSST:
+          type: number
+          description: 'ISS por substituição.'
+        valorTributavel:
+          type: number
+          description: 'valor tributável.'
+        descontoIncondicionado:
+          type: number
+          description: 'desconto incondicionado.'
+        descontoCondicionado:
+          type: number
+          description: 'desconto condicionado.'
+        outrosDescontos:
+          type: number
+          description: 'outros descontos.'
+        outrasRetencoes:
+          type: number
+          description: 'outras retenções.'
+        retencoesFederais:
+          type: number
+          description: 'total das retenções federais.'
+        irrfIndenizacao:
+          type: number
+          description: 'IRRF sobre indenização.'
+        valorBCCSLL:
+          type: number
+          description: 'base da CSLL.'
+        aliqRetCSLL:
+          type: number
+          description: 'alíquota de retenção da CSLL (%).'
+        retidoCSLL:
+          type: integer
+          description: '1=Sim, 2=Não.'
+        valorCSLL:
+          type: number
+          description: 'valor da CSLL.'
+        valorBCPIS:
+          type: number
+          description: 'base do PIS.'
+        aliqRetPIS:
+          type: number
+          description: 'alíquota de retenção do PIS (%).'
+        retidoPIS:
+          type: integer
+          description: '1=Sim, 2=Não.'
+        valorPIS:
+          type: number
+          description: 'valor do PIS.'
+        valorBCCOFINS:
+          type: number
+          description: 'base da COFINS.'
+        aliqRetCOFINS:
+          type: number
+          description: 'alíquota de retenção da COFINS (%).'
+        retidoCOFINS:
+          type: integer
+          description: '1=Sim, 2=Não.'
+        valorCOFINS:
+          type: number
+          description: 'valor da COFINS.'
+        valorBCINSS:
+          type: number
+          description: 'base do INSS.'
+        aliqRetINSS:
+          type: number
+          description: 'alíquota de retenção do INSS (%).'
+        retidoINSS:
+          type: integer
+          description: '1=Sim, 2=Não.'
+        valorINSS:
+          type: number
+          description: 'valor do INSS.'
+        valorBCRetIRRF:
+          type: number
+          description: 'base do IRRF.'
+        aliqRetIRRF:
+          type: number
+          description: 'alíquota de retenção do IRRF (%).'
+        retidoIRRF:
+          type: integer
+          description: '1=Sim, 2=Não.'
+        valorIRRF:
+          type: number
+          description: 'valor do IRRF.'
+        valorBCCPP:
+          type: number
+          description: 'base da CPP.'
+        aliqRetCPP:
+          type: number
+          description: 'alíquota de retenção da CPP (%).'
+        retidoCPP:
+          type: integer
+          description: '1=Sim, 2=Não.'
+        valorCPP:
+          type: number
+          description: 'valor da CPP.'
+        valorIPI:
+          type: number
+          description: 'valor do IPI.'
+        valorRecebido:
+          type: number
+          description: 'valor recebido do item.'
+        valorLiquidoNfse:
+          type: number
+          description: 'valor líquido do item.'
+        valorRepasse:
+          type: number
+          description: 'valor repassado a terceiros.'
+        valorInicialCobrado:
+          type: number
+          description: 'valor inicial cobrado.'
+        valorFinalCobrado:
+          type: number
+          description: 'valor final cobrado.'
+        percentualCargaTributaria:
+          type: number
+          description: 'carga tributária do item (%).'
+        valorCargaTributaria:
+          type: number
+          description: 'carga tributária do item.'
+        totalAproxTribServ:
+          type: number
+          description: 'total aproximado de tributos do serviço.'
+        aliqIBS:
+          type: number
+          description: 'alíquota do IBS (%).'
+        aliqCBS:
+          type: number
+          description: 'alíquota da CBS (%).'
+        enderecoServico:
+          description: 'O endereço de execução DESTE item.'
+          allOf:
+            - $ref: "#/components/schemas/NfseEnderecoServico"
+    NfseLocacao:
+      type: object
+      description: 'A locação e sublocação de postes e dutos.'
+      properties:
+        categ:
+          type: string
+          description: 'categoria da locação.'
+        objeto:
+          type: string
+          description: 'objeto locado.'
+        extensao:
+          type: number
+          description: 'extensão.'
+        nPostes:
+          type: integer
+          description: 'quantidade de postes.'
+    NfseNFSeSubstituidaRef:
+      type: object
+      description: 'A NFS-e que está sendo substituída. Os valores vêm da emissão original (número/série/cód. verificação retornados pelo provedor). No Padrão Nacional nada disso existe: lá a substituída é apontada pela chave de acesso, e só por ela.'
+      properties:
+        chave:
+          type: string
+          description: 'Chave de acesso do documento, 44 dígitos.'
+        numero:
+          type: string
+          description: 'Número do documento.'
+        serie:
+          type: string
+          description: 'Série do documento.'
+        codigo_verificacao:
+          type: string
+          description: 'Código de verificação da NFS-e, devolvido pelo provedor.'
+        numero_lote:
+          type: string
+          description: 'Número do lote da nota substituída.'
+    NfseParcela:
+      type: object
+      description: 'Uma parcela do parcelamento.'
+      properties:
+        parcela:
+          type: string
+          description: 'identificação da parcela.'
+        dataVencimento:
+          type: string
+          format: date
+          description: 'vencimento da parcela. Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
+        valor:
+          type: number
+          description: 'valor da parcela.'
+        condicao:
+          type: string
+          description: 'condição de pagamento da parcela.'
+    NfsePrestador:
+      type: object
+      description: 'Quem emite, com o que a. Cada papel tem a sua struct porque cada seção lê um conjunto diferente: campo fora da seção certa vira chave morta.'
+      properties:
+        CNPJ:
+          type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
+        CPF:
+          type: string
+          description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
+        IM:
+          type: string
+          description: 'inscrição municipal.'
+        xNome:
+          type: string
+          description: 'razão social / nome.'
+        cMun:
+          type: string
+          description: 'código do município (IBGE).'
+        UF:
+          type: string
+          description: 'Sigla da unidade federativa, duas letras.'
+        CEP:
+          type: string
+          description: 'CEP, 8 dígitos, sem hífen.'
+        email:
+          type: string
+          description: 'Endereço de e-mail.'
+        logradouro:
+          type: string
+          description: 'Endereço/contato.'
+        numero:
+          type: string
+          description: 'Número do documento.'
+        complemento:
+          type: string
+          description: 'Complemento do endereço.'
+        bairro:
+          type: string
+          description: 'Bairro.'
+        telefone:
+          type: string
+          description: 'Telefone, só dígitos, com DDD.'
+        cPais:
+          type: integer
+          description: 'CPais/XPais só precisam ser informados para endereço NO EXTERIOR, com o código da tabela BACEN, não o ISO (o Brasil é 1058, não 76). Com cMun de município brasileiro o país é sempre 1058.'
+        xPais:
+          type: string
+          description: 'nome do país.'
+        NIF:
+          type: string
+          description: 'Identificação no exterior: as três seções o documento leem estas três.'
+        cNaoNIF:
+          type: string
+          description: 'motivo de não informar o NIF.'
+        CAEPF:
+          type: string
+          description: 'cadastro de atividade econômica de pessoa física.'
+        xMunicipio:
+          type: string
+          description: 'nome do município do endereço.'
         regTrib:
-          description: 'RegTrib (regime tributário) é obrigatório para o prestador no Padrão Nacional, sem ele a biblioteca fiscal falha ao montar o XML.'
+          description: 'RegTrib (regime tributário) é obrigatório no Padrão Nacional, sem ele a biblioteca fiscal falha ao montar o XML.'
           allOf:
             - $ref: "#/components/schemas/NfseRegTrib"
+        tipoPessoa:
+          type: string
+          description: 'tipo de pessoa no layout do provedor.'
+        inscricaoEstadual:
+          type: string
+          description: 'inscrição estadual.'
+        nomeFantasia:
+          type: string
+          description: 'nome fantasia.'
+        tipoLogradouro:
+          type: string
+          description: 'tipo do logradouro (Rua, Avenida).'
+        DDD:
+          type: string
+          description: 'DDD do telefone.'
+        xSite:
+          type: string
+          description: 'site do prestador.'
+        crc:
+          type: string
+          description: 'registro no conselho de contabilidade.'
+        crc_estado:
+          type: string
+          description: 'UF do registro no conselho.'
+        anexo:
+          type: string
+          description: 'anexo do Simples Nacional.'
+        valorReceitaBruta:
+          type: number
+          description: 'receita bruta acumulada.'
+        dataInicioAtividade:
+          type: string
+          format: date
+          description: 'início da atividade. Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
+        optanteMEISimei:
+          type: integer
+          description: '1=Sim, 2=Não.'
+    NfseQuarto:
+      type: object
+      description: 'A diária de hotelaria.'
+      properties:
+        codigoInternoQuarto:
+          type: integer
+          description: 'código interno do quarto.'
+        qtdHospedes:
+          type: integer
+          description: 'quantidade de hóspedes.'
+        checkIn:
+          type: string
+          format: date
+          description: 'data do check-in. Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
+        qtdDiarias:
+          type: integer
+          description: 'quantidade de diárias.'
+        valorDiaria:
+          type: number
+          description: 'valor da diária.'
     NfseRegTrib:
       type: object
       description: 'O regime tributário do prestador.'
@@ -5284,6 +6509,44 @@ components:
           type: string
           format: date
           description: '. Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
+    NfseRodoviaria:
+      type: object
+      description: 'A exploração de rodovia.'
+      properties:
+        categVeic:
+          type: string
+          description: 'categoria do veículo.'
+        nEixos:
+          type: integer
+          description: 'quantidade de eixos.'
+        rodagem:
+          type: string
+          description: 'tipo de rodagem.'
+        sentido:
+          type: string
+          description: 'sentido da via.'
+        placa:
+          type: string
+          description: 'placa do veículo.'
+        codAcessoPed:
+          type: string
+          description: 'código de acesso ao pedágio.'
+        codContrato:
+          type: string
+          description: 'código do contrato.'
+    NfseRpsSubstituido:
+      type: object
+      description: 'O RPS que este documento substitui. É o caminho do ABRASF: no Padrão Nacional a substituição é por chave, e quem a faz é a emissão da nota nova (ver ToINISubstituicaoPN).'
+      properties:
+        numero:
+          type: string
+          description: 'Número do documento.'
+        serie:
+          type: string
+          description: 'Série do documento.'
+        tipo:
+          type: string
+          description: 'Tipo do RPS substituído (1 = RPS).'
     NfseServico:
       type: object
       description: 'O serviço prestado.'
@@ -5342,13 +6605,252 @@ components:
         naturezaOperacao:
           type: integer
           description: 'ABRASF v1.'
+        descricao:
+          type: string
+          description: 'Campos que a. Os nomes seguem a chave o documento, que é o contrato real da biblioteca.'
+        codigoNCM:
+          type: string
+          description: 'ISSSaoPaulo.'
+        CFPS:
+          type: string
+          description: 'SoftPlan.'
+        codigoInterContr:
+          type: string
+          description: 'código interno do contribuinte.'
+        cClassTrib:
+          type: string
+          description: 'ISSSalvador e Reforma Tributária.'
+        INDOP:
+          type: string
+          description: 'indicador de operação.'
+        identifNaoExigibilidade:
+          type: string
+          description: 'identificador da não exigibilidade do ISS.'
+        infAdicional:
+          type: string
+          description: 'MegaSoft.'
+        tipoLancamento:
+          type: string
+          description: 'P = próprio (default da lib).'
+        operacao:
+          type: string
+          description: 'ISSDSF.'
+        tributacao:
+          type: string
+          description: 'ISSDSF.'
+        localPrestacao:
+          type: string
+          description: 'ISSBarueri.'
+        prestadoEmViasPublicas:
+          type: boolean
+          description: 'ISSBarueri; a lib assume true.'
+        municipioPrestacaoServico:
+          type: string
+          description: 'nome do município da prestação.'
+        UFPrestacao:
+          type: string
+          description: 'UF do local da prestação.'
+        percentualCargaTributaria:
+          type: number
+          description: 'ISSSaoPaulo.'
+        valorCargaTributaria:
+          type: number
+          description: 'ISSSaoPaulo.'
+        fonteCargaTributaria:
+          type: string
+          description: 'ISSSaoPaulo.'
+        valorTotalRecebido:
+          type: number
+          description: 'ISSSaoPaulo.'
+        xFormaPagamento:
+          type: string
+          description: 'SigISSWeb.'
+        xItemListaServico:
+          type: string
+          description: 'descrição do item da lista de serviços.'
+        xCodigoTributacaoMunicipio:
+          type: string
+          description: 'descrição do código de tributação municipal.'
+        xNBS:
+          type: string
+          description: 'descrição do código NBS.'
+        xMunicipio:
+          type: string
+          description: 'nome do município do endereço da prestação.'
+        enderecoPrestacao:
+          description: 'O endereço do local da prestação, que a biblioteca lê achatado dentro de (usado pelo Giap, entre outros).'
+          allOf:
+            - $ref: "#/components/schemas/NfseEnderecoPrestacao"
+        deducoes:
+          type: array
+          items:
+            $ref: "#/components/schemas/NfseDeducao"
+          description: 'Grupos do serviço que a biblioteca lê em seções próprias.'
+        impostos:
+          type: array
+          items:
+            $ref: "#/components/schemas/NfseImposto"
+          description: 'quebra de imposto do serviço.'
+        locacao:
+          description: 'locação e sublocação de postes e dutos.'
+          allOf:
+            - $ref: "#/components/schemas/NfseLocacao"
+        rodoviaria:
+          description: 'exploração de rodovia.'
+          allOf:
+            - $ref: "#/components/schemas/NfseRodoviaria"
+        documentosDeducao:
+          type: array
+          items:
+            $ref: "#/components/schemas/NfseDocDeducaoReducao"
+          description: 'Os documentos que embasam dedução ou redução da base.'
+        enderecoServico:
+          description: 'O endereço de EXECUÇÃO do serviço, que a biblioteca lê por item do RPS. Não confundir com enderecoPrestacao, que vai achatado em.'
+          allOf:
+            - $ref: "#/components/schemas/NfseEnderecoServico"
+        construcaoCivil:
+          description: 'A obra a que o serviço se refere.'
+          allOf:
+            - $ref: "#/components/schemas/NfseConstrucaoCivil"
+        evento:
+          description: 'A atividade de evento a que o serviço se refere.'
+          allOf:
+            - $ref: "#/components/schemas/NfseEventoServico"
+        itens:
+          type: array
+          items:
+            $ref: "#/components/schemas/NfseItemServico"
+          description: 'Lista de serviços do RPS. Informada, é ela que vai ao documento; sem ela, o item é derivado deste serviço (ver itemServico).'
+    NfseTomador:
+      type: object
+      description: 'Quem contrata, com o que a.'
+      properties:
+        CNPJ:
+          type: string
+          description: 'CNPJ, 14 dígitos. Aceita com ou sem máscara.'
+        CPF:
+          type: string
+          description: 'CPF, 11 dígitos. Aceita com ou sem máscara.'
+        IM:
+          type: string
+          description: 'inscrição municipal.'
+        xNome:
+          type: string
+          description: 'razão social / nome.'
+        cMun:
+          type: string
+          description: 'código do município (IBGE).'
+        UF:
+          type: string
+          description: 'Sigla da unidade federativa, duas letras.'
+        CEP:
+          type: string
+          description: 'CEP, 8 dígitos, sem hífen.'
+        email:
+          type: string
+          description: 'Endereço de e-mail.'
+        logradouro:
+          type: string
+          description: 'Endereço/contato.'
+        numero:
+          type: string
+          description: 'Número do documento.'
+        complemento:
+          type: string
+          description: 'Complemento do endereço.'
+        bairro:
+          type: string
+          description: 'Bairro.'
+        telefone:
+          type: string
+          description: 'Telefone, só dígitos, com DDD.'
+        cPais:
+          type: integer
+          description: 'CPais/XPais só precisam ser informados para endereço NO EXTERIOR, com o código da tabela BACEN, não o ISO (o Brasil é 1058, não 76). Com cMun de município brasileiro o país é sempre 1058.'
+        xPais:
+          type: string
+          description: 'nome do país.'
+        NIF:
+          type: string
+          description: 'Identificação no exterior: as três seções o documento leem estas três.'
+        cNaoNIF:
+          type: string
+          description: 'motivo de não informar o NIF.'
+        CAEPF:
+          type: string
+          description: 'cadastro de atividade econômica de pessoa física.'
+        xMunicipio:
+          type: string
+          description: 'nome do município do endereço.'
+        tipoPessoa:
+          type: string
+          description: 'tipo de pessoa no layout do provedor.'
+        inscricaoEstadual:
+          type: string
+          description: 'inscrição estadual.'
+        nomeFantasia:
+          type: string
+          description: 'nome fantasia.'
+        tipoLogradouro:
+          type: string
+          description: 'tipo do logradouro (Rua, Avenida).'
+        tipoBairro:
+          type: string
+          description: 'tipo do bairro.'
+        pontoReferencia:
+          type: string
+          description: 'ponto de referência do endereço.'
+        DDD:
+          type: string
+          description: 'DDD do telefone.'
+        tipoTelefone:
+          type: string
+          description: 'tipo do telefone.'
+        docEstrangeiro:
+          type: string
+          description: 'documento do tomador estrangeiro.'
+        enderecoInformado:
+          type: string
+          description: '1=Sim, 2=Não, informado pelo tomador.'
+        atualizaTomador:
+          type: integer
+          description: '1=Sim, 2=Não, atualiza o cadastro.'
+        tomadorExterior:
+          type: integer
+          description: '1=Sim, 2=Não.'
+        tomadorSubstitutoTributario:
+          type: integer
+          description: '1=Sim, 2=Não.'
+    NfseTotCIBS:
+      type: object
+      description: 'Os totais consolidados de IBS/CBS. Ficam do lado da NFS-e, não da DPS: quem os calcula é o fisco. Estão no contrato pelo mesmo motivo de: o leitor os alcança a partir do RPS, e há gravador municipal que os lê de lá. Sem a, então elas vão aninhadas aqui.'
+      properties:
+        vTotNF:
+          type: number
+          description: 'Valor total da nota.'
+        gTribRegular:
+          description: 'Tributação regular de referência.'
+          allOf:
+            - $ref: "#/components/schemas/NfseGTribRegularNFSe"
+        gTribCompraGov:
+          description: 'Compra governamental.'
+          allOf:
+            - $ref: "#/components/schemas/NfseGTribCompraGov"
+        gIBS:
+          description: 'Totais do IBS.'
+          allOf:
+            - $ref: "#/components/schemas/NfseTotgIBS"
+        gCBS:
+          description: 'Totais da CBS.'
+          allOf:
+            - $ref: "#/components/schemas/NfseTotgCBS"
     NfseTotTrib:
       type: object
       description: 'Os totais aproximados de tributos.'
       properties:
         indTotTrib:
           type: integer
-          description: 'Indica se os totais de tributos são informados.'
+          description: 'indicador de não destaque dos tributos (único valor válido: 0).'
         pTotTribSN:
           type: number
           description: 'Percentual total de tributos do Simples Nacional.'
@@ -5370,6 +6872,81 @@ components:
         pTotTribMun:
           type: number
           description: 'Percentual total dos tributos municipais.'
+    NfseTotgCBS:
+      type: object
+      description: 'Os totais da CBS.'
+      properties:
+        vDifCBS:
+          type: number
+          description: 'Diferimento da CBS.'
+        vCBS:
+          type: number
+          description: 'Valor da CBS.'
+        pCredPresCBS:
+          type: number
+          description: 'Percentual do crédito presumido da CBS (%).'
+        vCredPresCBS:
+          type: number
+          description: 'Valor do crédito presumido da CBS.'
+    NfseTotgIBS:
+      type: object
+      description: 'Os totais do IBS: o crédito presumido e as parcelas estadual e municipal.'
+      properties:
+        vIBSTot:
+          type: number
+          description: 'Total do IBS.'
+        pCredPresIBS:
+          type: number
+          description: 'Percentual do crédito presumido do IBS (%).'
+        vCredPresIBS:
+          type: number
+          description: 'Valor do crédito presumido do IBS.'
+        vDifUF:
+          type: number
+          description: 'Diferimento do IBS estadual.'
+        vIBSUF:
+          type: number
+          description: 'Valor do IBS estadual.'
+        vDifMun:
+          type: number
+          description: 'Diferimento do IBS municipal.'
+        vIBSMun:
+          type: number
+          description: 'Valor do IBS municipal.'
+    NfseTransportadora:
+      type: object
+      description: 'Quem transporta.'
+      properties:
+        xNomeTrans:
+          type: string
+          description: 'nome da transportadora.'
+        xCpfCnpjTrans:
+          type: string
+          description: 'CNPJ ou CPF da transportadora.'
+        xInscEstTrans:
+          type: string
+          description: 'inscrição estadual.'
+        xPlacaTrans:
+          type: string
+          description: 'placa do veículo.'
+        xEndTrans:
+          type: string
+          description: 'endereço.'
+        cMunTrans:
+          type: string
+          description: 'município (IBGE).'
+        xMunTrans:
+          type: string
+          description: 'nome do município.'
+        xUFTrans:
+          type: string
+          description: 'UF.'
+        xPaisTrans:
+          type: string
+          description: 'país.'
+        vTipoFreteTrans:
+          type: number
+          description: 'tipo de frete.'
     NfseTribFed:
       type: object
       description: 'A tributação federal: PIS/COFINS + retenções.'
@@ -5394,7 +6971,7 @@ components:
           description: 'Valor da COFINS.'
         tpRetPisCofins:
           type: integer
-          description: 'Tipo de retenção do PIS e da COFINS.'
+          description: 'tipo de retenção do PIS e da COFINS (0 = PIS/COFINS/CSLL não retidos).'
         vRetCP:
           type: number
           description: 'Valor retido de contribuição previdenciária.'
@@ -5404,6 +6981,15 @@ components:
         vRetCSLL:
           type: number
           description: 'Valor retido de CSLL.'
+        vBCPIRRF:
+          type: number
+          description: 'Base de cálculo do IRRF.'
+        vBCCSLL:
+          type: number
+          description: 'Base de cálculo da CSLL.'
+        vBCPCP:
+          type: number
+          description: 'Base de cálculo da contribuição previdenciária.'
     NfseTribMun:
       type: object
       description: 'A tributação municipal.'
@@ -5437,6 +7023,9 @@ components:
         nBM:
           type: string
           description: 'nº do benefício municipal.'
+        cPaisResult:
+          type: integer
+          description: 'País onde o resultado do serviço aparece, na exportação (BACEN).'
     NfseValores:
       type: object
       description: 'Os montantes e a tributação do serviço (ISSQN + federal + totais).'
@@ -5480,6 +7069,108 @@ components:
         totTrib:
           allOf:
             - $ref: "#/components/schemas/NfseTotTrib"
+        baseCalculo:
+          type: number
+          description: 'Campos que a. Os nomes seguem a chave o documento, que é o contrato real da biblioteca.'
+        valorIss:
+          type: number
+          description: 'ISS calculado.'
+        valorIssRetido:
+          type: number
+          description: 'ISS retido pelo tomador.'
+        aliquotaSN:
+          type: number
+          description: 'alíquota do Simples Nacional (%).'
+        baseCalculoPisCofins:
+          type: number
+          description: 'base de PIS/COFINS no layout do provedor.'
+        aliquotaPis:
+          type: number
+          description: 'alíquota do PIS (%).'
+        aliquotaCofins:
+          type: number
+          description: 'alíquota da COFINS (%).'
+        aliquotaInss:
+          type: number
+          description: 'alíquota do INSS (%).'
+        aliquotaIr:
+          type: number
+          description: 'alíquota do IR (%).'
+        aliquotaCsll:
+          type: number
+          description: 'alíquota da CSLL (%).'
+        aliquotaCpp:
+          type: number
+          description: 'alíquota da CPP (%).'
+        valorCpp:
+          type: number
+          description: 'contribuição previdenciária patronal.'
+        valorIpi:
+          type: number
+          description: 'valor do IPI.'
+        retidoPis:
+          type: integer
+          description: '1=Sim, 2=Não.'
+        retidoCofins:
+          type: integer
+          description: '1=Sim, 2=Não.'
+        retidoInss:
+          type: integer
+          description: '1=Sim, 2=Não.'
+        retidoIr:
+          type: integer
+          description: '1=Sim, 2=Não.'
+        retidoCsll:
+          type: integer
+          description: '1=Sim, 2=Não.'
+        retidoCpp:
+          type: integer
+          description: '1=Sim, 2=Não.'
+        retencoesFederais:
+          type: number
+          description: 'total das retenções federais.'
+        irrfIndenizacao:
+          type: number
+          description: 'IRRF sobre indenização.'
+        outrasRetencoes:
+          type: number
+          description: 'outras retenções.'
+        descricaoOutrasRetencoes:
+          type: string
+          description: 'descrição de outras retenções.'
+        outrosDescontos:
+          type: number
+          description: 'outros descontos.'
+        justificativaDeducao:
+          type: string
+          description: 'justificativa da dedução.'
+        valorRepasse:
+          type: number
+          description: 'valor repassado a terceiros.'
+        valorInicialCobrado:
+          type: number
+          description: 'valor inicial cobrado.'
+        valorFinalCobrado:
+          type: number
+          description: 'valor final cobrado.'
+        valorLiquidoNfse:
+          type: number
+          description: 'valor líquido da NFS-e.'
+        valorTotalNotaFiscal:
+          type: number
+          description: 'valor total da nota.'
+        valorTotalRecebido:
+          type: number
+          description: 'valor total recebido.'
+        valorTotalTributos:
+          type: number
+          description: 'valor total dos tributos.'
+        totalAproxTrib:
+          type: number
+          description: 'total aproximado de tributos (Infisc).'
+        dsImpostos:
+          type: string
+          description: 'descrição dos impostos (Equiplano).'
     # <<< FIM DOS SCHEMAS GERADOS
     Erro:
       type: object

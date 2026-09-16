@@ -5,15 +5,28 @@ import "strings"
 // Emissao é o resultado estruturado de uma emissão, extraído da resposta do
 // ACBr (formato INI com seções [Envio] e [ErroN]/[AlertaN]).
 type Emissao struct {
-	Sucesso           bool       `json:"sucesso"`
-	Numero            string     `json:"numero,omitempty"`
-	Chave             string     `json:"chave,omitempty"` // chave de acesso (Link)
-	CodigoVerificacao string     `json:"codigo_verificacao,omitempty"`
-	Protocolo         string     `json:"protocolo,omitempty"`
-	Situacao          string     `json:"situacao,omitempty"`
-	DataProcessamento string     `json:"data_processamento,omitempty"`
-	Erros             []Mensagem `json:"erros,omitempty"`
-	Alertas           []Mensagem `json:"alertas,omitempty"`
+	Sucesso           bool   `json:"sucesso"`
+	Numero            string `json:"numero,omitempty"`
+	Chave             string `json:"chave,omitempty"` // chave de acesso (Link)
+	CodigoVerificacao string `json:"codigo_verificacao,omitempty"`
+	Protocolo         string `json:"protocolo,omitempty"`
+	Situacao          string `json:"situacao,omitempty"`
+	DataProcessamento string `json:"data_processamento,omitempty"`
+	// ModoEnvio é o modo que o provedor de fato usou, já resolvido pela lib
+	// ("Enviar Lote Assíncrono", "Gerar NFSe"...), e não o pedido, que é sempre
+	// automático.
+	ModoEnvio string     `json:"modo_envio,omitempty"`
+	Erros     []Mensagem `json:"erros,omitempty"`
+	Alertas   []Mensagem `json:"alertas,omitempty"`
+}
+
+// AguardaProcessamento diz que o provedor só RECEBEU o lote. No envio
+// assíncrono (GISS 2.04, entre outros) o Sucesso=1 da lib quer dizer "lote
+// aceito, eis o protocolo", e a nota nasce, ou é recusada, depois. Sem número de
+// nota, chamar isso de autorizado grava como emitida uma nota que talvez nunca
+// exista. O desfecho sai de POST /transmissao/lote, pelo protocolo.
+func (e Emissao) AguardaProcessamento() bool {
+	return e.Numero == "" && strings.Contains(strings.ToLower(e.ModoEnvio), "lote ass")
 }
 
 // Mensagem é um erro ou alerta com código e descrição.
@@ -69,7 +82,74 @@ func ParseEnvio(resp string) Emissao {
 			}
 		case "Data":
 			e.DataProcessamento = val
+		case "ModoEnvio":
+			e.ModoEnvio = val
 		}
 	})
 	return e
+}
+
+// LoteRps é o desfecho de um lote consultado pelo protocolo (NFSE_ConsultarLoteRps).
+type LoteRps struct {
+	// Situacao é a do ABRASF: 1 não recebido, 2 não processado, 3 processado com
+	// erro, 4 processado com sucesso. Vazia quando o provedor não a informa.
+	Situacao          string
+	DescSituacao      string
+	Protocolo         string
+	Numero            string
+	CodigoVerificacao string
+	Erros             []Mensagem
+	Alertas           []Mensagem
+}
+
+// ParseLoteRps lê a seção [ConsultaLoteRps] e a [Arquivo1], que é onde a lib
+// põe o número e o código de verificação da nota que o lote gerou. O envio
+// desta API leva um RPS por lote, então há no máximo um arquivo.
+func ParseLoteRps(resp string) LoteRps {
+	var l LoteRps
+	l.Erros, l.Alertas = lerRespostaINI(resp, func(secao, key, val string) {
+		switch secao {
+		case "ConsultaLoteRps":
+			switch key {
+			case "Situacao":
+				l.Situacao = val
+			case "DescSituacao":
+				l.DescSituacao = val
+			case "Protocolo":
+				l.Protocolo = val
+			case "CodVerificacao":
+				if val != "" {
+					l.CodigoVerificacao = val
+				}
+			}
+		case "Arquivo1":
+			switch key {
+			case "NumeroNota":
+				l.Numero = val
+			case "CodigoVerificacao":
+				if val != "" {
+					l.CodigoVerificacao = val
+				}
+			}
+		}
+	})
+	return l
+}
+
+// Status traduz o lote no vocabulário da transmissão.
+//
+// A nota que voltou decide antes da situação: é ela que prova a autorização.
+// Situação 4 sem nota não é sucesso que se possa gravar, e situação ausente não
+// diz nada; os dois caem em erro, que não conclui a nota do lado do cliente.
+func (l LoteRps) Status() string {
+	switch {
+	case l.Numero != "":
+		return "autorizado"
+	case l.Situacao == "1" || l.Situacao == "2":
+		return "processando"
+	case l.Situacao == "3":
+		return "rejeitado"
+	default:
+		return "erro"
+	}
 }

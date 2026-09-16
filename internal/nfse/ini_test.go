@@ -15,11 +15,13 @@ func pedidoSintetico() DPSPedido {
 		Ambiente: "homologacao",
 		InfDPS: InfDPS{
 			Serie: "1", NDPS: "100", DCompet: "2026-05-01", CLocEmi: "4314902",
-			Prest: Pessoa{
-				CNPJ: "11111111000191", XNome: "Empresa Teste LTDA",
-				CMun: "4314902", UF: "RS", CEP: "90000000",
-				Logradouro: "Rua Exemplo", Numero: "100", Bairro: "Centro",
-				Telefone: "5133330000", Email: "teste@exemplo.com",
+			Prest: Prestador{
+				Pessoa: Pessoa{
+					CNPJ: "11111111000191", XNome: "Empresa Teste LTDA",
+					CMun: "4314902", UF: "RS", CEP: "90000000",
+					Logradouro: "Rua Exemplo", Numero: "100", Bairro: "Centro",
+					Telefone: "5133330000", Email: "teste@exemplo.com",
+				},
 				RegTrib: &RegTrib{OpSimpNac: 3, RegApTribSN: 1},
 			},
 			Serv:    Servico{CServ: "010101", XDescServ: "Serviço de teste", CMunPrestacao: "4314902"},
@@ -73,7 +75,9 @@ func TestToINI_ReformaETributacaoCompleta(t *testing.T) {
 	p.InfDPS.Valores.VDeducoes = 20
 	p.InfDPS.Valores.TribMun = &TribMun{TribISSQN: 1, TpRetISSQN: 1, PAliq: 3.5, TpImunidade: 0}
 	p.InfDPS.Valores.TribFed = &TribFed{CST: "01", VBCPisCofins: 1000, PAliqPis: 0.65, VPis: 6.5}
-	p.InfDPS.Valores.TotTrib = &TotTrib{IndTotTrib: 1, VTotTribFed: 36.5, VTotTribMun: 35}
+	// indTotTrib com new(int) é o zero de propósito: é o único valor válido do
+	// indicador, e era exatamente o que o int com omitempty descartava.
+	p.InfDPS.Valores.TotTrib = &TotTrib{IndTotTrib: new(int), VTotTribFed: 36.5, VTotTribMun: 35}
 	p.InfDPS.IBSCBS = &IBSCBSDPS{
 		GIBSCBS: &GIBSCBSDPS{CST: "000", CClassTrib: "000001",
 			GTribRegular: &GTribRegularDPS{CSTReg: "000", CClassTribReg: "000001"},
@@ -87,7 +91,7 @@ func TestToINI_ReformaETributacaoCompleta(t *testing.T) {
 		// cobrava "[tribFed]" e por isso carimbava o bug: a lib não lia a
 		// seção, e as retenções federais sumiam antes do XML.
 		"[tribFederal]", "CST=01", "vPis=6,50",
-		"[totTrib]", "indTotTrib=1", "vTotTribFed=36,50",
+		"[totTrib]", "indTotTrib=0", "vTotTribFed=36,50",
 		// IBS/CBS: finNFSe/indDest com default neutro (a lib estoura no vazio).
 		"[IBSCBSDPS]", "finNFSe=0", "indDest=0",
 		"[gIBSCBS]", "CST=000", "cClassTrib=000001",
@@ -101,7 +105,7 @@ func TestToINI_ReformaETributacaoCompleta(t *testing.T) {
 
 func TestToINI_ServicoIntermComExtInfoCompl(t *testing.T) {
 	p := pedidoSintetico()
-	p.InfDPS.Interm = &Pessoa{CNPJ: "11222333000181", XNome: "Intermediario X", CMun: "4314902", UF: "RS"}
+	p.InfDPS.Interm = &Intermediario{Pessoa: Pessoa{CNPJ: "11222333000181", XNome: "Intermediario X", CMun: "4314902", UF: "RS"}}
 	p.InfDPS.Serv.CNBS = "123456789"
 	p.InfDPS.Serv.MunIncidencia = "4314902"
 	p.InfDPS.Serv.ComExt = &ComExt{MdPrestacao: "1", TpMoeda: 790, VServMoeda: 1000, NDI: "DI-1"}
@@ -164,6 +168,32 @@ func TestToINICancelamento(t *testing.T) {
 	}
 	if strings.Contains(ini2, "CodMunicipio=") {
 		t.Error("CodMunicipio não deve aparecer quando vazio")
+	}
+
+	// O resto da seção: identificação pelo RPS, conferências e o cancelamento
+	// com substituição. Cada provedor pede um subconjunto, e quem decide o que
+	// mandar é o cliente.
+	ini3 := ToINICancelamento(chave, "3550308", CancelamentoPedido{
+		NumeroRps: 89, SerieRps: "A", DataEmissao: "2026-05-10", Valor: 1234.5,
+		CNPJCPFTomador: "00000000000191", CodigoServico: "1401",
+		NumeroSubstituta: "77", SerieSubstituta: "B", Email: "fiscal@exemplo.com.br",
+	})
+	for _, s := range []string{
+		"NumeroRps=89", "SerieRps=A", "DataEmissaoNFSe=10/05/2026", "ValorNFSe=1234,50",
+		"CNPJCPFTomador=00000000000191", "CodServ=1401",
+		"NumeroNFSeSubst=77", "SerieNFSeSubst=B", "email=fiscal@exemplo.com.br",
+	} {
+		if !strings.Contains(ini3, s) {
+			t.Errorf("INI cancelamento não contém %q\n%s", s, ini3)
+		}
+	}
+
+	// Nada disso aparece quando não informado: chave vazia em pedido de
+	// cancelamento é campo que o provedor confere contra a nota.
+	for _, s := range []string{"NumeroRps=", "ValorNFSe=", "DataEmissaoNFSe=", "email="} {
+		if strings.Contains(ini, s) {
+			t.Errorf("%q não deve aparecer no pedido mínimo\n%s", s, ini)
+		}
 	}
 }
 

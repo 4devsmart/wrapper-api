@@ -1,6 +1,7 @@
 package nfse
 
 import (
+	"reflect"
 	"regexp"
 	"strings"
 	"testing"
@@ -11,11 +12,11 @@ func pedidoAbrasfExemplo() DPSPedido {
 		Ambiente: "homologacao",
 		InfDPS: InfDPS{
 			Serie: "1", NDPS: "100", DCompet: "2026-05-01", DhEmi: "2026-05-01",
-			Prest: Pessoa{
-				CNPJ: "12345678000190", IM: "98765", CMun: "3304557", UF: "RJ",
+			Prest: Prestador{
+				Pessoa:  Pessoa{CNPJ: "12345678000190", IM: "98765", CMun: "3304557", UF: "RJ"},
 				RegTrib: &RegTrib{OpSimpNac: 3, RegEspTrib: 0, IncentCultural: 2},
 			},
-			Toma: &Pessoa{CNPJ: "11222333000181", XNome: "Cliente XPTO"},
+			Toma: &Tomador{Pessoa: Pessoa{CNPJ: "11222333000181", XNome: "Cliente XPTO"}},
 			Serv: Servico{
 				CMunPrestacao: "3304557", ItemListaServico: "01.07", CTribMun: "010701",
 				XDescServ: "Consultoria em TI",
@@ -41,11 +42,69 @@ func TestToINIAbrasf_EstruturaEFamilia(t *testing.T) {
 			t.Errorf("INI ABRASF não contém %q\n---\n%s", s, ini)
 		}
 	}
+}
 
-	// Grupos EXCLUSIVOS do Padrão Nacional não podem aparecer no ABRASF.
-	for _, s := range []string{"[tribFed]", "[totTrib]", "[IBSCBSDPS]"} {
-		if strings.Contains(ini, s) {
-			t.Errorf("INI ABRASF não deveria conter o grupo PN %q", s)
+// TestToINIAbrasf_GruposDetalhados: os grupos detalhados e a Reforma Tributária
+// vão ao INI do ABRASF iguais aos do Padrão Nacional. Eram omitidos, e o GISS
+// 2.04 os leva ao XML: o PIS/COFINS com CST, os totais e o IBS/CBS sumiam da
+// nota.
+func TestToINIAbrasf_GruposDetalhados(t *testing.T) {
+	p := pedidoAbrasfExemplo()
+	p.InfDPS.Valores.TribFed = &TribFed{CST: "01", VBCPisCofins: 6071, PAliqPis: 0.65, VPis: 39.46, TpRetPisCofins: new(int)}
+	p.InfDPS.Valores.TotTrib = &TotTrib{PTotTribFed: 3.65}
+	p.InfDPS.IBSCBS = &IBSCBSDPS{
+		CIndOp:  "000001",
+		GIBSCBS: &GIBSCBSDPS{CST: "000", CClassTrib: "000001"},
+		// O lado da NFS-e é o que o GISS 2.04 escreve dentro do RPS.
+		NFSe: &IBSCBSNFSe{
+			CLocalidadeIncid: "3518800", PRedutor: 0,
+			Valores: &IBSCBSValoresNFSe{VBC: 6071, PIBSMun: 0.1},
+		},
+	}
+	p.InfDPS.Serv.ComExt = &ComExt{MdPrestacao: "1"}
+	p.InfDPS.Serv.InfoCompl = &InfoCompl{XInfComp: "obs"}
+
+	pn, abrasf := ToINI(p), ToINIAbrasf(p)
+	for _, secao := range []string{"tribMun", "tribFederal", "totTrib", "IBSCBSDPS", "gIBSCBS",
+		"IBSCBSNFSE", "IBSCBSValoresNFSE", "ComercioExterior", "InformacoesComplementares"} {
+		if got, quero := secaoINI(abrasf, secao), secaoINI(pn, secao); got == "" || got != quero {
+			t.Errorf("[%s] no ABRASF difere do Padrão Nacional\nabrasf:\n%s\npn:\n%s", secao, got, quero)
+		}
+	}
+
+	// 0 é "PIS/COFINS/CSLL não retidos" e precisa chegar: o int com omitempty o
+	// descartava, e o IPM emitia <tipo_retencao/> vazio.
+	if got := valorINI(secaoINI(abrasf, "tribFederal"), "tpRetPisCofins"); got != "0" {
+		t.Errorf("tpRetPisCofins=0 deveria chegar a [tribFederal], veio %q", got)
+	}
+}
+
+// TestCodigoPaisServico: no ABRASF, serviço prestado no Brasil leva 1058 mesmo
+// sem codigoPais no pedido. Sem ele a homologação do GISS recusa com "E383 -
+// Código do pais não informado". O Padrão Nacional segue escrevendo só o que veio.
+func TestCodigoPaisServico(t *testing.T) {
+	casos := []struct {
+		nome                      string
+		cMunPrest, munIncid, pais string
+		abrasf, pn                string
+	}{
+		{"prestação em município brasileiro", "3518800", "", "", "1058", ""},
+		{"município brasileiro com país ISO", "3518800", "", "0076", "1058", "0076"},
+		{"só o município de incidência", "", "3518800", "", "1058", ""},
+		{"exportação: incidência brasileira e país informado", "", "3518800", "2496", "2496", "2496"},
+		{"prestação no exterior pelo 9999999", "9999999", "", "2496", "2496", "2496"},
+		{"sem município nem país", "", "", "", "", ""},
+	}
+	for _, c := range casos {
+		p := pedidoAbrasfExemplo()
+		p.InfDPS.Serv.CMunPrestacao, p.InfDPS.Serv.MunIncidencia, p.InfDPS.Serv.CodigoPais = c.cMunPrest, c.munIncid, c.pais
+		for layout, par := range map[string]struct{ ini, quero string }{
+			"abrasf":          {ToINIAbrasf(p), c.abrasf},
+			"padrao_nacional": {ToINI(p), c.pn},
+		} {
+			if got := valorINI(secaoINI(par.ini, "Servico"), "CodigoPais"); got != par.quero {
+				t.Errorf("%s, %s: CodigoPais=%q, quero %q", c.nome, layout, got, par.quero)
+			}
 		}
 	}
 }
@@ -84,52 +143,109 @@ func secaoINI(ini, nome string) string {
 	return m[1]
 }
 
-// TestCodigoPaisEnderecoNacional cobre a regressão em que o endereço nacional do
-// tomador saía como <EnderecoExterior> no XML. O layout ABRASF 2.04 decide
-// nacional × exterior comparando CodigoPais com 1058; sem a chave o LerIni
-// assume 0, e o endereço inteiro (número/bairro/município/UF/CEP) era descartado
-// em favor de um único <EnderecoCompletoExterior>.
+// TestCodigoPaisEnderecoNacional cobre a escolha entre endereço nacional e
+// exterior, que o ABRASF 2.04 faz pelo CodigoPais e o Padrão Nacional pelo
+// município (ver codigoPais). Três regressões moram aqui: sem a chave, todo
+// endereço nacional saía como <EnderecoExterior> (EloTech); com cPais=76, o GISS
+// 2.04 recusava a nota por falta do <CodigoPais> dentro dele; e um 1058
+// presumido sem município fazia os gravadores APIPropria emitirem <endExt> com
+// país Brasil.
+//
+// As seções são achadas no INI pela razão social, então uma pessoa nova no
+// contrato entra no teste sem ninguém precisar lembrar dela.
 func TestCodigoPaisEnderecoNacional(t *testing.T) {
-	base := func() DPSPedido {
-		p := pedidoAbrasfExemplo()
-		p.InfDPS.Toma = &Pessoa{
-			CNPJ: "44555666000172", XNome: "Tomador Teste",
-			CMun: "3205069", UF: "ES", CEP: "29375000",
-			Logradouro: "Avenida ANGELO ALTOE", Numero: "340", Bairro: "SAO PEDRO",
-		}
+	endereco := Pessoa{
+		CNPJ: "44555666000172", XNome: "Pessoa Teste",
+		Logradouro: "RUA MACEIO", Numero: "4-22", Bairro: "CENTRO", UF: "SP", CEP: "19470000",
+	}
+	com := func(mudar func(*Pessoa)) Pessoa {
+		p := endereco
+		mudar(&p)
 		return p
 	}
 
-	// Endereço nacional (tem município): 1058 é preenchido sozinho, nos dois
-	// builders: o helper de pessoa é compartilhado por ABRASF e Padrão Nacional.
-	for nome, ini := range map[string]string{
-		"abrasf":          ToINIAbrasf(base()),
-		"padrao_nacional": ToINI(base()),
-	} {
-		if toma := secaoINI(ini, "Tomador"); !strings.Contains(toma, "CodigoPais=1058") {
-			t.Errorf("%s: endereço nacional do tomador deveria trazer CodigoPais=1058\n---\n%s", nome, toma)
+	casos := []struct {
+		nome       string
+		pessoa     Pessoa
+		abrasf, pn string // CodigoPais esperado; vazio é chave ausente
+	}{
+		{"município brasileiro", com(func(p *Pessoa) { p.CMun = "3541307" }), "1058", "1058"},
+		{"município brasileiro com cPais ISO", com(func(p *Pessoa) { p.CMun, p.CPais = "3541307", 76 }), "1058", "1058"},
+		// 1058 sem município faria sair <endExt> no Padrão Nacional e nos
+		// gravadores APIPropria, que também recebem o INI do ABRASF.
+		{"endereço sem município nem país", endereco, "", ""},
+		{"exterior sem município", com(func(p *Pessoa) { p.UF, p.CEP, p.CPais = "", "", 2496 }), "2496", "2496"},
+		{"exterior pelo município 9999999", com(func(p *Pessoa) { p.CMun, p.CPais = "9999999", 2496 }), "2496", "2496"},
+		{"9999999 sem país", com(func(p *Pessoa) { p.CMun = "9999999" }), "", ""},
+		{"sem endereço", Pessoa{CNPJ: "44555666000172", XNome: "Pessoa Teste"}, "", ""},
+	}
+	for _, c := range casos {
+		d := comTodasAsPessoas(c.pessoa)
+		for layout, par := range map[string]struct{ ini, quero string }{
+			"abrasf":          {ToINIAbrasf(d), c.abrasf},
+			"padrao_nacional": {ToINI(d), c.pn},
+		} {
+			secoes := secoesDaPessoa(par.ini, c.pessoa.XNome)
+			if len(secoes) < 3 {
+				t.Fatalf("%s: esperava prestador, tomador e intermediário no INI, achei %v", layout, secoes)
+			}
+			for _, s := range secoes {
+				if got := valorINI(secaoINI(par.ini, s), "CodigoPais"); got != par.quero {
+					t.Errorf("%s, %s, [%s]: CodigoPais=%q, quero %q", c.nome, layout, s, got, par.quero)
+				}
+			}
 		}
 	}
+}
 
-	// Exterior explícito é respeitado (não sobrescrevemos com 1058).
-	pExt := base()
-	pExt.InfDPS.Toma.CPais = 249 // Estados Unidos
-	pExt.InfDPS.Toma.XPais = "ESTADOS UNIDOS"
-	toma := secaoINI(ToINIAbrasf(pExt), "Tomador")
-	if !strings.Contains(toma, "CodigoPais=249") || strings.Contains(toma, "CodigoPais=1058") {
-		t.Errorf("país estrangeiro informado deveria ser preservado\n---\n%s", toma)
+// comTodasAsPessoas põe a mesma pessoa em todo papel do pedido (prestador,
+// tomador, intermediário). Acha os papéis pela Pessoa embutida, então um papel
+// novo no contrato entra no teste sem ninguém precisar lembrar dele.
+func comTodasAsPessoas(p Pessoa) DPSPedido {
+	d := pedidoAbrasfExemplo()
+	v := reflect.ValueOf(&d.InfDPS).Elem()
+	for i := range v.NumField() {
+		f := v.Field(i)
+		tipo := f.Type()
+		ponteiro := tipo.Kind() == reflect.Pointer
+		if ponteiro {
+			tipo = tipo.Elem()
+		}
+		if tipo.Kind() != reflect.Struct {
+			continue
+		}
+		if campo, ok := tipo.FieldByName("Pessoa"); !ok || campo.Type != reflect.TypeFor[Pessoa]() {
+			continue
+		}
+		papel := reflect.New(tipo)
+		papel.Elem().FieldByName("Pessoa").Set(reflect.ValueOf(p))
+		if ponteiro {
+			f.Set(papel)
+		} else {
+			f.Set(papel.Elem())
+		}
 	}
-	if !strings.Contains(toma, "xPais=ESTADOS UNIDOS") {
-		t.Errorf("xPais deveria ser repassado\n---\n%s", toma)
-	}
+	return d
+}
 
-	// Sem município e sem país: não inventamos país (evita mudar o comportamento
-	// de quem manda só contato, sem endereço).
-	pSem := base()
-	pSem.InfDPS.Toma = &Pessoa{CNPJ: "44555666000172", XNome: "Sem Endereco"}
-	if s := secaoINI(ToINIAbrasf(pSem), "Tomador"); strings.Contains(s, "CodigoPais=") {
-		t.Errorf("sem município nem país informado, CodigoPais não deve ser emitido\n---\n%s", s)
+// secoesDaPessoa lista as seções do INI escritas para a pessoa de nome xNome.
+func secoesDaPessoa(ini, xNome string) []string {
+	var nomes []string
+	for _, m := range regexp.MustCompile(`(?m)^\[(\w+)\]$`).FindAllStringSubmatch(ini, -1) {
+		if valorINI(secaoINI(ini, m[1]), "RazaoSocial") == xNome {
+			nomes = append(nomes, m[1])
+		}
 	}
+	return nomes
+}
+
+func valorINI(secao, chave string) string {
+	for l := range strings.SplitSeq(secao, "\n") {
+		if k, v, ok := strings.Cut(l, "="); ok && k == chave {
+			return v
+		}
+	}
+	return ""
 }
 
 // TestCodigoNBS cobre a regressão em que o cNBS do contrato era descartado no

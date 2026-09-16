@@ -1,0 +1,3 @@
+# Os patches do ACBr são aplicados sobre fonte Pascal em Latin-1 com CRLF.
+# Normalizar a quebra de linha faz o patch não aplicar e o build da lib quebrar.
+docker/acbr-patches/*.patch -text

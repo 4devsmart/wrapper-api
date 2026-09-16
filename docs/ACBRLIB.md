@@ -87,6 +87,34 @@ pacotes `fpc`/`lazarus` do builder. Dentro de uma mesma release do Debian a
 variação é pequena, mas ela existe, e é o que sobra entre "reprodutível" e
 "idêntico bit a bit".
 
+### Os patches locais
+
+Há uma terceira entrada no binário, além das duas pinadas: os patches em
+`docker/acbr-patches/`. O `make acbr-compilar` passa
+`--build-context patches=docker/acbr-patches`, e o Dockerfile os aplica com
+`patch -p1` sobre `/src/acbr`, em ordem, falhando o build se algum não aplicar
+limpo.
+
+São correções nossas no fonte do ACBr, ainda não reportadas ao projeto, e cada
+uma sustenta um pedaço do contrato:
+
+| patch | o que muda | o que depende dele |
+|---|---|---|
+| `0001-lerini-rps-le-ibscbs-da-nfse` | o `LerIniRps` passa a ler `[IBSCBSNFSE]` e `[IBSCBSValoresNFSE]` | `infDPS.ibscbs.nfse`, e com ele os 24 campos de `totCIBS` |
+| `0002-lerxml-abrasfv2-endereco-nacional-mantem-1058` | o releitor do ABRASF 2.04 não perde o `CodigoPais` do endereço nacional | a emissão no GISS 2.04, que sem ele volta X800 |
+| `0003-giss-totrib-emite-indtottrib` | o gravador do GISS passa a emitir `<indTotTrib>`, o terceiro ramo do `choice` de `totTrib` | `valores.totTrib.indTotTrib`, e com ele a saída do E160 de carga tributária |
+
+Isso importa na hora de trocar a `.so`. Compilada **sem** os patches, a lib
+aceita o mesmo INI e descarta em silêncio as chaves da primeira linha: a nota
+sai, e sai errada.
+
+O gate de lockstep não protege contra isso, e é bom saber por quê. O
+`acbr-source/` em disco é o fonte **sem** os patches, que só existem dentro do
+container de build, e o `scripts/gerar-chaves-lerini.py` extrai seção e chave
+sem olhar quem chama quem: para ele `[IBSCBSNFSE]` existe de qualquer jeito.
+O snapshot responde "a lib sabe ler esta chave", nunca "esta chave chega ao XML
+a partir de um RPS". Quem responde a segunda pergunta é a lib compilada.
+
 ## O ciclo do release
 
 As libs entram e saem do repositório por dois comandos, e os dois passam por

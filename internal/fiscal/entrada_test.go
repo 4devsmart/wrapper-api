@@ -188,6 +188,7 @@ func TestSoDigitos(t *testing.T) {
 func TestStatusDoDesfecho(t *testing.T) {
 	casos := map[string]int{
 		"autorizado":  http.StatusOK,
+		"processando": http.StatusAccepted,
 		"rejeitado":   http.StatusUnprocessableEntity,
 		"erro":        http.StatusBadGateway,
 		"":            http.StatusBadGateway,

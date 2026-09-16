@@ -1,0 +1,32 @@
+Releitura do endereco nacional do tomador (ABRASF 2.04) mantem o pais 1058.
+
+O gravador so emite <CodigoPais> no endereco do exterior, entao ao reler o XML
+o campo volta 0. Como o GerarTomador decide nacional x exterior por
+CodigoPais <> 1058, o ciclo NFSE_CarregarXML + NFSE_Emitir regera o endereco
+como <EnderecoExterior> e a prefeitura recusa:
+
+  1871 - Element EnderecoCompletoExterior: This element is not expected.
+  Expected is ( CodigoPais ).
+
+Reproduzido na homologacao do GISS 2.04.
+
+Base: ACBr trunk2 r48100. Ainda nao reportado ao projeto ACBr.
+
+--- a/Fontes/ACBrDFe/ACBrNFSeX/Base/Provedores/ACBrNFSeXLerXml_ABRASFv2.pas
++++ b/Fontes/ACBrDFe/ACBrNFSeX/Base/Provedores/ACBrNFSeXLerXml_ABRASFv2.pas
+@@ -382,6 +382,15 @@
+       xMunicipio := ObterNomeMunicipioUF(StrToIntDef(CodigoMunicipio, 0), xUF);
+       CodigoPais := LerCodigoPaisTomador(AuxNode);
+ 
++      // wrapper-api: o endereco nacional do ABRASF 2.04 nao carrega
++      // CodigoPais (o gravador so o emite no exterior). Sem isto a releitura
++      // devolve 0, e o GerarTomador, que decide por CodigoPais <> 1058,
++      // regera o endereco como <EnderecoExterior>: o municipio recusa com
++      // "1871 ... EnderecoCompletoExterior ... Expected is ( CodigoPais )".
++      if (CodigoPais = 0) and (CodigoMunicipio <> '') and
++         (CodigoMunicipio <> '9999999') then
++        CodigoPais := 1058;
++
+       if UF = '' then
+         UF := xUF;
+     end;

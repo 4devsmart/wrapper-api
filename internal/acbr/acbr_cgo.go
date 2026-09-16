@@ -585,6 +585,10 @@ func (l *cgoLib) ConsultarSituacao(t TenantConfig, protocolo, numLote string) (R
 }
 
 // ConsultarLoteRps consulta o resultado de um lote de RPS pelo protocolo/numLote.
+//
+// Quando o lote gerou nota, a lib a carrega na lista (a sessão começa vazia, então
+// é o índice 0) e o XML dela vem junto, como na transmissão. É o único jeito de
+// ter o documento autorizado de um provedor assíncrono.
 func (l *cgoLib) ConsultarLoteRps(t TenantConfig, protocolo, numLote string) (Result, error) {
 	return l.withSession(t, func(h C.LibHandle) (Result, error) {
 		cp := C.CString(protocolo)
@@ -594,7 +598,15 @@ func (l *cgoLib) ConsultarLoteRps(t TenantConfig, protocolo, numLote string) (Re
 		code, resp := callBuffer(h, func(buf *C.char, size *C.int) C.int {
 			return C.NFSE_ConsultarLoteRps(h, cp, cl, buf, size)
 		})
-		return Result{Codigo: code, Resposta: resp}, nil
+		res := Result{Codigo: code, Resposta: resp}
+		if code == 0 {
+			if c, x := callBuffer(h, func(buf *C.char, size *C.int) C.int {
+				return C.NFSE_ObterXml(h, 0, buf, size)
+			}); c == 0 && x != "" {
+				res.XML = x
+			}
+		}
+		return res, nil
 	})
 }
 

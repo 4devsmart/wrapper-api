@@ -35,7 +35,14 @@ type libFake struct {
 
 	resMontar, resTransmitir, resCancelar, resConsulta acbr.Result
 	resEvento, resProvedor                             acbr.Result
+	resLote                                            acbr.Result
+	protocoloLote                                      string
 	errTransmitir                                      error
+}
+
+func (f *libFake) ConsultarLoteRps(t acbr.TenantConfig, protocolo, _ string) (acbr.Result, error) {
+	f.protocoloLote, f.tenant = protocolo, t
+	return f.resLote, nil
 }
 
 func (f *libFake) Emitir(t acbr.TenantConfig, ini string) (acbr.Result, error) {
@@ -392,6 +399,132 @@ func TestAmbienteVemDoXMLNaoDoCliente(t *testing.T) {
 	}
 }
 
+// O GISS 2.04 recebe por lote assíncrono: Sucesso=1 com protocolo e sem número
+// quer dizer "lote aceito". Chamar isso de autorizado gravou como emitida, no
+// cliente, uma nota que o provedor recusou minutos depois com E202.
+func TestTransmissaoAssincronaSemNumeroFicaProcessando(t *testing.T) {
+	f := &libFake{resTransmitir: acbr.Result{
+		Resposta: "[Envio]\nSucesso=1\nProtocolo=9000001\nModoEnvio=Enviar Lote Assíncrono\nNumeroNota=\n",
+	}}
+	rec := post(t, muxDe(f), "/nfse/transmissao", envelope(munAbrasf, map[string]any{
+		"xml_b64": base64.StdEncoding.EncodeToString([]byte(xmlFixture("2"))),
+	}))
+	if rec.Code != http.StatusAccepted {
+		t.Fatalf("status = %d, quero 202: %s", rec.Code, rec.Body)
+	}
+	var resp RespostaTransmissao
+	_ = json.Unmarshal(rec.Body.Bytes(), &resp)
+	if resp.Status != "processando" || resp.Protocolo != "9000001" {
+		t.Errorf("resposta = %+v", resp)
+	}
+}
+
+// A regra acima é do envio assíncrono, e só dele. O Padrão Nacional é unitário e
+// síncrono, e o lote síncrono também decide na hora: nenhum dos dois pode virar
+// "processando" por não trazer número.
+func TestTransmissaoSincronaContinuaAutorizada(t *testing.T) {
+	for nome, modo := range map[string]string{
+		"Padrão Nacional": "Gerar NFSe",
+		"lote síncrono":   "Enviar Lote Síncrono",
+		"sem modo":        "",
+	} {
+		t.Run(nome, func(t *testing.T) {
+			f := &libFake{resTransmitir: acbr.Result{
+				Resposta: "[Envio]\nSucesso=1\nProtocolo=P1\nModoEnvio=" + modo + "\n",
+			}}
+			rec := post(t, muxDe(f), "/nfse/transmissao", envelope(munPadraoNacional, map[string]any{
+				"xml_b64": base64.StdEncoding.EncodeToString([]byte(xmlFixture("2"))),
+			}))
+			var resp RespostaTransmissao
+			_ = json.Unmarshal(rec.Body.Bytes(), &resp)
+			if rec.Code != http.StatusOK || resp.Status != "autorizado" {
+				t.Errorf("status = %d, resposta = %+v", rec.Code, resp)
+			}
+		})
+	}
+}
+
+// Resposta real do GISS 2.04 a um lote recusado: processado com erro, E202 do
+// provedor e o X202 da lib por não ter vindo nota.
+const loteGissRecusado = "[ConsultaLoteRps]\nCodVerificacao=\nDescSituacao=\nProtocolo=9000001\nSituacao=3\n" +
+	"[Erro1]\nCodigo=E202\nCorrecao=Informe o código de tributação referente aos serviços prestados\n" +
+	"Descricao=Código de tributação não informado\n" +
+	"[Erro2]\nCodigo=X202\nCorrecao=\nDescricao=Lista de NFSe não encontrada! (ListaNfse)\n"
+
+func TestLoteRecusadoVoltaRejeitadoComOMotivo(t *testing.T) {
+	f := &libFake{resLote: acbr.Result{Resposta: loteGissRecusado, XML: "<Rps/>"}}
+	rec := post(t, muxDe(f), "/nfse/transmissao/lote", envelope(munAbrasf, map[string]any{"protocolo": "9000001"}))
+	if rec.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("status = %d, quero 422: %s", rec.Code, rec.Body)
+	}
+	if f.protocoloLote != "9000001" {
+		t.Errorf("protocolo que chegou à lib = %q", f.protocoloLote)
+	}
+	var resp RespostaTransmissao
+	_ = json.Unmarshal(rec.Body.Bytes(), &resp)
+	if resp.Status != "rejeitado" || len(resp.Erros) == 0 || resp.Erros[0].Codigo != "E202" {
+		t.Errorf("resposta = %+v", resp)
+	}
+	// Recusado não tem documento: o XML que a lib tiver carregado não é NFS-e.
+	if resp.XMLBase64 != "" {
+		t.Errorf("devolveu XML num lote recusado: %s", resp.XMLBase64)
+	}
+}
+
+func TestLoteComNotaVoltaAutorizadoComOXml(t *testing.T) {
+	f := &libFake{resLote: acbr.Result{
+		Resposta: "[ConsultaLoteRps]\nSituacao=4\nProtocolo=9000001\n" +
+			"[Arquivo1]\nNumeroNota=202600000123\nCodigoVerificacao=ABC123\nNumeroRPS=1\nSerieRPS=1\n",
+		XML: "<CompNfse/>",
+	}}
+	rec := post(t, muxDe(f), "/nfse/transmissao/lote", envelope(munAbrasf, map[string]any{"protocolo": "9000001"}))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d: %s", rec.Code, rec.Body)
+	}
+	var resp RespostaTransmissao
+	_ = json.Unmarshal(rec.Body.Bytes(), &resp)
+	if resp.Status != "autorizado" || resp.Numero != "202600000123" || resp.CodigoVerificacao != "ABC123" {
+		t.Errorf("resposta = %+v", resp)
+	}
+	if xml, _ := base64.StdEncoding.DecodeString(resp.XMLBase64); string(xml) != "<CompNfse/>" {
+		t.Errorf("xml = %q", xml)
+	}
+}
+
+func TestLoteSemDesfechoNaoConclui(t *testing.T) {
+	for nome, caso := range map[string]struct {
+		resposta string
+		quero    int
+		status   string
+	}{
+		"não processado":        {"[ConsultaLoteRps]\nSituacao=2\nProtocolo=P\n", http.StatusAccepted, "processando"},
+		"não recebido":          {"[ConsultaLoteRps]\nSituacao=1\nProtocolo=P\n", http.StatusAccepted, "processando"},
+		"sucesso sem nota":      {"[ConsultaLoteRps]\nSituacao=4\nProtocolo=P\n", http.StatusBadGateway, "erro"},
+		"provedor sem situação": {"[ConsultaLoteRps]\nProtocolo=P\n", http.StatusBadGateway, "erro"},
+	} {
+		t.Run(nome, func(t *testing.T) {
+			f := &libFake{resLote: acbr.Result{Resposta: caso.resposta}}
+			rec := post(t, muxDe(f), "/nfse/transmissao/lote", envelope(munAbrasf, map[string]any{"protocolo": "P"}))
+			var resp RespostaTransmissao
+			_ = json.Unmarshal(rec.Body.Bytes(), &resp)
+			if rec.Code != caso.quero || resp.Status != caso.status {
+				t.Errorf("status = %d, resposta = %+v; quero %d %s", rec.Code, resp, caso.quero, caso.status)
+			}
+		})
+	}
+}
+
+func TestLoteSemProtocoloRecusaSemIrAoProvedor(t *testing.T) {
+	f := &libFake{}
+	rec := post(t, muxDe(f), "/nfse/transmissao/lote", envelope(munAbrasf, nil))
+	if rec.Code != http.StatusBadRequest || !strings.Contains(rec.Body.String(), "protocolo") {
+		t.Fatalf("status = %d: %s", rec.Code, rec.Body)
+	}
+	if f.protocoloLote != "" {
+		t.Error("foi ao provedor sem protocolo")
+	}
+}
+
 // Credenciais de prefeitura só valem para provedores não-Padrão Nacional. Mandar
 // login/senha para o ADN seria configurar lixo numa sessão que não os usa.
 func TestCredenciaisSoValemForaDoPadraoNacional(t *testing.T) {
@@ -569,6 +702,150 @@ func TestCancelamentoPadraoNacionalVaiPorEvento(t *testing.T) {
 	_ = json.Unmarshal(rec.Body.Bytes(), &resp)
 	if resp.Status != "concluido" || resp.Situacao != "Nota Cancelada" {
 		t.Errorf("resposta = %+v", resp)
+	}
+}
+
+// O cliente pode mandar número e código de verificação sempre, sem saber o
+// layout do município. No Padrão Nacional os dois não têm onde entrar, e o
+// evento precisa sair idêntico ao de quem não os manda.
+func TestCancelamentoPadraoNacionalIgnoraOsCamposDoAbrasf(t *testing.T) {
+	iniDoEvento := func(evento map[string]any) string {
+		t.Helper()
+		f := &libFake{resEvento: acbr.Result{
+			Resposta: "[EnviarEvento]\nSucessoCanc=1\nDescSituacao=Nota Cancelada\nXmlRetorno=<procEveNFSe/>\n",
+		}}
+		rec := post(t, muxDe(f), "/nfse/eventos/cancelamento", envelope(munPadraoNacional, map[string]any{
+			"chave": "chave-da-nfse", "evento": evento,
+		}))
+		if rec.Code != http.StatusOK {
+			t.Fatalf("status = %d: %s", rec.Code, rec.Body)
+		}
+		if f.iniCancelar != "" {
+			t.Errorf("chamou o CancelaNFSe no Padrão Nacional:\n%s", f.iniCancelar)
+		}
+		return f.iniEvento
+	}
+
+	sem := iniDoEvento(map[string]any{"codigo": "2", "motivo": "servico nao prestado"})
+	com := iniDoEvento(map[string]any{
+		"codigo": "2", "motivo": "servico nao prestado", "numero": "100", "codigo_verificacao": "XYZ",
+	})
+	// O dhEvento é o relógio: some da comparação para não falhar na virada do segundo.
+	semRelogio := func(ini string) string {
+		var linhas []string
+		for _, l := range strings.Split(ini, "\n") {
+			if !strings.HasPrefix(l, "dhEvento=") {
+				linhas = append(linhas, l)
+			}
+		}
+		return strings.Join(linhas, "\n")
+	}
+	if semRelogio(sem) != semRelogio(com) {
+		t.Errorf("o evento mudou com os campos do ABRASF:\nsem:\n%s\ncom:\n%s", sem, com)
+	}
+}
+
+// O formato que a ACBrLib de fato devolve, e não o que os testes acima simulam:
+// Sucesso=Sim dentro de [RetCancelamento]. Foi assim que o GISS 2.04 respondeu a
+// um cancelamento real, e a wrapper, lendo só [Cancelamento], chamou de erro 502
+// um cancelamento registrado.
+func TestCancelamentoAbrasfLeOSucessoDaRespostaRealDaLib(t *testing.T) {
+	f := &libFake{resCancelar: acbr.Result{XML: "Índice informado não encontrado", Resposta: "[CancelarNFSe]\nCodVerificacao=\n" +
+		"XmlRetorno=<CancelarNfseResposta><RetCancelamento><NfseCancelamento/></RetCancelamento></CancelarNfseResposta>\n" +
+		"[InfCancelamento]\nCodCancelamento=1\nNumeroNFSe=86\n" +
+		"[RetCancelamento]\nDataHora=16/09/2026 10:57:25\nMSgCanc=\nNumeroLote=\nNumeroNota=\n" +
+		"Situacao=Cancelado\nSucesso=Sim\n"}}
+	rec := post(t, muxDe(f), "/nfse/eventos/cancelamento", envelope(munAbrasf, map[string]any{
+		"evento": map[string]any{"codigo": "1", "motivo": "erro na emissao da nota", "numero": "86"},
+	}))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, quero 200: %s", rec.Code, rec.Body)
+	}
+	var resp RespostaEvento
+	_ = json.Unmarshal(rec.Body.Bytes(), &resp)
+	if resp.Status != "concluido" || resp.DataHora != "16/09/2026 10:57:25" {
+		t.Errorf("resposta = %+v", resp)
+	}
+	// O documento do evento é a resposta do provedor, e não a frase de índice
+	// inválido que o worker lê da lista de notas vazia.
+	if xml, _ := base64.StdEncoding.DecodeString(resp.XMLBase64); !strings.HasPrefix(string(xml), "<CancelarNfseResposta>") {
+		t.Errorf("xml do evento = %q", xml)
+	}
+}
+
+// O outro lado: sem confirmação, [RetCancelamento] vem com Sucesso vazio e a
+// data zerada, e a recusa do provedor tem que continuar recusa.
+func TestCancelamentoAbrasfRecusadoContinuaRejeitado(t *testing.T) {
+	f := &libFake{resCancelar: acbr.Result{Resposta: "[CancelarNFSe]\nCodVerificacao=\n" +
+		"[Erro1]\nCodigo=E79\nCorrecao=\nDescricao=Nota fiscal já cancelada\n" +
+		"[RetCancelamento]\nDataHora=30/12/1899\nSituacao=\nSucesso=\n"}}
+	rec := post(t, muxDe(f), "/nfse/eventos/cancelamento", envelope(munAbrasf, map[string]any{
+		"evento": map[string]any{"codigo": "1", "motivo": "erro na emissao da nota", "numero": "86"},
+	}))
+	if rec.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("status = %d, quero 422: %s", rec.Code, rec.Body)
+	}
+	var resp RespostaEvento
+	_ = json.Unmarshal(rec.Body.Bytes(), &resp)
+	if resp.Status != "rejeitado" || resp.DataHora != "" {
+		t.Errorf("resposta = %+v", resp)
+	}
+}
+
+// O ABRASF não tem chave de acesso: o que volta nesse campo é o link da nota,
+// quando o provedor manda um. Nota GISS autorizada sem link tinha o número em
+// mãos e era recusada aqui, antes de chegar ao CancelaNFSe, que é justamente
+// quem localiza a nota pelo número.
+func TestCancelamentoAbrasfSemChaveVaiPeloNumero(t *testing.T) {
+	f := &libFake{resCancelar: acbr.Result{
+		Resposta: "[Cancelamento]\nSucesso=1\nProtocolo=P9\n", XML: "<evento/>",
+	}}
+	rec := post(t, muxDe(f), "/nfse/eventos/cancelamento", envelope(munAbrasf, map[string]any{
+		"evento": map[string]any{"codigo": "1", "motivo": "erro na emissao da nota", "numero": "100"},
+	}))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d: %s", rec.Code, rec.Body)
+	}
+	for _, quero := range []string{"[CancelarNFSe]", "NumeroNFSe=100", "CodCancelamento=1"} {
+		if !strings.Contains(f.iniCancelar, quero) {
+			t.Errorf("INI não tem %q:\n%s", quero, f.iniCancelar)
+		}
+	}
+}
+
+// Sem chave e sem número não há o que localizar. A recusa é local e diz o campo,
+// em vez do erro 108 da biblioteca.
+func TestCancelamentoAbrasfSemChaveNemNumeroRecusaSemIrAoProvedor(t *testing.T) {
+	f := &libFake{}
+	rec := post(t, muxDe(f), "/nfse/eventos/cancelamento", envelope(munAbrasf, map[string]any{
+		"evento": map[string]any{"codigo": "1", "motivo": "erro na emissao da nota"},
+	}))
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, quero 400: %s", rec.Code, rec.Body)
+	}
+	if !strings.Contains(rec.Body.String(), "evento.numero") {
+		t.Errorf("a recusa não diz qual campo falta: %s", rec.Body)
+	}
+	if f.iniCancelar != "" {
+		t.Errorf("foi ao provedor sem identificar a nota:\n%s", f.iniCancelar)
+	}
+}
+
+// A mudança acima é só do ABRASF. O evento do Padrão Nacional aponta a chave, e
+// número nenhum a substitui.
+func TestCancelamentoPadraoNacionalContinuaExigindoAChave(t *testing.T) {
+	f := &libFake{}
+	rec := post(t, muxDe(f), "/nfse/eventos/cancelamento", envelope(munPadraoNacional, map[string]any{
+		"evento": map[string]any{"codigo": "1", "motivo": "erro na emissao da nota", "numero": "100"},
+	}))
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, quero 400: %s", rec.Code, rec.Body)
+	}
+	if !strings.Contains(rec.Body.String(), "chave da NFS-e é obrigatória") {
+		t.Errorf("a recusa mudou: %s", rec.Body)
+	}
+	if f.iniEvento != "" || f.iniCancelar != "" {
+		t.Error("foi ao provedor sem a chave")
 	}
 }
 
