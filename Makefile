@@ -18,7 +18,7 @@ ACBR_FRCE_REF ?= 9c29ee7152a6293d3920ff44a2bf3cd384d7b081
 # próprio: a aba de Releases passa a ter só versões deste serviço. O arquivo
 # revisao.txt vai junto dos .so e precisa bater com ACBR_REV, senão o download
 # recusa: sem o nome da revisão na tag, nada mais amarraria as duas coisas.
-ACBR_LIBS_RELEASE ?= v1.1.0
+ACBR_LIBS_RELEASE ?= v1.3.0
 OUT     := out
 PKGS    := ./...
 ACBRLIBS ?= ./acbr-libs
