@@ -19,6 +19,8 @@ const (
 	munPadraoNacional = "3304557" // Rio de Janeiro  → PadraoNacional
 	munAbrasf         = "1100015" // Alta Floresta d'Oeste → WebISS (abrasf_v1_v2)
 	munProprio        = "3550308" // São Paulo → ISSSaoPaulo (próprio)
+	munAPIPropria     = "5300108" // Brasília → ISSNet pela API própria, que gera DPS
+	munAPIPropriaCred = "4302204" // Boa Vista do Buricá → ABase pela API própria, com WSChaveAcesso
 	munDesconhecido   = "9999999"
 )
 
@@ -135,6 +137,10 @@ func xmlFixture(tpAmb string) string {
 		`<tpAmb>` + tpAmb + `</tpAmb>` +
 		`<cLocEmi>` + munPadraoNacional + `</cLocEmi></infDPS></DPS>`
 }
+
+// xmlRpsFixture é um RPS ABRASF: raiz fora do namespace nacional.
+const xmlRpsFixture = `<?xml version="1.0"?><Rps xmlns="http://www.giss.com.br/tipos-v2_04.xsd">` +
+	`<InfDeclaracaoPrestacaoServico Id="R1"></InfDeclaracaoPrestacaoServico></Rps>`
 
 func muxDe(f *libFake) *http.ServeMux {
 	mux := http.NewServeMux()
@@ -254,6 +260,7 @@ func TestLayoutPorMunicipio(t *testing.T) {
 		"padrão nacional": {munPadraoNacional, LayoutPadraoNacional, true},
 		"abrasf":          {munAbrasf, LayoutAbrasf, true},
 		"próprio":         {munProprio, LayoutProprio, true},
+		"api própria":     {munAPIPropria, LayoutPadraoNacional, true},
 		"desconhecido":    {munDesconhecido, "", false},
 	}
 	for nome, c := range casos {
@@ -288,7 +295,7 @@ func TestConstrutorDeINIMudaComAFamilia(t *testing.T) {
 	pn := &libFake{resMontar: acbr.Result{XML: xmlFixture("2")}}
 	post(t, muxDe(pn), "/nfse/xml", pedidoMinimo(munPadraoNacional))
 
-	ab := &libFake{resMontar: acbr.Result{XML: xmlFixture("2")}}
+	ab := &libFake{resMontar: acbr.Result{XML: xmlRpsFixture}}
 	post(t, muxDe(ab), "/nfse/xml", pedidoMinimo(munAbrasf))
 
 	if pn.iniMontar == "" || ab.iniMontar == "" {
@@ -525,6 +532,87 @@ func TestLoteSemProtocoloRecusaSemIrAoProvedor(t *testing.T) {
 	}
 }
 
+// Brasília está no ISSNet, que é ABRASF, mas a lib usa ali a API própria do
+// ISSNet, que gera DPS. O INI tem de ser o do Padrão Nacional: com o do ABRASF
+// a DPS saía com cTribNac "01.05", cTribMun 0 e vTotTrib no lugar de pTotTribSN.
+func TestAPIPropriaMontaComOINIDoPadraoNacional(t *testing.T) {
+	pedido := func(cmun string) map[string]any {
+		p := pedidoMinimo(cmun)
+		p["infDPS"].(map[string]any)["dhEmi"] = "2026-08-01T10:00:00-03:00"
+		return p
+	}
+	pn := &libFake{resMontar: acbr.Result{XML: xmlFixture("2")}}
+	post(t, muxDe(pn), "/nfse/xml", pedido(munPadraoNacional))
+	ap := &libFake{resMontar: acbr.Result{XML: xmlFixture("2")}}
+	rec := post(t, muxDe(ap), "/nfse/xml", pedido(munAPIPropria))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, quero 200: %s", rec.Code, rec.Body)
+	}
+	if got, want := ap.iniMontar, strings.ReplaceAll(pn.iniMontar, munPadraoNacional, munAPIPropria); got != want {
+		t.Errorf("INI de Brasília difere do INI do Padrão Nacional:\n%s\n---\n%s", got, want)
+	}
+	if !strings.Contains(rec.Body.String(), `"layout":"padrao_nacional"`) ||
+		!strings.Contains(rec.Body.String(), `"provedor":"ISSNet"`) {
+		t.Errorf("resposta deveria dizer padrao_nacional e manter o provedor: %s", rec.Body)
+	}
+}
+
+// O XML que a lib devolve tem de ser do layout resolvido. Se não for, a tabela
+// e a lib discordam, e o XML não serve a nenhum dos dois leiautes: a API recusa
+// em vez de devolvê-lo com validacao.ok.
+func TestXMLForaDoLayoutNaoEhDevolvido(t *testing.T) {
+	casos := map[string]struct {
+		cmun, xml string
+		status    int
+	}{
+		"DPS no padrão nacional":          {munPadraoNacional, xmlFixture("2"), http.StatusOK},
+		"DPS na API própria":              {munAPIPropria, xmlFixture("2"), http.StatusOK},
+		"RPS no ABRASF":                   {munAbrasf, xmlRpsFixture, http.StatusOK},
+		"DPS no ABRASF":                   {munAbrasf, xmlFixture("2"), http.StatusInternalServerError},
+		"DPS no próprio":                  {munProprio, xmlFixture("2"), http.StatusInternalServerError},
+		"RPS no padrão nacional":          {munPadraoNacional, xmlRpsFixture, http.StatusInternalServerError},
+		"RPS na API própria":              {munAPIPropria, xmlRpsFixture, http.StatusInternalServerError},
+		"sem elemento no padrão nacional": {munPadraoNacional, "<?xml version=\"1.0\"?>", http.StatusInternalServerError},
+	}
+	for nome, c := range casos {
+		t.Run(nome, func(t *testing.T) {
+			f := &libFake{resMontar: acbr.Result{XML: c.xml}}
+			rec := post(t, muxDe(f), "/nfse/xml", pedidoMinimo(c.cmun))
+			if rec.Code != c.status {
+				t.Fatalf("status = %d, quero %d: %s", rec.Code, c.status, rec.Body)
+			}
+			if c.status != http.StatusOK && !strings.Contains(rec.Body.String(), "layout_divergente") {
+				t.Errorf("código do erro inesperado: %s", rec.Body)
+			}
+			if c.status != http.StatusOK && strings.Contains(rec.Body.String(), "xml_b64") {
+				t.Errorf("devolveu o XML junto com o erro: %s", rec.Body)
+			}
+		})
+	}
+}
+
+func TestRaizDoXML(t *testing.T) {
+	casos := map[string]struct {
+		xml  string
+		raiz RaizXML
+		ok   bool
+	}{
+		"dps":           {xmlFixture("2"), RaizXML{"DPS", nsNFSeNacional}, true},
+		"prefixo":       {`<ns4:Rps xmlns:ns4="http://www.ginfes.com.br/tipos_v03.xsd"><x/></ns4:Rps>`, RaizXML{"Rps", "http://www.ginfes.com.br/tipos_v03.xsd"}, true},
+		"sem namespace": {`<Rps><x/></Rps>`, RaizXML{"Rps", ""}, true},
+		"vazio":         {"", RaizXML{}, false},
+		"só declaração": {`<?xml version="1.0"?>`, RaizXML{}, false},
+		"iso-8859-1":    {`<?xml version="1.0" encoding="ISO-8859-1"?><Rps/>`, RaizXML{"Rps", ""}, true},
+	}
+	for nome, c := range casos {
+		r, ok := RaizDoXML(c.xml)
+		if r != c.raiz || ok != c.ok {
+			t.Errorf("%s: RaizDoXML = %+v,%v; quero %+v,%v", nome, r, ok, c.raiz, c.ok)
+		}
+	}
+}
+
 // Credenciais de prefeitura só valem para provedores não-Padrão Nacional. Mandar
 // login/senha para o ADN seria configurar lixo numa sessão que não os usa.
 func TestCredenciaisSoValemForaDoPadraoNacional(t *testing.T) {
@@ -544,6 +632,14 @@ func TestCredenciaisSoValemForaDoPadraoNacional(t *testing.T) {
 	post(t, muxDe(ab), "/nfse/transmissao", corpo(munAbrasf))
 	if cfgDoTenant(ab.tenant, "Emitente.WSUser") != "u" || cfgDoTenant(ab.tenant, "Emitente.WSChaveAcesso") != "tk" {
 		t.Errorf("credenciais não chegaram ao provedor ABRASF: %+v", ab.tenant.Config)
+	}
+
+	// Na API própria o layout é o nacional, mas quem autentica é o provedor: o
+	// ABase lê WSChaveAcesso. Decidir pelo layout descartava a chave.
+	ap := &libFake{resTransmitir: acbr.Result{Resposta: "[Envio]\nSucesso=1\n"}}
+	post(t, muxDe(ap), "/nfse/transmissao", corpo(munAPIPropriaCred))
+	if cfgDoTenant(ap.tenant, "Emitente.WSChaveAcesso") != "tk" {
+		t.Errorf("credenciais não chegaram ao provedor com API própria: %+v", ap.tenant.Config)
 	}
 }
 

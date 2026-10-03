@@ -171,8 +171,8 @@ func TestCodigoPaisEnderecoNacional(t *testing.T) {
 	}{
 		{"município brasileiro", com(func(p *Pessoa) { p.CMun = "3541307" }), "1058", "1058"},
 		{"município brasileiro com cPais ISO", com(func(p *Pessoa) { p.CMun, p.CPais = "3541307", 76 }), "1058", "1058"},
-		// 1058 sem município faria sair <endExt> no Padrão Nacional e nos
-		// gravadores APIPropria, que também recebem o INI do ABRASF.
+		// 1058 sem município faria sair <endExt> no Padrão Nacional, gravadores
+		// APIPropria incluídos.
 		{"endereço sem município nem país", endereco, "", ""},
 		{"exterior sem município", com(func(p *Pessoa) { p.UF, p.CEP, p.CPais = "", "", 2496 }), "2496", "2496"},
 		{"exterior pelo município 9999999", com(func(p *Pessoa) { p.CMun, p.CPais = "9999999", 2496 }), "2496", "2496"},

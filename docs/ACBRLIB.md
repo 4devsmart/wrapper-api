@@ -156,7 +156,12 @@ São oito arquivos: os cinco `.so`, o `schemas.tar.gz`, o `SHA256SUMS` e o
    lá e não muda aqui vira roteamento errado, sem aviso. O script recusa emitir
    se algum provedor não tiver família em `provedor_familia.tsv`, que é a tabela
    mantida à mão: classifique o provedor novo pela classe ancestral dele (o
-   script imprime a herança) e rode de novo.
+   script imprime a herança) e rode de novo. A tabela também marca os
+   municípios em que a lib usa a API própria do provedor, que gera DPS e por
+   isso é roteado como Padrão Nacional; `make acbr-tabelas-conferir` falha se a
+   tabela versionada divergir do fonte. Depois do bump, `make
+   test-integracao-nfse` contra uma API de pé confere a raiz do XML de cada
+   provedor.
 3. `make acbr-chaves`, que regenera o snapshot de chaves do lockstep
    (`internal/{cte,mdfe,nfse}/testdata/lerini_chaves.tsv`) a partir dos três
    leitores de INI do fonte. É o que denuncia chave que a lib passou a aceitar e

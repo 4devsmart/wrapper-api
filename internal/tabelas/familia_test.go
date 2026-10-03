@@ -1,6 +1,9 @@
 package tabelas
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestFamiliaDoProvedor(t *testing.T) {
 	// As três primeiras mudaram no bump para r47859, não porque o ACBr mudou de
@@ -65,6 +68,59 @@ func TestFamiliaPorMunicipio(t *testing.T) {
 	// Código sem provedor → desconhecida.
 	if got := FamiliaPorMunicipio("0000000"); got != FamiliaDesconhecida {
 		t.Errorf("família de código inexistente = %q, quero desconhecida", got)
+	}
+}
+
+// Onde a lib usa a API própria do provedor, o gravador é o do Padrão Nacional e
+// o layout segue o gravador, não a família. O mesmo provedor fica nos dois
+// lados: o Fiorilli de Itapeva (1.01) gera DPS, o de Cassilândia (2.00), não.
+func TestLayoutPorMunicipioSegueAAPIPropria(t *testing.T) {
+	casos := []struct {
+		cmun, nome, provedor, layout string
+		apiPropria                   bool
+	}{
+		{"5300108", "Brasília", "ISSNet", "padrao_nacional", true},
+		{"5208707", "Goiânia", "ISSNet", "padrao_nacional", true},
+		{"5002704", "Campo Grande", "DSF", "padrao_nacional", true},
+		{"3133600", "Itapeva", "Fiorilli", "padrao_nacional", true},
+		{"5002902", "Cassilândia", "Fiorilli", "proprio", false},
+		{"3518800", "Guarulhos", "Giss", "abrasf", false},
+		{"3548708", "São Bernardo do Campo", "Ginfes", "abrasf", false},
+		{"4314902", "Porto Alegre", "PadraoNacional", "padrao_nacional", false},
+	}
+	for _, c := range casos {
+		if p := ProvedorNFSe(c.cmun); p != c.provedor {
+			t.Errorf("%s: provedor %q, quero %q", c.nome, p, c.provedor)
+		}
+		if a := APIPropriaNFSe(c.cmun); a != c.apiPropria {
+			t.Errorf("%s: API própria %v, quero %v", c.nome, a, c.apiPropria)
+		}
+		if l := LayoutPorMunicipio(c.cmun); l != c.layout {
+			t.Errorf("%s: layout %q, quero %q", c.nome, l, c.layout)
+		}
+	}
+}
+
+// A marca de API própria só faz sentido fora do Padrão Nacional puro. Linha
+// marcada num município PadraoNacional, ou com coluna que não seja "1", indica
+// gerador e leitor fora de acordo.
+func TestColunaAPIPropriaBemFormada(t *testing.T) {
+	marcados := 0
+	for _, l := range strings.Split(municipiosProvedorTSV, "\n") {
+		c := strings.Split(l, "\t")
+		if len(c) < 4 {
+			continue
+		}
+		if c[3] != "1" {
+			t.Errorf("quarta coluna %q em %q: só \"1\" é marca", c[3], l)
+		}
+		if FamiliaDoProvedor(c[1]) == FamiliaPadraoNacional {
+			t.Errorf("%s marcado com API própria, mas o provedor já é o Padrão Nacional", c[0])
+		}
+		marcados++
+	}
+	if marcados == 0 {
+		t.Error("nenhum município com API própria: a coluna sumiu da tabela")
 	}
 }
 

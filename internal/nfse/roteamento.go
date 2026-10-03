@@ -1,7 +1,10 @@
 package nfse
 
 import (
+	"encoding/xml"
+	"io"
 	"regexp"
+	"strings"
 
 	"github.com/4devsmart/wrapper-api/internal/tabelas"
 )
@@ -19,11 +22,12 @@ const (
 //
 // NFS-e é o único documento multi-provedor: cada município escolhe o seu, e o
 // layout de entrada muda. A cadeia é município → provedor → família → layout
-// (internal/tabelas). Município sem provedor conhecido é recusado ANTES de
-// transmitir: mandar XML inválido para a prefeitura só troca um erro claro por
-// um obscuro.
+// (internal/tabelas), salvo onde a lib usa a API própria do provedor, que gera
+// DPS e por isso é Padrão Nacional na entrada. Município sem provedor conhecido
+// é recusado ANTES de transmitir: mandar XML inválido para a prefeitura só
+// troca um erro claro por um obscuro.
 func LayoutDoMunicipio(cmun string) (Layout, bool) {
-	switch tabelas.FamiliaPorMunicipio(cmun).LayoutBase() {
+	switch tabelas.LayoutPorMunicipio(cmun) {
 	case "padrao_nacional":
 		return LayoutPadraoNacional, true
 	case "abrasf":
@@ -93,3 +97,49 @@ var (
 	reCLocIncid    = regexp.MustCompile(abre + `cLocIncid>([0-9]{7})<`)
 	reOrgaoGerador = regexp.MustCompile(`(?s)` + abre + `OrgaoGerador>.*?` + abre + `CodigoMunicipio>([0-9]{7})<`)
 )
+
+// nsNFSeNacional é o namespace da DPS e da NFS-e do Padrão Nacional.
+const nsNFSeNacional = "http://www.sped.fazenda.gov.br/nfse"
+
+// RaizXML é o primeiro elemento de um XML: o que identifica o leiaute.
+type RaizXML struct {
+	Nome      string `json:"nome"`
+	Namespace string `json:"namespace"`
+}
+
+// RaizDoXML lê só o primeiro elemento. Falso se não houver elemento, o que é
+// legítimo fora do Padrão Nacional: há provedor próprio que monta JSON ou TXT.
+func RaizDoXML(doc string) (RaizXML, bool) {
+	d := xml.NewDecoder(strings.NewReader(doc))
+	// Só o nome do primeiro elemento importa, e ele é ASCII: a declaração
+	// ISO-8859-1 de alguns provedores não precisa de conversão.
+	d.CharsetReader = func(_ string, r io.Reader) (io.Reader, error) { return r, nil }
+	for {
+		tok, err := d.Token()
+		if err != nil {
+			return RaizXML{}, false
+		}
+		if se, ok := tok.(xml.StartElement); ok {
+			return RaizXML{Nome: se.Name.Local, Namespace: se.Name.Space}, true
+		}
+	}
+}
+
+// PadraoNacional diz se a raiz é de um gravador do Padrão Nacional: DPS, ou
+// qualquer raiz no namespace nacional (Citta, Digifred, SilTecnologia e
+// DBSeller pela API própria geram NFSe). O namespace sozinho não basta: o
+// Fiorilli pela API própria grava DPS em http://www.fiorilli.com.br/nfse-nacional.
+func (r RaizXML) PadraoNacional() bool {
+	return r.Nome == "DPS" || r.Namespace == nsNFSeNacional
+}
+
+// LayoutConfere diz se a raiz do XML gerado é do layout resolvido para o
+// município.
+//
+// É a guarda contra a classe de defeito em que a tabela de roteamento e a lib
+// discordam. A lib escolhe o gravador por município; se o layout daqui disser
+// outra coisa, o XML sai com o envelope de um leiaute e os valores de outro, e
+// nenhum dos dois o aceita. Brasília saiu assim: DPS com cTribNac "01.05".
+func LayoutConfere(l Layout, r RaizXML) bool {
+	return (l == LayoutPadraoNacional) == r.PadraoNacional()
+}

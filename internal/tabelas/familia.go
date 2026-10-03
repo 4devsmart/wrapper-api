@@ -87,6 +87,18 @@ func FamiliaDoProvedor(provedor string) Familia {
 	return famByProv[strings.ToLower(strings.TrimSpace(provedor))]
 }
 
+// LayoutPorMunicipio é o layout de entrada que o município usa de fato. Em
+// geral é o da família do provedor, mas onde a lib usa a API própria do
+// provedor o gravador é o do Padrão Nacional, qualquer que seja a família: o
+// ISSNet é abrasf_v1_v2 e Brasília, no ISSNet, gera DPS. Rotear esses
+// municípios pela família mandava o INI do ABRASF para um gravador de DPS.
+func LayoutPorMunicipio(codigo string) string {
+	if APIPropriaNFSe(codigo) {
+		return "padrao_nacional"
+	}
+	return FamiliaPorMunicipio(codigo).LayoutBase()
+}
+
 // FamiliaPorMunicipio resolve a família de NFS-e de um município pelo código
 // IBGE (via o provedor configurado). FamiliaDesconhecida = sem provedor.
 func FamiliaPorMunicipio(codigo string) Familia {

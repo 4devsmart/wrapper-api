@@ -51,6 +51,14 @@ run:
 test:
 	CGO_ENABLED=0 go test $(PKGS)
 
+## test-integracao-nfse: raiz do XML por provedor contra uma API com worker
+# Exige WRAPPER_API_URL (e WRAPPER_API_TOKEN se a API tiver token). Um
+# município por (provedor, versão, API própria), cobrando que o XML gerado seja
+# do layout que a tabela informa.
+test-integracao-nfse:
+	@test -n "$(WRAPPER_API_URL)" || { echo "defina WRAPPER_API_URL"; exit 1; }
+	CGO_ENABLED=0 go test -tags integracao -run TestRaizDoXMLPorProvedor -count=1 -v ./internal/nfse
+
 ## test-cgo: type-check e link do binding cgo contra as .so (não executa a lib)
 test-cgo:
 	@test -f "$(ACBRLIBS)/libacbrcte64.so" || { \
@@ -154,6 +162,9 @@ acbr-tabelas:
 	@test -d $(ACBR_SRC)/acbr || { \
 	  echo "falta o fonte em $(ACBR_SRC): rode 'make acbr-fonte'"; exit 1; }
 	@python3 scripts/gerar-tabelas-nfse.py
+## acbr-tabelas-conferir: falha se municipios_provedor.tsv divergir do fonte pinado
+acbr-tabelas-conferir:
+	@python3 scripts/gerar-tabelas-nfse.py --conferir
 ## acbr-chaves: regenera os snapshots de chaves de INI que a lib aceita
 # Gerado do fonte Pascal pinado. O TSV era editado à mão e tinha três erros:
 # chave de fallback ausente (segundo argumento de ReadString aninhado), capM3
@@ -216,6 +227,6 @@ limpar:
 help:
 	@grep -hE '^## ' $(MAKEFILE_LIST) | sed 's/^## /  /' | sort
 
-.PHONY: build build-cgo run test test-cgo openapi openapi-check openapi-valida yaml-valida enums-conferir vet fmt fmt-check tidy limpar help \
+.PHONY: build build-cgo run test test-integracao-nfse test-cgo openapi openapi-check openapi-valida yaml-valida enums-conferir vet fmt fmt-check tidy limpar help \
 	acbr-fonte acbr-compilar acbr-extrair \
 	acbr-libs-baixar acbr-libs-publicar acbr-libs-conferir imagem-libs-conferir docker-build up down
