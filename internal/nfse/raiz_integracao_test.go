@@ -145,7 +145,7 @@ func pedidoIntegracao(cmun, uf string) map[string]any {
 				"numero": "2", "bairro": "Centro",
 			},
 			"serv": map[string]any{
-				"cMunPrestacao": cmun, "cServ": "010501", "xDescServ": "teste de layout",
+				"cMunPrestacao": cmun, "cServ": "010501", "cTribMun": "101", "xDescServ": "teste de layout",
 				"codigoCnae": "6201501", "itemListaServico": "01.05",
 				"cNBS": "1.1106.20.00", "municipioIncidencia": cmun,
 			},

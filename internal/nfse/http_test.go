@@ -194,7 +194,7 @@ func pedidoMinimo(cmun string) map[string]any {
 			"prest": map[string]any{
 				"CNPJ": "12345678000190", "xNome": "ACME", "cMun": cmun, "IM": "9876",
 			},
-			"serv":    map[string]any{},
+			"serv":    map[string]any{"cTribMun": "101"},
 			"valores": map[string]any{},
 		},
 	}
@@ -555,6 +555,45 @@ func TestAPIPropriaMontaComOINIDoPadraoNacional(t *testing.T) {
 	if !strings.Contains(rec.Body.String(), `"layout":"padrao_nacional"`) ||
 		!strings.Contains(rec.Body.String(), `"provedor":"ISSNet"`) {
 		t.Errorf("resposta deveria dizer padrao_nacional e manter o provedor: %s", rec.Body)
+	}
+}
+
+// O gravador do ISSNet pela API própria emite cTribMun obrigatório como inteiro:
+// ausente ou com texto, sai 0, sem alerta da lib, e Brasília recusa com EM020,
+// E244 e EM076. A API recusa antes de montar. Nos outros provedores da API
+// própria e no Padrão Nacional o campo segue opcional.
+func TestCTribMunObrigatorioNoISSNetPelaAPIPropria(t *testing.T) {
+	casos := []struct {
+		nome, cmun, cTribMun string
+		status               int
+	}{
+		{"brasília sem código", munAPIPropria, "", http.StatusBadRequest},
+		{"brasília com texto", munAPIPropria, "06.01", http.StatusBadRequest},
+		{"brasília com zero", munAPIPropria, "000", http.StatusBadRequest},
+		{"brasília acima do inteiro de 32 bits", munAPIPropria, "2147483648", http.StatusBadRequest},
+		{"brasília com zeros à esquerda", munAPIPropria, "0601", http.StatusOK},
+		{"brasília com código", munAPIPropria, "601", http.StatusOK},
+		{"abase pela API própria sem código", munAPIPropriaCred, "", http.StatusOK},
+		{"padrão nacional sem código", munPadraoNacional, "", http.StatusOK},
+	}
+	for _, c := range casos {
+		t.Run(c.nome, func(t *testing.T) {
+			p := pedidoMinimo(c.cmun)
+			p["infDPS"].(map[string]any)["serv"] = map[string]any{"cTribMun": c.cTribMun}
+			f := &libFake{resMontar: acbr.Result{XML: xmlFixture("2")}}
+			rec := post(t, muxDe(f), "/nfse/xml", p)
+			if rec.Code != c.status {
+				t.Fatalf("status = %d, quero %d: %s", rec.Code, c.status, rec.Body)
+			}
+			if c.status == http.StatusBadRequest {
+				if !strings.Contains(rec.Body.String(), "serv.cTribMun") {
+					t.Errorf("a mensagem não aponta o campo: %s", rec.Body)
+				}
+				if f.iniMontar != "" {
+					t.Error("montou a DPS mesmo recusando")
+				}
+			}
+		})
 	}
 }
 

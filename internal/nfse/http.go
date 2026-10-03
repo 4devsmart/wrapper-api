@@ -94,6 +94,10 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 		return
 	}
+	if msg := ValidarDPSDoMunicipio(cmun, p); msg != "" {
+		httpx.ErroJSON(w, http.StatusBadRequest, "campo_obrigatorio", msg)
+		return
+	}
 
 	t := m.tenant(cnpj, cmun, p.InfDPS.Prest.Pessoa, p.Ambiente, fiscal.Certificado{}, Credenciais{})
 	xml, val, res, err := fiscal.Montar(m.svc, t, ToINIDoLayout(layout, p))
@@ -485,6 +489,10 @@ func (m *Modulo) substituirPorDPS(w http.ResponseWriter, t acbr.TenantConfig,
 
 	if msg := ValidarSubstituicaoPN(e); msg != "" {
 		httpx.ErroJSON(w, http.StatusBadRequest, "pedido_invalido", msg)
+		return
+	}
+	if msg := ValidarDPSDoMunicipio(cmun, e.DPS); msg != "" {
+		httpx.ErroJSON(w, http.StatusBadRequest, "campo_obrigatorio", msg)
 		return
 	}
 	res, err := m.svc.Emitir(t, ToINISubstituicaoPN(e))

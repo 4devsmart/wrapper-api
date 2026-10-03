@@ -143,3 +143,28 @@ func (r RaizXML) PadraoNacional() bool {
 func LayoutConfere(l Layout, r RaizXML) bool {
 	return (l == LayoutPadraoNacional) == r.PadraoNacional()
 }
+
+// reCTribMunISSNet é o que o gravador do ISSNet aceita sem trocar por 0: só
+// dígitos, não zero, e no máximo 9 significativos, porque o StrToIntDef
+// converte para Integer de 32 bits e um valor acima de 2147483647 também vira 0.
+var reCTribMunISSNet = regexp.MustCompile(`^0*[1-9][0-9]{0,8}$`)
+
+// ValidarDPSDoMunicipio confere o que o gravador do município exige e a lib não
+// acusa, e devolve a frase do erro (vazia se está tudo certo).
+//
+// O caso é o ISSNet pela API própria (Brasília, Goiânia e outros): o gravador
+// emite cTribMun obrigatório como inteiro, StrToIntDef(..., 0)
+// (ISSNet.GravarXml.pas, GerarXMLCodigoServico). Sem o campo, ou com texto, a
+// DPS sai com <cTribMun>0</cTribMun>, sem alerta da lib, e Brasília recusou
+// com EM020, E244 e EM076. No Padrão Nacional o campo é opcional, e nos ABRASF
+// que o exigem (ISSGoiania, Centi) a lib já sinaliza a tag vazia.
+func ValidarDPSDoMunicipio(cmun string, p DPSPedido) string {
+	if !strings.EqualFold(tabelas.ProvedorNFSe(cmun), "ISSNet") || !tabelas.APIPropriaNFSe(cmun) {
+		return ""
+	}
+	if !reCTribMunISSNet.MatchString(strings.TrimSpace(p.InfDPS.Serv.CTribMun)) {
+		return "serv.cTribMun é obrigatório neste município (ISSNet): o código de tributação municipal, " +
+			"numérico, como cadastrado para o prestador na prefeitura"
+	}
+	return ""
+}
