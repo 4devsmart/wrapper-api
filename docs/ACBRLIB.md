@@ -183,6 +183,18 @@ arquivos entrarem em `acbr-libs/`: download truncado que chega ao diretório vir
 `.so` corrompido embutido na imagem, e SIGSEGV em runtime longe da causa. Como o
 repositório é público, o download não usa token.
 
+O cache local vale só se bater com o `SHA256SUMS` **do release**. Comparar com o
+`SHA256SUMS` local não basta: o `acbr-extrair` regera o local a partir do que
+extraiu, e um cache com a lib oficial por cima das patchadas conferia consigo
+mesmo e passava. Sem acesso ao release, o download avisa e segue com o cache.
+
+A imagem também é conferida. A fumaça prova que a lib carrega, não qual lib é,
+e a v1.3.0 saiu com a lib de NFS-e sem patch passando por ela. Agora o
+`publicar.yml` e o `release.yml` comparam as `.so` dentro da imagem com o
+`SHA256SUMS` do release (`scripts/conferir-libs-imagem.sh`), e o release não
+promove a imagem se divergirem. As notas do release trazem o digest da imagem e
+o sha da lib de NFS-e. Localmente: `make imagem-libs-conferir IMAGEM=<imagem>`.
+
 ### Num repositório novo, ou num fork
 
 Os jobs `cgo` e `publicar` do CI baixam os `.so` do release apontado por
