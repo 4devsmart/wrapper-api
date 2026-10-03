@@ -84,6 +84,7 @@ info:
     | `regras_de_negocio`: a biblioteca reprovou, nada foi transmitido | 422 | corrija |
     | `provedor_nao_suportado`: município sem provedor de NFS-e | 422 | não |
     | `operacao_nao_suportada`: o provedor não implementa | 422 | não |
+    | `layout_divergente`: o XML gerado não é do layout do município | 500 | não. reporte |
     | `grupo_incompativel`: grupo que não existe no tipo de documento pedido | 400 | corrija |
     | `limite_de_requisicoes`: passou do teto por endereço | 429 | sim, veja `Retry-After` |
     | `desfecho_indeterminado`: **pode ter sido transmitido** | 502 | **não.** consulte |
@@ -912,6 +913,12 @@ paths:
         provedor decide o layout. Município sem provedor conhecido é recusado
         **antes** de montar.
 
+        Onde o provedor atende pela própria API no leiaute nacional (Brasília e
+        Goiânia no ISSNet, Campo Grande no DSF, e outros ~600), o layout é
+        `padrao_nacional`, embora o provedor seja ABRASF em outras cidades. Se o
+        XML montado não for do layout do município, a resposta é 500
+        `layout_divergente` e o XML não é devolvido.
+
         Devolve `id_dps`, não `chave`: a chave de acesso só existe depois da
         autorização, enquanto o identificador da DPS é determinístico. É ele que
         recupera a transmissão perdida.
@@ -1255,7 +1262,7 @@ paths:
                 properties:
                   codigo: { type: string, description: "Código IBGE do município consultado." }
                   provedor: { type: string, description: "Provedor que atende o município. Vazio quando não há provedor conhecido." }
-                  layout: { type: string, enum: [padrao_nacional, abrasf, proprio, ""], description: "Família de layout do provedor. Vazia quando o município não tem provedor." }
+                  layout: { type: string, enum: [padrao_nacional, abrasf, proprio, ""], description: "Layout de entrada do município. Em geral é a família do provedor; é padrao_nacional onde o provedor atende pela própria API no leiaute nacional (Brasília, no ISSNet). Vazio quando o município não tem provedor." }
                   suportado: { type: boolean, description: "true quando o município tem provedor conhecido e a emissão é possível." }
                   capacidades:
                     type: object
@@ -1451,7 +1458,7 @@ components:
           description: identificador determinístico da DPS; use em /consulta-dps
         xml_b64: { type: string, format: byte , description: "A DPS montada, em base64." }
         assinado: { type: boolean, description: "Sempre false. Na NFS-e quem assina é o provedor, no envio." }
-        layout: { type: string, enum: [padrao_nacional, abrasf, proprio], description: "Família de layout resolvida pelo município." }
+        layout: { type: string, enum: [padrao_nacional, abrasf, proprio], description: "Layout resolvido pelo município. O XML devolvido é sempre deste layout." }
         provedor: { type: string, description: "Provedor de NFS-e do município. Quem o decide é o município, não o pedido." }
         validacao: { $ref: "#/components/schemas/Validacao" }
 
@@ -6559,7 +6566,7 @@ components:
           description: 'item da lista (→ cTribNac no Padrão Nacional).'
         cTribMun:
           type: string
-          description: 'código de tributação municipal.'
+          description: 'código de tributação municipal. Obrigatório e numérico nos municípios do ISSNet pela API própria (Brasília, Goiânia).'
         cNBS:
           type: string
           description: 'código NBS.'
@@ -7188,7 +7195,7 @@ components:
                 `ambiente_invalido`, `ambiente_divergente`,
                 `modal_nao_suportado`, `grupo_incompativel`, `limite_de_requisicoes`,
                 `regras_de_negocio`,
-                `provedor_nao_suportado`, `operacao_nao_suportada`,
+                `provedor_nao_suportado`, `operacao_nao_suportada`, `layout_divergente`,
                 `desfecho_indeterminado`, `lib_indisponivel`, `falha_na_lib`.
             mensagem:
               type: string

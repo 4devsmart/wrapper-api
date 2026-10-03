@@ -172,7 +172,7 @@ type RegTrib struct {
 type Servico struct {
 	CMunPrestacao string `json:"cMunPrestacao,omitempty"` // município da prestação (IBGE)
 	CServ         string `json:"cServ,omitempty"`         // item da lista (→ cTribNac no Padrão Nacional)
-	CTribMun      string `json:"cTribMun,omitempty"`      // código de tributação municipal
+	CTribMun      string `json:"cTribMun,omitempty"`      // código de tributação municipal. Obrigatório e numérico nos municípios do ISSNet pela API própria (Brasília, Goiânia)
 	CNBS          string `json:"cNBS,omitempty"`          // código NBS
 	CodigoCnae    string `json:"codigoCnae,omitempty"`    // CNAE
 	XDescServ     string `json:"xDescServ"`               // discriminação

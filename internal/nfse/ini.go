@@ -961,10 +961,10 @@ func (b *iniBuilder) pessoaIntermediario(p Intermediario) {
 // Município brasileiro decide, então: o país é 1058 mesmo que venha outro cPais,
 // que é o que o gravador do Padrão Nacional já faz ao escolher <endNac> pelo
 // CodigoMunicipio. Sem município vale o cPais informado, e nada é presumido, nem
-// no ABRASF: parte dos municípios roteados para ele usa gravador APIPropria,
-// descendente do Padrão Nacional, onde CodigoPais diferente de 0 sem
-// CodigoMunicipio faz sair <endExt>, e um 1058 presumido viraria endereço no
-// exterior com país Brasil e campos vazios.
+// no ABRASF, que segue a regra do Padrão Nacional: no gravador nacional, e nos
+// APIPropria que descendem dele, CodigoPais diferente de 0 sem CodigoMunicipio
+// faz sair <endExt>, e um 1058 presumido viraria endereço no exterior com país
+// Brasil e campos vazios.
 func codigoPais(p Pessoa) int {
 	if municipioBrasileiro(p.CMun) {
 		return codigoPaisBrasil

@@ -60,12 +60,14 @@ var (
 	nfseIndex    []MunicipioNFSe   // subconjunto de todosIndex COM provedor configurado
 	nfseByCod    map[string]string // código IBGE → provedor
 	nfseVerByCod map[string]string // código IBGE -> versão do layout
+	nfseAPIByCod map[string]bool   // código IBGE -> a lib usa a classe APIPropria do provedor
 )
 
 func carregarNFSe() {
 	nfseOnce.Do(func() {
 		nfseByCod = make(map[string]string)
 		nfseVerByCod = make(map[string]string)
+		nfseAPIByCod = make(map[string]bool)
 		for _, l := range strings.Split(municipiosProvedorTSV, "\n") {
 			l = strings.TrimRight(l, "\r")
 			if l == "" {
@@ -78,6 +80,9 @@ func carregarNFSe() {
 			nfseByCod[c[0]] = c[1]
 			if len(c) > 2 {
 				nfseVerByCod[c[0]] = c[2]
+			}
+			if len(c) > 3 && c[3] == "1" {
+				nfseAPIByCod[c[0]] = true
 			}
 		}
 		todos := MunicipiosSeed()
@@ -134,6 +139,16 @@ func BuscarMunicipios(q string, limit int) []MunicipioNFSe {
 func ProvedorNFSe(codigo string) string {
 	carregarNFSe()
 	return nfseByCod[codigo]
+}
+
+// APIPropriaNFSe diz se, neste município, a lib instancia a classe APIPropria
+// do provedor em vez da ABRASF ou da própria. O gravador dessas classes
+// descende do Padrão Nacional e gera DPS: Brasília está no ISSNet, mas emite
+// DPS 1.01 pelo webservice nacional do ISSNet. A marca sai do fonte do ACBr
+// (scripts/gerar-tabelas-nfse.py), com a mesma regra que a lib aplica.
+func APIPropriaNFSe(codigo string) bool {
+	carregarNFSe()
+	return nfseAPIByCod[codigo]
 }
 
 // ListarMunicipiosNFSe filtra e pagina os municípios com provedor configurado.

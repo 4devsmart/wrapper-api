@@ -12,6 +12,7 @@ import (
 	"github.com/4devsmart/wrapper-api/internal/fiscal"
 	"github.com/4devsmart/wrapper-api/internal/modulo"
 	"github.com/4devsmart/wrapper-api/internal/platform/httpx"
+	"github.com/4devsmart/wrapper-api/internal/tabelas"
 )
 
 // secaoACBr é a seção de configuração deste documento na ACBrLib.
@@ -93,8 +94,12 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 		return
 	}
+	if msg := ValidarDPSDoMunicipio(cmun, p); msg != "" {
+		httpx.ErroJSON(w, http.StatusBadRequest, "campo_obrigatorio", msg)
+		return
+	}
 
-	t := m.tenant(cnpj, cmun, p.InfDPS.Prest.Pessoa, p.Ambiente, layout, fiscal.Certificado{}, Credenciais{})
+	t := m.tenant(cnpj, cmun, p.InfDPS.Prest.Pessoa, p.Ambiente, fiscal.Certificado{}, Credenciais{})
 	xml, val, res, err := fiscal.Montar(m.svc, t, ToINIDoLayout(layout, p))
 	if err != nil {
 		m.responderErro(w, res, err)
@@ -103,6 +108,16 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 	if strings.TrimSpace(xml) == "" {
 		httpx.ErroDetalhado(w, http.StatusUnprocessableEntity, "xml_nao_montado",
 			"a lib não produziu XML a partir do pedido", map[string]any{"resposta": res.Resposta})
+		return
+	}
+	if raiz, _ := RaizDoXML(xml); !LayoutConfere(layout, raiz) {
+		slog.Error("nfse: XML gerado fora do layout do município",
+			"municipio", cmun, "provedor", provedorDoMunicipio(cmun),
+			"layout", layout, "raiz", raiz.Nome, "namespace", raiz.Namespace)
+		httpx.ErroDetalhado(w, http.StatusInternalServerError, "layout_divergente",
+			"o XML gerado não é do layout do município; nada foi devolvido para não ser transmitido",
+			map[string]any{"municipio": cmun, "provedor": provedorDoMunicipio(cmun),
+				"layout": layout, "raiz": raiz})
 		return
 	}
 	httpx.JSON(w, http.StatusOK, RespostaXML{
@@ -189,8 +204,7 @@ func (m *Modulo) handleTransmissao(w http.ResponseWriter, r *http.Request) {
 		httpx.ErroJSON(w, http.StatusBadRequest, "certificado_invalido", err.Error())
 		return
 	}
-	layout, ok := m.layout(w, p.Municipio)
-	if !ok {
+	if _, ok := m.layout(w, p.Municipio); !ok {
 		return
 	}
 
@@ -198,7 +212,7 @@ func (m *Modulo) handleTransmissao(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ambiente := fiscal.Primeiro(fiscal.AmbienteDoXML(xml), p.Ambiente)
-	t := m.tenantEmitente(p.Emitente, p.Municipio, ambiente, layout, p.Certificado, p.Credenciais)
+	t := m.tenantEmitente(p.Emitente, p.Municipio, ambiente, p.Certificado, p.Credenciais)
 
 	res, err := m.svc.Transmitir(t, xml)
 	if err != nil {
@@ -321,7 +335,7 @@ func (m *Modulo) handleEvento(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	t := m.tenantEmitente(p.Emitente, p.Municipio, p.Ambiente,
-		layout, p.Certificado, p.Credenciais)
+		p.Certificado, p.Credenciais)
 
 	if tipo == "substituicao" {
 		m.substituir(w, t, layout, p)
@@ -477,6 +491,10 @@ func (m *Modulo) substituirPorDPS(w http.ResponseWriter, t acbr.TenantConfig,
 		httpx.ErroJSON(w, http.StatusBadRequest, "pedido_invalido", msg)
 		return
 	}
+	if msg := ValidarDPSDoMunicipio(cmun, e.DPS); msg != "" {
+		httpx.ErroJSON(w, http.StatusBadRequest, "campo_obrigatorio", msg)
+		return
+	}
 	res, err := m.svc.Emitir(t, ToINISubstituicaoPN(e))
 	if err != nil {
 		m.responderErro(w, res, err)
@@ -620,15 +638,14 @@ func (m *Modulo) lerConsulta(w http.ResponseWriter, r *http.Request) (PedidoCons
 		httpx.ErroJSON(w, http.StatusBadRequest, "certificado_invalido", err.Error())
 		return p, acbr.TenantConfig{}, false
 	}
-	layout, ok := m.layout(w, p.Municipio)
-	if !ok {
+	if _, ok := m.layout(w, p.Municipio); !ok {
 		return p, acbr.TenantConfig{}, false
 	}
 	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 		return p, acbr.TenantConfig{}, false
 	}
 	t := m.tenantEmitente(p.Emitente, p.Municipio, p.Ambiente,
-		layout, p.Certificado, p.Credenciais)
+		p.Certificado, p.Credenciais)
 	return p, t, true
 }
 
@@ -706,8 +723,7 @@ func (m *Modulo) handlePDF(w http.ResponseWriter, r *http.Request) {
 			httpx.ErroJSON(w, http.StatusBadRequest, "certificado_invalido", errCert.Error())
 			return
 		}
-		layout, ok := m.layout(w, p.Municipio)
-		if !ok {
+		if _, ok := m.layout(w, p.Municipio); !ok {
 			return
 		}
 		if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
@@ -715,7 +731,7 @@ func (m *Modulo) handlePDF(w http.ResponseWriter, r *http.Request) {
 		}
 		cmun = fiscal.SoDigitos(p.Municipio)
 		t = m.tenantEmitente(p.Emitente, p.Municipio, p.Ambiente,
-			layout, p.Certificado, p.Credenciais)
+			p.Certificado, p.Credenciais)
 		res, err = m.svc.ObterPDF(t, p.Chave)
 	default:
 		httpx.ErroJSON(w, http.StatusBadRequest, "campo_obrigatorio", "informe chave ou xml_b64")
@@ -755,7 +771,7 @@ func (m *Modulo) handleMunicipio(w http.ResponseWriter, r *http.Request) {
 		"suportado": ok,
 	}
 	if ok && r.URL.Query().Get("capacidades") == "1" {
-		t := m.tenantEmitente(Emitente{}, codigo, "", layout, fiscal.Certificado{}, Credenciais{})
+		t := m.tenantEmitente(Emitente{}, codigo, "", fiscal.Certificado{}, Credenciais{})
 		if c, lido := m.capacidades(t); lido {
 			corpo["capacidades"] = c
 			corpo["operacoes"] = Operacoes(layout, c)
@@ -786,16 +802,16 @@ func (m *Modulo) layout(w http.ResponseWriter, cmun string) (Layout, bool) {
 }
 
 // tenant monta a sessão a partir do prestador do próprio pedido (ao gerar).
-func (m *Modulo) tenant(cnpj, cmun string, prest Pessoa, ambiente string, layout Layout,
+func (m *Modulo) tenant(cnpj, cmun string, prest Pessoa, ambiente string,
 	cert fiscal.Certificado, cred Credenciais) acbr.TenantConfig {
 	return m.tenantEmitente(Emitente{
 		CNPJ: cnpj, InscMun: prest.IM, RazaoSocial: prest.XNome,
-	}, cmun, ambiente, layout, cert, cred)
+	}, cmun, ambiente, cert, cred)
 }
 
 // tenantEmitente monta a sessão nativa. O emitente vem do pedido porque não há
 // cadastro no servidor: é a consequência direta de não persistir nada.
-func (m *Modulo) tenantEmitente(e Emitente, cmun, ambiente string, layout Layout,
+func (m *Modulo) tenantEmitente(e Emitente, cmun, ambiente string,
 	cert fiscal.Certificado, cred Credenciais) acbr.TenantConfig {
 
 	cnpj := fiscal.SoDigitos(e.CNPJ)
@@ -810,8 +826,10 @@ func (m *Modulo) tenantEmitente(e Emitente, cmun, ambiente string, layout Layout
 	if e.RazaoSocial != "" {
 		t.Config = append(t.Config, acbr.ConfigKV{Section: secaoACBr, Key: "Emitente.RazSocial", Value: e.RazaoSocial})
 	}
-	// Só provedores não-Padrão Nacional usam login/token de prefeitura.
-	if layout != LayoutPadraoNacional {
+	// Só provedores não-Padrão Nacional usam login/token de prefeitura. Decide o
+	// provedor, não o layout: ABase e EL (WSChaveAcesso) e ModernizacaoPublica
+	// (WSUser, WSSenha) autenticam na API própria, onde o layout é o nacional.
+	if tabelas.FamiliaPorMunicipio(fiscal.SoDigitos(cmun)) != tabelas.FamiliaPadraoNacional {
 		for _, kv := range []struct{ k, v string }{
 			{"Emitente.WSUser", cred.Usuario},
 			{"Emitente.WSSenha", cred.Senha},
