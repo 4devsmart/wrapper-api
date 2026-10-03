@@ -86,3 +86,8 @@ jobs:
           docker logs fumaca-worker 2>&1 | grep -c '"backend":"cgo"' | grep -q '^5$' \
             || { echo "::error::a lib nativa não carregou nos 5 serviços"; docker logs fumaca-worker; exit 1; }
           echo "fumaça OK"
+
+      # A fumaça prova que a lib carrega, não qual lib é. A v1.3.0 subiu e passou
+      # na fumaça com a lib de NFS-e sem os patches que o próprio release trazia.
+      - name: as libs da imagem são as do release
+        run: scripts/conferir-libs-imagem.sh "${IMAGEM}:${GITHUB_SHA}" acbr-libs

@@ -189,6 +189,12 @@ acbr-libs-conferir:
 	if [ "$$falta" = 1 ]; then echo; echo "Rode 'make acbr-libs-baixar'."; exit 1; fi
 	@echo "acbr-libs OK"
 
+## imagem-libs-conferir: confere que as .so de IMAGEM são as do SHA256SUMS em acbr-libs/
+# Rode depois do docker-build, ou contra uma imagem publicada:
+#   make imagem-libs-conferir IMAGEM=ghcr.io/4devsmart/wrapper-api/api:v1.3.1
+imagem-libs-conferir:
+	@scripts/conferir-libs-imagem.sh "$(or $(IMAGEM),$(APP_IMAGE))" $(ACBRLIBS)
+
 ## docker-build: constrói a imagem (exige acbr-libs/)
 docker-build: acbr-libs-conferir
 	docker build \
@@ -212,4 +218,4 @@ help:
 
 .PHONY: build build-cgo run test test-cgo openapi openapi-check openapi-valida yaml-valida enums-conferir vet fmt fmt-check tidy limpar help \
 	acbr-fonte acbr-compilar acbr-extrair \
-	acbr-libs-baixar acbr-libs-publicar acbr-libs-conferir docker-build up down
+	acbr-libs-baixar acbr-libs-publicar acbr-libs-conferir imagem-libs-conferir docker-build up down

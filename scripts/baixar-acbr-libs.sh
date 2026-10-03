@@ -25,21 +25,6 @@ ARQUIVOS=(
 )
 
 mkdir -p "$DESTINO"
-
-# Cache quente: se tudo já bate com o SHA256SUMS local, não baixa nada.
-if [[ -f "$DESTINO/SHA256SUMS" ]]; then
-  if quebrados="$(cd "$DESTINO" && sha256sum -c --quiet SHA256SUMS 2>/dev/null)"; then
-    if [[ "$(tr -d '[:space:]' < "$DESTINO/revisao.txt" 2>/dev/null)" == "$REV" ]]; then
-      echo "acbr-libs: cache já íntegro para r${REV}: nada a baixar."
-      exit 0
-    fi
-    echo "acbr-libs: cache íntegro mas de outra revisão, rebaixando"
-  fi
-  echo "acbr-libs: cache inválido, rebaixando:"
-  sed 's/^/  · /' <<<"$quebrados"
-fi
-
-echo "acbr-libs: baixando r${REV} do release $TAG de $REPO"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
@@ -53,6 +38,31 @@ baixar() {
   fi
 }
 
+# Cache quente: o cache vale se bate com o SHA256SUMS DO RELEASE, não com o
+# local. O local é regerado por `make acbr-extrair` a partir do que acabou de
+# ser extraído, então sempre confere consigo mesmo: depois de extrair a lib
+# oficial por cima das patchadas, este script dizia "nada a baixar" e o
+# docker-build seguia com a lib sem patch.
+if [[ -f "$DESTINO/SHA256SUMS" ]]; then
+  if curl -fsSL --retry 3 --retry-delay 2 -o "$tmp/SHA256SUMS" "$BASE/SHA256SUMS" &&
+     curl -fsSL --retry 3 --retry-delay 2 -o "$tmp/revisao.txt" "$BASE/revisao.txt"; then
+    if [[ "$(tr -d '[:space:]' < "$tmp/revisao.txt")" == "$REV" ]] &&
+       (cd "$DESTINO" && sha256sum -c --quiet "$tmp/SHA256SUMS" >/dev/null 2>&1); then
+      cp "$tmp/SHA256SUMS" "$tmp/revisao.txt" "$DESTINO"/
+      echo "acbr-libs: cache confere com o release $TAG (r${REV}): nada a baixar."
+      exit 0
+    fi
+    echo "acbr-libs: cache difere do release $TAG, rebaixando"
+  elif (cd "$DESTINO" && sha256sum -c --quiet SHA256SUMS >/dev/null 2>&1) &&
+       [[ "$(tr -d '[:space:]' < "$DESTINO/revisao.txt" 2>/dev/null)" == "$REV" ]]; then
+    # Sem rede não há com o que comparar. Seguir com o cache é o que permite
+    # trabalhar offline, mas sem fingir que ele foi conferido.
+    echo "AVISO: sem acesso ao release $TAG; usando o cache local SEM conferir contra ele." >&2
+    exit 0
+  fi
+fi
+
+echo "acbr-libs: baixando r${REV} do release $TAG de $REPO"
 for f in "${ARQUIVOS[@]}"; do
   echo "  · $f"
   baixar "$f"
