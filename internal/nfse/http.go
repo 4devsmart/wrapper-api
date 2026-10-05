@@ -225,7 +225,7 @@ func (m *Modulo) handleTransmissao(w http.ResponseWriter, r *http.Request) {
 
 	e := ParseEnvio(res.Resposta)
 	resp := RespostaTransmissao{
-		Numero: e.Numero, Chave: e.Chave, CodigoVerificacao: e.CodigoVerificacao,
+		Numero: e.Numero, Chave: chaveDaEmissao(e, res.XML), CodigoVerificacao: e.CodigoVerificacao,
 		Protocolo: e.Protocolo, Situacao: e.Situacao,
 		Status:    statusEmissao(e),
 		XMLBase64: fiscal.Base64(res.XML),
@@ -282,6 +282,7 @@ func (m *Modulo) handleLote(w http.ResponseWriter, r *http.Request) {
 	}
 	if resp.Status == "autorizado" {
 		resp.XMLBase64 = fiscal.Base64(res.XML)
+		resp.Chave = ChaveDoXML(res.XML)
 	}
 	httpx.JSON(w, fiscal.StatusDoDesfecho(resp.Status), resp)
 }
@@ -310,6 +311,15 @@ type RespostaEvento struct {
 	XMLBase64 string     `json:"xml_b64,omitempty"`
 	Erros     []Mensagem `json:"mensagens,omitempty"`
 	Alertas   []Mensagem `json:"alertas,omitempty"`
+	// NFSe é a nota que o evento atingiu: a cancelada ou a substituída.
+	NFSe *NotaDoEvento `json:"nfse,omitempty"`
+	// Substituta é a nota que nasceu da substituição. Só vem nela, e só quando o
+	// provedor a aceitou.
+	Substituta *NotaDoEvento `json:"substituta,omitempty"`
+	// NFSeJaCancelada marca o cancelamento recusado porque a nota já estava
+	// cancelada. O status continua rejeitado, como sempre foi: o campo só diz
+	// que o desfecho que o cliente queria já existe.
+	NFSeJaCancelada bool `json:"nfse_ja_cancelada,omitempty"`
 }
 
 func (m *Modulo) handleEvento(w http.ResponseWriter, r *http.Request) {
@@ -396,11 +406,14 @@ func (m *Modulo) cancelar(w http.ResponseWriter, t acbr.TenantConfig, layout Lay
 	if c.Sucesso && strings.HasPrefix(c.XmlRetorno, "<") {
 		xmlDoEvento = c.XmlRetorno
 	}
-	httpx.JSON(w, fiscal.StatusDoEvento(StatusCancelamento(c)), RespostaEvento{
-		Tipo: "cancelamento", Chave: p.Chave, Status: StatusCancelamento(c),
+	status := StatusCancelamento(c)
+	httpx.JSON(w, fiscal.StatusDoEvento(status), RespostaEvento{
+		Tipo: "cancelamento", Chave: p.Chave, Status: status,
 		Protocolo: c.Protocolo, DataHora: c.DataHora,
 		XMLBase64: fiscal.Base64(xmlDoEvento),
 		Erros:     c.Erros, Alertas: c.Alertas,
+		NFSe:            notaCancelada(p.Chave, e),
+		NFSeJaCancelada: status == "rejeitado" && JaCancelada(c.Erros),
 	})
 }
 
@@ -431,11 +444,14 @@ func (m *Modulo) cancelarPorEvento(w http.ResponseWriter, t acbr.TenantConfig,
 		return
 	}
 	ev := ParseEvento(res.Resposta)
-	httpx.JSON(w, fiscal.StatusDoEvento(StatusEvento(ev)), RespostaEvento{
-		Tipo: "cancelamento", Chave: p.Chave, Status: StatusEvento(ev),
+	status := StatusEvento(ev)
+	httpx.JSON(w, fiscal.StatusDoEvento(status), RespostaEvento{
+		Tipo: "cancelamento", Chave: p.Chave, Status: status,
 		Situacao:  ev.Situacao,
 		XMLBase64: fiscal.Base64(fiscal.Primeiro(res.XML, ev.XML)),
 		Erros:     ev.Erros, Alertas: ev.Alertas,
+		NFSe:            notaCancelada(p.Chave, e),
+		NFSeJaCancelada: status == "rejeitado" && JaCancelada(ev.Erros),
 	})
 }
 
@@ -478,7 +494,7 @@ func (m *Modulo) substituir(w http.ResponseWriter, t acbr.TenantConfig, layout L
 	if m.naoSuportada(w, t, p.Municipio, res.Resposta, "substituição") {
 		return
 	}
-	m.responderSubstituicao(w, res)
+	m.responderSubstituicao(w, res, e)
 }
 
 // substituirPorDPS é a substituição do Padrão Nacional: emitir a DPS nova com o
@@ -503,16 +519,18 @@ func (m *Modulo) substituirPorDPS(w http.ResponseWriter, t acbr.TenantConfig,
 	if m.naoSuportada(w, t, cmun, res.Resposta, "substituição") {
 		return
 	}
-	m.responderSubstituicao(w, res)
+	m.responderSubstituicao(w, res, e)
 }
 
-func (m *Modulo) responderSubstituicao(w http.ResponseWriter, res acbr.Result) {
+func (m *Modulo) responderSubstituicao(w http.ResponseWriter, res acbr.Result, e SubstituicaoPedido) {
 	em := ParseEnvio(res.Resposta)
 	httpx.JSON(w, fiscal.StatusDoDesfecho(statusEmissao(em)), RespostaEvento{
-		Tipo: "substituicao", Chave: em.Chave, Status: statusEmissao(em),
+		Tipo: "substituicao", Chave: chaveDaEmissao(em, res.XML), Status: statusEmissao(em),
 		Situacao:  em.Situacao,
 		Protocolo: em.Protocolo, XMLBase64: fiscal.Base64(res.XML),
 		Erros: em.Erros, Alertas: em.Alertas,
+		NFSe:       notaSubstituida(e.Substituida),
+		Substituta: notaSubstituta(em, res.XML, e.DPS),
 	})
 }
 

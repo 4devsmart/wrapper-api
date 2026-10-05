@@ -949,6 +949,10 @@ paths:
         processando e o protocolo, e a nota ainda não existe. O desfecho sai de
         POST /v1/nfse/transmissao/lote, com esse protocolo. Não reenvie a DPS
         enquanto o lote não tiver desfecho.
+
+        Na nota autorizada, chave vem também quando o provedor não a devolve
+        na resposta (o ISSNet de Brasília no leiaute nacional é um caso): ela é
+        lida do XML da NFS-e. Nada muda quando o provedor já a devolve.
       requestBody:
         required: true
         content:
@@ -985,6 +989,9 @@ paths:
 
         Situação 4 sem nota e provedor que não informa a situação voltam como
         erro (502): não há o que gravar.
+
+        Na autorização, chave vem quando o XML devolvido é de NFS-e do Padrão
+        Nacional; nos demais leiautes ela não vem.
       requestBody:
         required: true
         content:
@@ -1129,6 +1136,20 @@ paths:
         provedor de fato expõe. O limite, nesse caso, é da biblioteca fiscal
         desta integração, não da prefeitura.
 
+        O retorno traz o grupo nfse com a identificação da nota cancelada
+        (chave, numero, codigo_verificacao e, se informados no pedido,
+        numero_rps e serie_rps). Ele vem também quando o evento é recusado,
+        para que se saiba de qual nota a prefeitura está falando. No Padrão
+        Nacional o número sai da chave quando o pedido não o informa. O grupo é
+        acréscimo: os campos de primeiro nível continuam iguais.
+
+        Quando a recusa é porque a nota já estava cancelada (EM097 no Padrão
+        Nacional, "Nota fiscal já cancelada" e variações nos demais), o retorno
+        traz nfse_ja_cancelada: true. O status continua rejeitado e o HTTP
+        continua 422, como antes: o campo só diz que o desfecho pretendido já
+        existe, e pode ser tratado como sucesso por quem quiser. Em qualquer
+        outro caso o campo não vem.
+
         Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
         recuperação é consultar o documento: a chave dele você já tem.
       requestBody:
@@ -1170,6 +1191,14 @@ paths:
         Nos provedores ABRASF e próprios que oferecem o webservice, a nota antiga
         é identificada por evento.substituida.numero. Nem todos oferecem: quando
         não, a resposta é 422 operacao_nao_suportada com o que o provedor expõe.
+
+        O retorno identifica as duas notas em grupos separados: nfse é a
+        substituída, e substituta é a nota nova (chave, numero,
+        codigo_verificacao, id_dps, numero_rps e serie_rps). A substituta só vem
+        quando a substituição foi aceita ou ficou em processamento: numa recusa
+        não há nota nova. Os grupos são acréscimo: o chave de primeiro nível
+        continua sendo o da nota nova. Quando a biblioteca não o informa, ele
+        passa a vir com a chave lida do XML da nota nova, igual à transmissão.
 
         Chamada única: a lib não expõe o XML do evento antes de enviá-lo. A
         recuperação é consultar o documento: a chave dele você já tem.
@@ -1521,7 +1550,7 @@ components:
       description: "Retorno da transmissão da DPS, com a nota autorizada."
       properties:
         numero: { type: string , description: "Número da NFS-e atribuído pelo provedor." }
-        chave: { type: string , description: "Chave de acesso da NFS-e." }
+        chave: { type: string , description: "Chave de acesso da NFS-e. Vem a que a biblioteca informou; quando ela não informa e a nota foi autorizada, vem a do Id do infNFSe no XML (50 dígitos, Padrão Nacional). No ABRASF costuma ser o link da nota, e pode não vir." }
         codigo_verificacao: { type: string , description: "Código de verificação da nota, usado na consulta pública." }
         protocolo: { type: string , description: "Protocolo do provedor." }
         status: { type: string, enum: [autorizado, processando, rejeitado, erro] , description: "Desfecho: autorizado, processando (lote assíncrono ainda sem decisão), rejeitado ou erro." }
@@ -1590,6 +1619,7 @@ components:
         tipo: { type: string , description: "Tipo do evento enviado." }
         chave: { type: string , description: "Chave da nota." }
         status: { type: string , description: "Desfecho do evento." }
+        situacao: { type: string , description: "Situação da nota no provedor, quando ele a informa." }
         protocolo: { type: string , description: "Protocolo do provedor." }
         data_hora: { type: string , description: "Data e hora do processamento." }
         xml_b64: { type: string, format: byte , description: "XML do evento, em base64." }
@@ -1597,6 +1627,30 @@ components:
           description: 'Mensagens do provedor.'
           type: array
           items: { $ref: "#/components/schemas/Mensagem" }
+        alertas:
+          description: 'Alertas do provedor. Não impedem o evento.'
+          type: array
+          items: { $ref: "#/components/schemas/Mensagem" }
+        nfse:
+          description: 'A nota que o evento atingiu: a cancelada ou a substituída. Vem também na recusa. Acréscimo: os campos de primeiro nível não mudam.'
+          allOf: [{ $ref: "#/components/schemas/NotaDoEvento" }]
+        substituta:
+          description: 'A nota que nasceu da substituição. Só vem na substituição aceita ou em processamento.'
+          allOf: [{ $ref: "#/components/schemas/NotaDoEvento" }]
+        nfse_ja_cancelada:
+          type: boolean
+          description: 'Só no cancelamento recusado porque a nota já estava cancelada, e então sempre true. O status continua rejeitado. Fora desse caso o campo não vem.'
+
+    NotaDoEvento:
+      type: object
+      description: "Identificação de uma NFS-e envolvida num evento, com os mesmos campos em qualquer provedor. Cada campo sai do pedido, da chave de acesso ou do XML devolvido; o que não tem de onde sair não vem."
+      properties:
+        chave: { type: string , description: "Chave de acesso, 50 dígitos no Padrão Nacional. No ABRASF é o link da nota, quando o provedor manda um." }
+        numero: { type: string , description: "Número da NFS-e atribuído pelo provedor. No Padrão Nacional sai da chave quando o pedido não o informa." }
+        codigo_verificacao: { type: string , description: "Código de verificação da NFS-e, nos provedores que o usam." }
+        id_dps: { type: string , description: "Identificador da DPS, com o prefixo DPS, no Padrão Nacional." }
+        numero_rps: { type: string , description: "Número do RPS (nDPS) que originou a nota." }
+        serie_rps: { type: string , description: "Série do RPS que originou a nota." }
 
     PedidoConsultaChave:
       type: object
