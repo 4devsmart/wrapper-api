@@ -22,6 +22,7 @@ const (
 	munProprio        = "3550308" // São Paulo → ISSSaoPaulo (próprio)
 	munAPIPropria     = "5300108" // Brasília → ISSNet pela API própria, que gera DPS
 	munAPIPropriaCred = "4302204" // Boa Vista do Buricá → ABase pela API própria, com WSChaveAcesso
+	munInfiscSefin    = "4305108" // Caxias do Sul → Infisc pela API própria, distribuição no sefin da prefeitura
 	munDesconhecido   = "9999999"
 )
 
@@ -41,12 +42,21 @@ type libFake struct {
 	resLote                                            acbr.Result
 	protocoloLote                                      string
 	nsu                                                int
-	errTransmitir                                      error
+	municipiosDFe                                      []string
+	dfeNaoImplementado                                 map[string]bool
+	errTransmitir, errDFe                              error
 }
 
+// ConsultarDFe responde como a lib responde por classe: no município marcado
+// em dfeNaoImplementado, o ERR_NAO_IMP que sai antes de qualquer byte.
 func (f *libFake) ConsultarDFe(t acbr.TenantConfig, nsu int) (acbr.Result, error) {
 	f.nsu, f.tenant = nsu, t
-	return f.resConsulta, nil
+	cmun := cfgDoTenant(t, "CodigoMunicipio")
+	f.municipiosDFe = append(f.municipiosDFe, cmun)
+	if f.dfeNaoImplementado[cmun] {
+		return acbr.Result{Resposta: "Serviço Consultar DFe não implementado para este provedor"}, nil
+	}
+	return f.resConsulta, f.errDFe
 }
 
 func (f *libFake) ConsultarLoteRps(t acbr.TenantConfig, protocolo, _ string) (acbr.Result, error) {
@@ -691,50 +701,74 @@ func TestCredenciaisSoValemForaDoPadraoNacional(t *testing.T) {
 
 // --- distribuição DF-e -------------------------------------------------------
 
-// A Distribuição DF-e é do ADN, nacional: na lib só a classe do Padrão Nacional
-// a implementa, e a classe é escolhida pelo município. Quem emite num município
-// que ainda não migrou (ABRASF ou próprio) recebia "não implementado" para uma
-// consulta que não é do seu provedor. A sessão sai sempre por MunicipioADN; o
-// município do pedido, se vier, não manda em nada, e as credenciais de
-// prefeitura não vão para o ADN.
-func TestDistribuicaoSaiSemprePeloADN(t *testing.T) {
-	for nome, cmun := range map[string]string{
-		"sem município":   "",
-		"padrão nacional": munPadraoNacional,
-		"abrasf":          munAbrasf,
-		"próprio":         munProprio,
-		"api própria":     munAPIPropriaCred,
-		"desconhecido":    munDesconhecido,
-	} {
-		t.Run(nome, func(t *testing.T) {
-			f := &libFake{resConsulta: acbr.Result{Resposta: "[ConsultarDFe]\nSucesso=1\nUltimoNSU=7\n"}}
-			corpo := envelope(cmun, map[string]any{
+// A classe do provedor é escolhida pelo município, e só algumas implementam a
+// Distribuição DF-e. Quem emite num município ABRASF ou próprio recebia "não
+// implementado" para a fila do ADN, que é nacional. O município do pedido tem
+// preferência, porque em alguns (Infisc no RS) a fila é a do sefin da
+// prefeitura, com NSU próprio; o ADN entra no lugar do ERR_NAO_IMP e quando não
+// há município. Credenciais de prefeitura nunca vão para o ADN.
+func TestDistribuicaoTentaOMunicipioECaiParaOADN(t *testing.T) {
+	casos := []struct {
+		nome          string
+		cmun          string
+		naoImplementa bool
+		quero         []string
+	}{
+		{"sem município", "", false, []string{MunicipioADN}},
+		{"desconhecido", munDesconhecido, false, []string{MunicipioADN}},
+		{"padrão nacional", munPadraoNacional, false, []string{munPadraoNacional}},
+		{"infisc com sefin da prefeitura", munInfiscSefin, false, []string{munInfiscSefin}},
+		{"abrasf", munAbrasf, true, []string{munAbrasf, MunicipioADN}},
+		{"próprio", munProprio, true, []string{munProprio, MunicipioADN}},
+		{"api própria sem distribuição", munAPIPropriaCred, true, []string{munAPIPropriaCred, MunicipioADN}},
+	}
+	for _, c := range casos {
+		t.Run(c.nome, func(t *testing.T) {
+			f := &libFake{
+				resConsulta:        acbr.Result{Resposta: "[ConsultarDFe]\nSucesso=1\nUltimoNSU=7\n"},
+				dfeNaoImplementado: map[string]bool{c.cmun: c.naoImplementa},
+			}
+			corpo := envelope(c.cmun, map[string]any{
 				"nsu":         5,
 				"credenciais": map[string]string{"usuario": "u", "senha": "p", "token": "tk"},
 			})
-			if cmun == "" {
+			if c.cmun == "" {
 				delete(corpo, "municipio")
 			}
 			rec := post(t, muxDe(f), "/nfse/distribuicao", corpo)
 			if rec.Code != http.StatusOK {
 				t.Fatalf("status = %d, quero 200: %s", rec.Code, rec.Body)
 			}
-			if got := cfgDoTenant(f.tenant, "CodigoMunicipio"); got != MunicipioADN {
-				t.Errorf("CodigoMunicipio = %q, quero o do ADN %q", got, MunicipioADN)
+			if strings.Join(f.municipiosDFe, ",") != strings.Join(c.quero, ",") {
+				t.Errorf("sessões abertas em %v, quero %v", f.municipiosDFe, c.quero)
 			}
 			if got := cfgDoTenant(f.tenant, "Emitente.CNPJ"); got != "12345678000190" {
-				t.Errorf("Emitente.CNPJ = %q: o ADN precisa saber de quem é a fila", got)
+				t.Errorf("Emitente.CNPJ = %q: a fila é do CNPJ do emitente", got)
 			}
 			if f.nsu != 5 {
 				t.Errorf("nsu = %d, quero 5", f.nsu)
 			}
-			if cfgDoTenant(f.tenant, "Emitente.WSUser") != "" || cfgDoTenant(f.tenant, "Emitente.WSChaveAcesso") != "" {
+			if c.quero[len(c.quero)-1] == MunicipioADN &&
+				(cfgDoTenant(f.tenant, "Emitente.WSUser") != "" || cfgDoTenant(f.tenant, "Emitente.WSChaveAcesso") != "") {
 				t.Errorf("credenciais de prefeitura foram para o ADN: %+v", f.tenant.Config)
 			}
 			if !strings.Contains(rec.Body.String(), "UltimoNSU=7") {
-				t.Errorf("a resposta crua do ADN não voltou: %s", rec.Body)
+				t.Errorf("a resposta crua não voltou: %s", rec.Body)
 			}
 		})
+	}
+}
+
+// Falha que não é ERR_NAO_IMP não cai para o ADN: o NSU do pedido é da fila do
+// município, e no ADN ele aponta para outros documentos.
+func TestDistribuicaoNaoTrocaDeFilaNoErro(t *testing.T) {
+	f := &libFake{errDFe: acbr.ErrIndeterminado}
+	rec := post(t, muxDe(f), "/nfse/distribuicao", envelope(munInfiscSefin, map[string]any{"nsu": 1200}))
+	if rec.Code == http.StatusOK {
+		t.Fatalf("status = 200 com a lib falhando: %s", rec.Body)
+	}
+	if len(f.municipiosDFe) != 1 || f.municipiosDFe[0] != munInfiscSefin {
+		t.Errorf("sessões abertas em %v, quero só %s", f.municipiosDFe, munInfiscSefin)
 	}
 }
 

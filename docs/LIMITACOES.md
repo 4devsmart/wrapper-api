@@ -146,12 +146,18 @@ componente que mais crasha, por isso ele fica **fora** do caminho da emissão.
 
 ## Distribuição DF-e
 
-A distribuição de NFS-e é do ADN (Ambiente de Dados Nacional), e só dele. O
-endpoint não pede município: a sessão sai sempre por um município do Padrão
-Nacional, fixo, porque o ADN é o mesmo para todos. É o que permite a quem emite
-por um provedor que ainda não migrou (ABRASF ou próprio) receber a fila do ADN
-sem esbarrar em "não implementado para este provedor". `municipio` e
-`credenciais`, se vierem, são ignorados.
+A biblioteca fiscal escolhe a classe do provedor pelo município, e só algumas
+implementam a distribuição de NFS-e. Por isso o município é opcional: informado,
+a distribuição sai pelo provedor dele; quando a classe responde "não
+implementado para este provedor" (ABRASF, próprio e parte das APIs próprias),
+ou sem município, ela sai pelo ADN (Ambiente de Dados Nacional), por um
+município fixo do Padrão Nacional e sem `credenciais` de prefeitura.
+
+A fila nem sempre é a do ADN. Nos municípios Infisc do RS (Caxias do Sul,
+Canoas, Campo Bom, Carlos Barbosa, Farroupilha, Garibaldi, Santiago, São Borja
+e Sapucaia do Sul) ela é a do sefin da prefeitura, com NSU próprio. Um NSU só
+vale na fila de onde veio: mande sempre o mesmo `municipio`, ou sempre nenhum,
+para o mesmo cursor.
 
 O cursor (NSU) vai e volta no payload: sem estado, é o cliente que guarda onde
 parou. **Não paralelize a distribuição do mesmo CNPJ**, sem o lock que existia

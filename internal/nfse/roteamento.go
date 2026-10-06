@@ -43,17 +43,21 @@ func LayoutDoMunicipio(cmun string) (Layout, bool) {
 }
 
 // MunicipioADN é o município pelo qual a sessão nativa fala com o ADN
-// (Ambiente de Dados Nacional), independentemente de onde o cliente emite.
+// (Ambiente de Dados Nacional) quando a distribuição não pode sair pelo
+// município do cliente.
 //
-// A Distribuição DF-e não é um serviço de prefeitura: só o ADN a oferece, e a
-// lib só a implementa na classe do Padrão Nacional. Os demais provedores
-// levantam ERR_NAO_IMP antes de qualquer byte sair. Mas a lib escolhe a classe
-// pelo CodigoMunicipio, então quem emite num município que ainda não migrou
-// (ABRASF ou próprio) recebia "não implementado" para uma consulta que é
-// nacional e nada tem a ver com o seu provedor. Daí a distribuição fixar aqui o
-// município: qualquer um atendido pelo PadraoNacional puro serve, porque o ADN
-// é o mesmo para todos. O código é o do Rio de Janeiro, e um teste garante que
-// a tabela continua a classificá-lo assim.
+// A lib escolhe a classe do provedor pelo CodigoMunicipio, e a Distribuição
+// DF-e só existe em algumas: a do Padrão Nacional e as de API própria de
+// Betha, Fiorilli, Infisc, ISSNet e outras. As demais levantam ERR_NAO_IMP
+// antes de qualquer byte sair, e quem emite num município ABRASF ou próprio
+// ficava sem a fila do ADN. Nem toda classe que implementa fala com o ADN: nos
+// municípios Infisc do RS (Caxias do Sul, Canoas e outros) a URL é o sefin da
+// prefeitura, com NSU próprio, por isso o município do pedido continua tendo
+// preferência e este só entra no lugar do ERR_NAO_IMP.
+//
+// Qualquer município atendido pelo PadraoNacional puro serve, porque o ADN é o
+// mesmo para todos. O código é o do Rio de Janeiro, e um teste garante que a
+// tabela continua a classificá-lo assim.
 const MunicipioADN = "3304557"
 
 // ToINIDoLayout escolhe o construtor de INI conforme o layout. Padrão Nacional
