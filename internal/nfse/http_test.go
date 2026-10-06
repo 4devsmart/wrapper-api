@@ -10,6 +10,7 @@ import (
 
 	"github.com/4devsmart/wrapper-api/internal/acbr"
 	"github.com/4devsmart/wrapper-api/internal/modulo"
+	"github.com/4devsmart/wrapper-api/internal/tabelas"
 )
 
 // Municípios REAIS da tabela embutida, um por família: testar com código
@@ -39,7 +40,13 @@ type libFake struct {
 	resEvento, resProvedor                             acbr.Result
 	resLote                                            acbr.Result
 	protocoloLote                                      string
+	nsu                                                int
 	errTransmitir                                      error
+}
+
+func (f *libFake) ConsultarDFe(t acbr.TenantConfig, nsu int) (acbr.Result, error) {
+	f.nsu, f.tenant = nsu, t
+	return f.resConsulta, nil
 }
 
 func (f *libFake) ConsultarLoteRps(t acbr.TenantConfig, protocolo, _ string) (acbr.Result, error) {
@@ -679,6 +686,83 @@ func TestCredenciaisSoValemForaDoPadraoNacional(t *testing.T) {
 	post(t, muxDe(ap), "/nfse/transmissao", corpo(munAPIPropriaCred))
 	if cfgDoTenant(ap.tenant, "Emitente.WSChaveAcesso") != "tk" {
 		t.Errorf("credenciais não chegaram ao provedor com API própria: %+v", ap.tenant.Config)
+	}
+}
+
+// --- distribuição DF-e -------------------------------------------------------
+
+// A Distribuição DF-e é do ADN, nacional: na lib só a classe do Padrão Nacional
+// a implementa, e a classe é escolhida pelo município. Quem emite num município
+// que ainda não migrou (ABRASF ou próprio) recebia "não implementado" para uma
+// consulta que não é do seu provedor. A sessão sai sempre por MunicipioADN; o
+// município do pedido, se vier, não manda em nada, e as credenciais de
+// prefeitura não vão para o ADN.
+func TestDistribuicaoSaiSemprePeloADN(t *testing.T) {
+	for nome, cmun := range map[string]string{
+		"sem município":   "",
+		"padrão nacional": munPadraoNacional,
+		"abrasf":          munAbrasf,
+		"próprio":         munProprio,
+		"api própria":     munAPIPropriaCred,
+		"desconhecido":    munDesconhecido,
+	} {
+		t.Run(nome, func(t *testing.T) {
+			f := &libFake{resConsulta: acbr.Result{Resposta: "[ConsultarDFe]\nSucesso=1\nUltimoNSU=7\n"}}
+			corpo := envelope(cmun, map[string]any{
+				"nsu":         5,
+				"credenciais": map[string]string{"usuario": "u", "senha": "p", "token": "tk"},
+			})
+			if cmun == "" {
+				delete(corpo, "municipio")
+			}
+			rec := post(t, muxDe(f), "/nfse/distribuicao", corpo)
+			if rec.Code != http.StatusOK {
+				t.Fatalf("status = %d, quero 200: %s", rec.Code, rec.Body)
+			}
+			if got := cfgDoTenant(f.tenant, "CodigoMunicipio"); got != MunicipioADN {
+				t.Errorf("CodigoMunicipio = %q, quero o do ADN %q", got, MunicipioADN)
+			}
+			if got := cfgDoTenant(f.tenant, "Emitente.CNPJ"); got != "12345678000190" {
+				t.Errorf("Emitente.CNPJ = %q: o ADN precisa saber de quem é a fila", got)
+			}
+			if f.nsu != 5 {
+				t.Errorf("nsu = %d, quero 5", f.nsu)
+			}
+			if cfgDoTenant(f.tenant, "Emitente.WSUser") != "" || cfgDoTenant(f.tenant, "Emitente.WSChaveAcesso") != "" {
+				t.Errorf("credenciais de prefeitura foram para o ADN: %+v", f.tenant.Config)
+			}
+			if !strings.Contains(rec.Body.String(), "UltimoNSU=7") {
+				t.Errorf("a resposta crua do ADN não voltou: %s", rec.Body)
+			}
+		})
+	}
+}
+
+// Sem município não quer dizer sem nada: o certificado continua obrigatório,
+// porque é por ele que o ADN autentica.
+func TestDistribuicaoExigeCertificado(t *testing.T) {
+	f := &libFake{}
+	rec := post(t, muxDe(f), "/nfse/distribuicao", map[string]any{
+		"emitente": map[string]any{"cnpj": "12345678000190"}, "nsu": 0,
+	})
+	if rec.Code != http.StatusBadRequest || !strings.Contains(rec.Body.String(), "certificado_invalido") {
+		t.Fatalf("status = %d, quero 400 certificado_invalido: %s", rec.Code, rec.Body)
+	}
+}
+
+// O município fixo da distribuição só serve enquanto a tabela o classificar
+// como Padrão Nacional PURO. Na API própria o gravador é nacional, mas a classe
+// é a do provedor, e não há garantia de que ela fale com o ADN. Se uma
+// atualização da tabela mover o Rio, este teste é o aviso para trocar o código.
+func TestMunicipioADNContinuaPadraoNacionalPuro(t *testing.T) {
+	if l, ok := LayoutDoMunicipio(MunicipioADN); !ok || l != LayoutPadraoNacional {
+		t.Fatalf("layout de %s = %q (ok=%v), quero padrao_nacional", MunicipioADN, l, ok)
+	}
+	if p := provedorDoMunicipio(MunicipioADN); !strings.EqualFold(p, "PadraoNacional") {
+		t.Errorf("provedor de %s = %q, quero PadraoNacional", MunicipioADN, p)
+	}
+	if tabelas.APIPropriaNFSe(MunicipioADN) {
+		t.Errorf("%s passou a usar API própria do provedor: escolha outro município para o ADN", MunicipioADN)
 	}
 }
 

@@ -42,6 +42,20 @@ func LayoutDoMunicipio(cmun string) (Layout, bool) {
 	}
 }
 
+// MunicipioADN é o município pelo qual a sessão nativa fala com o ADN
+// (Ambiente de Dados Nacional), independentemente de onde o cliente emite.
+//
+// A Distribuição DF-e não é um serviço de prefeitura: só o ADN a oferece, e a
+// lib só a implementa na classe do Padrão Nacional. Os demais provedores
+// levantam ERR_NAO_IMP antes de qualquer byte sair. Mas a lib escolhe a classe
+// pelo CodigoMunicipio, então quem emite num município que ainda não migrou
+// (ABRASF ou próprio) recebia "não implementado" para uma consulta que é
+// nacional e nada tem a ver com o seu provedor. Daí a distribuição fixar aqui o
+// município: qualquer um atendido pelo PadraoNacional puro serve, porque o ADN
+// é o mesmo para todos. O código é o do Rio de Janeiro, e um teste garante que
+// a tabela continua a classificá-lo assim.
+const MunicipioADN = "3304557"
+
 // ToINIDoLayout escolhe o construtor de INI conforme o layout. Padrão Nacional
 // usa o construtor de DPS; ABRASF e próprios usam o mesmo construtor de RPS.
 func ToINIDoLayout(l Layout, p DPSPedido) string {

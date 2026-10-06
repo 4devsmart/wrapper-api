@@ -638,22 +638,28 @@ func (m *Modulo) handleConsultas(w http.ResponseWriter, r *http.Request) {
 // O cursor (NSU) vai e volta no payload: sem estado no servidor, é o cliente que
 // guarda onde parou. Não paralelize a distribuição do mesmo CNPJ, sem o lock
 // que existia com banco, chamadas simultâneas embaralham o cursor.
+//
+// Não pede município: a distribuição é do ADN, nacional, e a sessão sai sempre
+// por MunicipioADN. O município do pedido, se vier, é ignorado, e as
+// credenciais de prefeitura também: o ADN autentica pelo certificado.
 func (m *Modulo) handleDistribuicao(w http.ResponseWriter, r *http.Request) {
-	p, t, ok := m.lerConsulta(w, r)
-	if !ok {
+	var p PedidoConsulta
+	if !m.lerPedidoConsulta(w, r, &p) {
 		return
 	}
+	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
+		return
+	}
+	t := m.tenantEmitente(p.Emitente, MunicipioADN, p.Ambiente, p.Certificado, Credenciais{})
 	res, err := m.svc.ConsultarDFe(t, p.NSU)
-	m.responderConsulta(w, t, p.Municipio, res, err)
+	m.responderConsulta(w, t, MunicipioADN, res, err)
 }
 
+// lerConsulta lê o pedido e abre a sessão no município informado, que é quem
+// decide o provedor consultado.
 func (m *Modulo) lerConsulta(w http.ResponseWriter, r *http.Request) (PedidoConsulta, acbr.TenantConfig, bool) {
 	var p PedidoConsulta
-	if !httpx.LerJSON(w, r, &p) {
-		return p, acbr.TenantConfig{}, false
-	}
-	if err := p.Certificado.Validar(); err != nil {
-		httpx.ErroJSON(w, http.StatusBadRequest, "certificado_invalido", err.Error())
+	if !m.lerPedidoConsulta(w, r, &p) {
 		return p, acbr.TenantConfig{}, false
 	}
 	if _, ok := m.layout(w, p.Municipio); !ok {
@@ -665,6 +671,19 @@ func (m *Modulo) lerConsulta(w http.ResponseWriter, r *http.Request) (PedidoCons
 	t := m.tenantEmitente(p.Emitente, p.Municipio, p.Ambiente,
 		p.Certificado, p.Credenciais)
 	return p, t, true
+}
+
+// lerPedidoConsulta é o que toda consulta exige antes de saber com quem fala:
+// JSON válido e certificado.
+func (m *Modulo) lerPedidoConsulta(w http.ResponseWriter, r *http.Request, p *PedidoConsulta) bool {
+	if !httpx.LerJSON(w, r, p) {
+		return false
+	}
+	if err := p.Certificado.Validar(); err != nil {
+		httpx.ErroJSON(w, http.StatusBadRequest, "certificado_invalido", err.Error())
+		return false
+	}
+	return true
 }
 
 func (m *Modulo) responderConsulta(w http.ResponseWriter, t acbr.TenantConfig,

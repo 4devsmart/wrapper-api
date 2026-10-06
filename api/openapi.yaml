@@ -1094,6 +1094,13 @@ paths:
       tags: [nfse]
       summary: Distribuição DF-e do ADN por NSU
       description: |
+        A distribuição é do ADN (Ambiente de Dados Nacional), e só dele: não
+        depende do provedor do seu município, e por isso **não pede
+        `municipio`**. Funciona mesmo para quem emite por um provedor que ainda
+        não migrou para o Padrão Nacional (ABRASF ou próprio). Se o campo vier,
+        é ignorado. O ADN autentica pelo certificado, então `credenciais` de
+        prefeitura também não entram.
+
         O cursor (`nsu`) vai e volta no payload: sem estado, é você que guarda
         onde parou. **Não paralelize a distribuição do mesmo CNPJ**, sem o lock
         que existia com banco, chamadas simultâneas embaralham o cursor.
@@ -1101,12 +1108,7 @@ paths:
         required: true
         content:
           application/json:
-            schema:
-              allOf:
-                - $ref: "#/components/schemas/PedidoConsultaNFSe"
-                - type: object
-                  properties:
-                    nsu: { type: integer, description: "NSU a partir do qual buscar. 0 traz o início da fila do ADN." }
+            schema: { $ref: "#/components/schemas/PedidoDistribuicaoNFSe" }
       responses:
         "200": { $ref: "#/components/responses/RespostaCrua" }
 
@@ -1672,6 +1674,16 @@ components:
         emitente: { $ref: "#/components/schemas/Emitente" }
         certificado: { $ref: "#/components/schemas/Certificado" }
         credenciais: { $ref: "#/components/schemas/Credenciais" }
+
+    PedidoDistribuicaoNFSe:
+      type: object
+      description: "Distribuição DF-e de NFS-e no ADN. Não leva município: o ADN é nacional e o mesmo para todos os provedores."
+      required: [certificado]
+      properties:
+        nsu: { type: integer, description: "NSU a partir do qual buscar. 0 traz o início da fila do ADN." }
+        ambiente: { $ref: "#/components/schemas/Ambiente" }
+        emitente: { $ref: "#/components/schemas/Emitente" }
+        certificado: { $ref: "#/components/schemas/Certificado" }
 
     PedidoSefaz:
       type: object
