@@ -786,8 +786,10 @@ func TestDistribuicaoExigeCertificado(t *testing.T) {
 
 // O município fixo da distribuição só serve enquanto a tabela o classificar
 // como Padrão Nacional PURO. Na API própria o gravador é nacional, mas a classe
-// é a do provedor, e não há garantia de que ela fale com o ADN. Se uma
-// atualização da tabela mover o Rio, este teste é o aviso para trocar o código.
+// é a do provedor, e não há garantia de que ela fale com o ADN. Também não pode
+// ter URL própria de distribuição no .ini, como os Infisc do RS: aí a fila seria
+// a da prefeitura. Se uma atualização da tabela mover o Rio, este teste é o
+// aviso para trocar o código.
 func TestMunicipioADNContinuaPadraoNacionalPuro(t *testing.T) {
 	if l, ok := LayoutDoMunicipio(MunicipioADN); !ok || l != LayoutPadraoNacional {
 		t.Fatalf("layout de %s = %q (ok=%v), quero padrao_nacional", MunicipioADN, l, ok)
@@ -797,6 +799,9 @@ func TestMunicipioADNContinuaPadraoNacionalPuro(t *testing.T) {
 	}
 	if tabelas.APIPropriaNFSe(MunicipioADN) {
 		t.Errorf("%s passou a usar API própria do provedor: escolha outro município para o ADN", MunicipioADN)
+	}
+	if tabelas.DistribuicaoPropriaNFSe(MunicipioADN) {
+		t.Errorf("%s ganhou URL própria de distribuição no .ini: escolha outro município para o ADN", MunicipioADN)
 	}
 }
 

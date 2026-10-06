@@ -61,6 +61,7 @@ var (
 	nfseByCod    map[string]string // código IBGE → provedor
 	nfseVerByCod map[string]string // código IBGE -> versão do layout
 	nfseAPIByCod map[string]bool   // código IBGE -> a lib usa a classe APIPropria do provedor
+	nfseDFeByCod map[string]bool   // código IBGE -> URL própria de Distribuição DF-e
 )
 
 func carregarNFSe() {
@@ -68,6 +69,7 @@ func carregarNFSe() {
 		nfseByCod = make(map[string]string)
 		nfseVerByCod = make(map[string]string)
 		nfseAPIByCod = make(map[string]bool)
+		nfseDFeByCod = make(map[string]bool)
 		for _, l := range strings.Split(municipiosProvedorTSV, "\n") {
 			l = strings.TrimRight(l, "\r")
 			if l == "" {
@@ -83,6 +85,9 @@ func carregarNFSe() {
 			}
 			if len(c) > 3 && c[3] == "1" {
 				nfseAPIByCod[c[0]] = true
+			}
+			if len(c) > 4 && c[4] == "1" {
+				nfseDFeByCod[c[0]] = true
 			}
 		}
 		todos := MunicipiosSeed()
@@ -149,6 +154,15 @@ func ProvedorNFSe(codigo string) string {
 func APIPropriaNFSe(codigo string) bool {
 	carregarNFSe()
 	return nfseAPIByCod[codigo]
+}
+
+// DistribuicaoPropriaNFSe diz se o município sobrepõe, no
+// ACBrNFSeXServicos.ini, a URL da Distribuição DF-e do provedor. Nele a fila é
+// a do sefin da prefeitura (Caxias do Sul, Canoas e outros do Infisc), com NSU
+// próprio, e não a do ADN.
+func DistribuicaoPropriaNFSe(codigo string) bool {
+	carregarNFSe()
+	return nfseDFeByCod[codigo]
 }
 
 // ListarMunicipiosNFSe filtra e pagina os municípios com provedor configurado.

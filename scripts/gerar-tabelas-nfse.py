@@ -21,6 +21,12 @@ então é ela, e não a família do provedor, que decide o layout de entrada. A
 regra é a de TGeralConfNFSe.SetCodigoMunicipio (ACBrNFSeXConfiguracoes.pas)
 somada ao ramo `if APIPropria` do GetProvider (ACBrNFSeXProviderManager.pas).
 
+A quinta coluna marca os municípios com URL própria de Distribuição DF-e
+(ProConsultarDFe ou HomConsultarDFe na seção do município). Neles a fila não é
+a do ADN, e sim a do sefin da prefeitura, com NSU próprio. É o que impede o
+município fixo da distribuição (MunicipioADN, no Go) de virar outra fila sem
+ninguém perceber.
+
 Uso:  make acbr-tabelas
       python3 scripts/gerar-tabelas-nfse.py [--conferir] [caminho-do-ACBrNFSeXServicos.ini]
 
@@ -123,8 +129,13 @@ def api_propria(secoes, codigo, provedor):
     return versao in ("1.00", "1.01")
 
 
+def dfe_propria(campos):
+    """A seção do município sobrepõe a URL da distribuição do provedor."""
+    return bool({"ProConsultarDFe", "HomConsultarDFe"} & set(campos))
+
+
 def tabela(secoes, com_ramo):
-    """[(codigo, provedor, versao, api_propria)] dos municípios COM provedor.
+    """[(codigo, provedor, versao, api_propria, dfe_propria)] dos municípios COM provedor.
 
     api_propria só é marcado quando o provedor tem o ramo no GetProvider: é a
     condição para a lib instanciar a classe APIPropria, cujo gravador descende
@@ -138,8 +149,16 @@ def tabela(secoes, com_ramo):
         if not provedor:
             continue
         propria = provedor.lower() in com_ramo and api_propria(secoes, nome, provedor)
-        linhas.append((nome, provedor, campos.get("Versao", ""), "1" if propria else ""))
+        linhas.append((nome, provedor, campos.get("Versao", ""), "1" if propria else "",
+                       "1" if dfe_propria(campos) else ""))
     return sorted(linhas)
+
+
+def sem_vazias_no_fim(linha):
+    linha = list(linha)
+    while len(linha) > 3 and not linha[-1]:
+        linha.pop()
+    return linha
 
 
 def coluna(caminho, indice=0):
@@ -193,11 +212,11 @@ def main():
     # r47859 para r48100 trouxe (o provedor NFOnline estreou em São Bento/PB), e
     # que TestProvedoresNFSeTemFamilia só pegaria depois do arquivo já gravado.
     conhecidas = {p.lower() for p in coluna(FAMILIAS)}
-    sem_familia = sorted({p for _, p, _, _ in linhas if p.lower() not in conhecidas})
+    sem_familia = sorted({l[1] for l in linhas if l[1].lower() not in conhecidas})
     if sem_familia:
         print("provedor sem família em internal/tabelas/provedor_familia.tsv:")
         for p in sem_familia:
-            quantos = sum(1 for _, prov, _, _ in linhas if prov == p)
+            quantos = sum(1 for l in linhas if l[1] == p)
             print(f"  {p} ({quantos} município(s))")
             if heranca := familia_sugerida(p):
                 print(f"      herança no fonte: {heranca}")
@@ -210,15 +229,15 @@ def main():
     # Gate 2: código que não existe na base do IBGE viraria linha órfã, sem
     # nome nem UF na resposta da API.
     ibge = coluna(MUNICIPIOS)
-    orfaos = sorted({c for c, _, _, _ in linhas if c not in ibge})
+    orfaos = sorted({l[0] for l in linhas if l[0] not in ibge})
     if orfaos:
         print(f"códigos ausentes de municipios.tsv: {', '.join(orfaos)}")
         return 1
 
     antes = DESTINO.read_text(encoding="utf-8") if DESTINO.exists() else ""
-    # A quarta coluna só vai quando marcada: as linhas sem API própria ficam
-    # iguais às de antes da coluna existir.
-    novo = "\n".join("\t".join(linha if linha[3] else linha[:3]) for linha in linhas) + "\n"
+    # As colunas de marca só vão até a última marcada: as linhas sem marca ficam
+    # iguais às de antes das colunas existirem.
+    novo = "\n".join("\t".join(sem_vazias_no_fim(linha)) for linha in linhas) + "\n"
     if conferir:
         if antes != novo:
             a, n = set(antes.split("\n")) - {""}, set(novo.split("\n")) - {""}
@@ -231,8 +250,9 @@ def main():
 
     velhas, novas = set(antes.split("\n")) - {""}, set(novo.split("\n")) - {""}
     proprias = sum(1 for linha in linhas if linha[3])
+    dfe = sum(1 for linha in linhas if linha[4])
     print(f"{DESTINO.relative_to(RAIZ)}: {len(linhas)} municípios com provedor,"
-          f" {proprias} com API própria")
+          f" {proprias} com API própria, {dfe} com distribuição própria")
     if antes:
         print(f"  {len(novas - velhas)} linha(s) a mais, {len(velhas - novas)} a menos")
     return 0
