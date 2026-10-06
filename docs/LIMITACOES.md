@@ -146,6 +146,13 @@ componente que mais crasha, por isso ele fica **fora** do caminho da emissão.
 
 ## Distribuição DF-e
 
+A distribuição de NFS-e é do ADN (Ambiente de Dados Nacional), e só dele. O
+endpoint não pede município: a sessão sai sempre por um município do Padrão
+Nacional, fixo, porque o ADN é o mesmo para todos. É o que permite a quem emite
+por um provedor que ainda não migrou (ABRASF ou próprio) receber a fila do ADN
+sem esbarrar em "não implementado para este provedor". `municipio` e
+`credenciais`, se vierem, são ignorados.
+
 O cursor (NSU) vai e volta no payload: sem estado, é o cliente que guarda onde
 parou. **Não paralelize a distribuição do mesmo CNPJ**, sem o lock que existia
 com banco, chamadas simultâneas embaralham o cursor e você perde documentos sem
