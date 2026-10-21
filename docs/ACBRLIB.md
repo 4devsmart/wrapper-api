@@ -114,9 +114,9 @@ Isso importa na hora de trocar a `.so`. Compilada **sem** os patches, a lib
 aceita o mesmo INI e descarta em silêncio as chaves da primeira linha: a nota
 sai, e sai errada.
 
-As `.so` anexadas ao release v1.3.0 são a r48100 compilada com estes três
-patches, e a imagem as usa a partir da v1.3.1. O `revisao.txt` continua dizendo
-só `48100`, porque o download compara esse valor exato: o que distingue esses
+As `.so` anexadas ao release v1.4.1 são a r48784 compilada com estes três
+patches, e a imagem as usa a partir da v1.5.0 (antes, a r48100 vinha da v1.3.0).
+O `revisao.txt` diz só `48784`, porque o download compara esse valor exato: o que distingue esses
 binários dos oficiais é o `SHA256SUMS` do release e o conteúdo de
 `docker/acbr-patches/` na tag.
 
