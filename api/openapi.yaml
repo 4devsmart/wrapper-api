@@ -5856,6 +5856,7 @@ components:
           allOf:
             - $ref: "#/components/schemas/NfsePrestador"
         toma:
+          description: 'tomador; omitido = consumidor não identificado. No Padrão Nacional exige xNome e CPF, CNPJ ou NIF.'
           allOf:
             - $ref: "#/components/schemas/NfseTomador"
         interm:
