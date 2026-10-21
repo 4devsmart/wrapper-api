@@ -42,8 +42,8 @@ func TestBuscarMunicipios(t *testing.T) {
 	if campinas == nil {
 		t.Fatal("BuscarMunicipios(campinas) não retornou Campinas")
 	}
-	if campinas.Provedor != "ISSCampinas" {
-		t.Errorf("provedor de Campinas = %q, quero ISSCampinas", campinas.Provedor)
+	if campinas.Provedor != "DSF" {
+		t.Errorf("provedor de Campinas = %q, quero DSF", campinas.Provedor)
 	}
 
 	// Query vazia ou curta → lista vazia (widget só busca com termo).

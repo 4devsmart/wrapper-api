@@ -80,6 +80,9 @@ echo "ACBr: r$ACBR_REV conferido em todos os diretórios do checkout"
 cd /work
 
 # --- FortesReport CE (git, pinado) ---
+# O container roda como root e o clone é do usuário do host: sem isto o git
+# recusa o repositório ("dubious ownership") quando o clone já existe.
+git config --global --add safe.directory /work/frce
 if [ ! -d frce/.git ]; then
 	git clone "$FRCE_REPO" frce
 fi

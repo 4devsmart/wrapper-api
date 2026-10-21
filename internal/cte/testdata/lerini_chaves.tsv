@@ -126,6 +126,7 @@ emit	CNPJ
 emit	CRT
 emit	fone
 emit	IE
+emit	IEST
 emit	ISUFEmit
 emit	nro
 emit	UF

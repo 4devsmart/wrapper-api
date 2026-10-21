@@ -5,7 +5,7 @@ no RPS valores de IBS/CBS tirados de NFSe.infNFSe.IBSCBS (cLocalidadeIncid,
 pRedutor, vBC). So o LerIniNfse le essas secoes, entao no RPS o grupo ficava
 zerado: o GISS 2.04 saia com cLocalidadeIncid=0000000 e pRedutor=0.00.
 
-Base: ACBr trunk2 r48100. Ainda nao reportado ao projeto ACBr.
+Base: ACBr trunk2 r48784 (criado sobre a r48100). Ainda nao reportado ao projeto ACBr.
 
 --- a/Fontes/ACBrDFe/ACBrNFSeX/Base/Provedores/ACBrNFSeX.LerIni.pas
 +++ b/Fontes/ACBrDFe/ACBrNFSeX/Base/Provedores/ACBrNFSeX.LerIni.pas

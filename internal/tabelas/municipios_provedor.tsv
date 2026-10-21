@@ -8,16 +8,16 @@
 1100080	PadraoNacional	
 1100098	Fiorilli	2.00
 1100106	PadraoNacional	
-1100114	Fiorilli	2.00
-1100122	Fiorilli		1
+1100114	Fiorilli	1.01	1
+1100122	Fiorilli	1.01	1
 1100130	Fiorilli	2.00
 1100148	EloTech	2.03
 1100155	PadraoNacional	
 1100189	Fiorilli	2.00
-1100205	EL	2.04
+1100205	EL		1
 1100254	PadraoNacional	
 1100262	EloTech	2.03
-1100288	WebISS	2.02
+1100288	PadraoNacional	
 1100296	Agili	
 1100304	WebISS	2.02
 1100320	PadraoNacional	
@@ -144,7 +144,7 @@
 1501204	Aspec	
 1501253	Aspec	
 1501303	ISSNet		1
-1501402	DSF	2.03
+1501402	DSF		1
 1501451	PadraoNacional	
 1501501	Desenvolve	2.03
 1501576	PadraoNacional	
@@ -539,6 +539,7 @@
 2201150	Fiorilli	2.00
 2201176	PadraoNacional	
 2201200	PadraoNacional	
+2201408	PadraoNacional	
 2201507	PadraoNacional	
 2201556	PadraoNacional	
 2201572	Fiorilli	2.00
@@ -553,6 +554,7 @@
 2201960	PadraoNacional	
 2202000	Fisco	2.03
 2202059	PadraoNacional	
+2202075	PadraoNacional	
 2202083	SpeedGov	1.00
 2202091	Fiorilli	2.00
 2202117	Fiorilli	2.00
@@ -570,6 +572,7 @@
 2202711	PadraoNacional	
 2202729	Fiorilli	2.00
 2202737	PadraoNacional	
+2202752	PadraoNacional	
 2202851	Fiorilli	2.00
 2203107	PadraoNacional	
 2203255	PadraoNacional	
@@ -586,6 +589,7 @@
 2204204	PadraoNacional	
 2204303	PadraoNacional	
 2204402	Fiorilli	2.00
+2204600	PadraoNacional	
 2204659	PadraoNacional	
 2204808	PadraoNacional	
 2204907	PadraoNacional	
@@ -594,6 +598,7 @@
 2205250	Fiorilli	2.00
 2205276	PadraoNacional	
 2205300	PadraoNacional	
+2205359	PadraoNacional	
 2205409	PadraoNacional	
 2205458	PadraoNacional	
 2205508	PadraoNacional	
@@ -611,12 +616,16 @@
 2205953	Fiorilli	2.00
 2206001	PadraoNacional	
 2206209	PadraoNacional	
+2206308	PadraoNacional	
+2206605	PadraoNacional	
 2206670	PadraoNacional	
 2206696	PadraoNacional	
 2206704	PadraoNacional	
+2206720	PadraoNacional	
 2206753	PadraoNacional	
 2206803	PadraoNacional	
 2206902	Fiorilli	2.00
+2206951	PadraoNacional	
 2207009	ISSIntel	
 2207207	PadraoNacional	
 2207603	Fiorilli	2.00
@@ -655,13 +664,15 @@
 2210607	Fiorilli	2.00
 2210631	PadraoNacional	
 2210656	PadraoNacional	
+2210904	PadraoNacional	
 2210938	PadraoNacional	
 2210979	PadraoNacional	
-2211001	DSF	2.03
+2211001	DSF		1
 2211100	Fisco	2.03
 2211209	PadraoNacional	
 2211308	WebISS	
 2211357	PadraoNacional	
+2211605	PadraoNacional	
 2211704	Fiorilli	2.00
 2300101	PadraoNacional	
 2300150	PadraoNacional	
@@ -699,12 +710,13 @@
 2303808	PadraoNacional	
 2303907	PadraoNacional	
 2303956	Aspec	
+2304004	PadraoNacional	
 2304103	SpeedGov	1.00
 2304202	SpeedGov	1.00
 2304236	PadraoNacional	
 2304251	SpeedGov	1.00
 2304269	SpeedGov	1.00
-2304285	EL	2.04
+2304285	EL		1
 2304350	SpeedGov	1.00
 2304400	ISSFortaleza	
 2304509	PadraoNacional	
@@ -724,8 +736,10 @@
 2306256	Betha		1
 2306306	PadraoNacional	
 2306405	SpeedGov	1.00
+2306603	PadraoNacional	
 2306702	Aspec	
 2307007	XTRTecnologia	
+2307205	PadraoNacional	
 2307254	SpeedGov	1.00
 2307304	SpeedGov	1.00
 2307650	SpeedGov	1.00
@@ -733,6 +747,7 @@
 2307809	XTRTecnologia	
 2307908	PadraoNacional	
 2308203	PadraoNacional	
+2308302	PadraoNacional	
 2308351	PadraoNacional	
 2308377	PadraoNacional	
 2308609	Aspec	
@@ -746,12 +761,14 @@
 2309508	PadraoNacional	
 2309706	SpeedGov	1.00
 2310209	PadraoNacional	
+2310605	PadraoNacional	
 2310704	PadraoNacional	
 2310803	PadraoNacional	
 2310852	SpeedGov	1.00
 2310902	PadraoNacional	
 2310951	PadraoNacional	
 2311009	PadraoNacional	
+2311108	PadraoNacional	
 2311231	PadraoNacional	
 2311405	PadraoNacional	
 2311504	XTRTecnologia	
@@ -762,8 +779,10 @@
 2312304	PadraoNacional	
 2312809	Aspec	
 2312908	SpeedGov	1.00
+2313203	PadraoNacional	
 2313252	PadraoNacional	
 2313302	SpeedGov	1.00
+2313351	PadraoNacional	
 2313401	SpeedGov	1.00
 2313500	SpeedGov	1.00
 2313609	SpeedGov		1
@@ -772,13 +791,14 @@
 2314102	PadraoNacional	
 2400109	PadraoNacional	
 2400208	Publica	
+2400406	PadraoNacional	
 2400901	PadraoNacional	
 2401008	PadraoNacional	
 2401404	PadraoNacional	
 2401503	PadraoNacional	
 2401602	Fiorilli	2.00
 2401909	PadraoNacional	
-2402006	PadraoNacional	
+2402006	Tinus	2.03
 2402105	Tinus	2.03
 2402204	PadraoNacional	
 2402402	PadraoNacional	
@@ -804,6 +824,7 @@
 2404705	PadraoNacional	
 2404804	PadraoNacional	
 2404853	Tinus	
+2404903	PadraoNacional	
 2405108	PadraoNacional	
 2405207	PadraoNacional	
 2405306	PadraoNacional	
@@ -811,6 +832,8 @@
 2405504	PadraoNacional	
 2405603	PadraoNacional	
 2405702	PadraoNacional	
+2405801	PadraoNacional	
+2405900	PadraoNacional	
 2406155	PadraoNacional	
 2406205	PadraoNacional	
 2406304	Aspec	
@@ -845,6 +868,7 @@
 2410405	Tinus	2.03
 2410504	PadraoNacional	
 2410702	PadraoNacional	
+2410801	PadraoNacional	
 2410900	Fiorilli	2.00
 2411007	Publica	
 2411056	PadraoNacional	
@@ -888,6 +912,7 @@
 2414753	Tributus	2.04
 2414803	PadraoNacional	
 2414902	PadraoNacional	
+2415008	PadraoNacional	
 2500106	Elmar	2.02
 2500205	PadraoNacional	
 2500304	PadraoNacional	
@@ -898,6 +923,7 @@
 2500775	Elmar	2.02
 2500809	Elmar	2.02
 2501005	PublicSoft	2.03
+2501104	PadraoNacional	
 2501153	PadraoNacional	
 2501203	PadraoNacional	
 2501302	PadraoNacional	
@@ -908,6 +934,7 @@
 2502003	PadraoNacional	
 2502052	PadraoNacional	
 2502102	PadraoNacional	
+2502151	PadraoNacional	
 2502201	Elmar	2.02
 2502300	PadraoNacional	
 2502409	PadraoNacional	
@@ -952,7 +979,7 @@
 2507101	PublicSoft	2.03
 2507200	PadraoNacional	
 2507408	Elmar	2.02
-2507507	DSF	2.03
+2507507	DSF		1
 2507903	PadraoNacional	
 2508000	PadraoNacional	
 2508109	Elmar	2.02
@@ -967,6 +994,7 @@
 2509107	PadraoNacional	
 2509206	PadraoNacional	
 2509305	Elmar	2.02
+2509370	PadraoNacional	
 2509404	PadraoNacional	
 2509503	PadraoNacional	
 2509701	PublicSoft	2.03
@@ -984,6 +1012,7 @@
 2511202	Tributus	2.04
 2511301	PublicSoft	2.03
 2511400	PadraoNacional	
+2511509	PadraoNacional	
 2511608	PublicSoft	2.03
 2511707	Elmar	2.02
 2511806	Elmar	2.02
@@ -997,6 +1026,7 @@
 2512705	PadraoNacional	
 2512721	Elmar	2.02
 2512747	PublicSoft	2.03
+2512754	PadraoNacional	
 2512762	PublicSoft	2.03
 2512788	PadraoNacional	
 2512804	Elmar	2.02
@@ -1034,6 +1064,7 @@
 2516102	PadraoNacional	
 2516151	PadraoNacional	
 2516201	Tinus	2.03
+2516300	PadraoNacional	
 2516508	PadraoNacional	
 2516607	PadraoNacional	
 2516706	PadraoNacional	
@@ -1048,6 +1079,7 @@
 2600302	Tributus	2.04
 2600401	Fiorilli	2.00
 2600500	PadraoNacional	
+2600708	PadraoNacional	
 2600807	Tributus	2.04
 2600906	Tributus	2.04
 2601003	PadraoNacional	
@@ -1055,6 +1087,7 @@
 2601201	Tributus	2.04
 2601300	Fiorilli	2.00
 2601508	Fiorilli	2.00
+2601607	PadraoNacional	
 2601706	Tributus	2.04
 2601805	PadraoNacional	
 2601904	Tributus	2.04
@@ -1078,13 +1111,16 @@
 2604106	Giss	2.04
 2604155	PadraoNacional	
 2604205	Tributus	2.04
+2604304	PadraoNacional	
 2604502	Tributus	2.04
 2604601	Fiorilli	2.00
 2604700	PadraoNacional	
+2604809	PadraoNacional	
 2605004	Tributus	2.04
 2605202	Tributus	2.04
 2605301	XTRTecnologia	
 2605400	Tributus	2.04
+2605459	PadraoNacional	
 2605509	Fiorilli	2.00
 2605608	PadraoNacional	
 2605707	PadraoNacional	
@@ -1094,6 +1130,7 @@
 2606309	Tributus	2.04
 2606408	Tributus	2.04
 2606507	PadraoNacional	
+2606606	PadraoNacional	
 2606705	Tributus	2.04
 2606804	Tinus	2.03
 2606903	Fiorilli	2.00
@@ -1108,30 +1145,36 @@
 2607901	Tinus	2.03
 2607950	Tributus	2.04
 2608008	PadraoNacional	
+2608057	PadraoNacional	
 2608107	Tributus	2.04
 2608206	Fiorilli	2.00
 2608255	PadraoNacional	
 2608305	Tributus	2.04
+2608404	PadraoNacional	
 2608453	Tributus	2.04
 2608503	Fiorilli	2.00
 2608701	Tributus	2.04
 2608750	PadraoNacional	
 2608800	Tributus	2.04
 2609105	Tributus	2.04
+2609154	PadraoNacional	
+2609303	PadraoNacional	
 2609402	Tributus	2.04
 2609600	Tinus	2.03
 2609709	Tributus	2.04
 2609808	Fiorilli	2.00
 2609907	Tributus	2.04
 2610004	Tributus	2.04
+2610103	PadraoNacional	
 2610202	Tributus	2.04
 2610301	PadraoNacional	
 2610509	PadraoNacional	
 2610608	Tributus	2.04
 2610707	Giss	2.04
+2610806	PadraoNacional	
 2610905	Tributus	2.04
 2611002	PadraoNacional	
-2611101	EL	2.04
+2611101	EL		1
 2611200	Tributus	2.04
 2611309	Tributus	2.04
 2611408	Tributus	2.04
@@ -1151,6 +1194,7 @@
 2612901	PadraoNacional	
 2613107	Tributus	2.04
 2613206	Tributus	2.04
+2613503	PadraoNacional	
 2613701	Tributus	2.04
 2613909	PadraoNacional	
 2614006	Fiorilli	2.00
@@ -1159,8 +1203,10 @@
 2614303	Tributus	2.04
 2614600	PadraoNacional	
 2614709	PadraoNacional	
+2614808	PadraoNacional	
 2614857	Fiorilli	2.00
 2615102	PadraoNacional	
+2615201	PadraoNacional	
 2615300	Tributus	2.04
 2615409	Tributus	2.04
 2615508	PadraoNacional	
@@ -1168,6 +1214,7 @@
 2615904	PadraoNacional	
 2616001	PadraoNacional	
 2616100	Fiorilli	2.00
+2616183	PadraoNacional	
 2616209	Tributus	2.04
 2616308	Tributus	2.04
 2616407	Tinus	2.03
@@ -1185,6 +1232,7 @@
 2701100	PadraoNacional	
 2701357	Tributus	2.04
 2701407	PadraoNacional	
+2701506	PadraoNacional	
 2701605	PadraoNacional	
 2701704	Tributus	2.04
 2701803	PadraoNacional	
@@ -1202,19 +1250,25 @@
 2702801	PadraoNacional	
 2702900	Fiorilli	2.00
 2703007	PadraoNacional	
+2703106	PadraoNacional	
 2703205	PadraoNacional	
 2703304	Fiorilli	2.00
 2703403	PadraoNacional	
 2703502	Fiorilli	2.00
+2703700	PadraoNacional	
 2703759	PadraoNacional	
 2703809	PadraoNacional	
 2703908	PadraoNacional	
 2704104	PadraoNacional	
 2704203	PadraoNacional	
 2704302	Giss	2.04
+2704401	PadraoNacional	
 2704500	Tributus	2.04
 2704609	PadraoNacional	
 2704708	Giss	2.04
+2704807	PadraoNacional	
+2704906	PadraoNacional	
+2705002	PadraoNacional	
 2705200	Kalana	
 2705309	PadraoNacional	
 2705408	PadraoNacional	
@@ -1222,6 +1276,7 @@
 2705606	PadraoNacional	
 2705705	Tributus	2.04
 2705804	PadraoNacional	
+2705903	PadraoNacional	
 2706000	PadraoNacional	
 2706109	PadraoNacional	
 2706208	PadraoNacional	
@@ -1231,6 +1286,7 @@
 2706505	PadraoNacional	
 2706604	PadraoNacional	
 2706703	Tributus	2.04
+2706802	NFOnline	2.03
 2707008	PadraoNacional	
 2707107	PadraoNacional	
 2707206	PadraoNacional	
@@ -1244,14 +1300,18 @@
 2708105	PadraoNacional	
 2708204	PadraoNacional	
 2708303	PadraoNacional	
+2708402	PadraoNacional	
 2708600	Kalana	
+2708956	PadraoNacional	
 2709004	PadraoNacional	
 2709103	PadraoNacional	
 2709152	PadraoNacional	
+2709202	PadraoNacional	
 2709301	PadraoNacional	
 2709400	Tributus	2.04
 2800209	WebISS	2.02
 2800308	WebISS	2.02
+2800407	PadraoNacional	
 2800506	PadraoNacional	
 2800605	WebISS	2.02
 2800670	Agape	2.03
@@ -1261,11 +1321,12 @@
 2801603	PadraoNacional	
 2801900	PadraoNacional	
 2802007	PadraoNacional	
-2802106	WebISS	
+2802106	WebISS	2.02
 2802304	PadraoNacional	
 2802601	PadraoNacional	
 2802809	PadraoNacional	
 2802908	WebISS	2.02
+2803005	PadraoNacional	
 2803104	PadraoNacional	
 2803302	WebISS	
 2803401	PadraoNacional	
@@ -1277,12 +1338,18 @@
 2804102	WebISS	2.02
 2804201	WebISS	2.02
 2804300	WebISS	2.02
+2804409	PadraoNacional	
 2804508	Tributus	2.04
 2804607	PadraoNacional	
+2804706	PadraoNacional	
 2804805	WebISS	2.02
 2804904	PadraoNacional	
+2805000	PadraoNacional	
+2805109	PadraoNacional	
 2805208	PadraoNacional	
+2805307	PadraoNacional	
 2805406	PadraoNacional	
+2805505	PadraoNacional	
 2805604	PadraoNacional	
 2805802	PadraoNacional	
 2806107	PadraoNacional	
@@ -1293,8 +1360,12 @@
 2806701	WebISS	2.02
 2806800	PadraoNacional	
 2806909	PadraoNacional	
+2807105	PadraoNacional	
 2807204	PadraoNacional	
+2807303	PadraoNacional	
 2807402	WebISS	2.02
+2807501	PadraoNacional	
+2807600	PadraoNacional	
 2900306	Fisco	2.03
 2900355	PadraoNacional	
 2900504	Fisco	2.03
@@ -1325,7 +1396,7 @@
 2902658	PadraoNacional	
 2902708	Saatri	2.03
 2902807	PadraoNacional	
-2902906	EL	2.04
+2902906	EL		1
 2903003	PadraoNacional	
 2903102	PadraoNacional	
 2903201	EL		1
@@ -1339,6 +1410,7 @@
 2903904	Saatri	2.03
 2903953	PadraoNacional	
 2904001	Betha		1
+2904050	PadraoNacional	
 2904100	PadraoNacional	
 2904308	PadraoNacional	
 2904407	PadraoNacional	
@@ -1369,7 +1441,7 @@
 2906824	Fisco	2.03
 2906857	PadraoNacional	
 2906899	PadraoNacional	
-2906907	EL	2.04
+2906907	EL		1
 2907103	PadraoNacional	
 2907202	Saatri	2.03
 2907301	Fisco	2.03
@@ -1416,14 +1488,14 @@
 2911501	Saatri	2.03
 2911600	Fisco	2.03
 2911709	WebISS	2.02
-2911808	EL	2.04
+2911808	EL		1
 2911857	PadraoNacional	
 2912004	PadraoNacional	
 2912103	PadraoNacional	
 2912202	EL	2.04
 2912400	PadraoNacional	
 2912608	PadraoNacional	
-2912707	EL	2.04
+2912707	EL		1
 2912806	WebISS	2.02
 2913002	PadraoNacional	
 2913101	PadraoNacional	
@@ -1431,7 +1503,7 @@
 2913309	Fisco	2.03
 2913408	Fisco	2.03
 2913457	Fisco	2.03
-2913507	EL	2.04
+2913507	Fisco	2.03
 2913606	PadraoNacional	
 2913705	Saatri	2.03
 2913903	Saatri	2.03
@@ -1468,20 +1540,20 @@
 2916906	PadraoNacional	
 2917003	Saatri	2.03
 2917102	PadraoNacional	
-2917201	EL	2.04
+2917201	EL		1
 2917300	PadraoNacional	
 2917334	PadraoNacional	
 2917508	Saatri	2.03
 2917607	PadraoNacional	
 2917706	PadraoNacional	
-2918001	EL	2.04
+2918001	EL		1
 2918100	Saatri	2.03
-2918308	EL	2.04
+2918308	EL		1
 2918357	PadraoNacional	
 2918407	WebISS	2.02
 2918456	PadraoNacional	
 2918506	PadraoNacional	
-2918555	EL	2.04
+2918555	EL		1
 2918605	PadraoNacional	
 2918704	PadraoNacional	
 2918803	PadraoNacional	
@@ -1492,6 +1564,7 @@
 2919157	PadraoNacional	
 2919207	MetropolisWeb	
 2919306	Betha		1
+2919405	PadraoNacional	
 2919504	Fisco	2.03
 2919553	PadraoNacional	
 2919603	Fisco	2.03
@@ -1500,12 +1573,13 @@
 2919926	PadraoNacional	
 2919959	PadraoNacional	
 2920007	Saatri	2.03
+2920205	PadraoNacional	
 2920304	PadraoNacional	
 2920452	PadraoNacional	
 2920502	Betha		1
 2920809	PadraoNacional	
 2920908	PadraoNacional	
-2921104	EL	2.04
+2921104	EL		1
 2921302	Sudoeste	2.02
 2921401	PadraoNacional	
 2921450	PadraoNacional	
@@ -1531,6 +1605,7 @@
 2923308	Saatri	2.03
 2923357	PadraoNacional	
 2923407	PadraoNacional	
+2923605	PadraoNacional	
 2923704	PadraoNacional	
 2923803	PadraoNacional	
 2923902	Fisco	2.03
@@ -1542,12 +1617,12 @@
 2924603	PadraoNacional	
 2924652	Fisco	2.03
 2924801	Saatri	2.03
-2925105	EL	2.04
+2925105	EL		1
 2925204	WebISS	
 2925253	PadraoNacional	
 2925303	GestaoISS	2.02
 2925402	PadraoNacional	
-2925501	EL	2.04
+2925501	EL		1
 2925709	EL	2.04
 2925758	PadraoNacional	
 2925907	PadraoNacional	
@@ -1559,7 +1634,9 @@
 2926400	PadraoNacional	
 2926657	PadraoNacional	
 2926806	Fiorilli	2.00
+2926905	PadraoNacional	
 2927002	PadraoNacional	
+2927101	PadraoNacional	
 2927200	Fisco	2.03
 2927309	Fisco	2.03
 2927408	ISSSalvador	
@@ -1574,9 +1651,11 @@
 2928307	PadraoNacional	
 2928406	PadraoNacional	
 2928505	PadraoNacional	
+2928604	PadraoNacional	
 2928703	WebISS	2.02
 2928802	Fisco	2.03
 2928901	PadraoNacional	
+2929008	PadraoNacional	
 2929057	PadraoNacional	
 2929107	Fisco	2.03
 2929206	Saatri	2.03
@@ -1591,9 +1670,10 @@
 2930105	WebISS	2.02
 2930154	PadraoNacional	
 2930204	PadraoNacional	
+2930402	PadraoNacional	
 2930501	Ginfes	
 2930600	PadraoNacional	
-2930709	EL	2.04
+2930709	EL		1
 2930758	PadraoNacional	
 2930766	PadraoNacional	
 2930774	PadraoNacional	
@@ -1613,29 +1693,32 @@
 2932309	Saatri	2.03
 2932408	PadraoNacional	
 2932457	Fisco	2.03
-2932507	EL		1
+2932507	PadraoNacional	
 2932606	PadraoNacional	
 2932705	WebISS	2.02
 2932804	Saatri	2.03
-2932903	EL	2.04
+2932903	EL		1
 2933000	PadraoNacional	
 2933059	PadraoNacional	
 2933109	Fisco	2.03
 2933158	PadraoNacional	
 2933208	PadraoNacional	
 2933257	PadraoNacional	
-2933307	EL	2.04
+2933307	EL		1
 2933406	PadraoNacional	
 2933455	PadraoNacional	
 2933505	PadraoNacional	
+2933604	PadraoNacional	
 3100104	PadraoNacional	
 3100203	Fiorilli	2.00
 3100302	PadraoNacional	
+3100401	PadraoNacional	
 3100500	eReceita	2.02
 3100609	PadraoNacional	
 3100807	PadraoNacional	
 3100906	PadraoNacional	
 3101003	PadraoNacional	
+3101102	PadraoNacional	
 3101201	Futurize	2.02
 3101300	Futurize	2.02
 3101409	PadraoNacional	
@@ -1709,15 +1792,16 @@
 3108107	Fiorilli	2.00
 3108206	NFSeBrasil	
 3108255	Sintese	2.04
-3108305	Fiorilli	2.00
+3108305	Fiorilli	1.01	1
 3108404	Betha		1
 3108552	PadraoNacional	
 3108602	PadraoNacional	
 3108701	Futurize	2.02
 3108800	Fiorilli	2.00
 3109006	PadraoNacional	
-3109105	Fiorilli	2.00
+3109105	Fiorilli	1.01	1
 3109204	Sintese	2.04
+3109253	PadraoNacional	
 3109303	Fiorilli	2.00
 3109402	PadraoNacional	
 3109451	Futurize	2.02
@@ -1876,11 +1960,13 @@
 3123502	PadraoNacional	
 3123528	PadraoNacional	
 3123601	PadraoNacional	
+3123700	PadraoNacional	
 3123809	PadraoNacional	
+3123858	PadraoNacional	
 3123908	PadraoNacional	
 3124005	SH3	2.00
-3124104	Fiorilli	2.00
-3124203	EL	2.04
+3124104	Fiorilli	1.01	1
+3124203	EL		1
 3124302	Sintese	2.04
 3124401	PadraoNacional	
 3124500	Fiorilli	2.00
@@ -1890,7 +1976,7 @@
 3125002	Futurize	2.02
 3125101	WebISS	2.02
 3125200	Bauhaus	
-3125309	EL	2.04
+3125309	EL		1
 3125507	PadraoNacional	
 3125606	PadraoNacional	
 3125705	PadraoNacional	
@@ -1924,7 +2010,7 @@
 3127701	PadraoNacional	
 3127800	PadraoNacional	
 3127909	PadraoNacional	
-3128006	EL	2.04
+3128006	EL		1
 3128105	PadraoNacional	
 3128204	PadraoNacional	
 3128253	Sintese	2.04
@@ -1960,7 +2046,7 @@
 3131109	Betha		1
 3131158	Actcon	2.02
 3131208	PadraoNacional	
-3131307	SigCorp	2.04
+3131307	SigCorp		1
 3131406	PadraoNacional	
 3131505	PadraoNacional	
 3131604	PadraoNacional	
@@ -1973,6 +2059,7 @@
 3132305	PadraoNacional	
 3132404	PadraoNacional	
 3132503	PadraoNacional	
+3132602	PadraoNacional	
 3132701	EL		1
 3132800	PadraoNacional	
 3132909	PadraoNacional	
@@ -2005,12 +2092,13 @@
 3135357	PadraoNacional	
 3135407	PadraoNacional	
 3135456	Sintese	2.04
+3135506	PadraoNacional	
 3135605	PadraoNacional	
 3135704	PadraoNacional	
 3135803	PadraoNacional	
 3136009	PadraoNacional	
 3136108	Actcon	2.02
-3136207	EL	2.04
+3136207	PadraoNacional	
 3136306	PadraoNacional	
 3136405	Sintese	2.04
 3136504	Futurize	2.02
@@ -2052,7 +2140,7 @@
 3139201	PadraoNacional	
 3139250	Sintese	2.04
 3139300	PadraoNacional	
-3139409	EL	2.04
+3139409	EL		1
 3139508	NFSeBrasil	
 3139607	ISSNet		1
 3139706	PadraoNacional	
@@ -2075,6 +2163,7 @@
 3141207	PadraoNacional	
 3141306	WebISS	2.02
 3141405	Sintese	2.04
+3141504	PadraoNacional	
 3141603	Futurize	2.02
 3141702	GovDigital	2.00
 3141801	Sintese	2.04
@@ -2092,7 +2181,8 @@
 3142908	PadraoNacional	
 3143005	PadraoNacional	
 3143104	PadraoNacional	
-3143203	EL	2.04
+3143153	PadraoNacional	
+3143203	EL		1
 3143302	PadraoNacional	
 3143401	Fiorilli	2.00
 3143450	Sintese	2.04
@@ -2118,18 +2208,20 @@
 3145109	EL		1
 3145208	PadraoNacional	
 3145307	Sintese	2.04
-3145356	EL	2.04
+3145356	EL		1
 3145372	PadraoNacional	
 3145406	Futurize	2.02
 3145455	Sintese	2.04
 3145505	Futurize	2.02
 3145604	PadraoNacional	
 3145703	Futurize	2.02
+3145802	PadraoNacional	
 3145851	PadraoNacional	
 3145877	Futurize	2.02
 3145901	Betha		1
 3146008	PadraoNacional	
 3146107	PadraoNacional	
+3146206	PadraoNacional	
 3146255	Sintese	2.04
 3146305	PadraoNacional	
 3146404	Fiorilli	2.00
@@ -2141,6 +2233,7 @@
 3147006	PadraoNacional	
 3147105	ISSDigital		1
 3147204	PadraoNacional	
+3147303	PadraoNacional	
 3147402	PadraoNacional	
 3147501	Fiorilli	2.00
 3147600	PadraoNacional	
@@ -2170,7 +2263,7 @@
 3149705	NFSeBrasil	
 3149804	PadraoNacional	
 3149903	GestaoISS	2.02
-3149952	EL		1
+3149952	PadraoNacional	
 3150000	NFSeBrasil	
 3150109	Futurize	2.02
 3150158	VersaTecnologia	2.04
@@ -2189,7 +2282,7 @@
 3151206	PadraoNacional	
 3151305	Adm	2.01
 3151404	NFSeBrasil	
-3151503	ISSIntel	
+3151503	PadraoNacional	
 3151602	Betha		1
 3151701	Betha		1
 3151800	GovDigital	2.01
@@ -2238,7 +2331,7 @@
 3155702	PadraoNacional	
 3155801	Futurize	2.02
 3155900	Futurize	2.02
-3156007	EL		1
+3156007	PadraoNacional	
 3156106	PadraoNacional	
 3156205	Futurize	2.02
 3156304	PadraoNacional	
@@ -2252,7 +2345,7 @@
 3157005	PadraoNacional	
 3157104	PadraoNacional	
 3157203	GestaoISS	2.02
-3157252	EL	2.04
+3157252	EL		1
 3157278	PadraoNacional	
 3157302	SH3	2.00
 3157336	PadraoNacional	
@@ -2264,7 +2357,7 @@
 3157708	GovDigital	2.00
 3157807	PadraoNacional	
 3157906	PadraoNacional	
-3158003	EL		1
+3158003	Betha		1
 3158102	Sintese	2.04
 3158201	PadraoNacional	
 3158300	Betha		1
@@ -2279,7 +2372,7 @@
 3159100	SH3	2.00
 3159209	Futurize	2.02
 3159308	Futurize	2.02
-3159357	EL	2.04
+3159357	EL		1
 3159407	PadraoNacional	
 3159506	Futurize	2.02
 3159605	PadraoNacional	
@@ -2298,14 +2391,14 @@
 3160801	PadraoNacional	
 3160900	Sintese	2.04
 3160959	Fiorilli	2.00
-3161007	EL		1
+3161007	PadraoNacional	
 3161056	PadraoNacional	
 3161106	ISSIntel	
 3161205	PadraoNacional	
 3161304	GovDigital	2.00
 3161403	EL		1
 3161502	PadraoNacional	
-3161601	EL		1
+3161601	PadraoNacional	
 3161650	Futurize	2.02
 3161700	PadraoNacional	
 3161809	WebISS	2.02
@@ -2326,6 +2419,7 @@
 3162922	PadraoNacional	
 3162948	PadraoNacional	
 3162955	PadraoNacional	
+3163003	PadraoNacional	
 3163102	NFSeBrasil	
 3163201	Futurize	2.02
 3163300	PadraoNacional	
@@ -2340,6 +2434,7 @@
 3164308	PadraoNacional	
 3164407	PadraoNacional	
 3164431	Futurize	2.02
+3164472	PadraoNacional	
 3164506	PadraoNacional	
 3164605	PadraoNacional	
 3164704	PadraoNacional	
@@ -2369,15 +2464,17 @@
 3166907	PadraoNacional	
 3166956	PadraoNacional	
 3167004	Futurize	2.02
-3167103	Fiorilli	2.00
+3167103	Fiorilli	1.01	1
 3167202	PadraoNacional	
 3167301	SH3	2.00
 3167400	ISSLegal	2.03
 3167509	Futurize	2.02
 3167608	EL		1
+3167707	PadraoNacional	
 3167806	Futurize	2.02
 3167905	Futurize	2.02
-3168002	EL	2.04
+3168002	EL		1
+3168051	PadraoNacional	
 3168101	PadraoNacional	
 3168200	Futurize	2.02
 3168309	PadraoNacional	
@@ -2389,7 +2486,8 @@
 3168903	PadraoNacional	
 3169000	Adm	2.01
 3169109	Futurize	2.02
-3169307	EL		1
+3169208	PadraoNacional	
+3169307	PadraoNacional	
 3169356	PadraoNacional	
 3169406	IPM	1.01
 3169505	Sintese	2.04
@@ -2425,22 +2523,23 @@
 3171600	VersaTecnologia	2.04
 3171709	Futurize	2.02
 3171808	PadraoNacional	
+3171907	PadraoNacional	
 3172004	PadraoNacional	
 3172103	Futurize	2.02
 3172202	PadraoNacional	
 3200102	ISSIntel	
 3200136	PadraoNacional	
 3200169	PadraoNacional	
-3200201	EL	2.04
-3200300	EL	2.04
-3200359	EL	2.04
-3200409	EL	2.04
-3200508	EL	2.04
-3200607	EL	2.04
+3200201	EL		1
+3200300	EL		1
+3200359	EL		1
+3200409	EL		1
+3200508	EL		1
+3200607	EL		1
 3200706	Betha		1
-3200805	EL	2.04
+3200805	EL		1
 3200904	PadraoNacional	
-3201001	EL	2.04
+3201001	EL		1
 3201100	PadraoNacional	
 3201159	Betha		1
 3201209	PadraoNacional	
@@ -2448,67 +2547,68 @@
 3201407	PadraoNacional	
 3201506	PadraoNacional	
 3201605	PadraoNacional	
-3201704	EL	2.04
+3201704	EL		1
 3201803	PadraoNacional	
-3201902	EL	2.04
+3201902	EL		1
 3202009	EL		1
 3202108	EL		1
-3202207	EL	2.04
-3202256	EL	2.04
-3202306	EL	2.04
+3202207	EL		1
+3202256	EL		1
+3202306	EL		1
 3202405	PadraoNacional	
-3202454	EL	2.04
+3202454	EL		1
 3202504	PadraoNacional	
 3202553	PadraoNacional	
 3202603	EL		1
-3202652	EL	2.04
-3202801	EL	2.04
-3202900	EL	2.04
+3202652	EL		1
+3202801	EL		1
+3202900	EL		1
 3203007	PadraoNacional	
-3203056	EL	2.04
+3203056	EL		1
 3203106	PadraoNacional	
-3203130	EL	2.04
-3203163	EL	2.04
+3203130	EL		1
+3203163	EL		1
 3203205	EL		1
-3203304	EL	2.04
-3203320	EL	2.04
-3203346	EL	2.04
-3203353	EL	2.04
-3203403	EL	2.04
-3203502	EL	2.04
-3203601	EL	2.04
-3203700	EL	2.04
-3203809	EL	2.04
+3203304	EL		1
+3203320	EL		1
+3203346	EL		1
+3203353	EL		1
+3203403	EL		1
+3203502	EL		1
+3203601	EL		1
+3203700	EL		1
+3203809	EL		1
 3203908	EL	2.04
-3204005	EL	2.04
+3204005	EL		1
 3204054	PadraoNacional	
 3204104	PadraoNacional	
 3204203	EL		1
 3204252	PadraoNacional	
 3204302	PadraoNacional	
-3204351	EL	2.04
-3204401	EL	2.04
+3204351	EL		1
+3204401	EL		1
 3204500	PadraoNacional	
-3204559	EL	2.04
-3204609	EL	2.04
+3204559	PadraoNacional	
+3204609	EL		1
 3204658	EL		1
-3204708	EL	2.04
-3204807	EL	2.04
-3204906	EL	2.04
-3204955	EL	2.04
+3204708	EL		1
+3204807	PadraoNacional	
+3204906	EL		1
+3204955	EL		1
 3205002	PadraoNacional	
-3205010	EL	2.04
+3205010	EL		1
 3205036	PadraoNacional	
-3205069	EL	2.04
-3205101	EL	2.04
-3205176	EL	2.04
+3205069	EL		1
+3205101	EL		1
+3205176	EL		1
 3205200	SilTecnologia		1
 3205309	PadraoNacional	
 3300100	Tiplan	2.03
 3300159	PadraoNacional	
 3300209	Pronim		1
 3300225	PadraoNacional	
-3300233	EL	2.04
+3300233	EL		1
+3300258	PadraoNacional	
 3300308	WebISS	2.02
 3300407	Coplan		1
 3300456	ModernizacaoPublica		1
@@ -2526,7 +2626,7 @@
 3301306	PadraoNacional	
 3301405	SH3	2.00
 3301504	SigISSWeb	
-3301603	EL	2.04
+3301603	EL		1
 3301702	ISSNet		1
 3301801	PadraoNacional	
 3301850	PadraoNacional	
@@ -2534,7 +2634,7 @@
 3301900	CTA	2.00
 3302007	Tiplan		1
 3302056	Pronim		1
-3302106	EL	2.04
+3302106	EL		1
 3302205	Pronim		1
 3302254	PadraoNacional	
 3302270	PadraoNacional	
@@ -2567,7 +2667,7 @@
 3304151	Pronim		1
 3304201	PadraoNacional	
 3304300	GestaoISS	2.02
-3304409	EL	2.04
+3304409	EL		1
 3304508	Betha		1
 3304524	Tiplan	2.03
 3304557	PadraoNacional	
@@ -2576,7 +2676,7 @@
 3304755	Fiorilli	2.00
 3304805	Fiorilli	2.00
 3304904	ISSIntel	
-3305000	WebISS	
+3305000	Fiorilli	1.01	1
 3305109	PadraoNacional	
 3305133	Fiorilli	2.00
 3305158	PadraoNacional	
@@ -2586,7 +2686,8 @@
 3305505	Pronim		1
 3305554	ModernizacaoPublica		1
 3305604	Pronim		1
-3305703	EL	2.04
+3305703	EL		1
+3305752	PadraoNacional	
 3305802	Fiorilli	2.00
 3305901	WebISS	
 3306008	PriMax	1.01
@@ -2638,6 +2739,7 @@
 3503703	PadraoNacional	
 3503802	Prescon	
 3503901	PadraoNacional	
+3503950	PadraoNacional	
 3504008	PadraoNacional	
 3504107	PadraoNacional	
 3504206	Fiorilli	2.00
@@ -2681,7 +2783,7 @@
 3507605	Conam	
 3507704	PadraoNacional	
 3507753	Sam	
-3507803	Fiorilli	2.00
+3507803	PadraoNacional	
 3507902	PadraoNacional	
 3508009	PadraoNacional	
 3508108	Sam	
@@ -2700,7 +2802,7 @@
 3509304	Fiorilli	2.00
 3509403	Conam	
 3509452	PadraoNacional	
-3509502	ISSCampinas	2.03
+3509502	DSF		1
 3509601	GeisWeb	1.01
 3509700	PadraoNacional	
 3509809	PadraoNacional	
@@ -2712,13 +2814,13 @@
 3510203	PadraoNacional	
 3510302	PadraoNacional	
 3510401	Giss	2.04
-3510500	SigCorp	2.04
+3510500	SigCorp		1
 3510609	Giap	
 3510708	Fiorilli	2.00
 3510807	SimplISS		1
 3510906	Betha		1
 3511003	Fiorilli	2.00
-3511102	RLZ		1
+3511102	PadraoNacional	
 3511201	PadraoNacional	
 3511300	PadraoNacional	
 3511409	Fiorilli	2.00
@@ -2736,7 +2838,7 @@
 3512704	Betha		1
 3512803	PadraoNacional	
 3512902	Fiorilli	2.00
-3513009	Giap	
+3513009	PadraoNacional	
 3513108	Primax	1.01
 3513207	PadraoNacional	
 3513405	PadraoNacional	
@@ -2772,13 +2874,16 @@
 3515657	Fiorilli	2.00
 3515707	Conam	
 3515806	Fiorilli	2.00
+3515905	PadraoNacional	
 3516002	PadraoNacional	
 3516101	Fiorilli	2.00
 3516200	SilTecnologia		1
 3516309	PadraoNacional	
 3516408	SigCorp	2.04
+3516507	PadraoNacional	
 3516606	PadraoNacional	
 3516705	PadraoNacional	
+3516804	PadraoNacional	
 3516853	Betha		1
 3516903	RLZ		1
 3517000	Fiorilli	1.01	1
@@ -2790,6 +2895,8 @@
 3517604	PadraoNacional	
 3517703	PadraoNacional	
 3517901	Fiorilli	2.00
+3518008	PadraoNacional	
+3518107	PadraoNacional	
 3518206	Fiorilli	2.00
 3518305	Ginfes	
 3518404	PadraoNacional	
@@ -2816,6 +2923,7 @@
 3520103	PadraoNacional	
 3520202	Sistemas4R	2.00
 3520301	PadraoNacional	
+3520400	PadraoNacional	
 3520426	PadraoNacional	
 3520442	RLZ		1
 3520509	PadraoNacional	
@@ -2825,6 +2933,7 @@
 3520905	PadraoNacional	
 3521002	PadraoNacional	
 3521101	PadraoNacional	
+3521150	PadraoNacional	
 3521200	PadraoNacional	
 3521309	Fiorilli	2.00
 3521408	PadraoNacional	
@@ -2861,7 +2970,7 @@
 3524402	PadraoNacional	
 3524501	PadraoNacional	
 3524600	PadraoNacional	
-3524709	GovDigital	2.00
+3524709	GovDigital	2.01
 3524808	PadraoNacional	
 3524907	Betha		1
 3525003	SilTecnologia		1
@@ -2907,13 +3016,14 @@
 3528809	PadraoNacional	
 3528858	PadraoNacional	
 3528908	PadraoNacional	
-3529005	SigISS	
+3529005	SigCorp	1.01	1
 3529104	PadraoNacional	
 3529203	Fiorilli	2.00
 3529302	PadraoNacional	
 3529401	Ginfes	
 3529500	PadraoNacional	
 3529609	PadraoNacional	
+3529658	PadraoNacional	
 3529708	Fiorilli	2.00
 3529807	PadraoNacional	
 3529906	PadraoNacional	
@@ -2927,6 +3037,7 @@
 3530706	PadraoNacional	
 3530805	SigCorp	2.04
 3530904	PadraoNacional	
+3531001	PadraoNacional	
 3531100	Giss	2.04
 3531308	Fiorilli	2.00
 3531407	PadraoNacional	
@@ -2943,9 +3054,11 @@
 3532405	Fiorilli	2.00
 3532504	PadraoNacional	
 3532603	PadraoNacional	
+3532702	PadraoNacional	
 3532801	Fiorilli	2.00
 3532827	Conam	
 3532843	Fiorilli	2.00
+3532868	PadraoNacional	
 3532900	PadraoNacional	
 3533007	Fiorilli	2.00
 3533106	PadraoNacional	
@@ -2964,10 +3077,11 @@
 3534302	Betha		1
 3534401	eGoverneISS	
 3534609	PadraoNacional	
-3534708	fintelISS	2.04
+3534708	PadraoNacional	
 3534757	PadraoNacional	
 3534807	Fiorilli	2.00
 3534906	PadraoNacional	
+3535002	PadraoNacional	
 3535101	PadraoNacional	
 3535200	PadraoNacional	
 3535309	Pronim		1
@@ -2976,10 +3090,12 @@
 3535606	PadraoNacional	
 3535705	Fiorilli	2.00
 3535804	Pronim		1
+3535903	PadraoNacional	
 3536000	PadraoNacional	
 3536109	GeisWeb	1.01
 3536208	PadraoNacional	
 3536257	Fiorilli	2.00
+3536307	PadraoNacional	
 3536406	PadraoNacional	
 3536505	Giss	2.04
 3536570	PadraoNacional	
@@ -2994,6 +3110,7 @@
 3537404	RLZ		1
 3537503	PadraoNacional	
 3537602	PadraoNacional	
+3537701	PadraoNacional	
 3537800	Ginfes	
 3537909	PadraoNacional	
 3538006	PadraoNacional	
@@ -3002,7 +3119,7 @@
 3538303	Fiorilli	2.00
 3538600	PadraoNacional	
 3538709	PadraoNacional	
-3538808	ISSMap	
+3538808	PadraoNacional	
 3538907	PadraoNacional	
 3539004	Fiorilli	2.00
 3539103	SimplISS		1
@@ -3010,6 +3127,7 @@
 3539301	PadraoNacional	
 3539400	Fiorilli	2.00
 3539509	PadraoNacional	
+3539608	PadraoNacional	
 3539707	Pronim		1
 3539806	Conam	
 3539905	Fiorilli	2.00
@@ -3037,7 +3155,7 @@
 3541703	Fiorilli	2.00
 3541802	Fiorilli	2.00
 3541901	PadraoNacional	
-3542008	Fiorilli	2.00
+3542008	Fiorilli	1.01	1
 3542107	PadraoNacional	
 3542206	PadraoNacional	
 3542305	PadraoNacional	
@@ -3045,6 +3163,7 @@
 3542503	Fiorilli	2.00
 3542602	Giss	2.04
 3542701	PadraoNacional	
+3542800	PadraoNacional	
 3542909	PadraoNacional	
 3543006	PadraoNacional	
 3543105	Fiorilli	2.00
@@ -3076,6 +3195,7 @@
 3545407	PadraoNacional	
 3545506	Pronim		1
 3545605	PadraoNacional	
+3545704	PadraoNacional	
 3545803	SigISSWeb	
 3546009	PadraoNacional	
 3546108	Fiorilli	2.00
@@ -3091,6 +3211,7 @@
 3547106	PadraoNacional	
 3547205	Fiorilli	2.00
 3547304	SimplISS		1
+3547403	PadraoNacional	
 3547502	Fiorilli	2.00
 3547601	PadraoNacional	
 3547650	Fiorilli	2.00
@@ -3111,13 +3232,14 @@
 3549003	PadraoNacional	
 3549102	PadraoNacional	
 3549201	Fiorilli	2.00
+3549250	PadraoNacional	
 3549300	Fiorilli	2.00
-3549409	Fiorilli	2.00
+3549409	Fiorilli	1.01	1
 3549508	PadraoNacional	
 3549607	Betha		1
 3549706	IPM	2.04
 3549805	Giss	2.04
-3549904	DSF	2.03
+3549904	PadraoNacional	
 3549953	PadraoNacional	
 3550001	PadraoNacional	
 3550100	PadraoNacional	
@@ -3154,6 +3276,7 @@
 3553104	Pronim		1
 3553203	Fiorilli	2.00
 3553302	PadraoNacional	
+3553401	PadraoNacional	
 3553500	PadraoNacional	
 3553609	PadraoNacional	
 3553658	Betha		1
@@ -3162,7 +3285,7 @@
 3553856	PadraoNacional	
 3553955	PadraoNacional	
 3554003	PadraoNacional	
-3554102	PadraoNacional	
+3554102	SigCorp		1
 3554201	PadraoNacional	
 3554300	Pronim		1
 3554409	Betha		1
@@ -3171,16 +3294,20 @@
 3554656	PadraoNacional	
 3554706	PadraoNacional	
 3554755	Fiorilli	2.00
-3554805	SigISS	1.01
+3554805	SigCorp		1
+3554904	PadraoNacional	
 3554953	Pronim		1
 3555000	SimplISS		1
 3555109	PadraoNacional	
+3555208	PadraoNacional	
+3555307	PadraoNacional	
 3555356	PadraoNacional	
 3555406	PadraoNacional	
 3555505	PadraoNacional	
 3555604	PadraoNacional	
+3555703	PadraoNacional	
 3555802	Fiorilli	2.00
-3556008	Fiorilli	2.00
+3556008	Fiorilli	1.01	1
 3556107	PadraoNacional	
 3556206	SigISSWeb	
 3556305	PadraoNacional	
@@ -3189,8 +3316,8 @@
 3556453	GovDigital	2.01
 3556503	GovDigital	2.01
 3556602	Fiorilli	2.00
-3556701	Intertec	
-3556800	Fiorilli	2.00
+3556701	Balker	
+3556800	PadraoNacional	
 3556909	Fiorilli	2.00
 3557006	PadraoNacional	
 3557105	PadraoNacional	
@@ -3236,7 +3363,7 @@
 4103107	PadraoNacional	
 4103156	Betha		1
 4103206	PadraoNacional	
-4103222	Pronim		1
+4103222	PadraoNacional	
 4103305	EloTech	2.03
 4103354	PadraoNacional	
 4103370	PadraoNacional	
@@ -3272,6 +3399,7 @@
 4105706	IPM	2.04
 4105805	PadraoNacional	
 4105904	PadraoNacional	
+4106001	PadraoNacional	
 4106209	EloTech	2.03
 4106308	IPM	1.01
 4106407	Betha		1
@@ -3284,6 +3412,7 @@
 4106902	PadraoNacional	
 4107009	Equiplano	
 4107108	PadraoNacional	
+4107124	PadraoNacional	
 4107157	EloTech	2.03
 4107207	Equiplano	
 4107256	PadraoNacional	
@@ -3321,11 +3450,12 @@
 4109500	EloTech	2.03
 4109609	PadraoNacional	
 4109658	IPM	2.04
+4109708	PadraoNacional	
 4109757	EloTech	2.03
 4109807	EloTech	2.03
 4109906	EloTech	2.03
 4110003	PadraoNacional	
-4110078	EloTech	2.03
+4110078	Equiplano	
 4110201	Equiplano	
 4110300	PadraoNacional	
 4110508	PadraoNacional	
@@ -3349,6 +3479,7 @@
 4112009	PadraoNacional	
 4112108	EloTech	2.03
 4112207	PadraoNacional	
+4112306	PadraoNacional	
 4112504	EloTech	2.03
 4112603	PadraoNacional	
 4112702	PadraoNacional	
@@ -3384,11 +3515,13 @@
 4115309	Pronim		1
 4115408	PadraoNacional	
 4115457	PadraoNacional	
+4115606	PadraoNacional	
 4115705	IPM	1.01
 4115739	EloTech	2.03
 4115754	EloTech	2.03
 4115804	EloTech	2.03
 4115853	PadraoNacional	
+4116059	PadraoNacional	
 4116109	PadraoNacional	
 4116208	EloTech	2.03
 4116307	PadraoNacional	
@@ -3415,7 +3548,7 @@
 4117909	PadraoNacional	
 4118006	IPM	1.01
 4118105	Betha		1
-4118204	IPM	1.01
+4118204	EloTech	2.03
 4118303	PadraoNacional	
 4118402	IPM	1.01
 4118451	IPM	2.04
@@ -3447,7 +3580,7 @@
 4120606	Equiplano	
 4120655	EloTech	2.03
 4120705	PadraoNacional	
-4120804	EloTech	2.03
+4120804	PadraoNacional	
 4120853	PadraoNacional	
 4120903	Equiplano	
 4121000	PadraoNacional	
@@ -3482,6 +3615,7 @@
 4123709	PadraoNacional	
 4123808	IPM	1.01
 4123824	PadraoNacional	
+4123907	PadraoNacional	
 4123956	PadraoNacional	
 4124004	Betha		1
 4124020	EloTech	2.03
@@ -3491,6 +3625,7 @@
 4124301	PadraoNacional	
 4124400	Equiplano	
 4124608	PadraoNacional	
+4124707	PadraoNacional	
 4124806	Equiplano	
 4124905	EloTech	2.03
 4125001	PadraoNacional	
@@ -3525,7 +3660,7 @@
 4127403	IPM	1.01
 4127502	EloTech	2.03
 4127601	PadraoNacional	
-4127700	Equiplano	
+4127700	PadraoNacional	
 4127809	PadraoNacional	
 4127858	Pronim		1
 4127882	EloTech	2.03
@@ -3535,6 +3670,7 @@
 4128104	Giss	2.04
 4128203	PadraoNacional	
 4128500	PadraoNacional	
+4128534	Equiplano	
 4128559	PadraoNacional	
 4128625	Pronim		1
 4128633	EloTech	2.03
@@ -3616,7 +3752,7 @@
 4204509	IPM	1.01
 4204558	Saatri	2.03
 4204608	PadraoNacional	
-4204707	IPM	2.04
+4204707	PadraoNacional	
 4204756	PadraoNacional	
 4204806	Betha		1
 4204905	PadraoNacional	
@@ -3669,7 +3805,7 @@
 4208302	PadraoNacional	
 4208401	PadraoNacional	
 4208450	IPM	1.01
-4208500	IPM	1.01
+4208500	PadraoNacional	
 4208609	Betha		1
 4208708	IPM	1.01
 4208807	IPM	1.01
@@ -3702,7 +3838,7 @@
 4210704	Betha		1
 4210803	PadraoNacional	
 4210852	IPM	1.01
-4210902	IPM	1.01
+4210902	PadraoNacional	
 4211009	PadraoNacional	
 4211058	Betha		1
 4211108	PadraoNacional	
@@ -3717,19 +3853,20 @@
 4211702	PadraoNacional	
 4211751	Betha		1
 4211801	IPM	1.01
+4211850	PadraoNacional	
 4211876	PadraoNacional	
 4211892	Betha		1
 4211900	IPM	1.01
 4212007	PadraoNacional	
 4212056	PadraoNacional	
 4212106	PadraoNacional	
-4212205	Betha		1
+4212205	IPM	2.04
 4212239	IPM	1.01
 4212254	PadraoNacional	
 4212270	Betha		1
 4212304	Betha		1
 4212403	Betha		1
-4212502	IPM	
+4212502	IPM	1.01
 4212601	Betha		1
 4212650	PadraoNacional	
 4212700	Betha		1
@@ -3738,7 +3875,7 @@
 4213005	Publica	
 4213104	Betha		1
 4213153	IPM	1.01
-4213203	IPM	1.01
+4213203	PadraoNacional	
 4213302	Betha		1
 4213351	Betha		1
 4213401	PadraoNacional	
@@ -3761,6 +3898,7 @@
 4215000	IPM	1.01
 4215059	PadraoNacional	
 4215075	IPM	2.04
+4215109	PadraoNacional	
 4215208	PadraoNacional	
 4215307	IPM	1.01
 4215356	PadraoNacional	
@@ -3836,12 +3974,14 @@
 4300059	PadraoNacional	
 4300109	Pronim		1
 4300208	Pronim		1
+4300307	PadraoNacional	
 4300406	Pronim		1
 4300471	Citta		1
 4300505	Digifred		1
 4300554	Digifred		1
 4300570	PadraoNacional	
 4300604	IPM	1.01
+4300638	PadraoNacional	
 4300646	Betha		1
 4300661	Citta		1
 4300703	PadraoNacional	
@@ -3862,7 +4002,9 @@
 4301651	IPM	2.04
 4301701	PadraoNacional	
 4301750	PadraoNacional	
+4301800	PadraoNacional	
 4301859	IPM	1.01
+4301875	PadraoNacional	
 4301909	Pronim		1
 4301925	PadraoNacional	
 4301958	PadraoNacional	
@@ -3877,9 +4019,9 @@
 4302303	PadraoNacional	
 4302352	Tecnos	2.01
 4302378	PadraoNacional	
-4302402	Tecnos	2.01
+4302402	PadraoNacional	
 4302451	PadraoNacional	
-4302501	PadraoNacional	
+4302501	ABase		1
 4302584	Pronim		1
 4302600	ABase		1
 4302659	PadraoNacional	
@@ -3910,6 +4052,7 @@
 4304622	PadraoNacional	
 4304630	PadraoNacional	
 4304655	ABase		1
+4304663	PadraoNacional	
 4304671	PadraoNacional	
 4304689	DBSeller		1
 4304697	PadraoNacional	
@@ -3937,7 +4080,7 @@
 4305504	DataSmart	2.02
 4305587	PadraoNacional	
 4305603	Citta		1
-4305702	SafeWeb	2.00
+4305702	Pronim		1
 4305801	PadraoNacional	
 4305835	Tecnos	2.01
 4305850	PadraoNacional	
@@ -3974,6 +4117,7 @@
 4307005	PadraoNacional	
 4307054	PadraoNacional	
 4307104	PadraoNacional	
+4307203	PadraoNacional	
 4307302	Betha		1
 4307450	Abase		1
 4307500	PadraoNacional	
@@ -3984,7 +4128,7 @@
 4307815	Betha		1
 4307831	Pronim		1
 4307864	Pronim		1
-4307906	Infisc		1	1
+4307906	Infisc	1.01	1
 4308003	Pronim		1
 4308052	DataSmart	2.02
 4308078	PadraoNacional	
@@ -4023,7 +4167,7 @@
 4309951	PadraoNacional	
 4310009	Digifred		1
 4310108	PadraoNacional	
-4310207	Pronim		1
+4310207	PadraoNacional	
 4310306	PadraoNacional	
 4310330	PadraoNacional	
 4310363	PadraoNacional	
@@ -4037,6 +4181,7 @@
 4310579	Citta		1
 4310603	PadraoNacional	
 4310652	PadraoNacional	
+4310702	PadraoNacional	
 4310751	PadraoNacional	
 4310801	Tecnos	2.01
 4310850	Betha		1
@@ -4046,8 +4191,10 @@
 4311106	Betha		1
 4311122	PadraoNacional	
 4311130	Betha		1
+4311155	Pronim		1
 4311205	Pronim		1
 4311239	PadraoNacional	
+4311254	PadraoNacional	
 4311270	Pronim		1
 4311304	IPM	1.01
 4311403	PadraoNacional	
@@ -4074,6 +4221,7 @@
 4312203	PadraoNacional	
 4312252	Pronim		1
 4312302	Betha		1
+4312351	PadraoNacional	
 4312377	PadraoNacional	
 4312385	Tecnos	2.01
 4312401	PadraoNacional	
@@ -4084,6 +4232,7 @@
 4312500	PadraoNacional	
 4312609	PadraoNacional	
 4312617	Fiorilli	2.00
+4312625	PadraoNacional	
 4312658	PadraoNacional	
 4312674	Citta		1
 4312708	PadraoNacional	
@@ -4102,12 +4251,13 @@
 4313359	Pronim		1
 4313375	IPM	1.01
 4313391	Pronim		1
-4313409	PadraoNacional	
+4313409	IPM	2.04
 4313425	ABase		1
 4313441	PadraoNacional	
 4313466	Pronim		1
 4313490	PadraoNacional	
 4313508	IPM	1.01
+4313607	PadraoNacional	
 4313656	Pronim		1
 4313706	IPM	1.01
 4313805	IPM	1.01
@@ -4125,7 +4275,7 @@
 4314209	Pronim		1
 4314308	Pronim		1
 4314407	PadraoNacional	
-4314423	Pronim		1
+4314423	PadraoNacional	
 4314456	Digifred		1
 4314464	PadraoNacional	
 4314472	PadraoNacional	
@@ -4156,14 +4306,14 @@
 4315453	PadraoNacional	
 4315503	Pronim		1
 4315552	PadraoNacional	
-4315602	SigISS	1.01
+4315602	SigCorp		1
 4315701	Pronim		1
 4315750	Tecnos	2.01
 4315800	PadraoNacional	
 4315909	Digifred		1
 4315958	ABase		1
 4316006	ABase		1
-4316105	Digifred		1
+4316105	PadraoNacional	
 4316204	PadraoNacional	
 4316303	ABase		1
 4316402	Pronim		1
@@ -4178,7 +4328,7 @@
 4316758	PadraoNacional	
 4316808	PadraoNacional	
 4316907	ISSNet		1
-4316956	Tecnos	2.01
+4316956	PadraoNacional	
 4316972	PadraoNacional	
 4317004	Pronim		1
 4317103	PadraoNacional	
@@ -4193,6 +4343,7 @@
 4317756	PadraoNacional	
 4317806	IPM	1.01
 4317905	ABase		1
+4317954	PadraoNacional	
 4318002	Infisc		1	1
 4318051	Citta		1
 4318101	Pronim		1
@@ -4213,7 +4364,7 @@
 4318705	PadraoNacional	
 4318804	Pronim		1
 4318903	ABase		1
-4319000	Tecnos	2.01
+4319000	PadraoNacional	
 4319109	ABase		1
 4319125	Pronim		1
 4319158	ABase		1
@@ -4257,11 +4408,11 @@
 4321352	Pronim		1
 4321402	Betha		1
 4321436	Tecnos	2.01
-4321451	Tecnos	2.01
+4321451	PadraoNacional	
 4321469	Digifred		1
 4321477	ABase		1
 4321493	PadraoNacional	
-4321501	Betha		1
+4321501	PadraoNacional	
 4321600	PadraoNacional	
 4321626	PadraoNacional	
 4321634	PadraoNacional	
@@ -4269,12 +4420,14 @@
 4321709	Pronim		1
 4321808	ABase		1
 4321832	PadraoNacional	
+4321857	PadraoNacional	
 4321907	Betha		1
 4321956	PadraoNacional	
 4322004	Pronim		1
 4322103	ABase		1
+4322186	PadraoNacional	
 4322202	PadraoNacional	
-4322251	Tecnos	2.01
+4322251	PadraoNacional	
 4322301	ABase		1
 4322327	Pronim		1
 4322343	Pronim		1
@@ -4379,7 +4532,7 @@
 5007950	PadraoNacional	
 5007976	Betha		1
 5008008	PadraoNacional	
-5008305	Fiorilli	1.01	1
+5008305	PadraoNacional	
 5100102	Fiorilli	2.00
 5100201	Coplan		1
 5100250	Coplan		1
@@ -4413,7 +4566,7 @@
 5103353	Coplan		1
 5103361	Agili	
 5103379	Fiorilli	2.00
-5103403	ISSNet	2.04
+5103403	ISSNet		1
 5103437	PadraoNacional	
 5103452	Betha		1
 5103502	Coplan		1
@@ -4423,7 +4576,7 @@
 5103858	Coplan	2.01
 5103908	PadraoNacional	
 5103957	PadraoNacional	
-5104104	PadraoNacional	
+5104104	Agili	
 5104203	AssessorPublico	
 5104500	PadraoNacional	
 5104526	PadraoNacional	
@@ -4431,6 +4584,7 @@
 5104559	FISSLex	
 5104609	Betha		1
 5104807	Fiorilli	2.00
+5104906	PadraoNacional	
 5105002	PadraoNacional	
 5105101	Agili	
 5105150	Agili	
@@ -4439,6 +4593,7 @@
 5105259	PadraoNacional	
 5105309	Fiorilli	2.00
 5105507	Betha		1
+5105580	PadraoNacional	
 5105606	Coplan		1
 5105622	PadraoNacional	
 5105903	Agili	
@@ -4448,10 +4603,11 @@
 5106190	PadraoNacional	
 5106208	Coplan	2.01
 5106216	Fiorilli	2.00
-5106224	Coplan		1
-5106232	FISSLex	
+5106224	PadraoNacional	
+5106232	Agili	
 5106240	PadraoNacional	
 5106257	PadraoNacional	
+5106265	PadraoNacional	
 5106281	Agili	
 5106307	PadraoNacional	
 5106315	Betha		1
@@ -4467,7 +4623,7 @@
 5106828	PadraoNacional	
 5106851	Fiorilli	2.00
 5107008	EloTech	2.03
-5107040	RLZ		1
+5107040	PadraoNacional	
 5107065	Coplan		1
 5107107	PadraoNacional	
 5107156	PadraoNacional	
@@ -4495,6 +4651,7 @@
 5107941	Coplan	2.01
 5107958	Centi	2.02
 5108006	Coplan		1
+5108055	PadraoNacional	
 5108105	PadraoNacional	
 5108204	Fiorilli	2.00
 5108352	PadraoNacional	
@@ -4502,7 +4659,7 @@
 5108501	Agili	
 5108600	Betha		1
 5108857	Coplan	2.01
-5108907	Coplan	2.01
+5108907	Coplan		1
 5108956	Agili	
 5200050	PadraoNacional	
 5200100	PadraoNacional	
@@ -4621,7 +4778,7 @@
 5211602	MegaSoft	2.00
 5211701	Centi	2.02
 5211800	PadraoNacional	
-5211909	Sigep	2.00
+5211909	Centi	2.02
 5212006	MegaSoft	2.00
 5212055	PadraoNacional	
 5212105	Centi	2.02
@@ -4715,7 +4872,7 @@
 5220264	MegaSoft	2.00
 5220280	PadraoNacional	
 5220405	Centi	2.02
-5220454	Fiorilli	2.00
+5220454	Fiorilli	1.01	1
 5220504	PadraoNacional	
 5220603	MegaSoft	2.00
 5220686	MegaSoft	2.00

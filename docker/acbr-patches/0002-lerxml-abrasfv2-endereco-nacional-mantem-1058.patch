@@ -10,7 +10,7 @@ como <EnderecoExterior> e a prefeitura recusa:
 
 Reproduzido na homologacao do GISS 2.04.
 
-Base: ACBr trunk2 r48100. Ainda nao reportado ao projeto ACBr.
+Base: ACBr trunk2 r48784 (criado sobre a r48100). Ainda nao reportado ao projeto ACBr.
 
 --- a/Fontes/ACBrDFe/ACBrNFSeX/Base/Provedores/ACBrNFSeXLerXml_ABRASFv2.pas
 +++ b/Fontes/ACBrDFe/ACBrNFSeX/Base/Provedores/ACBrNFSeXLerXml_ABRASFv2.pas
