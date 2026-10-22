@@ -1,43 +1,50 @@
-Giss 2.04: o terceiro ramo de totTrib (indTotTrib) passa a sair no XML.
+Giss 2.04: totTrib sem valor a declarar sai como indTotTrib 0.
 
 O TCTribTotal do GISS e um xsd:choice de tres ramos: pTotTrib (percentuais),
 pTotTribSN (Simples Nacional) e indTotTrib (nao destaque do Decreto 8.264/2014,
-cujo unico valor aceito e 0). O GerarXMLTotalTributos so produzia os dois
-primeiros: sem percentuais e sem pTotTribSN ele emitia
-<pTotTribSN>0.00</pTotTribSN>, e a prefeitura recusa o lote com
+cujo unico valor aceito e 0). Desde a r48692 o GerarXMLTotalTributos emite o
+indTotTrib quando ele vem 0 no INI e, fora isso, escolhe o ramo pelo regime:
+pTotTrib para quem nao e do Simples, pTotTribSN para quem e. Sem valores, esse
+ramo sai so com zeros (<pTotTribSN>0.00</pTotTribSN>, ou pTotTrib 0.00/0.00/
+0.00), e a prefeitura recusa o lote com
 
   E160 - Obrigatorio informar a carga tributaria aproximada. O RPS nao contem
   os valores percentuais dos tributos (totTrib) e nao apresenta o indicador de
   opcao pelo nao destaque (Decreto 8.264/2014).
 
-O indTotTrib ja era gravado no INI (GerarINIValoresTotalTrib), e o releitor ja
-o le de volta, entao so faltava o XML.
+O LerIni presume indTotTrib 1 quando a chave falta, entao o caso e de quem nao
+informa nada. A mudanca fica confinada a ele: indTotTrib 0 informado, ou um
+ramo com valor, continua gerando XML byte a byte igual ao da r48784.
 
-Reproduzido em producao no GISS 2.04.
+Reproduzido em producao no GISS 2.04 (sobre a r48100, onde o ramo era
+decidido pelos valores e nao pelo regime).
 
-A mudanca fica confinada ao caso que hoje produz 0.00: quem emite percentuais,
-ou um pTotTribSN com valor, continua gerando XML byte a byte igual.
-
-Base: ACBr trunk2 r48100. Ainda nao reportado ao projeto ACBr.
+Base: ACBr trunk2 r48784. Ainda nao reportado ao projeto ACBr.
 
 --- a/Fontes/ACBrDFe/ACBrNFSeX/Provedores/Giss.GravarXml.pas
 +++ b/Fontes/ACBrDFe/ACBrNFSeX/Provedores/Giss.GravarXml.pas
-@@ -448,9 +448,18 @@
-      (NFSe.Servico.Valores.totTrib.pTotTribEst > 0) or
-      (NFSe.Servico.Valores.totTrib.pTotTribMun > 0) then
+@@ -451,11 +451,24 @@
+     Result.AppendChild(AddNode(tcStr, '#1', 'indTotTrib', 1, 1, 1,
+                   indTotTribToStr(NFSe.Servico.Valores.totTrib.indTotTrib), ''))
+   else
+-  if NFSe.OptanteSimplesNacional = snNao then
++  if (NFSe.OptanteSimplesNacional = snNao) and
++     ((NFSe.Servico.Valores.totTrib.pTotTribFed > 0) or
++      (NFSe.Servico.Valores.totTrib.pTotTribEst > 0) or
++      (NFSe.Servico.Valores.totTrib.pTotTribMun > 0)) then
      Result.AppendChild(GerarXMLPercentualTotalTributos)
--  else
-+  else if NFSe.Servico.Valores.totTrib.pTotTribSN > 0 then
+   else
++  if (NFSe.OptanteSimplesNacional <> snNao) and
++     (NFSe.Servico.Valores.totTrib.pTotTribSN > 0) then
      Result.AppendChild(AddNode(tcDe2, '#1', 'pTotTribSN', 1, 5, 1,
 -                                  NFSe.Servico.Valores.totTrib.pTotTribSN, ''));
 +                                  NFSe.Servico.Valores.totTrib.pTotTribSN, ''))
 +  else
-+    // wrapper-api: sem percentuais e sem pTotTribSN, o codigo original
-+    // emitia <pTotTribSN>0.00</pTotTribSN>. O GISS recusa isso com E160
-+    // ("Obrigatorio informar a carga tributaria aproximada... ou envie a
-+    // tag indicadora de nao preenchimento"). O terceiro ramo do choice
-+    // TCTribTotal e o indTotTrib, unico valor aceito 0 (Decreto 8.264/2014),
-+    // que o gravador nunca emitia: so ia para o INI.
++    // wrapper-api: o ramo do regime sairia so com zeros (pTotTrib 0.00 ou
++    // pTotTribSN 0.00), e o GISS recusa com E160 ("Obrigatorio informar a
++    // carga tributaria aproximada... ou envie a tag indicadora de nao
++    // preenchimento"). Sem valor a declarar, sai o terceiro ramo do choice
++    // TCTribTotal: indTotTrib 0 (Decreto 8.264/2014).
 +    Result.AppendChild(AddNode(tcStr, '#1', 'indTotTrib', 1, 1, 1,
 +                                  indTotTribToStr(indNao), ''));
  end;

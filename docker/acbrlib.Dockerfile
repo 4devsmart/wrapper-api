@@ -17,7 +17,7 @@ ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 
 # Revisão dos fontes (apenas informativo aqui; o checkout real é feito por
 # `make acbr-fonte`, que popula ./acbr-source, o contexto deste build).
-ARG ACBR_REV=48100
+ARG ACBR_REV=48784
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates make \
@@ -38,12 +38,14 @@ COPY frce /src/frce
 # Patches locais sobre o fonte pinado (docker/acbr-patches), em ordem. Cada um
 # corrige um defeito da lib que o trunk2 ainda não tem, e diz no cabeçalho o que
 # corrige e a revisão base. O build falha se um deles não aplicar limpo: patch
-# que não entra devolveria o defeito sem ninguém ver.
+# que não entra devolveria o defeito sem ninguém ver. --fuzz=0 porque o padrão do
+# patch é 2: um hunk cujo contexto mudou upstream entrava "com fuzz" no código
+# novo, e foi o que o 0003 fez na r48784, onde o GISS reescreveu o totTrib.
 COPY --from=patches . /patches
 RUN set -eux; apt-get update; apt-get install -y --no-install-recommends patch; \
     rm -rf /var/lib/apt/lists/*; \
     for p in /patches/*.patch; do [ -e "$p" ] || continue; \
-      patch -p1 --binary --forward -d /src/acbr < "$p"; \
+      patch -p1 --binary --forward --fuzz=0 -d /src/acbr < "$p"; \
     done
 
 # Registra TODOS os .lpk necessários como package links do lazbuild:

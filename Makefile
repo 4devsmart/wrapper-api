@@ -8,7 +8,7 @@ SHELL   := /bin/bash
 # ACBR_REV é a FONTE ÚNICA da revisão do ACBr: o script de download monta a tag
 # do release a partir dela, e o snapshot de chaves do lockstep é regenerado em
 # lockstep com ela. Ao bumpar, republique as libs e regenere os snapshots.
-ACBR_REV ?= 48100
+ACBR_REV ?= 48784
 # O FortesReport CE entra nos .so junto com o ACBr (ele rasteriza DACTE/DAMDFE/
 # DANFSE). Seguia o master, o que fazia METADE do binário flutuar enquanto o
 # ACBr era pinado com cuidado: um build de 2026-08 pegou um FortesReport de
@@ -18,7 +18,7 @@ ACBR_FRCE_REF ?= 9c29ee7152a6293d3920ff44a2bf3cd384d7b081
 # próprio: a aba de Releases passa a ter só versões deste serviço. O arquivo
 # revisao.txt vai junto dos .so e precisa bater com ACBR_REV, senão o download
 # recusa: sem o nome da revisão na tag, nada mais amarraria as duas coisas.
-ACBR_LIBS_RELEASE ?= v1.3.0
+ACBR_LIBS_RELEASE ?= v1.4.1
 OUT     := out
 PKGS    := ./...
 ACBRLIBS ?= ./acbr-libs
@@ -152,6 +152,10 @@ acbr-extrair:
 	@# dizia OK do mesmo jeito.
 	@cd $(ACBRLIBS) && sha256sum libacbrnfse64.so libacbrcte64.so libacbrmdfe64.so \
 		libacbrnfe64.so libacbrboleto64.so schemas.tar.gz > SHA256SUMS
+	@# Pelo mesmo motivo, o revisao.txt: ficava o da revisão anterior ao lado das
+	@# .so novas, e o acbr-libs-baixar, que usa o arquivo como cache, as tomava
+	@# por desatualizadas.
+	@echo "$(ACBR_REV)" > $(ACBRLIBS)/revisao.txt
 	@$(MAKE) --no-print-directory acbr-libs-conferir
 
 ## acbr-tabelas: regenera municipios_provedor.tsv a partir do fonte do ACBr

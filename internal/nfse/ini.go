@@ -661,8 +661,8 @@ func (b *iniBuilder) tributacao(v Valores) {
 		b.Secao("totTrib")
 		if i := t.IndTotTrib; i != nil {
 			// 0 é o único valor válido do indicador de não destaque, e era o que
-			// KVIntOpt descartava. Sem a chave, o gravador do GISS cai no ramo do
-			// pTotTribSN e emite 0.00, que a prefeitura recusa com E160.
+			// KVIntOpt descartava. Sem a chave a lib presume 1, e o gravador do
+			// GISS escolhe o ramo de totTrib pelo regime do Simples.
 			b.KV("indTotTrib", strconv.Itoa(*i))
 		}
 		b.KVOpt("pTotTribSN", inifmt.MoneyOpt(t.PTotTribSN))

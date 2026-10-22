@@ -27,13 +27,7 @@ import (
 // declarar com o motivo.
 
 var chavesMortas = map[string]string{
-	// O IEST (inscrição estadual do substituto tributário) existe na classe do
-	// CT-e e o gravador de XML o emite, mas o leitor de INI nunca o lê, então
-	// não há caminho para enviá-lo por este fluxo. Mantido no contrato porque
-	// removê-lo quebraria clientes que já o mandam; documentado como limitação.
-	"emit/IEST": "a lib não lê IEST do INI (só de XML), sem caminho por este fluxo",
-
-	// idem: infRespTec.idCSRT/hashCSRT existem na classe e o gravador de XML os
+	// infRespTec.idCSRT/hashCSRT existem na classe e o gravador de XML os
 	// emite, mas só chegam lá por leitura de XML. Pelo INI não há caminho.
 	"infRespTec/idCSRT":   "a lib não lê idCSRT do INI (só de XML)",
 	"infRespTec/hashCSRT": "a lib não lê hashCSRT do INI (só de XML)",

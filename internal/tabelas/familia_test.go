@@ -61,9 +61,10 @@ func TestFamiliaPorMunicipio(t *testing.T) {
 	if got := FamiliaPorMunicipio("1100031"); got != FamiliaPadraoNacional {
 		t.Errorf("família de Cabixi = %q, quero padrao_nacional", got)
 	}
-	// Campinas/SP (3509502) é ISSCampinas → próprio+ABRASF (LayoutBase "proprio").
-	if got := FamiliaPorMunicipio("3509502"); got != FamiliaProprioABRASF {
-		t.Errorf("família de Campinas = %q, quero proprio_abrasf", got)
+	// Araraquara/SP (3503208) é Giap → próprio+ABRASF (LayoutBase "proprio").
+	// Era Campinas, até ela trocar o ISSCampinas pelo DSF na r48784.
+	if got := FamiliaPorMunicipio("3503208"); got != FamiliaProprioABRASF {
+		t.Errorf("família de Araraquara = %q, quero proprio_abrasf", got)
 	}
 	// Código sem provedor → desconhecida.
 	if got := FamiliaPorMunicipio("0000000"); got != FamiliaDesconhecida {
