@@ -1092,14 +1092,19 @@ paths:
   /v1/nfse/distribuicao:
     post:
       tags: [nfse]
-      summary: Distribuição DF-e do ADN por NSU
+      summary: Distribuição DF-e por NSU
       description: |
-        A distribuição é do ADN (Ambiente de Dados Nacional), e só dele: não
-        depende do provedor do seu município, e por isso **não pede
-        `municipio`**. Funciona mesmo para quem emite por um provedor que ainda
-        não migrou para o Padrão Nacional (ABRASF ou próprio). Se o campo vier,
-        é ignorado. O ADN autentica pelo certificado, então `credenciais` de
-        prefeitura também não entram.
+        `municipio` é opcional. Informado, a distribuição sai pelo provedor
+        dele, como antes. Quando a biblioteca fiscal não implementa a
+        distribuição para esse provedor (ABRASF, próprio e parte das APIs
+        próprias), ou quando o campo não vem, ela sai pelo ADN (Ambiente de
+        Dados Nacional), que autentica pelo certificado e não recebe
+        `credenciais` de prefeitura.
+
+        Nem toda fila é a do ADN: nos municípios Infisc do RS (Caxias do Sul,
+        Canoas e outros) ela é a do sefin da prefeitura, com numeração própria.
+        Um `nsu` só vale na fila de onde veio, por isso mande sempre o mesmo
+        `municipio`, ou sempre nenhum, para o mesmo cursor.
 
         O cursor (`nsu`) vai e volta no payload: sem estado, é você que guarda
         onde parou. **Não paralelize a distribuição do mesmo CNPJ**, sem o lock
@@ -1677,13 +1682,15 @@ components:
 
     PedidoDistribuicaoNFSe:
       type: object
-      description: "Distribuição DF-e de NFS-e no ADN. Não leva município: o ADN é nacional e o mesmo para todos os provedores."
+      description: "Distribuição DF-e de NFS-e. Sem município, ou com um cujo provedor não implementa a distribuição, a consulta vai ao ADN."
       required: [certificado]
       properties:
-        nsu: { type: integer, description: "NSU a partir do qual buscar. 0 traz o início da fila do ADN." }
+        nsu: { type: integer, description: "NSU a partir do qual buscar. 0 traz o início da fila." }
+        municipio: { type: string, description: "Código IBGE do município, 7 dígitos. Opcional." }
         ambiente: { $ref: "#/components/schemas/Ambiente" }
         emitente: { $ref: "#/components/schemas/Emitente" }
         certificado: { $ref: "#/components/schemas/Certificado" }
+        credenciais: { $ref: "#/components/schemas/Credenciais" }
 
     PedidoSefaz:
       type: object
@@ -5849,6 +5856,7 @@ components:
           allOf:
             - $ref: "#/components/schemas/NfsePrestador"
         toma:
+          description: 'tomador; omitido = consumidor não identificado. No Padrão Nacional exige xNome e CPF, CNPJ ou NIF.'
           allOf:
             - $ref: "#/components/schemas/NfseTomador"
         interm:

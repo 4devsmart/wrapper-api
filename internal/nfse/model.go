@@ -33,7 +33,7 @@ type InfDPS struct {
 	VerAplic string         `json:"verAplic,omitempty"`
 	CLocEmi  string         `json:"cLocEmi,omitempty"` // município emissor (IBGE); vazio = cMun do prestador
 	Prest    Prestador      `json:"prest"`
-	Toma     *Tomador       `json:"toma,omitempty"`
+	Toma     *Tomador       `json:"toma,omitempty"`   // tomador; omitido = consumidor não identificado. No Padrão Nacional exige xNome e CPF, CNPJ ou NIF
 	Interm   *Intermediario `json:"interm,omitempty"` // intermediário (seção [Intermediario])
 	Serv     Servico        `json:"serv"`
 	Valores  Valores        `json:"valores"`

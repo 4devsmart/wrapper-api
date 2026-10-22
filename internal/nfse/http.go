@@ -639,9 +639,13 @@ func (m *Modulo) handleConsultas(w http.ResponseWriter, r *http.Request) {
 // guarda onde parou. Não paralelize a distribuição do mesmo CNPJ, sem o lock
 // que existia com banco, chamadas simultâneas embaralham o cursor.
 //
-// Não pede município: a distribuição é do ADN, nacional, e a sessão sai sempre
-// por MunicipioADN. O município do pedido, se vier, é ignorado, e as
-// credenciais de prefeitura também: o ADN autentica pelo certificado.
+// O município é opcional. Informado e conhecido, a distribuição sai pela classe
+// do provedor dele, como sempre saiu: em alguns a fila é a do sefin da
+// prefeitura, e trocar de fila em silêncio quebraria o cursor de quem já a lê.
+// Só quando essa classe não implementa a distribuição, ou sem município, a
+// sessão sai por MunicipioADN, sem credenciais de prefeitura: o ADN autentica
+// pelo certificado. Erro de outra natureza não cai para o ADN, porque o NSU do
+// cliente é da fila do município.
 func (m *Modulo) handleDistribuicao(w http.ResponseWriter, r *http.Request) {
 	var p PedidoConsulta
 	if !m.lerPedidoConsulta(w, r, &p) {
@@ -649,6 +653,16 @@ func (m *Modulo) handleDistribuicao(w http.ResponseWriter, r *http.Request) {
 	}
 	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 		return
+	}
+	if cmun := fiscal.SoDigitos(p.Municipio); cmun != "" {
+		if _, ok := LayoutDoMunicipio(cmun); ok {
+			t := m.tenantEmitente(p.Emitente, cmun, p.Ambiente, p.Certificado, p.Credenciais)
+			res, err := m.svc.ConsultarDFe(t, p.NSU)
+			if err != nil || !OperacaoNaoSuportada(res.Resposta) {
+				m.responderConsulta(w, t, cmun, res, err)
+				return
+			}
+		}
 	}
 	t := m.tenantEmitente(p.Emitente, MunicipioADN, p.Ambiente, p.Certificado, Credenciais{})
 	res, err := m.svc.ConsultarDFe(t, p.NSU)

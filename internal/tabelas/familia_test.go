@@ -102,8 +102,9 @@ func TestLayoutPorMunicipioSegueAAPIPropria(t *testing.T) {
 }
 
 // A marca de API própria só faz sentido fora do Padrão Nacional puro. Linha
-// marcada num município PadraoNacional, ou com coluna que não seja "1", indica
-// gerador e leitor fora de acordo.
+// marcada num município PadraoNacional, ou com coluna que não seja "1" ou
+// vazia, indica gerador e leitor fora de acordo. A quinta coluna vem depois e
+// pode deixar a quarta vazia.
 func TestColunaAPIPropriaBemFormada(t *testing.T) {
 	marcados := 0
 	for _, l := range strings.Split(municipiosProvedorTSV, "\n") {
@@ -111,8 +112,11 @@ func TestColunaAPIPropriaBemFormada(t *testing.T) {
 		if len(c) < 4 {
 			continue
 		}
-		if c[3] != "1" {
+		if c[3] != "1" && !(c[3] == "" && len(c) > 4) {
 			t.Errorf("quarta coluna %q em %q: só \"1\" é marca", c[3], l)
+		}
+		if c[3] != "1" {
+			continue
 		}
 		if FamiliaDoProvedor(c[1]) == FamiliaPadraoNacional {
 			t.Errorf("%s marcado com API própria, mas o provedor já é o Padrão Nacional", c[0])
@@ -121,6 +125,27 @@ func TestColunaAPIPropriaBemFormada(t *testing.T) {
 	}
 	if marcados == 0 {
 		t.Error("nenhum município com API própria: a coluna sumiu da tabela")
+	}
+}
+
+// A quinta coluna marca URL própria de distribuição. Só "1" é marca, a linha
+// não tem sexta coluna, e Caxias do Sul precisa estar marcada: se não estiver,
+// a coluna sumiu ou o leitor parou de lê-la.
+func TestColunaDistribuicaoPropriaBemFormada(t *testing.T) {
+	for _, l := range strings.Split(municipiosProvedorTSV, "\n") {
+		c := strings.Split(l, "\t")
+		if len(c) > 5 {
+			t.Errorf("coluna a mais em %q", l)
+		}
+		if len(c) == 5 && c[4] != "1" {
+			t.Errorf("quinta coluna %q em %q: só \"1\" é marca", c[4], l)
+		}
+	}
+	if !DistribuicaoPropriaNFSe("4305108") {
+		t.Error("Caxias do Sul sem distribuição própria: a quinta coluna sumiu da tabela")
+	}
+	if DistribuicaoPropriaNFSe("4314902") {
+		t.Error("Porto Alegre marcada com distribuição própria")
 	}
 }
 
