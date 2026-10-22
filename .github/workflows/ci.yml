@@ -87,7 +87,7 @@ jobs:
           cache: true
       - uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.13.1
+          version: v2.15.0
           # verify baixa o JSON Schema do site do golangci a cada run só para
           # validar o .golangci.yml: dependência de rede externa que já derrubou
           # CI por timeout, sem nada a ver com o código.
