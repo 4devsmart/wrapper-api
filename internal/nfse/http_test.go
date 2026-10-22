@@ -22,6 +22,7 @@ const (
 	munProprio        = "3550308" // São Paulo → ISSSaoPaulo (próprio)
 	munAPIPropria     = "5300108" // Brasília → ISSNet pela API própria, que gera DPS
 	munAPIPropriaCred = "4302204" // Boa Vista do Buricá → ABase pela API própria, com WSChaveAcesso
+	munInfiscSefin    = "4305108" // Caxias do Sul → Infisc pela API própria, distribuição no sefin da prefeitura
 	munDesconhecido   = "9999999"
 )
 
@@ -41,12 +42,21 @@ type libFake struct {
 	resLote                                            acbr.Result
 	protocoloLote                                      string
 	nsu                                                int
-	errTransmitir                                      error
+	municipiosDFe                                      []string
+	dfeNaoImplementado                                 map[string]bool
+	errTransmitir, errDFe                              error
 }
 
+// ConsultarDFe responde como a lib responde por classe: no município marcado
+// em dfeNaoImplementado, o ERR_NAO_IMP que sai antes de qualquer byte.
 func (f *libFake) ConsultarDFe(t acbr.TenantConfig, nsu int) (acbr.Result, error) {
 	f.nsu, f.tenant = nsu, t
-	return f.resConsulta, nil
+	cmun := cfgDoTenant(t, "CodigoMunicipio")
+	f.municipiosDFe = append(f.municipiosDFe, cmun)
+	if f.dfeNaoImplementado[cmun] {
+		return acbr.Result{Resposta: "Serviço Consultar DFe não implementado para este provedor"}, nil
+	}
+	return f.resConsulta, f.errDFe
 }
 
 func (f *libFake) ConsultarLoteRps(t acbr.TenantConfig, protocolo, _ string) (acbr.Result, error) {
@@ -604,6 +614,157 @@ func TestCTribMunObrigatorioNoISSNetPelaAPIPropria(t *testing.T) {
 	}
 }
 
+// pedidoBrasiliaSN é a DPS de uma NFS-e real de Brasília (ISSNet pela API
+// própria, leiaute nacional 1.01): ME/EPP do Simples com ISS no DAS, tomador
+// pessoa física e o grupo da Reforma Tributária. Os dados da pessoa são
+// fictícios; os códigos (cTribNac, cTribMun, NBS, cIndOp, cClassTrib) são os da
+// nota.
+const pedidoBrasiliaSN = `{
+  "ambiente": "homologacao",
+  "infDPS": {
+    "serie": "3", "nDPS": "18096", "dCompet": "2026-10-19",
+    "dhEmi": "2026-10-19T13:22:07-03:00", "tpEmit": 1, "cLocEmi": "5300108",
+    "prest": {
+      "CNPJ": "11111111000191", "IM": "0802061500140", "xNome": "Barbearia Teste LTDA",
+      "cMun": "5300108", "UF": "DF",
+      "regTrib": {"opSimpNac": 3, "regApTribSN": 1, "regEspTrib": 0}
+    },
+    "toma": {
+      "CPF": "12345678909", "xNome": "Cliente Teste",
+      "cMun": "5300108", "CEP": "70673006",
+      "logradouro": "CLSW 300A Bloco 2 loja 82", "numero": "82", "bairro": "Sudoeste",
+      "telefone": "61900000000", "email": "cliente@exemplo.com"
+    },
+    "serv": {
+      "cMunPrestacao": "5300108", "cServ": "060101", "cTribMun": "601",
+      "cNBS": "126021000", "xDescServ": "Barba"
+    },
+    "valores": {
+      "vServ": 70.00,
+      "tribMun": {"tribISSQN": 1, "tpRetISSQN": 1, "pAliq": 0},
+      "totTrib": {"pTotTribSN": 0}
+    },
+    "ibscbs": {
+      "finNFSe": "0", "cIndOp": "030101", "indDest": "0",
+      "gIBSCBS": {"CST": "000", "cClassTrib": "000001"}
+    }
+  }
+}`
+
+// A nota de Brasília sai pelo INI do Padrão Nacional com cada campo da DPS na
+// seção que a lib lê. Dois zeros da nota não chegam ao INI, e não há como
+// chegarem: o gravador nacional só escreve pAliq maior que zero e, para ME/EPP,
+// só escreve pTotTribSN maior que zero; com zero ele cai em vTotTrib zerado
+// (PadraoNacional.GravarXml.pas, GerarXMLTotalTributos).
+//
+// Sem tomador a DPS também se monta, sem a seção: toma é opcional no XSD
+// nacional e no do ISSNet.
+func TestNotaDeBrasiliaDoSimplesNacional(t *testing.T) {
+	casos := map[string]struct {
+		semTomador bool
+		secoes     map[string]map[string]string
+	}{
+		"com tomador pessoa física": {secoes: map[string]map[string]string{
+			"Prestador": {"CNPJCPF": "11111111000191", "InscricaoMunicipal": "0802061500140",
+				"opSimpNac": "3", "RegimeApuracaoSN": "1", "Regime": "0"},
+			"Tomador": {"CNPJCPF": "12345678909", "CPF": "12345678909", "RazaoSocial": "Cliente Teste",
+				"CodigoMunicipio": "5300108", "CEP": "70673006", "CodigoPais": "1058",
+				"Telefone": "61900000000", "Email": "cliente@exemplo.com"},
+			"Servico": {"CodigoMunicipio": "5300108", "ItemListaServico": "060101",
+				"CodigoTributacaoMunicipio": "601", "CodigoNBS": "126021000"},
+			"Valores":   {"ValorServicos": "70,00"},
+			"tribMun":   {"tribISSQN": "1", "tpRetISSQN": "1", "pAliq": ""},
+			"totTrib":   {"pTotTribSN": ""},
+			"IBSCBSDPS": {"finNFSe": "0", "cIndOp": "030101", "indDest": "0"},
+			"gIBSCBS":   {"CST": "000", "cClassTrib": "000001"},
+		}},
+		"sem tomador": {semTomador: true},
+	}
+	for nome, c := range casos {
+		t.Run(nome, func(t *testing.T) {
+			var p map[string]any
+			if err := json.Unmarshal([]byte(pedidoBrasiliaSN), &p); err != nil {
+				t.Fatal(err)
+			}
+			if c.semTomador {
+				delete(p["infDPS"].(map[string]any), "toma")
+			}
+			f := &libFake{resMontar: acbr.Result{XML: xmlFixture("2")}}
+			rec := post(t, muxDe(f), "/nfse/xml", p)
+
+			if rec.Code != http.StatusOK {
+				t.Fatalf("status = %d, quero 200: %s", rec.Code, rec.Body)
+			}
+			if !strings.Contains(rec.Body.String(), `"layout":"padrao_nacional"`) ||
+				!strings.Contains(rec.Body.String(), `"provedor":"ISSNet"`) {
+				t.Errorf("Brasília deveria sair no padrao_nacional pelo ISSNet: %s", rec.Body)
+			}
+			if c.semTomador && strings.Contains(f.iniMontar, "[Tomador]") {
+				t.Errorf("sem tomador no pedido, o INI não deveria ter a seção:\n%s", f.iniMontar)
+			}
+			for secao, chaves := range c.secoes {
+				// Seção vazia conta: a do totTrib só com o zero sai assim, e é a
+				// existência dela que faz a lib ler o grupo.
+				if !strings.Contains(f.iniMontar, "["+secao+"]\n") {
+					t.Errorf("INI sem a seção [%s]:\n%s", secao, f.iniMontar)
+					continue
+				}
+				s := secaoINI(f.iniMontar, secao)
+				for chave, want := range chaves {
+					if got := valorINI(s, chave); got != want {
+						t.Errorf("[%s] %s = %q, quero %q", secao, chave, got, want)
+					}
+				}
+			}
+		})
+	}
+}
+
+// No Padrão Nacional, toma sem documento sairia como <cNaoNIF>0</cNaoNIF>, que
+// o ISSNet de Brasília recusa, e toma sem nome sumiria do XML. A API recusa
+// antes de montar e aponta o caminho do consumidor não identificado: omitir
+// toma. No ABRASF o tomador sem documento continua aceito.
+func TestTomadorSemDocumentoNoPadraoNacional(t *testing.T) {
+	casos := []struct {
+		nome, cmun string
+		toma       map[string]any
+		status     int
+	}{
+		{"brasília sem documento", munAPIPropria, map[string]any{"xNome": "Cliente"}, http.StatusBadRequest},
+		{"padrão nacional sem documento", munPadraoNacional, map[string]any{"xNome": "Cliente"}, http.StatusBadRequest},
+		{"brasília só com CPF, sem nome", munAPIPropria, map[string]any{"CPF": "12345678909"}, http.StatusBadRequest},
+		{"brasília com cNaoNIF 0", munAPIPropria, map[string]any{"xNome": "Cliente", "cNaoNIF": "0"}, http.StatusBadRequest},
+		{"padrão nacional com cNaoNIF 0", munPadraoNacional, map[string]any{"xNome": "Cliente", "cNaoNIF": "0"}, http.StatusOK},
+		{"brasília com cNaoNIF 2", munAPIPropria, map[string]any{"xNome": "Cliente", "cNaoNIF": "2"}, http.StatusOK},
+		{"brasília com CPF", munAPIPropria, map[string]any{"xNome": "Cliente", "CPF": "12345678909"}, http.StatusOK},
+		{"brasília com NIF", munAPIPropria, map[string]any{"xNome": "Client", "NIF": "AB123"}, http.StatusOK},
+		{"abrasf sem documento", munAbrasf, map[string]any{"xNome": "Cliente"}, http.StatusOK},
+	}
+	for _, c := range casos {
+		t.Run(c.nome, func(t *testing.T) {
+			p := pedidoMinimo(c.cmun)
+			p["infDPS"].(map[string]any)["toma"] = c.toma
+			xml := xmlFixture("2")
+			if c.cmun == munAbrasf {
+				xml = xmlRpsFixture
+			}
+			f := &libFake{resMontar: acbr.Result{XML: xml}}
+			rec := post(t, muxDe(f), "/nfse/xml", p)
+			if rec.Code != c.status {
+				t.Fatalf("status = %d, quero %d: %s", rec.Code, c.status, rec.Body)
+			}
+			if c.status == http.StatusBadRequest {
+				if !strings.Contains(rec.Body.String(), "omita toma") {
+					t.Errorf("a mensagem não aponta o caminho sem tomador: %s", rec.Body)
+				}
+				if f.iniMontar != "" {
+					t.Error("montou a DPS mesmo recusando")
+				}
+			}
+		})
+	}
+}
+
 // O XML que a lib devolve tem de ser do layout resolvido. Se não for, a tabela
 // e a lib discordam, e o XML não serve a nenhum dos dois leiautes: a API recusa
 // em vez de devolvê-lo com validacao.ok.
@@ -691,50 +852,74 @@ func TestCredenciaisSoValemForaDoPadraoNacional(t *testing.T) {
 
 // --- distribuição DF-e -------------------------------------------------------
 
-// A Distribuição DF-e é do ADN, nacional: na lib só a classe do Padrão Nacional
-// a implementa, e a classe é escolhida pelo município. Quem emite num município
-// que ainda não migrou (ABRASF ou próprio) recebia "não implementado" para uma
-// consulta que não é do seu provedor. A sessão sai sempre por MunicipioADN; o
-// município do pedido, se vier, não manda em nada, e as credenciais de
-// prefeitura não vão para o ADN.
-func TestDistribuicaoSaiSemprePeloADN(t *testing.T) {
-	for nome, cmun := range map[string]string{
-		"sem município":   "",
-		"padrão nacional": munPadraoNacional,
-		"abrasf":          munAbrasf,
-		"próprio":         munProprio,
-		"api própria":     munAPIPropriaCred,
-		"desconhecido":    munDesconhecido,
-	} {
-		t.Run(nome, func(t *testing.T) {
-			f := &libFake{resConsulta: acbr.Result{Resposta: "[ConsultarDFe]\nSucesso=1\nUltimoNSU=7\n"}}
-			corpo := envelope(cmun, map[string]any{
+// A classe do provedor é escolhida pelo município, e só algumas implementam a
+// Distribuição DF-e. Quem emite num município ABRASF ou próprio recebia "não
+// implementado" para a fila do ADN, que é nacional. O município do pedido tem
+// preferência, porque em alguns (Infisc no RS) a fila é a do sefin da
+// prefeitura, com NSU próprio; o ADN entra no lugar do ERR_NAO_IMP e quando não
+// há município. Credenciais de prefeitura nunca vão para o ADN.
+func TestDistribuicaoTentaOMunicipioECaiParaOADN(t *testing.T) {
+	casos := []struct {
+		nome          string
+		cmun          string
+		naoImplementa bool
+		quero         []string
+	}{
+		{"sem município", "", false, []string{MunicipioADN}},
+		{"desconhecido", munDesconhecido, false, []string{MunicipioADN}},
+		{"padrão nacional", munPadraoNacional, false, []string{munPadraoNacional}},
+		{"infisc com sefin da prefeitura", munInfiscSefin, false, []string{munInfiscSefin}},
+		{"abrasf", munAbrasf, true, []string{munAbrasf, MunicipioADN}},
+		{"próprio", munProprio, true, []string{munProprio, MunicipioADN}},
+		{"api própria sem distribuição", munAPIPropriaCred, true, []string{munAPIPropriaCred, MunicipioADN}},
+	}
+	for _, c := range casos {
+		t.Run(c.nome, func(t *testing.T) {
+			f := &libFake{
+				resConsulta:        acbr.Result{Resposta: "[ConsultarDFe]\nSucesso=1\nUltimoNSU=7\n"},
+				dfeNaoImplementado: map[string]bool{c.cmun: c.naoImplementa},
+			}
+			corpo := envelope(c.cmun, map[string]any{
 				"nsu":         5,
 				"credenciais": map[string]string{"usuario": "u", "senha": "p", "token": "tk"},
 			})
-			if cmun == "" {
+			if c.cmun == "" {
 				delete(corpo, "municipio")
 			}
 			rec := post(t, muxDe(f), "/nfse/distribuicao", corpo)
 			if rec.Code != http.StatusOK {
 				t.Fatalf("status = %d, quero 200: %s", rec.Code, rec.Body)
 			}
-			if got := cfgDoTenant(f.tenant, "CodigoMunicipio"); got != MunicipioADN {
-				t.Errorf("CodigoMunicipio = %q, quero o do ADN %q", got, MunicipioADN)
+			if strings.Join(f.municipiosDFe, ",") != strings.Join(c.quero, ",") {
+				t.Errorf("sessões abertas em %v, quero %v", f.municipiosDFe, c.quero)
 			}
 			if got := cfgDoTenant(f.tenant, "Emitente.CNPJ"); got != "12345678000190" {
-				t.Errorf("Emitente.CNPJ = %q: o ADN precisa saber de quem é a fila", got)
+				t.Errorf("Emitente.CNPJ = %q: a fila é do CNPJ do emitente", got)
 			}
 			if f.nsu != 5 {
 				t.Errorf("nsu = %d, quero 5", f.nsu)
 			}
-			if cfgDoTenant(f.tenant, "Emitente.WSUser") != "" || cfgDoTenant(f.tenant, "Emitente.WSChaveAcesso") != "" {
+			if c.quero[len(c.quero)-1] == MunicipioADN &&
+				(cfgDoTenant(f.tenant, "Emitente.WSUser") != "" || cfgDoTenant(f.tenant, "Emitente.WSChaveAcesso") != "") {
 				t.Errorf("credenciais de prefeitura foram para o ADN: %+v", f.tenant.Config)
 			}
 			if !strings.Contains(rec.Body.String(), "UltimoNSU=7") {
-				t.Errorf("a resposta crua do ADN não voltou: %s", rec.Body)
+				t.Errorf("a resposta crua não voltou: %s", rec.Body)
 			}
 		})
+	}
+}
+
+// Falha que não é ERR_NAO_IMP não cai para o ADN: o NSU do pedido é da fila do
+// município, e no ADN ele aponta para outros documentos.
+func TestDistribuicaoNaoTrocaDeFilaNoErro(t *testing.T) {
+	f := &libFake{errDFe: acbr.ErrIndeterminado}
+	rec := post(t, muxDe(f), "/nfse/distribuicao", envelope(munInfiscSefin, map[string]any{"nsu": 1200}))
+	if rec.Code == http.StatusOK {
+		t.Fatalf("status = 200 com a lib falhando: %s", rec.Body)
+	}
+	if len(f.municipiosDFe) != 1 || f.municipiosDFe[0] != munInfiscSefin {
+		t.Errorf("sessões abertas em %v, quero só %s", f.municipiosDFe, munInfiscSefin)
 	}
 }
 
@@ -752,8 +937,10 @@ func TestDistribuicaoExigeCertificado(t *testing.T) {
 
 // O município fixo da distribuição só serve enquanto a tabela o classificar
 // como Padrão Nacional PURO. Na API própria o gravador é nacional, mas a classe
-// é a do provedor, e não há garantia de que ela fale com o ADN. Se uma
-// atualização da tabela mover o Rio, este teste é o aviso para trocar o código.
+// é a do provedor, e não há garantia de que ela fale com o ADN. Também não pode
+// ter URL própria de distribuição no .ini, como os Infisc do RS: aí a fila seria
+// a da prefeitura. Se uma atualização da tabela mover o Rio, este teste é o
+// aviso para trocar o código.
 func TestMunicipioADNContinuaPadraoNacionalPuro(t *testing.T) {
 	if l, ok := LayoutDoMunicipio(MunicipioADN); !ok || l != LayoutPadraoNacional {
 		t.Fatalf("layout de %s = %q (ok=%v), quero padrao_nacional", MunicipioADN, l, ok)
@@ -763,6 +950,9 @@ func TestMunicipioADNContinuaPadraoNacionalPuro(t *testing.T) {
 	}
 	if tabelas.APIPropriaNFSe(MunicipioADN) {
 		t.Errorf("%s passou a usar API própria do provedor: escolha outro município para o ADN", MunicipioADN)
+	}
+	if tabelas.DistribuicaoPropriaNFSe(MunicipioADN) {
+		t.Errorf("%s ganhou URL própria de distribuição no .ini: escolha outro município para o ADN", MunicipioADN)
 	}
 }
 

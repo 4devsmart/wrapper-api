@@ -3897,7 +3897,7 @@
 4303673	DataSmart	2.02
 4303707	Pronim		1
 4303806	PadraoNacional	
-4303905	Infisc		1
+4303905	Infisc		1	1
 4304002	IPM	1.01
 4304101	Digifred		1
 4304200	PadraoNacional	
@@ -3905,7 +3905,7 @@
 4304358	Betha		1
 4304408	PadraoNacional	
 4304507	Pronim		1
-4304606	Infisc		1
+4304606	Infisc		1	1
 4304614	PadraoNacional	
 4304622	PadraoNacional	
 4304630	PadraoNacional	
@@ -3915,12 +3915,12 @@
 4304697	PadraoNacional	
 4304705	IPM	2.04
 4304713	PadraoNacional	
-4304804	Infisc		1
+4304804	Infisc		1	1
 4304853	PadraoNacional	
 4304903	Citta		1
 4304952	Citta		1
 4305009	Pronim		1
-4305108	Infisc		1
+4305108	Infisc		1	1
 4305116	PadraoNacional	
 4305124	PadraoNacional	
 4305132	Pronim		1
@@ -3984,7 +3984,7 @@
 4307815	Betha		1
 4307831	Pronim		1
 4307864	Pronim		1
-4307906	Infisc		1
+4307906	Infisc		1	1
 4308003	Pronim		1
 4308052	DataSmart	2.02
 4308078	PadraoNacional	
@@ -3996,7 +3996,7 @@
 4308433	PadraoNacional	
 4308458	Digifred		1
 4308508	PadraoNacional	
-4308607	Infisc		1
+4308607	Infisc		1	1
 4308656	Pronim		1
 4308706	PadraoNacional	
 4308805	Pronim		1
@@ -4185,7 +4185,7 @@
 4317202	IPM	1.01
 4317251	Tecnos	2.01
 4317301	PadraoNacional	
-4317400	Infisc		1
+4317400	Infisc		1	1
 4317509	ABase		1
 4317558	Citta		1
 4317608	PadraoNacional	
@@ -4193,7 +4193,7 @@
 4317756	PadraoNacional	
 4317806	IPM	1.01
 4317905	ABase		1
-4318002	Infisc		1
+4318002	Infisc		1	1
 4318051	Citta		1
 4318101	Pronim		1
 4318200	PadraoNacional	
@@ -4230,7 +4230,7 @@
 4319752	Tecnos	2.01
 4319802	Digifred		1
 4319901	DBSeller	2.04
-4320008	Infisc		1
+4320008	Infisc		1	1
 4320107	PadraoNacional	
 4320206	PadraoNacional	
 4320230	IPM	1.01

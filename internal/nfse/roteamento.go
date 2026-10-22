@@ -43,17 +43,21 @@ func LayoutDoMunicipio(cmun string) (Layout, bool) {
 }
 
 // MunicipioADN é o município pelo qual a sessão nativa fala com o ADN
-// (Ambiente de Dados Nacional), independentemente de onde o cliente emite.
+// (Ambiente de Dados Nacional) quando a distribuição não pode sair pelo
+// município do cliente.
 //
-// A Distribuição DF-e não é um serviço de prefeitura: só o ADN a oferece, e a
-// lib só a implementa na classe do Padrão Nacional. Os demais provedores
-// levantam ERR_NAO_IMP antes de qualquer byte sair. Mas a lib escolhe a classe
-// pelo CodigoMunicipio, então quem emite num município que ainda não migrou
-// (ABRASF ou próprio) recebia "não implementado" para uma consulta que é
-// nacional e nada tem a ver com o seu provedor. Daí a distribuição fixar aqui o
-// município: qualquer um atendido pelo PadraoNacional puro serve, porque o ADN
-// é o mesmo para todos. O código é o do Rio de Janeiro, e um teste garante que
-// a tabela continua a classificá-lo assim.
+// A lib escolhe a classe do provedor pelo CodigoMunicipio, e a Distribuição
+// DF-e só existe em algumas: a do Padrão Nacional e as de API própria de
+// Betha, Fiorilli, Infisc, ISSNet e outras. As demais levantam ERR_NAO_IMP
+// antes de qualquer byte sair, e quem emite num município ABRASF ou próprio
+// ficava sem a fila do ADN. Nem toda classe que implementa fala com o ADN: nos
+// municípios Infisc do RS (Caxias do Sul, Canoas e outros) a URL é o sefin da
+// prefeitura, com NSU próprio, por isso o município do pedido continua tendo
+// preferência e este só entra no lugar do ERR_NAO_IMP.
+//
+// Qualquer município atendido pelo PadraoNacional puro serve, porque o ADN é o
+// mesmo para todos. O código é o do Rio de Janeiro, e um teste garante que a
+// tabela continua a classificá-lo assim.
 const MunicipioADN = "3304557"
 
 // ToINIDoLayout escolhe o construtor de INI conforme o layout. Padrão Nacional
@@ -172,13 +176,55 @@ var reCTribMunISSNet = regexp.MustCompile(`^0*[1-9][0-9]{0,8}$`)
 // DPS sai com <cTribMun>0</cTribMun>, sem alerta da lib, e Brasília recusou
 // com EM020, E244 e EM076. No Padrão Nacional o campo é opcional, e nos ABRASF
 // que o exigem (ISSGoiania, Centi) a lib já sinaliza a tag vazia.
+//
+// Vale também o tomador, em todo município de layout padrao_nacional: ver
+// validarTomadorPN.
 func ValidarDPSDoMunicipio(cmun string, p DPSPedido) string {
-	if !strings.EqualFold(tabelas.ProvedorNFSe(cmun), "ISSNet") || !tabelas.APIPropriaNFSe(cmun) {
-		return ""
-	}
-	if !reCTribMunISSNet.MatchString(strings.TrimSpace(p.InfDPS.Serv.CTribMun)) {
+	issnet := strings.EqualFold(tabelas.ProvedorNFSe(cmun), "ISSNet") && tabelas.APIPropriaNFSe(cmun)
+	if issnet && !reCTribMunISSNet.MatchString(strings.TrimSpace(p.InfDPS.Serv.CTribMun)) {
 		return "serv.cTribMun é obrigatório neste município (ISSNet): o código de tributação municipal, " +
 			"numérico, como cadastrado para o prestador na prefeitura"
+	}
+	if l, _ := LayoutDoMunicipio(cmun); l == LayoutPadraoNacional {
+		return validarTomadorPN(p.InfDPS.Toma, issnet)
+	}
+	return ""
+}
+
+// validarTomadorPN recusa o toma que o gravador do Padrão Nacional (e os da
+// API própria, que descendem dele) transformaria em outra coisa sem avisar
+// (PadraoNacional.GravarXml.pas, GerarXMLTomador):
+//
+//   - sem xNome o grupo <toma> inteiro some, documento e endereço junto;
+//   - sem CPF, CNPJ nem NIF sai <cNaoNIF>, e sem a chave o LerIni presume 0
+//     ("não informado na nota de origem"). O motivo é de tomador no exterior,
+//     não de consumidor sem CPF, e o XSD do ISSNet (Brasília) nem tem o 0:
+//     aceita só 1 e 2.
+//
+// O consumidor não identificado é a DPS sem toma, que os dois XSDs aceitam
+// (minOccurs=0) e o DANFSE imprime como "TOMADOR/ADQUIRENTE DA OPERAÇÃO NÃO
+// IDENTIFICADO NA NFS-e". No ABRASF o tomador sem documento é legítimo, e esta
+// regra não vale lá.
+func validarTomadorPN(toma *Tomador, issnet bool) string {
+	if toma == nil {
+		return ""
+	}
+	const semTomador = "; para consumidor não identificado, omita toma"
+	if strings.TrimSpace(toma.XNome) == "" {
+		return "toma.xNome é obrigatório quando toma é informado" + semTomador
+	}
+	if strings.TrimSpace(toma.CPF+toma.CNPJ+toma.NIF) != "" {
+		return ""
+	}
+	switch strings.TrimSpace(toma.CNaoNIF) {
+	case "":
+		return "toma sem CPF, CNPJ ou NIF: informe o documento" + semTomador +
+			" (cNaoNIF é o motivo de tomador no exterior sem NIF)"
+	case "0":
+		if issnet {
+			return "toma.cNaoNIF=0 não é aceito neste município (ISSNet): use 1 (dispensado) ou 2 (não exigido)" +
+				semTomador
+		}
 	}
 	return ""
 }
