@@ -291,7 +291,7 @@ func TestConsultaDPSProcuraNosDoisSistemas(t *testing.T) {
 
 // Só município com dois caminhos procura em dois lugares, e a ordem importa: uma
 // resposta vazia do nacional não pode esconder a nota que está na prefeitura.
-func TestSessoesDaConsultaDPS(t *testing.T) {
+func TestRotasDaConsultaDPS(t *testing.T) {
 	casos := map[string][]string{
 		munAPIPropria:     {SessaoNacional, munAPIPropria},
 		munPadraoNacional: {munPadraoNacional},
@@ -302,7 +302,11 @@ func TestSessoesDaConsultaDPS(t *testing.T) {
 		if !ok {
 			t.Fatalf("município %s sem rota", cmun)
 		}
-		if got := r.SessoesDaConsultaDPS(); !slices.Equal(got, quero) {
+		var got []string
+		for _, rt := range r.RotasDaConsultaDPS() {
+			got = append(got, rt.Sessao)
+		}
+		if !slices.Equal(got, quero) {
 			t.Errorf("%s: sessões = %v, quero %v", cmun, got, quero)
 		}
 	}

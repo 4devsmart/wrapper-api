@@ -250,20 +250,35 @@ func SoDigitos(s string) string {
 //   - o resto: a lib falhou de forma conhecida (502).
 func ResponderErroDaLib(w http.ResponseWriter, doc string, res acbr.Result, err error) {
 	detalhes := detalhesDaLib(res)
-	switch {
-	case errors.Is(err, acbr.ErrUnavailable):
-		httpx.ErroDetalhado(w, http.StatusServiceUnavailable, "lib_indisponivel",
+	codigo := CodigoDoErroDaLib(err)
+	switch codigo {
+	case "lib_indisponivel":
+		httpx.ErroDetalhado(w, http.StatusServiceUnavailable, codigo,
 			"o motor fiscal de "+doc+" não está disponível; a chamada não foi enviada", detalhes)
-	case errors.Is(err, acbr.ErrNaoSuportado):
-		httpx.ErroDetalhado(w, http.StatusUnprocessableEntity, "operacao_nao_suportada",
+	case "operacao_nao_suportada":
+		httpx.ErroDetalhado(w, http.StatusUnprocessableEntity, codigo,
 			"esta operação não existe para "+doc, detalhes)
-	case errors.Is(err, acbr.ErrIndeterminado):
-		httpx.ErroDetalhado(w, http.StatusBadGateway, "desfecho_indeterminado",
+	case "desfecho_indeterminado":
+		httpx.ErroDetalhado(w, http.StatusBadGateway, codigo,
 			"a operação pode ter sido transmitida e a resposta se perdeu: NÃO repita: consulte pela chave para saber o desfecho",
 			detalhes)
 	default:
-		httpx.ErroDetalhado(w, http.StatusBadGateway, "falha_na_lib",
+		httpx.ErroDetalhado(w, http.StatusBadGateway, codigo,
 			"o motor fiscal de "+doc+" falhou: "+err.Error(), detalhes)
+	}
+}
+
+// CodigoDoErroDaLib é o código que ResponderErroDaLib devolve para o erro.
+func CodigoDoErroDaLib(err error) string {
+	switch {
+	case errors.Is(err, acbr.ErrUnavailable):
+		return "lib_indisponivel"
+	case errors.Is(err, acbr.ErrNaoSuportado):
+		return "operacao_nao_suportada"
+	case errors.Is(err, acbr.ErrIndeterminado):
+		return "desfecho_indeterminado"
+	default:
+		return "falha_na_lib"
 	}
 }
 

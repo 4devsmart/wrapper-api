@@ -39,21 +39,21 @@ func (m *Modulo) Capacidades() []string {
 
 func (m *Modulo) Registrar(r modulo.Router) {
 	// Gerar: monta o XML da DPS. Sem certificado, sem rede.
-	r.HandleFunc("POST /xml", m.handleXML)
+	r.HandleFunc("POST /xml", operacao("xml", m.handleXML))
 	// Transmitir: assina e envia. É aqui que o certificado entra.
-	r.HandleFunc("POST /transmissao", m.handleTransmissao)
+	r.HandleFunc("POST /transmissao", operacao("transmissao", m.handleTransmissao))
 	// Desfecho de um lote assíncrono, pelo protocolo que a transmissão devolveu.
-	r.HandleFunc("POST /transmissao/lote", m.handleLote)
+	r.HandleFunc("POST /transmissao/lote", operacao("lote", m.handleLote))
 	// Eventos (cancelamento e substituição): chamada única.
-	r.HandleFunc("POST /eventos/{tipo}", m.handleEvento)
+	r.HandleFunc("POST /eventos/{tipo}", operacao("evento", m.handleEvento))
 	// Consultas ao provedor: POST porque levam o certificado no corpo.
-	r.HandleFunc("POST /consulta", m.handleConsulta)
-	r.HandleFunc("POST /consulta-dps", m.handleConsultaDPS)
-	r.HandleFunc("POST /consultas/{tipo}", m.handleConsultas)
-	r.HandleFunc("POST /distribuicao", m.handleDistribuicao)
+	r.HandleFunc("POST /consulta", operacao("consulta", m.handleConsulta))
+	r.HandleFunc("POST /consulta-dps", operacao("consulta-dps", m.handleConsultaDPS))
+	r.HandleFunc("POST /consultas/{tipo}", operacao("consultas", m.handleConsultas))
+	r.HandleFunc("POST /distribuicao", operacao("distribuicao", m.handleDistribuicao))
 	// PDF: a NFS-e recupera o DANFSE pela CHAVE (ObterDANFSE), diferente de CT-e
 	// e MDF-e: perder o XML aqui não é definitivo. Também aceita XML.
-	r.HandleFunc("POST /pdf", m.handlePDF)
+	r.HandleFunc("POST /pdf", operacao("pdf", m.handlePDF))
 	// Tabela de municípios: pública quanto a segredo (não leva certificado) e é
 	// como o cliente descobre, ANTES de emitir, se o município é atendido.
 	r.HandleFunc("GET /municipios/{codigo}", m.handleMunicipio)
@@ -99,6 +99,7 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	rota = rota.DaEmissao(p)
+	registrarRota(w, rota, p.Ambiente)
 	layout := rota.Layout
 
 	t := m.sessao(cnpj, rota.Sessao, p.InfDPS.Prest.Pessoa, p.Ambiente, fiscal.Certificado{}, Credenciais{})
@@ -216,6 +217,7 @@ func (m *Modulo) handleTransmissao(w http.ResponseWriter, r *http.Request) {
 	}
 	ambiente := fiscal.Primeiro(fiscal.AmbienteDoXML(xml), p.Ambiente)
 	rota = rota.DaDPSPronta(xml)
+	registrarRota(w, rota, ambiente)
 	t := m.sessaoDoEmitente(p.Emitente, rota.Sessao, ambiente, p.Certificado, p.Credenciais)
 
 	res, err := m.svc.Transmitir(t, xml)
@@ -235,6 +237,7 @@ func (m *Modulo) handleTransmissao(w http.ResponseWriter, r *http.Request) {
 		XMLBase64: fiscal.Base64(res.XML),
 		Erros:     e.Erros, Alertas: e.Alertas,
 	}
+	registrarDesfecho(w, resp.Status, e.Erros)
 	httpx.JSON(w, fiscal.StatusDoDesfecho(resp.Status), resp)
 }
 
@@ -288,6 +291,7 @@ func (m *Modulo) handleLote(w http.ResponseWriter, r *http.Request) {
 		resp.XMLBase64 = fiscal.Base64(res.XML)
 		resp.Chave = ChaveDoXML(res.XML)
 	}
+	registrarDesfecho(w, resp.Status, l.Erros)
 	httpx.JSON(w, fiscal.StatusDoDesfecho(resp.Status), resp)
 }
 
@@ -349,6 +353,7 @@ func (m *Modulo) handleEvento(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	rota = rota.DoEvento(tipo, p)
+	registrarRota(w, rota, p.Ambiente)
 	layout := rota.Layout
 	p.Municipio = rota.Sessao
 	t := m.sessaoDoEmitente(p.Emitente, p.Municipio, p.Ambiente,
@@ -414,6 +419,7 @@ func (m *Modulo) cancelar(w http.ResponseWriter, t acbr.Sessao, layout Layout, p
 		xmlDoEvento = c.XmlRetorno
 	}
 	status := StatusCancelamento(c)
+	registrarDesfecho(w, status, c.Erros)
 	httpx.JSON(w, fiscal.StatusDoEvento(status), RespostaEvento{
 		Tipo: "cancelamento", Chave: p.Chave, Status: status,
 		Protocolo: c.Protocolo, DataHora: c.DataHora,
@@ -452,6 +458,7 @@ func (m *Modulo) cancelarPorEvento(w http.ResponseWriter, t acbr.Sessao,
 	}
 	ev := ParseEvento(res.Resposta)
 	status := StatusEvento(ev)
+	registrarDesfecho(w, status, ev.Erros)
 	httpx.JSON(w, fiscal.StatusDoEvento(status), RespostaEvento{
 		Tipo: "cancelamento", Chave: p.Chave, Status: status,
 		Situacao:  ev.Situacao,
@@ -533,6 +540,7 @@ func (m *Modulo) substituirPorDPS(w http.ResponseWriter, t acbr.Sessao,
 
 func (m *Modulo) responderSubstituicao(w http.ResponseWriter, res acbr.Result, e SubstituicaoPedido) {
 	em := ParseEnvio(res.Resposta)
+	registrarDesfecho(w, statusEmissao(em), em.Erros)
 	httpx.JSON(w, fiscal.StatusDoDesfecho(statusEmissao(em)), RespostaEvento{
 		Tipo: "substituicao", Chave: chaveDaEmissao(em, res.XML), Status: statusEmissao(em),
 		Situacao:  em.Situacao,
@@ -598,11 +606,12 @@ func (m *Modulo) handleConsultaDPS(w http.ResponseWriter, r *http.Request) {
 	// sessão seguinte, onde a nota também pode estar, e a última responde o que
 	// tiver.
 	rota, _ := RotaDoMunicipio(p.Municipio)
-	sessoes := rota.SessoesDaConsultaDPS()
-	for _, sessao := range sessoes[:len(sessoes)-1] {
-		tn := m.sessaoDoEmitente(p.Emitente, sessao, p.Ambiente, p.Certificado, p.Credenciais)
+	rotas := rota.RotasDaConsultaDPS()
+	for _, rt := range rotas[:len(rotas)-1] {
+		tn := m.sessaoDoEmitente(p.Emitente, rt.Sessao, p.Ambiente, p.Certificado, p.Credenciais)
 		if res, err := m.svc.ConsultarDPSPorChave(tn, chave); err == nil && reChaveNaResposta.MatchString(res.Resposta) {
-			m.responderConsulta(w, tn, sessao, res, nil)
+			registrarRota(w, rt, p.Ambiente)
+			m.responderConsulta(w, tn, rt.Sessao, res, nil)
 			return
 		}
 	}
@@ -675,16 +684,17 @@ func (m *Modulo) handleDistribuicao(w http.ResponseWriter, r *http.Request) {
 	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 		return
 	}
-	if cmun := fiscal.SoDigitos(p.Municipio); cmun != "" {
-		if _, ok := LayoutDoMunicipio(cmun); ok {
-			t := m.sessaoDoEmitente(p.Emitente, cmun, p.Ambiente, p.Certificado, p.Credenciais)
-			res, err := m.svc.ConsultarDFe(t, p.NSU)
-			if err != nil || !OperacaoNaoSuportada(res.Resposta) {
-				m.responderConsulta(w, t, cmun, res, err)
-				return
-			}
+	rota, ok := RotaDoMunicipio(p.Municipio)
+	if ok {
+		registrarRota(w, rota, p.Ambiente)
+		t := m.sessaoDoEmitente(p.Emitente, rota.Sessao, p.Ambiente, p.Certificado, p.Credenciais)
+		res, err := m.svc.ConsultarDFe(t, p.NSU)
+		if err != nil || !OperacaoNaoSuportada(res.Resposta) {
+			m.responderConsulta(w, t, rota.Sessao, res, err)
+			return
 		}
 	}
+	registrarRota(w, rota.nacional(motivoDistribuicao), p.Ambiente)
 	t := m.sessaoDoEmitente(p.Emitente, SessaoNacional, p.Ambiente, p.Certificado, Credenciais{})
 	res, err := m.svc.ConsultarDFe(t, p.NSU)
 	m.responderConsulta(w, t, SessaoNacional, res, err)
@@ -704,7 +714,9 @@ func (m *Modulo) lerConsulta(w http.ResponseWriter, r *http.Request) (PedidoCons
 	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 		return p, acbr.Sessao{}, false
 	}
-	p.Municipio = rota.DaNota(p.Chave).Sessao
+	rota = rota.DaNota(p.Chave)
+	registrarRota(w, rota, p.Ambiente)
+	p.Municipio = rota.Sessao
 	t := m.sessaoDoEmitente(p.Emitente, p.Municipio, p.Ambiente,
 		p.Certificado, p.Credenciais)
 	return p, t, true
@@ -788,7 +800,9 @@ func (m *Modulo) handlePDF(w http.ResponseWriter, r *http.Request) {
 		if !ok {
 			return
 		}
-		cmun = rota.DaNota(ChaveDoXML(xml)).Sessao
+		rota = rota.DaNota(ChaveDoXML(xml))
+		registrarRota(w, rota, "")
+		cmun = rota.Sessao
 		// Render local: não fala com o provedor, então não pede certificado.
 		t = fiscal.Sessao("", secaoACBr, "", fiscal.Certificado{})
 		t.Config = append(t.Config,
@@ -806,7 +820,9 @@ func (m *Modulo) handlePDF(w http.ResponseWriter, r *http.Request) {
 		if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 			return
 		}
-		cmun = rota.DaNota(p.Chave).Sessao
+		rota = rota.DaNota(p.Chave)
+		registrarRota(w, rota, p.Ambiente)
+		cmun = rota.Sessao
 		t = m.sessaoDoEmitente(p.Emitente, cmun, p.Ambiente,
 			p.Certificado, p.Credenciais)
 		res, err = m.svc.ObterPDF(t, p.Chave)
@@ -920,6 +936,7 @@ func (m *Modulo) naoSuportada(w http.ResponseWriter, t acbr.Sessao,
 	if !OperacaoNaoSuportada(resposta) {
 		return false
 	}
+	registrarDesfecho(w, "operacao_nao_suportada", nil)
 	det := map[string]any{"municipio": cmun, "resposta": resposta}
 	provedor := provedorDoMunicipio(cmun)
 	alvo := "este provedor"
@@ -949,5 +966,6 @@ func (m *Modulo) capacidades(t acbr.Sessao) (Capacidades, bool) {
 }
 
 func (m *Modulo) responderErro(w http.ResponseWriter, res acbr.Result, err error) {
+	registrarDesfecho(w, fiscal.CodigoDoErroDaLib(err), nil)
 	fiscal.ResponderErroDaLib(w, "NFS-e", res, err)
 }

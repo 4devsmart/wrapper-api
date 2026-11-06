@@ -26,28 +26,41 @@ type Rota struct {
 	Sessao string
 	// Layout é o da entrada: decide o INI e o caminho dos eventos.
 	Layout Layout
+	// Motivo diz por que a rota é esta. Não decide nada: é para o log.
+	Motivo MotivoRota
 }
+
+// MotivoRota é o que levou a operação à rota.
+type MotivoRota string
+
+const (
+	motivoTabela       MotivoRota = "tabela"       // o provedor do município
+	motivoVigencia     MotivoRota = "vigencia"     // uma linha de vigencias
+	motivoChave        MotivoRota = "chave"        // a chave diz que a nota é nacional
+	motivoConsultaDPS  MotivoRota = "consulta-dps" // a DPS foi procurada no nacional
+	motivoDistribuicao MotivoRota = "distribuicao" // sem distribuição no provedor
+)
 
 // RotaDoMunicipio é o ponto de partida: o caminho que a tabela informa para o
 // município. Falso se ele não tem provedor conhecido.
 func RotaDoMunicipio(cmun string) (Rota, bool) {
 	c := fiscal.SoDigitos(cmun)
 	l, ok := LayoutDoMunicipio(c)
-	return Rota{Municipio: c, Sessao: c, Layout: l}, ok
+	return Rota{Municipio: c, Sessao: c, Layout: l, Motivo: motivoTabela}, ok
 }
 
 // Provedor é quem de fato atende por esta rota.
 func (r Rota) Provedor() string { return provedorDoMunicipio(r.Sessao) }
 
-func (r Rota) nacional() Rota {
-	r.Sessao, r.Layout = SessaoNacional, LayoutPadraoNacional
+func (r Rota) nacional(motivo MotivoRota) Rota {
+	r.Sessao, r.Layout, r.Motivo = SessaoNacional, LayoutPadraoNacional, motivo
 	return r
 }
 
 // DaEmissao é a rota de uma DPS pelo pedido.
 func (r Rota) DaEmissao(p DPSPedido) Rota {
 	if dpsPeloAmbienteNacional(r.Municipio, p) {
-		return r.nacional()
+		return r.nacional(motivoVigencia)
 	}
 	return r
 }
@@ -64,7 +77,7 @@ func (r Rota) DaDPSPronta(xml string) Rota {
 		dCompet = m[1]
 	}
 	if PeloAmbienteNacional(r.Municipio, op, dCompet) {
-		return r.nacional()
+		return r.nacional(motivoVigencia)
 	}
 	return r
 }
@@ -79,7 +92,7 @@ func (r Rota) DaNota(chave string) Rota {
 		return r
 	}
 	if chave[7] == ambGerSistemaNacional {
-		return r.nacional()
+		return r.nacional(motivoChave)
 	}
 	return r
 }
@@ -94,7 +107,7 @@ func (r Rota) DoEvento(tipo string, p PedidoEvento) Rota {
 		var e SubstituicaoPedido
 		if json.Unmarshal(p.Evento, &e) == nil {
 			if dpsPeloAmbienteNacional(r.Municipio, e.DPS) {
-				return r.nacional()
+				return r.nacional(motivoVigencia)
 			}
 			chave = fiscal.Primeiro(e.Substituida.Chave, chave)
 		}
@@ -102,14 +115,14 @@ func (r Rota) DoEvento(tipo string, p PedidoEvento) Rota {
 	return r.DaNota(chave)
 }
 
-// SessoesDaConsultaDPS são as sessões onde procurar uma DPS, em ordem. A chave da
+// RotasDaConsultaDPS são as rotas onde procurar uma DPS, em ordem. A chave da
 // DPS não diz em que sistema ela foi: só a da NFS-e diz. Num município com os dois
 // caminhos, o Ambiente Nacional responde primeiro.
-func (r Rota) SessoesDaConsultaDPS() []string {
+func (r Rota) RotasDaConsultaDPS() []Rota {
 	if temDoisCaminhos(r.Municipio) {
-		return []string{SessaoNacional, r.Sessao}
+		return []Rota{r.nacional(motivoConsultaDPS), r}
 	}
-	return []string{r.Sessao}
+	return []Rota{r}
 }
 
 // rota resolve o município ou responde o erro. Recusar aqui é melhor do que
@@ -117,17 +130,20 @@ func (r Rota) SessoesDaConsultaDPS() []string {
 func (m *Modulo) rota(w http.ResponseWriter, cmun string) (Rota, bool) {
 	c := fiscal.SoDigitos(cmun)
 	if c == "" {
+		registrarDesfecho(w, "campo_obrigatorio", nil)
 		httpx.ErroJSON(w, http.StatusBadRequest, "campo_obrigatorio",
 			"município (código IBGE) é obrigatório: é ele que decide o provedor de NFS-e")
 		return Rota{}, false
 	}
 	r, ok := RotaDoMunicipio(c)
 	if !ok {
+		registrarDesfecho(w, "provedor_nao_suportado", nil)
 		httpx.ErroDetalhado(w, http.StatusUnprocessableEntity, "provedor_nao_suportado",
 			"o município "+c+" não tem provedor de NFS-e conhecido nesta versão da tabela",
 			map[string]any{"municipio": c})
 		return Rota{}, false
 	}
+	registrarRota(w, r, "")
 	return r, true
 }
 
