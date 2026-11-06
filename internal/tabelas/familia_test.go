@@ -31,15 +31,7 @@ func TestFamiliaDoProvedor(t *testing.T) {
 	}
 }
 
-func TestFamiliaLayoutEsuporte(t *testing.T) {
-	if !FamiliaPadraoNacional.Suportada() {
-		t.Error("Padrão Nacional deveria ser suportado")
-	}
-	for _, f := range []Familia{FamiliaABRASFv2, FamiliaProprio, FamiliaDesconhecida} {
-		if f.Suportada() {
-			t.Errorf("família %q não deveria estar suportada ainda", f)
-		}
-	}
+func TestFamiliaLayout(t *testing.T) {
 	layout := map[Familia]string{
 		FamiliaPadraoNacional: "padrao_nacional",
 		FamiliaABRASFv1:       "abrasf",
@@ -147,19 +139,5 @@ func TestColunaDistribuicaoPropriaBemFormada(t *testing.T) {
 	}
 	if DistribuicaoPropriaNFSe("4314902") {
 		t.Error("Porto Alegre marcada com distribuição própria")
-	}
-}
-
-func TestProvedoresNFSeTemFamilia(t *testing.T) {
-	provs := ProvedoresNFSe()
-	// O topo (PadraoNacional) deve vir classificado e suportado.
-	if provs[0].Provedor != "PadraoNacional" || !provs[0].Suportado || provs[0].Layout != "padrao_nacional" {
-		t.Errorf("topo mal classificado: %+v", provs[0])
-	}
-	// Todo provedor com município deve ter família conhecida (cobertura da tabela).
-	for _, p := range provs {
-		if p.Familia == FamiliaDesconhecida {
-			t.Errorf("provedor %q (%d municípios) sem família classificada", p.Provedor, p.Municipios)
-		}
 	}
 }

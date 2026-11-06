@@ -164,7 +164,7 @@ func MunicipioDoEvento(tipo string, p PedidoEvento) string {
 // ToINIDoLayout escolhe o construtor de INI conforme o layout. Padrão Nacional
 // usa o construtor de DPS; ABRASF e próprios usam o mesmo construtor de RPS.
 func ToINIDoLayout(l Layout, p DPSPedido) string {
-	if l == LayoutPadraoNacional || l == "" {
+	if l == LayoutPadraoNacional {
 		return ToINI(p)
 	}
 	return ToINIAbrasf(p)

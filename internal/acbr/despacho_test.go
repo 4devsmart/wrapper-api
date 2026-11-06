@@ -160,7 +160,7 @@ func (e *espiao) ConsultarTitulos(t TenantConfig, op BoletoOnline) (Result, erro
 
 func TestDespacho_CadaMetodoChegaComOsArgumentosCertos(t *testing.T) {
 	e := &espiao{}
-	ts := httptest.NewServer(RPCHandler(&Servicos{NFSe: e, CTe: e, MDFe: e, NFe: e, Boleto: e}, 1))
+	ts := httptest.NewServer(handlerDeTeste(&Servicos{NFSe: e, CTe: e, MDFe: e, NFe: e, Boleto: e}, 1))
 	t.Cleanup(ts.Close)
 	svc := newRemotos(config.ACBr{Workers: []string{ts.URL}, WorkerSlots: 1, WorkerTimeout: 5 * time.Second})
 

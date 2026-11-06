@@ -61,7 +61,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	handler, reciclar := acbr.RPCHandlerReciclavel(svc, cfg.ACBr.WorkerSlots, cfg.ACBr.WorkerMaxCalls)
+	handler, reciclar := acbr.RPCHandler(svc, cfg.ACBr.WorkerSlots, cfg.ACBr.WorkerMaxCalls)
 	srv := &http.Server{
 		Handler:           handler,
 		ReadHeaderTimeout: 10 * time.Second,

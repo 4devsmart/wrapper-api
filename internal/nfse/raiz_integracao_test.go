@@ -91,16 +91,8 @@ func TestRaizDoXMLPorProvedor(t *testing.T) {
 // própria): a superfície real do NFS-e são essas combinações, não os 4.740
 // municípios.
 func umPorCombinacao() []tabelas.MunicipioNFSe {
-	todos, _ := tabelas.ListarMunicipiosNFSe(tabelas.FiltroMunicipioNFSe{Limit: 500})
-	for off := 500; ; off += 500 {
-		pag, total := tabelas.ListarMunicipiosNFSe(tabelas.FiltroMunicipioNFSe{Limit: 500, Offset: off})
-		todos = append(todos, pag...)
-		if off+500 >= total {
-			break
-		}
-	}
 	escolhido := map[string]tabelas.MunicipioNFSe{}
-	for _, m := range todos {
+	for _, m := range tabelas.MunicipiosNFSe() {
 		k := m.Provedor + "\t" + m.Versao
 		if tabelas.APIPropriaNFSe(m.Codigo) {
 			k += "\tapi"
