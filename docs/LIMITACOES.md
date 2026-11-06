@@ -129,7 +129,8 @@ transmitir: falhou ali, nada saiu.
 - **Em Brasília, ME/EPP do Simples sai pelo Ambiente Nacional a partir da
   competência de 01/11/2026.** O ISSNet recusa essas notas com EM110, e quem não
   é do Simples continua nele, então o caminho depende do emitente e não cabe na
-  tabela. Não há campo novo: `opSimpNac` e `dCompet` decidem, na geração e na
+  tabela da lib: a regra fica em `vigencias`, em `internal/nfse/vigencia.go`,
+  uma linha por município e regime. Não há campo novo: `opSimpNac` e `dCompet` decidem, na geração e na
   transmissão, e `provedor` na resposta do `/xml` diz por onde a nota vai sair.
   `opSimpNac` errado manda a nota para o caminho errado. MEI fica de fora, e
   os demais municípios só entram com a recusa comprovada.

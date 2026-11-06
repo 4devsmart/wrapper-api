@@ -152,37 +152,9 @@ func (m *Modulo) rota(w http.ResponseWriter, cmun string) (Rota, bool) {
 // chave (patch 0004 da lib).
 const SessaoNacional = "3304557"
 
-// competenciaSimplesNacional é a primeira competência em que ME e EPP do Simples
-// não emitem mais no sistema próprio do município (Resolução CGSN 191/2026).
-const competenciaSimplesNacional = "2026-11-01"
-
-// opSimpNacMEEPP é o opSimpNac de ME e EPP optantes do Simples Nacional.
-const opSimpNacMEEPP = 3
-
 // ambGerSistemaNacional é o ambiente gerador das notas do Sistema Nacional, na
 // posição 8 da chave de acesso. O 1 é o sistema da prefeitura.
 const ambGerSistemaNacional = '2'
-
-// simplesSaiPeloAmbienteNacional são os municípios onde o emitente do Simples
-// sai pelo Ambiente Nacional sem que a tabela da lib diga isso. A tabela é por
-// município, e aqui o caminho depende do emitente: em Brasília quem não é do
-// Simples continua no ISSNet, que recusa o Simples com EM110.
-//
-// Só entra aqui município com a recusa comprovada. A regra é nacional, mas tirar
-// um município do provedor que hoje autoriza é trocar nota que sai por aposta.
-var simplesSaiPeloAmbienteNacional = map[string]bool{"5300108": true}
-
-// temDoisCaminhos diz se notas do município podem estar em dois sistemas.
-func temDoisCaminhos(cmun string) bool { return simplesSaiPeloAmbienteNacional[cmun] }
-
-// PeloAmbienteNacional diz se a nota deste emitente sai pelo Ambiente Nacional
-// em vez do provedor do município. A competência decide, e não a data de
-// emissão: nota de outubro emitida em novembro continua no provedor.
-func PeloAmbienteNacional(cmun string, opSimpNac int, dCompet string) bool {
-	return temDoisCaminhos(fiscal.SoDigitos(cmun)) &&
-		opSimpNac == opSimpNacMEEPP && len(dCompet) >= 10 &&
-		dCompet[:10] >= competenciaSimplesNacional
-}
 
 // dpsPeloAmbienteNacional é PeloAmbienteNacional a partir do pedido.
 func dpsPeloAmbienteNacional(cmun string, p DPSPedido) bool {
