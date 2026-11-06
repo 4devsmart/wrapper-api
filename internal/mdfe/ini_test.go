@@ -169,3 +169,13 @@ func TestToINI_VerProcIdentificaEsteServico(t *testing.T) {
 		t.Error("verProc informado pelo cliente foi ignorado")
 	}
 }
+
+// Os status de sucesso são do documento: 104 não autoriza MDF-e.
+func TestParseEnvioSoAceitaOsStatusDoMDFe(t *testing.T) {
+	for cstat, quero := range map[string]bool{"100": true, "132": true, "104": false} {
+		e := ParseEnvio("[Retorno]\ncStat=" + cstat + "\nchMDFe=M1\n")
+		if e.Sucesso != quero {
+			t.Errorf("cStat %s: Sucesso = %v, quero %v", cstat, e.Sucesso, quero)
+		}
+	}
+}
