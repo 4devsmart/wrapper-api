@@ -6640,7 +6640,7 @@ components:
           description: 'item da lista (→ cTribNac no Padrão Nacional).'
         cTribMun:
           type: string
-          description: 'código de tributação municipal. Obrigatório e numérico nos municípios do ISSNet pela API própria (Brasília, Goiânia).'
+          description: 'código de tributação municipal. Exatamente 3 dígitos, quando informado, na emissão pelo Ambiente Nacional. Obrigatório e numérico nos municípios do ISSNet pela API própria (Brasília, Goiânia).'
         cNBS:
           type: string
           description: 'código NBS.'
