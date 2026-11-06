@@ -21,11 +21,11 @@ import (
 // cliente, e não olha os argumentos. Trocar Args{NumeroFinal: final} por
 // Args{Numero: final} passa por ele inteiro.
 //
-// Este aqui percorre TODOS os métodos das cinco interfaces, chama cada um pelo
+// Este aqui percorre TODOS os métodos das quatro interfaces, chama cada um pelo
 // cliente remoto com uma sentinela distinta por posição, e cobra do outro lado
 // o mesmo nome e os mesmos valores, na mesma ordem.
 
-// espiao implementa as cinco interfaces SEM embutir nada. É deliberado: método
+// espiao implementa as quatro interfaces SEM embutir nada. É deliberado: método
 // novo numa interface quebra a COMPILAÇÃO deste arquivo, e quem o acrescentar
 // é obrigado a passar por aqui. Embutindo indisponivel, como faz o servicoFake,
 // o método novo nasceria fora da conferência.
