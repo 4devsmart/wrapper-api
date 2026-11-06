@@ -178,6 +178,23 @@ DhEmi  string `json:"dhEmi"  fmt:"data-hora"`
 Campo enumerado que aparece como `integer` puro no Swagger não diz nada a quem
 integra. Se você encostar num, aproveite e enriqueça.
 
+## Changelog e release
+
+Toda versão tem seção no [CHANGELOG](CHANGELOG.md), escrita **antes da tag**: é de
+lá que sai a página do release, e o `release.yml` recusa a versão sem ela, antes de
+promover a imagem. Pré-release (`v1.7.0-rc1`) não exige.
+
+O título é `## vX.Y.Z - AAAA-MM-DD`, com a versão no início: é por ele que a seção
+é encontrada. Para conferir:
+
+```bash
+scripts/changelog-da-versao.sh v1.7.0
+```
+
+Escreva para quem opera o serviço, não a lista de commits. O que exige ação vai em
+`### Antes de atualizar`, no topo da seção; o resto em `### Adicionado`,
+`### Corrigido` e `### Alterado`. Se a data mudar até a tag sair, atualize o título.
+
 ## Pull requests
 
 - um assunto por PR;
