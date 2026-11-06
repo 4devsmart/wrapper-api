@@ -161,6 +161,11 @@ São oito arquivos: os cinco `.so`, o `schemas.tar.gz`, o `SHA256SUMS` e o
 
 ### Publicando uma revisão nova
 
+0. `make acbr-analise ALVO=<revisão>`, antes de compilar. Só lê o SVN oficial e
+   deixa em `out/acbr-analise/relatorio.md` os commits por área, a situação de
+   cada patch, os municípios que trocam de provedor e a nota técnica de cada
+   ambiente. Aplicar sem conflito não prova que o patch segue necessário: leia o
+   trecho dos arquivos que mudaram.
 1. `make acbr-fonte && make acbr-compilar && make acbr-extrair`, com `ACBR_REV`
    e `ACBR_FRCE_REF` já apontando para o que você quer. Os oito arquivos ficam
    em `acbr-libs/`. O `acbr-fonte` confere a revisão diretório a diretório e

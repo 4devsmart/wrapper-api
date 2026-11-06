@@ -127,6 +127,23 @@ acbr-fonte:
 		debian:bookworm-slim sh -c \
 		'apt-get update -qq && apt-get install -y -qq --no-install-recommends subversion git ca-certificates >/dev/null && sh /acbr-fonte.sh'
 
+## acbr-analise: relatório do que muda até uma revisão do ACBr (só lê; ALVO=HEAD)
+# Vem antes de compilar: diz se os patches ainda fazem sentido, quais municípios
+# trocam de provedor e qual nota técnica cada ambiente passa a usar. O relatório
+# fica em out/, que não é versionado.
+ALVO ?= HEAD
+acbr-analise:
+	@rm -rf "$(OUT)/acbr-analise" && mkdir -p "$(OUT)/acbr-analise"
+	docker run --rm \
+		-v "$(abspath $(OUT)/acbr-analise):/saida" \
+		-v "$(abspath docker/acbr-patches):/patches:ro" \
+		-v "$(abspath scripts/acbr-analise-coleta.sh):/coleta.sh:ro" \
+		-e ACBR_REV=$(ACBR_REV) -e ALVO=$(ALVO) \
+		-e LANG=C.UTF-8 -e LC_ALL=C.UTF-8 \
+		debian:bookworm-slim sh -c \
+		'apt-get update -qq && apt-get install -y -qq --no-install-recommends subversion patch ca-certificates >/dev/null 2>&1 && sh /coleta.sh'
+	@python3 scripts/acbr-analise.py "$(OUT)/acbr-analise"
+
 ## acbr-compilar: compila as .so a partir de acbr-source/ (offline, LENTO)
 acbr-compilar:
 	@test -d $(ACBR_SRC)/acbr && test -d $(ACBR_SRC)/frce || { \
@@ -249,7 +266,7 @@ help:
 	   grep -hE '^[a-z-]+:.* ## ' $(MAKEFILE_LIST) | sed -E 's/^([a-z-]+):.* ## /## \1: /'; \
 	 } | sed 's/^## /  /' | sort
 
-.PHONY: ci acbr-libs-publicadas build build-cgo run test test-integracao-nfse test-cgo openapi openapi-check openapi-valida yaml-valida enums-conferir vet fmt fmt-check tidy limpar help \
+.PHONY: ci acbr-libs-publicadas acbr-analise build build-cgo run test test-integracao-nfse test-cgo openapi openapi-check openapi-valida yaml-valida enums-conferir vet fmt fmt-check tidy limpar help \
 	acbr-fonte acbr-compilar acbr-extrair \
 	acbr-libs-baixar acbr-libs-publicar acbr-libs-conferir imagem-libs-conferir docker-build up down
 
