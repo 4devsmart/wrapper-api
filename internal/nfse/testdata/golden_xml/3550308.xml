@@ -1,0 +1,34 @@
+<RPS xmlns="http://www.prefeitura.sp.gov.br/nfe">
+<Assinatura>
+</Assinatura>
+<ChaveRPS>
+<InscricaoPrestador>
+</InscricaoPrestador>
+<SerieRPS>5</SerieRPS>
+<NumeroRPS>4</NumeroRPS>
+</ChaveRPS>
+<TipoRPS>RPS</TipoRPS>
+<DataEmissao>2026-09-01</DataEmissao>
+<StatusRPS>N</StatusRPS>
+<TributacaoRPS>T</TributacaoRPS>
+<ValorServicos>1</ValorServicos>
+<ValorDeducoes>0</ValorDeducoes>
+<CodigoServico>0105</CodigoServico>
+<AliquotaServicos>0</AliquotaServicos>
+<ISSRetido>false</ISSRetido>
+<CPFCNPJTomador>
+<CPF>11144477735</CPF>
+</CPFCNPJTomador>
+<RazaoSocialTomador>Tomador de Teste</RazaoSocialTomador>
+<EnderecoTomador>
+<Logradouro>Rua de Teste</Logradouro>
+<NumeroEndereco>2</NumeroEndereco>
+<Bairro>Centro</Bairro>
+<Cidade>4309209</Cidade>
+<UF>RS</UF>
+<CEP>94170068</CEP>
+</EnderecoTomador>
+<Discriminacao>teste de layout</Discriminacao>
+<RetencaoPisCofins>0</RetencaoPisCofins>
+</RPS>
+

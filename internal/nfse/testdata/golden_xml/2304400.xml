@@ -1,0 +1,54 @@
+<ns4:Rps xmlns:ns4="http://www.ginfes.com.br/tipos_v03.xsd">
+<ns4:InfRps Id="Rps_45">
+<ns4:IdentificacaoRps>
+<ns4:Numero>4</ns4:Numero>
+<ns4:Serie>5</ns4:Serie>
+<ns4:Tipo>1</ns4:Tipo>
+</ns4:IdentificacaoRps>
+<ns4:DataEmissao>2026-09-01T00:00:00</ns4:DataEmissao>
+<ns4:NaturezaOperacao>1</ns4:NaturezaOperacao>
+<ns4:OptanteSimplesNacional>1</ns4:OptanteSimplesNacional>
+<ns4:IncentivadorCultural>2</ns4:IncentivadorCultural>
+<ns4:Status>1</ns4:Status>
+<ns4:Servico>
+<ns4:Valores>
+<ns4:ValorServicos>1.00</ns4:ValorServicos>
+<ns4:ValorPis>0.00</ns4:ValorPis>
+<ns4:ValorCofins>0.00</ns4:ValorCofins>
+<ns4:ValorInss>0.00</ns4:ValorInss>
+<ns4:ValorIr>0.00</ns4:ValorIr>
+<ns4:ValorCsll>0.00</ns4:ValorCsll>
+<ns4:IssRetido>2</ns4:IssRetido>
+<ns4:ValorIss>0.00</ns4:ValorIss>
+<ns4:Aliquota>0.0000</ns4:Aliquota>
+</ns4:Valores>
+<ns4:ItemListaServico>01.05</ns4:ItemListaServico>
+<ns4:CodigoCnae>6201501</ns4:CodigoCnae>
+<ns4:CodigoTributacaoMunicipio>101</ns4:CodigoTributacaoMunicipio>
+<ns4:Discriminacao>teste de layout</ns4:Discriminacao>
+<ns4:CodigoMunicipio>2304400</ns4:CodigoMunicipio>
+<ns4:CodigoNbs>111062000</ns4:CodigoNbs>
+<ns4:TipoRetencaoPisCofins>0</ns4:TipoRetencaoPisCofins>
+</ns4:Servico>
+<ns4:Prestador>
+<ns4:Cnpj>12345678000190</ns4:Cnpj>
+</ns4:Prestador>
+<ns4:Tomador>
+<ns4:IdentificacaoTomador>
+<ns4:CpfCnpj>
+<ns4:Cpf>11144477735</ns4:Cpf>
+</ns4:CpfCnpj>
+</ns4:IdentificacaoTomador>
+<ns4:RazaoSocial>Tomador de Teste</ns4:RazaoSocial>
+<ns4:Endereco>
+<ns4:Endereco>Rua de Teste</ns4:Endereco>
+<ns4:Numero>2</ns4:Numero>
+<ns4:Bairro>Centro</ns4:Bairro>
+<ns4:CodigoMunicipio>4309209</ns4:CodigoMunicipio>
+<ns4:Uf>RS</ns4:Uf>
+<ns4:Cep>94170068</ns4:Cep>
+</ns4:Endereco>
+</ns4:Tomador>
+</ns4:InfRps>
+</ns4:Rps>
+

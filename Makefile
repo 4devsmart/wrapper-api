@@ -57,7 +57,12 @@ test:
 # do layout que a tabela informa.
 test-integracao-nfse:
 	@test -n "$(WRAPPER_API_URL)" || { echo "defina WRAPPER_API_URL"; exit 1; }
-	CGO_ENABLED=0 go test -tags integracao -run TestRaizDoXMLPorProvedor -count=1 -v ./internal/nfse
+	CGO_ENABLED=0 go test -tags integracao -run 'TestRaizDoXMLPorProvedor|TestGoldenXML' -count=1 -v ./internal/nfse
+
+## golden-nfse: regrava testdata/golden_xml contra uma API com worker. Revise o diff.
+golden-nfse:
+	@test -n "$(WRAPPER_API_URL)" || { echo "defina WRAPPER_API_URL"; exit 1; }
+	CGO_ENABLED=0 go test -tags integracao -run TestGoldenXML -count=1 ./internal/nfse -args -atualizar-golden
 
 ## test-cgo: type-check e link do binding cgo contra as .so (não executa a lib)
 test-cgo:

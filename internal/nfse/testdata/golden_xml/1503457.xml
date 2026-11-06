@@ -1,0 +1,86 @@
+<nfse>
+<prestador>
+<tipoPessoa>2</tipoPessoa>
+<cnpj>12345678000190</cnpj>
+<inscricaoMunicipal>
+</inscricaoMunicipal>
+<razaoSocial>EMPRESA DE TESTE LTDA</razaoSocial>
+<endereco>
+<logradouro>RUA DE TESTE, 1</logradouro>
+<complemento>
+</complemento>
+<bairro>CENTRO</bairro>
+<cep>70040010</cep>
+<codigoMunipio>0621</codigoMunipio>
+<descricaoMunicipio>
+</descricaoMunicipio>
+<codigoEstado>PA</codigoEstado>
+<descricaoEstado>PA</descricaoEstado>
+</endereco>
+<email>teste@example.com</email>
+<telefoneDdd>
+</telefoneDdd>
+<telefoneNumero>5130000000</telefoneNumero>
+</prestador>
+<tomador>
+<tomadorIdentificado>1</tomadorIdentificado>
+<tipoPessoa>1</tipoPessoa>
+<cpf>11144477735</cpf>
+<razaoSocial>Tomador de Teste</razaoSocial>
+<endereco>
+<logradouro>Rua de Teste, 2</logradouro>
+<complemento>
+</complemento>
+<bairro>Centro</bairro>
+<cep>94170068</cep>
+<codigoMunipio>8683</codigoMunipio>
+<descricaoMunicipio>
+</descricaoMunicipio>
+<codigoEstado>RS</codigoEstado>
+<descricaoEstado>RS</descricaoEstado>
+</endereco>
+</tomador>
+<atividadeExecutada>
+<codigoServico>0105</codigoServico>
+<descricaoServico>teste de layout</descricaoServico>
+<codigoAtividade>6201501</codigoAtividade>
+<descricaoAtividade>
+</descricaoAtividade>
+<localPrestacao>
+<codigoEstado>
+</codigoEstado>
+<descricaoEstado>
+</descricaoEstado>
+<codigoMunipio>0621</codigoMunipio>
+<descricaoMunicipio>
+</descricaoMunicipio>
+</localPrestacao>
+<tipoTributacao>1</tipoTributacao>
+<tipoRecolhimento>
+</tipoRecolhimento>
+<aliquota>0.0000</aliquota>
+</atividadeExecutada>
+<deducoes>
+<tipo>1</tipo>
+</deducoes>
+<detalhamentoNota>
+<descricaoNota>teste de layout</descricaoNota>
+<itensServico>
+<item nItem="1">
+<tributavel>1</tributavel>
+<descricao>teste de layout</descricao>
+<quantidade>1</quantidade>
+<valorUnitario>1.00</valorUnitario>
+<valorTotal>1.00</valorTotal>
+</item>
+</itensServico>
+<totais>
+<valotTotalNota>0.00</valotTotalNota>
+<valorTotalServico>1.00</valorTotalServico>
+<valorTotalDeducao>0.00</valorTotalDeducao>
+<valorTotalISS>0.00</valorTotalISS>
+<valorReducaoBC>0.00</valorReducaoBC>
+</totais>
+</detalhamentoNota>
+</nfse>
+

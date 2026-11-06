@@ -1,0 +1,2520 @@
+1100015	WebISS	xml simples out	200	WebISS	MontarXML@1100015
+1100015	WebISS	xml simples nov	200	WebISS	MontarXML@1100015
+1100015	WebISS	xml nao optante nov	200	WebISS	MontarXML@1100015
+1100015	WebISS	xml mei nov	200	WebISS	MontarXML@1100015
+1100015	WebISS	transmissao simples out	200		Transmitir@1100015+cred
+1100015	WebISS	transmissao simples nov	200		Transmitir@1100015+cred
+1100015	WebISS	transmissao nao optante nov	200		Transmitir@1100015+cred
+1100015	WebISS	cancelamento prefeitura	200		Cancelar@1100015+cred
+1100015	WebISS	cancelamento nacional	200		Cancelar@1100015+cred
+1100015	WebISS	substituicao nova out antiga prefeitura	200		SubstituirNFSe@1100015+cred
+1100015	WebISS	substituicao nova out antiga nacional	200		SubstituirNFSe@1100015+cred
+1100015	WebISS	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@1100015+cred
+1100015	WebISS	consulta prefeitura	200		Consultar@1100015+cred
+1100015	WebISS	consulta nacional	200		Consultar@1100015+cred
+1100015	WebISS	consulta dps	200		ConsultarDPSPorChave@1100015+cred
+1100015	WebISS	consulta numero	200		ConsultarPorNumero@1100015+cred
+1100015	WebISS	distribuicao	200		ConsultarDFe@1100015+cred
+1100015	WebISS	pdf chave prefeitura	200		ObterPDF@1100015+cred
+1100015	WebISS	pdf chave nacional	200		ObterPDF@1100015+cred
+1100015	WebISS	pdf xml prefeitura	200		RenderizarPDF@1100015
+1100015	WebISS	pdf xml nacional	200		RenderizarPDF@1100015
+1100023	Fiorilli	xml simples out	200	Fiorilli	MontarXML@1100023
+1100023	Fiorilli	xml simples nov	200	Fiorilli	MontarXML@1100023
+1100023	Fiorilli	xml nao optante nov	200	Fiorilli	MontarXML@1100023
+1100023	Fiorilli	xml mei nov	200	Fiorilli	MontarXML@1100023
+1100023	Fiorilli	transmissao simples out	200		Transmitir@1100023+cred
+1100023	Fiorilli	transmissao simples nov	200		Transmitir@1100023+cred
+1100023	Fiorilli	transmissao nao optante nov	200		Transmitir@1100023+cred
+1100023	Fiorilli	cancelamento prefeitura	200		Cancelar@1100023+cred
+1100023	Fiorilli	cancelamento nacional	200		Cancelar@1100023+cred
+1100023	Fiorilli	substituicao nova out antiga prefeitura	200		SubstituirNFSe@1100023+cred
+1100023	Fiorilli	substituicao nova out antiga nacional	200		SubstituirNFSe@1100023+cred
+1100023	Fiorilli	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@1100023+cred
+1100023	Fiorilli	consulta prefeitura	200		Consultar@1100023+cred
+1100023	Fiorilli	consulta nacional	200		Consultar@1100023+cred
+1100023	Fiorilli	consulta dps	200		ConsultarDPSPorChave@1100023+cred
+1100023	Fiorilli	consulta numero	200		ConsultarPorNumero@1100023+cred
+1100023	Fiorilli	distribuicao	200		ConsultarDFe@1100023+cred
+1100023	Fiorilli	pdf chave prefeitura	200		ObterPDF@1100023+cred
+1100023	Fiorilli	pdf chave nacional	200		ObterPDF@1100023+cred
+1100023	Fiorilli	pdf xml prefeitura	200		RenderizarPDF@1100023
+1100023	Fiorilli	pdf xml nacional	200		RenderizarPDF@1100023
+1100031	PadraoNacional	xml simples out	200	PadraoNacional	MontarXML@1100031
+1100031	PadraoNacional	xml simples nov	200	PadraoNacional	MontarXML@1100031
+1100031	PadraoNacional	xml nao optante nov	200	PadraoNacional	MontarXML@1100031
+1100031	PadraoNacional	xml mei nov	200	PadraoNacional	MontarXML@1100031
+1100031	PadraoNacional	transmissao simples out	200		Transmitir@1100031
+1100031	PadraoNacional	transmissao simples nov	200		Transmitir@1100031
+1100031	PadraoNacional	transmissao nao optante nov	200		Transmitir@1100031
+1100031	PadraoNacional	cancelamento prefeitura	200		EnviarEvento@1100031
+1100031	PadraoNacional	cancelamento nacional	200		EnviarEvento@1100031
+1100031	PadraoNacional	substituicao nova out antiga prefeitura	200		Emitir@1100031
+1100031	PadraoNacional	substituicao nova out antiga nacional	200		Emitir@1100031
+1100031	PadraoNacional	substituicao nova nov antiga prefeitura	200		Emitir@1100031
+1100031	PadraoNacional	consulta prefeitura	200		Consultar@1100031
+1100031	PadraoNacional	consulta nacional	200		Consultar@1100031
+1100031	PadraoNacional	consulta dps	200		ConsultarDPSPorChave@1100031
+1100031	PadraoNacional	consulta numero	200		ConsultarPorNumero@1100031
+1100031	PadraoNacional	distribuicao	200		ConsultarDFe@1100031
+1100031	PadraoNacional	pdf chave prefeitura	200		ObterPDF@1100031
+1100031	PadraoNacional	pdf chave nacional	200		ObterPDF@1100031
+1100031	PadraoNacional	pdf xml prefeitura	200		RenderizarPDF@1100031
+1100031	PadraoNacional	pdf xml nacional	200		RenderizarPDF@1100031
+1100114	Fiorilli	xml simples out	200	Fiorilli	MontarXML@1100114
+1100114	Fiorilli	xml simples nov	200	Fiorilli	MontarXML@1100114
+1100114	Fiorilli	xml nao optante nov	200	Fiorilli	MontarXML@1100114
+1100114	Fiorilli	xml mei nov	200	Fiorilli	MontarXML@1100114
+1100114	Fiorilli	transmissao simples out	200		Transmitir@1100114+cred
+1100114	Fiorilli	transmissao simples nov	200		Transmitir@1100114+cred
+1100114	Fiorilli	transmissao nao optante nov	200		Transmitir@1100114+cred
+1100114	Fiorilli	cancelamento prefeitura	200		EnviarEvento@1100114+cred
+1100114	Fiorilli	cancelamento nacional	200		EnviarEvento@1100114+cred
+1100114	Fiorilli	substituicao nova out antiga prefeitura	200		Emitir@1100114+cred
+1100114	Fiorilli	substituicao nova out antiga nacional	200		Emitir@1100114+cred
+1100114	Fiorilli	substituicao nova nov antiga prefeitura	200		Emitir@1100114+cred
+1100114	Fiorilli	consulta prefeitura	200		Consultar@1100114+cred
+1100114	Fiorilli	consulta nacional	200		Consultar@1100114+cred
+1100114	Fiorilli	consulta dps	200		ConsultarDPSPorChave@1100114+cred
+1100114	Fiorilli	consulta numero	200		ConsultarPorNumero@1100114+cred
+1100114	Fiorilli	distribuicao	200		ConsultarDFe@1100114+cred
+1100114	Fiorilli	pdf chave prefeitura	200		ObterPDF@1100114+cred
+1100114	Fiorilli	pdf chave nacional	200		ObterPDF@1100114+cred
+1100114	Fiorilli	pdf xml prefeitura	200		RenderizarPDF@1100114
+1100114	Fiorilli	pdf xml nacional	200		RenderizarPDF@1100114
+1100148	EloTech	xml simples out	200	EloTech	MontarXML@1100148
+1100148	EloTech	xml simples nov	200	EloTech	MontarXML@1100148
+1100148	EloTech	xml nao optante nov	200	EloTech	MontarXML@1100148
+1100148	EloTech	xml mei nov	200	EloTech	MontarXML@1100148
+1100148	EloTech	transmissao simples out	200		Transmitir@1100148+cred
+1100148	EloTech	transmissao simples nov	200		Transmitir@1100148+cred
+1100148	EloTech	transmissao nao optante nov	200		Transmitir@1100148+cred
+1100148	EloTech	cancelamento prefeitura	200		Cancelar@1100148+cred
+1100148	EloTech	cancelamento nacional	200		Cancelar@1100148+cred
+1100148	EloTech	substituicao nova out antiga prefeitura	200		SubstituirNFSe@1100148+cred
+1100148	EloTech	substituicao nova out antiga nacional	200		SubstituirNFSe@1100148+cred
+1100148	EloTech	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@1100148+cred
+1100148	EloTech	consulta prefeitura	200		Consultar@1100148+cred
+1100148	EloTech	consulta nacional	200		Consultar@1100148+cred
+1100148	EloTech	consulta dps	200		ConsultarDPSPorChave@1100148+cred
+1100148	EloTech	consulta numero	200		ConsultarPorNumero@1100148+cred
+1100148	EloTech	distribuicao	200		ConsultarDFe@1100148+cred
+1100148	EloTech	pdf chave prefeitura	200		ObterPDF@1100148+cred
+1100148	EloTech	pdf chave nacional	200		ObterPDF@1100148+cred
+1100148	EloTech	pdf xml prefeitura	200		RenderizarPDF@1100148
+1100148	EloTech	pdf xml nacional	200		RenderizarPDF@1100148
+1100205	EL	xml simples out	200	EL	MontarXML@1100205
+1100205	EL	xml simples nov	200	EL	MontarXML@1100205
+1100205	EL	xml nao optante nov	200	EL	MontarXML@1100205
+1100205	EL	xml mei nov	200	EL	MontarXML@1100205
+1100205	EL	transmissao simples out	200		Transmitir@1100205+cred
+1100205	EL	transmissao simples nov	200		Transmitir@1100205+cred
+1100205	EL	transmissao nao optante nov	200		Transmitir@1100205+cred
+1100205	EL	cancelamento prefeitura	200		EnviarEvento@1100205+cred
+1100205	EL	cancelamento nacional	200		EnviarEvento@1100205+cred
+1100205	EL	substituicao nova out antiga prefeitura	200		Emitir@1100205+cred
+1100205	EL	substituicao nova out antiga nacional	200		Emitir@1100205+cred
+1100205	EL	substituicao nova nov antiga prefeitura	200		Emitir@1100205+cred
+1100205	EL	consulta prefeitura	200		Consultar@1100205+cred
+1100205	EL	consulta nacional	200		Consultar@1100205+cred
+1100205	EL	consulta dps	200		ConsultarDPSPorChave@1100205+cred
+1100205	EL	consulta numero	200		ConsultarPorNumero@1100205+cred
+1100205	EL	distribuicao	200		ConsultarDFe@1100205+cred
+1100205	EL	pdf chave prefeitura	200		ObterPDF@1100205+cred
+1100205	EL	pdf chave nacional	200		ObterPDF@1100205+cred
+1100205	EL	pdf xml prefeitura	200		RenderizarPDF@1100205
+1100205	EL	pdf xml nacional	200		RenderizarPDF@1100205
+1100296	Agili	xml simples out	200	Agili	MontarXML@1100296
+1100296	Agili	xml simples nov	200	Agili	MontarXML@1100296
+1100296	Agili	xml nao optante nov	200	Agili	MontarXML@1100296
+1100296	Agili	xml mei nov	200	Agili	MontarXML@1100296
+1100296	Agili	transmissao simples out	200		Transmitir@1100296+cred
+1100296	Agili	transmissao simples nov	200		Transmitir@1100296+cred
+1100296	Agili	transmissao nao optante nov	200		Transmitir@1100296+cred
+1100296	Agili	cancelamento prefeitura	200		Cancelar@1100296+cred
+1100296	Agili	cancelamento nacional	200		Cancelar@1100296+cred
+1100296	Agili	substituicao nova out antiga prefeitura	200		SubstituirNFSe@1100296+cred
+1100296	Agili	substituicao nova out antiga nacional	200		SubstituirNFSe@1100296+cred
+1100296	Agili	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@1100296+cred
+1100296	Agili	consulta prefeitura	200		Consultar@1100296+cred
+1100296	Agili	consulta nacional	200		Consultar@1100296+cred
+1100296	Agili	consulta dps	200		ConsultarDPSPorChave@1100296+cred
+1100296	Agili	consulta numero	200		ConsultarPorNumero@1100296+cred
+1100296	Agili	distribuicao	200		ConsultarDFe@1100296+cred
+1100296	Agili	pdf chave prefeitura	200		ObterPDF@1100296+cred
+1100296	Agili	pdf chave nacional	200		ObterPDF@1100296+cred
+1100296	Agili	pdf xml prefeitura	200		RenderizarPDF@1100296
+1100296	Agili	pdf xml nacional	200		RenderizarPDF@1100296
+1100809	Betha	xml simples out	200	Betha	MontarXML@1100809
+1100809	Betha	xml simples nov	200	Betha	MontarXML@1100809
+1100809	Betha	xml nao optante nov	200	Betha	MontarXML@1100809
+1100809	Betha	xml mei nov	200	Betha	MontarXML@1100809
+1100809	Betha	transmissao simples out	200		Transmitir@1100809+cred
+1100809	Betha	transmissao simples nov	200		Transmitir@1100809+cred
+1100809	Betha	transmissao nao optante nov	200		Transmitir@1100809+cred
+1100809	Betha	cancelamento prefeitura	200		EnviarEvento@1100809+cred
+1100809	Betha	cancelamento nacional	200		EnviarEvento@1100809+cred
+1100809	Betha	substituicao nova out antiga prefeitura	200		Emitir@1100809+cred
+1100809	Betha	substituicao nova out antiga nacional	200		Emitir@1100809+cred
+1100809	Betha	substituicao nova nov antiga prefeitura	200		Emitir@1100809+cred
+1100809	Betha	consulta prefeitura	200		Consultar@1100809+cred
+1100809	Betha	consulta nacional	200		Consultar@1100809+cred
+1100809	Betha	consulta dps	200		ConsultarDPSPorChave@1100809+cred
+1100809	Betha	consulta numero	200		ConsultarPorNumero@1100809+cred
+1100809	Betha	distribuicao	200		ConsultarDFe@1100809+cred
+1100809	Betha	pdf chave prefeitura	200		ObterPDF@1100809+cred
+1100809	Betha	pdf chave nacional	200		ObterPDF@1100809+cred
+1100809	Betha	pdf xml prefeitura	200		RenderizarPDF@1100809
+1100809	Betha	pdf xml nacional	200		RenderizarPDF@1100809
+1500107	Desenvolve	xml simples out	200	Desenvolve	MontarXML@1500107
+1500107	Desenvolve	xml simples nov	200	Desenvolve	MontarXML@1500107
+1500107	Desenvolve	xml nao optante nov	200	Desenvolve	MontarXML@1500107
+1500107	Desenvolve	xml mei nov	200	Desenvolve	MontarXML@1500107
+1500107	Desenvolve	transmissao simples out	200		Transmitir@1500107+cred
+1500107	Desenvolve	transmissao simples nov	200		Transmitir@1500107+cred
+1500107	Desenvolve	transmissao nao optante nov	200		Transmitir@1500107+cred
+1500107	Desenvolve	cancelamento prefeitura	200		Cancelar@1500107+cred
+1500107	Desenvolve	cancelamento nacional	200		Cancelar@1500107+cred
+1500107	Desenvolve	substituicao nova out antiga prefeitura	200		SubstituirNFSe@1500107+cred
+1500107	Desenvolve	substituicao nova out antiga nacional	200		SubstituirNFSe@1500107+cred
+1500107	Desenvolve	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@1500107+cred
+1500107	Desenvolve	consulta prefeitura	200		Consultar@1500107+cred
+1500107	Desenvolve	consulta nacional	200		Consultar@1500107+cred
+1500107	Desenvolve	consulta dps	200		ConsultarDPSPorChave@1500107+cred
+1500107	Desenvolve	consulta numero	200		ConsultarPorNumero@1500107+cred
+1500107	Desenvolve	distribuicao	200		ConsultarDFe@1500107+cred
+1500107	Desenvolve	pdf chave prefeitura	200		ObterPDF@1500107+cred
+1500107	Desenvolve	pdf chave nacional	200		ObterPDF@1500107+cred
+1500107	Desenvolve	pdf xml prefeitura	200		RenderizarPDF@1500107
+1500107	Desenvolve	pdf xml nacional	200		RenderizarPDF@1500107
+1500909	Aspec	xml simples out	200	Aspec	MontarXML@1500909
+1500909	Aspec	xml simples nov	200	Aspec	MontarXML@1500909
+1500909	Aspec	xml nao optante nov	200	Aspec	MontarXML@1500909
+1500909	Aspec	xml mei nov	200	Aspec	MontarXML@1500909
+1500909	Aspec	transmissao simples out	200		Transmitir@1500909+cred
+1500909	Aspec	transmissao simples nov	200		Transmitir@1500909+cred
+1500909	Aspec	transmissao nao optante nov	200		Transmitir@1500909+cred
+1500909	Aspec	cancelamento prefeitura	200		Cancelar@1500909+cred
+1500909	Aspec	cancelamento nacional	200		Cancelar@1500909+cred
+1500909	Aspec	substituicao nova out antiga prefeitura	200		SubstituirNFSe@1500909+cred
+1500909	Aspec	substituicao nova out antiga nacional	200		SubstituirNFSe@1500909+cred
+1500909	Aspec	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@1500909+cred
+1500909	Aspec	consulta prefeitura	200		Consultar@1500909+cred
+1500909	Aspec	consulta nacional	200		Consultar@1500909+cred
+1500909	Aspec	consulta dps	200		ConsultarDPSPorChave@1500909+cred
+1500909	Aspec	consulta numero	200		ConsultarPorNumero@1500909+cred
+1500909	Aspec	distribuicao	200		ConsultarDFe@1500909+cred
+1500909	Aspec	pdf chave prefeitura	200		ObterPDF@1500909+cred
+1500909	Aspec	pdf chave nacional	200		ObterPDF@1500909+cred
+1500909	Aspec	pdf xml prefeitura	200		RenderizarPDF@1500909
+1500909	Aspec	pdf xml nacional	200		RenderizarPDF@1500909
+1500958	WebISS	xml simples out	200	WebISS	MontarXML@1500958
+1500958	WebISS	xml simples nov	200	WebISS	MontarXML@1500958
+1500958	WebISS	xml nao optante nov	200	WebISS	MontarXML@1500958
+1500958	WebISS	xml mei nov	200	WebISS	MontarXML@1500958
+1500958	WebISS	transmissao simples out	200		Transmitir@1500958+cred
+1500958	WebISS	transmissao simples nov	200		Transmitir@1500958+cred
+1500958	WebISS	transmissao nao optante nov	200		Transmitir@1500958+cred
+1500958	WebISS	cancelamento prefeitura	200		Cancelar@1500958+cred
+1500958	WebISS	cancelamento nacional	200		Cancelar@1500958+cred
+1500958	WebISS	substituicao nova out antiga prefeitura	200		SubstituirNFSe@1500958+cred
+1500958	WebISS	substituicao nova out antiga nacional	200		SubstituirNFSe@1500958+cred
+1500958	WebISS	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@1500958+cred
+1500958	WebISS	consulta prefeitura	200		Consultar@1500958+cred
+1500958	WebISS	consulta nacional	200		Consultar@1500958+cred
+1500958	WebISS	consulta dps	200		ConsultarDPSPorChave@1500958+cred
+1500958	WebISS	consulta numero	200		ConsultarPorNumero@1500958+cred
+1500958	WebISS	distribuicao	200		ConsultarDFe@1500958+cred
+1500958	WebISS	pdf chave prefeitura	200		ObterPDF@1500958+cred
+1500958	WebISS	pdf chave nacional	200		ObterPDF@1500958+cred
+1500958	WebISS	pdf xml prefeitura	200		RenderizarPDF@1500958
+1500958	WebISS	pdf xml nacional	200		RenderizarPDF@1500958
+1501303	ISSNet	xml simples out	200	ISSNet	MontarXML@1501303
+1501303	ISSNet	xml simples nov	200	ISSNet	MontarXML@1501303
+1501303	ISSNet	xml nao optante nov	200	ISSNet	MontarXML@1501303
+1501303	ISSNet	xml mei nov	200	ISSNet	MontarXML@1501303
+1501303	ISSNet	transmissao simples out	200		Transmitir@1501303+cred
+1501303	ISSNet	transmissao simples nov	200		Transmitir@1501303+cred
+1501303	ISSNet	transmissao nao optante nov	200		Transmitir@1501303+cred
+1501303	ISSNet	cancelamento prefeitura	200		EnviarEvento@1501303+cred
+1501303	ISSNet	cancelamento nacional	200		EnviarEvento@1501303+cred
+1501303	ISSNet	substituicao nova out antiga prefeitura	200		Emitir@1501303+cred
+1501303	ISSNet	substituicao nova out antiga nacional	200		Emitir@1501303+cred
+1501303	ISSNet	substituicao nova nov antiga prefeitura	200		Emitir@1501303+cred
+1501303	ISSNet	consulta prefeitura	200		Consultar@1501303+cred
+1501303	ISSNet	consulta nacional	200		Consultar@1501303+cred
+1501303	ISSNet	consulta dps	200		ConsultarDPSPorChave@1501303+cred
+1501303	ISSNet	consulta numero	200		ConsultarPorNumero@1501303+cred
+1501303	ISSNet	distribuicao	200		ConsultarDFe@1501303+cred
+1501303	ISSNet	pdf chave prefeitura	200		ObterPDF@1501303+cred
+1501303	ISSNet	pdf chave nacional	200		ObterPDF@1501303+cred
+1501303	ISSNet	pdf xml prefeitura	200		RenderizarPDF@1501303
+1501303	ISSNet	pdf xml nacional	200		RenderizarPDF@1501303
+1501402	DSF	xml simples out	200	DSF	MontarXML@1501402
+1501402	DSF	xml simples nov	200	DSF	MontarXML@1501402
+1501402	DSF	xml nao optante nov	200	DSF	MontarXML@1501402
+1501402	DSF	xml mei nov	200	DSF	MontarXML@1501402
+1501402	DSF	transmissao simples out	200		Transmitir@1501402+cred
+1501402	DSF	transmissao simples nov	200		Transmitir@1501402+cred
+1501402	DSF	transmissao nao optante nov	200		Transmitir@1501402+cred
+1501402	DSF	cancelamento prefeitura	200		EnviarEvento@1501402+cred
+1501402	DSF	cancelamento nacional	200		EnviarEvento@1501402+cred
+1501402	DSF	substituicao nova out antiga prefeitura	200		Emitir@1501402+cred
+1501402	DSF	substituicao nova out antiga nacional	200		Emitir@1501402+cred
+1501402	DSF	substituicao nova nov antiga prefeitura	200		Emitir@1501402+cred
+1501402	DSF	consulta prefeitura	200		Consultar@1501402+cred
+1501402	DSF	consulta nacional	200		Consultar@1501402+cred
+1501402	DSF	consulta dps	200		ConsultarDPSPorChave@1501402+cred
+1501402	DSF	consulta numero	200		ConsultarPorNumero@1501402+cred
+1501402	DSF	distribuicao	200		ConsultarDFe@1501402+cred
+1501402	DSF	pdf chave prefeitura	200		ObterPDF@1501402+cred
+1501402	DSF	pdf chave nacional	200		ObterPDF@1501402+cred
+1501402	DSF	pdf xml prefeitura	200		RenderizarPDF@1501402
+1501402	DSF	pdf xml nacional	200		RenderizarPDF@1501402
+1501709	Bauhaus	xml simples out	200	Bauhaus	MontarXML@1501709
+1501709	Bauhaus	xml simples nov	200	Bauhaus	MontarXML@1501709
+1501709	Bauhaus	xml nao optante nov	200	Bauhaus	MontarXML@1501709
+1501709	Bauhaus	xml mei nov	200	Bauhaus	MontarXML@1501709
+1501709	Bauhaus	transmissao simples out	200		Transmitir@1501709+cred
+1501709	Bauhaus	transmissao simples nov	200		Transmitir@1501709+cred
+1501709	Bauhaus	transmissao nao optante nov	200		Transmitir@1501709+cred
+1501709	Bauhaus	cancelamento prefeitura	200		Cancelar@1501709+cred
+1501709	Bauhaus	cancelamento nacional	200		Cancelar@1501709+cred
+1501709	Bauhaus	substituicao nova out antiga prefeitura	200		SubstituirNFSe@1501709+cred
+1501709	Bauhaus	substituicao nova out antiga nacional	200		SubstituirNFSe@1501709+cred
+1501709	Bauhaus	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@1501709+cred
+1501709	Bauhaus	consulta prefeitura	200		Consultar@1501709+cred
+1501709	Bauhaus	consulta nacional	200		Consultar@1501709+cred
+1501709	Bauhaus	consulta dps	200		ConsultarDPSPorChave@1501709+cred
+1501709	Bauhaus	consulta numero	200		ConsultarPorNumero@1501709+cred
+1501709	Bauhaus	distribuicao	200		ConsultarDFe@1501709+cred
+1501709	Bauhaus	pdf chave prefeitura	200		ObterPDF@1501709+cred
+1501709	Bauhaus	pdf chave nacional	200		ObterPDF@1501709+cred
+1501709	Bauhaus	pdf xml prefeitura	200		RenderizarPDF@1501709
+1501709	Bauhaus	pdf xml nacional	200		RenderizarPDF@1501709
+1502004	Futurize	xml simples out	200	Futurize	MontarXML@1502004
+1502004	Futurize	xml simples nov	200	Futurize	MontarXML@1502004
+1502004	Futurize	xml nao optante nov	200	Futurize	MontarXML@1502004
+1502004	Futurize	xml mei nov	200	Futurize	MontarXML@1502004
+1502004	Futurize	transmissao simples out	200		Transmitir@1502004+cred
+1502004	Futurize	transmissao simples nov	200		Transmitir@1502004+cred
+1502004	Futurize	transmissao nao optante nov	200		Transmitir@1502004+cred
+1502004	Futurize	cancelamento prefeitura	200		Cancelar@1502004+cred
+1502004	Futurize	cancelamento nacional	200		Cancelar@1502004+cred
+1502004	Futurize	substituicao nova out antiga prefeitura	200		SubstituirNFSe@1502004+cred
+1502004	Futurize	substituicao nova out antiga nacional	200		SubstituirNFSe@1502004+cred
+1502004	Futurize	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@1502004+cred
+1502004	Futurize	consulta prefeitura	200		Consultar@1502004+cred
+1502004	Futurize	consulta nacional	200		Consultar@1502004+cred
+1502004	Futurize	consulta dps	200		ConsultarDPSPorChave@1502004+cred
+1502004	Futurize	consulta numero	200		ConsultarPorNumero@1502004+cred
+1502004	Futurize	distribuicao	200		ConsultarDFe@1502004+cred
+1502004	Futurize	pdf chave prefeitura	200		ObterPDF@1502004+cred
+1502004	Futurize	pdf chave nacional	200		ObterPDF@1502004+cred
+1502004	Futurize	pdf xml prefeitura	200		RenderizarPDF@1502004
+1502004	Futurize	pdf xml nacional	200		RenderizarPDF@1502004
+1502707	ISSIntel	xml simples out	200	ISSIntel	MontarXML@1502707
+1502707	ISSIntel	xml simples nov	200	ISSIntel	MontarXML@1502707
+1502707	ISSIntel	xml nao optante nov	200	ISSIntel	MontarXML@1502707
+1502707	ISSIntel	xml mei nov	200	ISSIntel	MontarXML@1502707
+1502707	ISSIntel	transmissao simples out	200		Transmitir@1502707+cred
+1502707	ISSIntel	transmissao simples nov	200		Transmitir@1502707+cred
+1502707	ISSIntel	transmissao nao optante nov	200		Transmitir@1502707+cred
+1502707	ISSIntel	cancelamento prefeitura	200		Cancelar@1502707+cred
+1502707	ISSIntel	cancelamento nacional	200		Cancelar@1502707+cred
+1502707	ISSIntel	substituicao nova out antiga prefeitura	200		SubstituirNFSe@1502707+cred
+1502707	ISSIntel	substituicao nova out antiga nacional	200		SubstituirNFSe@1502707+cred
+1502707	ISSIntel	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@1502707+cred
+1502707	ISSIntel	consulta prefeitura	200		Consultar@1502707+cred
+1502707	ISSIntel	consulta nacional	200		Consultar@1502707+cred
+1502707	ISSIntel	consulta dps	200		ConsultarDPSPorChave@1502707+cred
+1502707	ISSIntel	consulta numero	200		ConsultarPorNumero@1502707+cred
+1502707	ISSIntel	distribuicao	200		ConsultarDFe@1502707+cred
+1502707	ISSIntel	pdf chave prefeitura	200		ObterPDF@1502707+cred
+1502707	ISSIntel	pdf chave nacional	200		ObterPDF@1502707+cred
+1502707	ISSIntel	pdf xml prefeitura	200		RenderizarPDF@1502707
+1502707	ISSIntel	pdf xml nacional	200		RenderizarPDF@1502707
+1503457	CTAConsult	xml simples out	200	CTAConsult	MontarXML@1503457
+1503457	CTAConsult	xml simples nov	200	CTAConsult	MontarXML@1503457
+1503457	CTAConsult	xml nao optante nov	200	CTAConsult	MontarXML@1503457
+1503457	CTAConsult	xml mei nov	200	CTAConsult	MontarXML@1503457
+1503457	CTAConsult	transmissao simples out	200		Transmitir@1503457+cred
+1503457	CTAConsult	transmissao simples nov	200		Transmitir@1503457+cred
+1503457	CTAConsult	transmissao nao optante nov	200		Transmitir@1503457+cred
+1503457	CTAConsult	cancelamento prefeitura	200		Cancelar@1503457+cred
+1503457	CTAConsult	cancelamento nacional	200		Cancelar@1503457+cred
+1503457	CTAConsult	substituicao nova out antiga prefeitura	200		SubstituirNFSe@1503457+cred
+1503457	CTAConsult	substituicao nova out antiga nacional	200		SubstituirNFSe@1503457+cred
+1503457	CTAConsult	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@1503457+cred
+1503457	CTAConsult	consulta prefeitura	200		Consultar@1503457+cred
+1503457	CTAConsult	consulta nacional	200		Consultar@1503457+cred
+1503457	CTAConsult	consulta dps	200		ConsultarDPSPorChave@1503457+cred
+1503457	CTAConsult	consulta numero	200		ConsultarPorNumero@1503457+cred
+1503457	CTAConsult	distribuicao	200		ConsultarDFe@1503457+cred
+1503457	CTAConsult	pdf chave prefeitura	200		ObterPDF@1503457+cred
+1503457	CTAConsult	pdf chave nacional	200		ObterPDF@1503457+cred
+1503457	CTAConsult	pdf xml prefeitura	200		RenderizarPDF@1503457
+1503457	CTAConsult	pdf xml nacional	200		RenderizarPDF@1503457
+1503606	Coplan	xml simples out	200	Coplan	MontarXML@1503606
+1503606	Coplan	xml simples nov	200	Coplan	MontarXML@1503606
+1503606	Coplan	xml nao optante nov	200	Coplan	MontarXML@1503606
+1503606	Coplan	xml mei nov	200	Coplan	MontarXML@1503606
+1503606	Coplan	transmissao simples out	200		Transmitir@1503606+cred
+1503606	Coplan	transmissao simples nov	200		Transmitir@1503606+cred
+1503606	Coplan	transmissao nao optante nov	200		Transmitir@1503606+cred
+1503606	Coplan	cancelamento prefeitura	200		EnviarEvento@1503606+cred
+1503606	Coplan	cancelamento nacional	200		EnviarEvento@1503606+cred
+1503606	Coplan	substituicao nova out antiga prefeitura	200		Emitir@1503606+cred
+1503606	Coplan	substituicao nova out antiga nacional	200		Emitir@1503606+cred
+1503606	Coplan	substituicao nova nov antiga prefeitura	200		Emitir@1503606+cred
+1503606	Coplan	consulta prefeitura	200		Consultar@1503606+cred
+1503606	Coplan	consulta nacional	200		Consultar@1503606+cred
+1503606	Coplan	consulta dps	200		ConsultarDPSPorChave@1503606+cred
+1503606	Coplan	consulta numero	200		ConsultarPorNumero@1503606+cred
+1503606	Coplan	distribuicao	200		ConsultarDFe@1503606+cred
+1503606	Coplan	pdf chave prefeitura	200		ObterPDF@1503606+cred
+1503606	Coplan	pdf chave nacional	200		ObterPDF@1503606+cred
+1503606	Coplan	pdf xml prefeitura	200		RenderizarPDF@1503606
+1503606	Coplan	pdf xml nacional	200		RenderizarPDF@1503606
+1506500	TaxTecnologia	xml simples out	200	TaxTecnologia	MontarXML@1506500
+1506500	TaxTecnologia	xml simples nov	200	TaxTecnologia	MontarXML@1506500
+1506500	TaxTecnologia	xml nao optante nov	200	TaxTecnologia	MontarXML@1506500
+1506500	TaxTecnologia	xml mei nov	200	TaxTecnologia	MontarXML@1506500
+1506500	TaxTecnologia	transmissao simples out	200		Transmitir@1506500+cred
+1506500	TaxTecnologia	transmissao simples nov	200		Transmitir@1506500+cred
+1506500	TaxTecnologia	transmissao nao optante nov	200		Transmitir@1506500+cred
+1506500	TaxTecnologia	cancelamento prefeitura	200		Cancelar@1506500+cred
+1506500	TaxTecnologia	cancelamento nacional	200		Cancelar@1506500+cred
+1506500	TaxTecnologia	substituicao nova out antiga prefeitura	200		SubstituirNFSe@1506500+cred
+1506500	TaxTecnologia	substituicao nova out antiga nacional	200		SubstituirNFSe@1506500+cred
+1506500	TaxTecnologia	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@1506500+cred
+1506500	TaxTecnologia	consulta prefeitura	200		Consultar@1506500+cred
+1506500	TaxTecnologia	consulta nacional	200		Consultar@1506500+cred
+1506500	TaxTecnologia	consulta dps	200		ConsultarDPSPorChave@1506500+cred
+1506500	TaxTecnologia	consulta numero	200		ConsultarPorNumero@1506500+cred
+1506500	TaxTecnologia	distribuicao	200		ConsultarDFe@1506500+cred
+1506500	TaxTecnologia	pdf chave prefeitura	200		ObterPDF@1506500+cred
+1506500	TaxTecnologia	pdf chave nacional	200		ObterPDF@1506500+cred
+1506500	TaxTecnologia	pdf xml prefeitura	200		RenderizarPDF@1506500
+1506500	TaxTecnologia	pdf xml nacional	200		RenderizarPDF@1506500
+1600709	MegaSoft	xml simples out	200	MegaSoft	MontarXML@1600709
+1600709	MegaSoft	xml simples nov	200	MegaSoft	MontarXML@1600709
+1600709	MegaSoft	xml nao optante nov	200	MegaSoft	MontarXML@1600709
+1600709	MegaSoft	xml mei nov	200	MegaSoft	MontarXML@1600709
+1600709	MegaSoft	transmissao simples out	200		Transmitir@1600709+cred
+1600709	MegaSoft	transmissao simples nov	200		Transmitir@1600709+cred
+1600709	MegaSoft	transmissao nao optante nov	200		Transmitir@1600709+cred
+1600709	MegaSoft	cancelamento prefeitura	200		Cancelar@1600709+cred
+1600709	MegaSoft	cancelamento nacional	200		Cancelar@1600709+cred
+1600709	MegaSoft	substituicao nova out antiga prefeitura	200		SubstituirNFSe@1600709+cred
+1600709	MegaSoft	substituicao nova out antiga nacional	200		SubstituirNFSe@1600709+cred
+1600709	MegaSoft	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@1600709+cred
+1600709	MegaSoft	consulta prefeitura	200		Consultar@1600709+cred
+1600709	MegaSoft	consulta nacional	200		Consultar@1600709+cred
+1600709	MegaSoft	consulta dps	200		ConsultarDPSPorChave@1600709+cred
+1600709	MegaSoft	consulta numero	200		ConsultarPorNumero@1600709+cred
+1600709	MegaSoft	distribuicao	200		ConsultarDFe@1600709+cred
+1600709	MegaSoft	pdf chave prefeitura	200		ObterPDF@1600709+cred
+1600709	MegaSoft	pdf chave nacional	200		ObterPDF@1600709+cred
+1600709	MegaSoft	pdf xml prefeitura	200		RenderizarPDF@1600709
+1600709	MegaSoft	pdf xml nacional	200		RenderizarPDF@1600709
+1703867	Prodata	xml simples out	200	Prodata	MontarXML@1703867
+1703867	Prodata	xml simples nov	200	Prodata	MontarXML@1703867
+1703867	Prodata	xml nao optante nov	200	Prodata	MontarXML@1703867
+1703867	Prodata	xml mei nov	200	Prodata	MontarXML@1703867
+1703867	Prodata	transmissao simples out	200		Transmitir@1703867+cred
+1703867	Prodata	transmissao simples nov	200		Transmitir@1703867+cred
+1703867	Prodata	transmissao nao optante nov	200		Transmitir@1703867+cred
+1703867	Prodata	cancelamento prefeitura	200		Cancelar@1703867+cred
+1703867	Prodata	cancelamento nacional	200		Cancelar@1703867+cred
+1703867	Prodata	substituicao nova out antiga prefeitura	200		SubstituirNFSe@1703867+cred
+1703867	Prodata	substituicao nova out antiga nacional	200		SubstituirNFSe@1703867+cred
+1703867	Prodata	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@1703867+cred
+1703867	Prodata	consulta prefeitura	200		Consultar@1703867+cred
+1703867	Prodata	consulta nacional	200		Consultar@1703867+cred
+1703867	Prodata	consulta dps	200		ConsultarDPSPorChave@1703867+cred
+1703867	Prodata	consulta numero	200		ConsultarPorNumero@1703867+cred
+1703867	Prodata	distribuicao	200		ConsultarDFe@1703867+cred
+1703867	Prodata	pdf chave prefeitura	200		ObterPDF@1703867+cred
+1703867	Prodata	pdf chave nacional	200		ObterPDF@1703867+cred
+1703867	Prodata	pdf xml prefeitura	200		RenderizarPDF@1703867
+1703867	Prodata	pdf xml nacional	200		RenderizarPDF@1703867
+1709807	Centi	xml simples out	200	Centi	MontarXML@1709807
+1709807	Centi	xml simples nov	200	Centi	MontarXML@1709807
+1709807	Centi	xml nao optante nov	200	Centi	MontarXML@1709807
+1709807	Centi	xml mei nov	200	Centi	MontarXML@1709807
+1709807	Centi	transmissao simples out	200		Transmitir@1709807+cred
+1709807	Centi	transmissao simples nov	200		Transmitir@1709807+cred
+1709807	Centi	transmissao nao optante nov	200		Transmitir@1709807+cred
+1709807	Centi	cancelamento prefeitura	200		Cancelar@1709807+cred
+1709807	Centi	cancelamento nacional	200		Cancelar@1709807+cred
+1709807	Centi	substituicao nova out antiga prefeitura	200		SubstituirNFSe@1709807+cred
+1709807	Centi	substituicao nova out antiga nacional	200		SubstituirNFSe@1709807+cred
+1709807	Centi	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@1709807+cred
+1709807	Centi	consulta prefeitura	200		Consultar@1709807+cred
+1709807	Centi	consulta nacional	200		Consultar@1709807+cred
+1709807	Centi	consulta dps	200		ConsultarDPSPorChave@1709807+cred
+1709807	Centi	consulta numero	200		ConsultarPorNumero@1709807+cred
+1709807	Centi	distribuicao	200		ConsultarDFe@1709807+cred
+1709807	Centi	pdf chave prefeitura	200		ObterPDF@1709807+cred
+1709807	Centi	pdf chave nacional	200		ObterPDF@1709807+cred
+1709807	Centi	pdf xml prefeitura	200		RenderizarPDF@1709807
+1709807	Centi	pdf xml nacional	200		RenderizarPDF@1709807
+2100055	SpeedGov	xml simples out	200	SpeedGov	MontarXML@2100055
+2100055	SpeedGov	xml simples nov	200	SpeedGov	MontarXML@2100055
+2100055	SpeedGov	xml nao optante nov	200	SpeedGov	MontarXML@2100055
+2100055	SpeedGov	xml mei nov	200	SpeedGov	MontarXML@2100055
+2100055	SpeedGov	transmissao simples out	200		Transmitir@2100055+cred
+2100055	SpeedGov	transmissao simples nov	200		Transmitir@2100055+cred
+2100055	SpeedGov	transmissao nao optante nov	200		Transmitir@2100055+cred
+2100055	SpeedGov	cancelamento prefeitura	200		Cancelar@2100055+cred
+2100055	SpeedGov	cancelamento nacional	200		Cancelar@2100055+cred
+2100055	SpeedGov	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2100055+cred
+2100055	SpeedGov	substituicao nova out antiga nacional	200		SubstituirNFSe@2100055+cred
+2100055	SpeedGov	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2100055+cred
+2100055	SpeedGov	consulta prefeitura	200		Consultar@2100055+cred
+2100055	SpeedGov	consulta nacional	200		Consultar@2100055+cred
+2100055	SpeedGov	consulta dps	200		ConsultarDPSPorChave@2100055+cred
+2100055	SpeedGov	consulta numero	200		ConsultarPorNumero@2100055+cred
+2100055	SpeedGov	distribuicao	200		ConsultarDFe@2100055+cred
+2100055	SpeedGov	pdf chave prefeitura	200		ObterPDF@2100055+cred
+2100055	SpeedGov	pdf chave nacional	200		ObterPDF@2100055+cred
+2100055	SpeedGov	pdf xml prefeitura	200		RenderizarPDF@2100055
+2100055	SpeedGov	pdf xml nacional	200		RenderizarPDF@2100055
+2101202	SigCorp	xml simples out	200	SigCorp	MontarXML@2101202
+2101202	SigCorp	xml simples nov	200	SigCorp	MontarXML@2101202
+2101202	SigCorp	xml nao optante nov	200	SigCorp	MontarXML@2101202
+2101202	SigCorp	xml mei nov	200	SigCorp	MontarXML@2101202
+2101202	SigCorp	transmissao simples out	200		Transmitir@2101202+cred
+2101202	SigCorp	transmissao simples nov	200		Transmitir@2101202+cred
+2101202	SigCorp	transmissao nao optante nov	200		Transmitir@2101202+cred
+2101202	SigCorp	cancelamento prefeitura	200		Cancelar@2101202+cred
+2101202	SigCorp	cancelamento nacional	200		Cancelar@2101202+cred
+2101202	SigCorp	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2101202+cred
+2101202	SigCorp	substituicao nova out antiga nacional	200		SubstituirNFSe@2101202+cred
+2101202	SigCorp	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2101202+cred
+2101202	SigCorp	consulta prefeitura	200		Consultar@2101202+cred
+2101202	SigCorp	consulta nacional	200		Consultar@2101202+cred
+2101202	SigCorp	consulta dps	200		ConsultarDPSPorChave@2101202+cred
+2101202	SigCorp	consulta numero	200		ConsultarPorNumero@2101202+cred
+2101202	SigCorp	distribuicao	200		ConsultarDFe@2101202+cred
+2101202	SigCorp	pdf chave prefeitura	200		ObterPDF@2101202+cred
+2101202	SigCorp	pdf chave nacional	200		ObterPDF@2101202+cred
+2101202	SigCorp	pdf xml prefeitura	200		RenderizarPDF@2101202
+2101202	SigCorp	pdf xml nacional	200		RenderizarPDF@2101202
+2104099	Fiorilli	xml simples out	200	Fiorilli	MontarXML@2104099
+2104099	Fiorilli	xml simples nov	200	Fiorilli	MontarXML@2104099
+2104099	Fiorilli	xml nao optante nov	200	Fiorilli	MontarXML@2104099
+2104099	Fiorilli	xml mei nov	200	Fiorilli	MontarXML@2104099
+2104099	Fiorilli	transmissao simples out	200		Transmitir@2104099+cred
+2104099	Fiorilli	transmissao simples nov	200		Transmitir@2104099+cred
+2104099	Fiorilli	transmissao nao optante nov	200		Transmitir@2104099+cred
+2104099	Fiorilli	cancelamento prefeitura	200		EnviarEvento@2104099+cred
+2104099	Fiorilli	cancelamento nacional	200		EnviarEvento@2104099+cred
+2104099	Fiorilli	substituicao nova out antiga prefeitura	200		Emitir@2104099+cred
+2104099	Fiorilli	substituicao nova out antiga nacional	200		Emitir@2104099+cred
+2104099	Fiorilli	substituicao nova nov antiga prefeitura	200		Emitir@2104099+cred
+2104099	Fiorilli	consulta prefeitura	200		Consultar@2104099+cred
+2104099	Fiorilli	consulta nacional	200		Consultar@2104099+cred
+2104099	Fiorilli	consulta dps	200		ConsultarDPSPorChave@2104099+cred
+2104099	Fiorilli	consulta numero	200		ConsultarPorNumero@2104099+cred
+2104099	Fiorilli	distribuicao	200		ConsultarDFe@2104099+cred
+2104099	Fiorilli	pdf chave prefeitura	200		ObterPDF@2104099+cred
+2104099	Fiorilli	pdf chave nacional	200		ObterPDF@2104099+cred
+2104099	Fiorilli	pdf xml prefeitura	200		RenderizarPDF@2104099
+2104099	Fiorilli	pdf xml nacional	200		RenderizarPDF@2104099
+2107407	Tributus	xml simples out	200	Tributus	MontarXML@2107407
+2107407	Tributus	xml simples nov	200	Tributus	MontarXML@2107407
+2107407	Tributus	xml nao optante nov	200	Tributus	MontarXML@2107407
+2107407	Tributus	xml mei nov	200	Tributus	MontarXML@2107407
+2107407	Tributus	transmissao simples out	200		Transmitir@2107407+cred
+2107407	Tributus	transmissao simples nov	200		Transmitir@2107407+cred
+2107407	Tributus	transmissao nao optante nov	200		Transmitir@2107407+cred
+2107407	Tributus	cancelamento prefeitura	200		Cancelar@2107407+cred
+2107407	Tributus	cancelamento nacional	200		Cancelar@2107407+cred
+2107407	Tributus	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2107407+cred
+2107407	Tributus	substituicao nova out antiga nacional	200		SubstituirNFSe@2107407+cred
+2107407	Tributus	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2107407+cred
+2107407	Tributus	consulta prefeitura	200		Consultar@2107407+cred
+2107407	Tributus	consulta nacional	200		Consultar@2107407+cred
+2107407	Tributus	consulta dps	200		ConsultarDPSPorChave@2107407+cred
+2107407	Tributus	consulta numero	200		ConsultarPorNumero@2107407+cred
+2107407	Tributus	distribuicao	200		ConsultarDFe@2107407+cred
+2107407	Tributus	pdf chave prefeitura	200		ObterPDF@2107407+cred
+2107407	Tributus	pdf chave nacional	200		ObterPDF@2107407+cred
+2107407	Tributus	pdf xml prefeitura	200		RenderizarPDF@2107407
+2107407	Tributus	pdf xml nacional	200		RenderizarPDF@2107407
+2111573	XTRTecnologia	xml simples out	200	XTRTecnologia	MontarXML@2111573
+2111573	XTRTecnologia	xml simples nov	200	XTRTecnologia	MontarXML@2111573
+2111573	XTRTecnologia	xml nao optante nov	200	XTRTecnologia	MontarXML@2111573
+2111573	XTRTecnologia	xml mei nov	200	XTRTecnologia	MontarXML@2111573
+2111573	XTRTecnologia	transmissao simples out	200		Transmitir@2111573+cred
+2111573	XTRTecnologia	transmissao simples nov	200		Transmitir@2111573+cred
+2111573	XTRTecnologia	transmissao nao optante nov	200		Transmitir@2111573+cred
+2111573	XTRTecnologia	cancelamento prefeitura	200		Cancelar@2111573+cred
+2111573	XTRTecnologia	cancelamento nacional	200		Cancelar@2111573+cred
+2111573	XTRTecnologia	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2111573+cred
+2111573	XTRTecnologia	substituicao nova out antiga nacional	200		SubstituirNFSe@2111573+cred
+2111573	XTRTecnologia	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2111573+cred
+2111573	XTRTecnologia	consulta prefeitura	200		Consultar@2111573+cred
+2111573	XTRTecnologia	consulta nacional	200		Consultar@2111573+cred
+2111573	XTRTecnologia	consulta dps	200		ConsultarDPSPorChave@2111573+cred
+2111573	XTRTecnologia	consulta numero	200		ConsultarPorNumero@2111573+cred
+2111573	XTRTecnologia	distribuicao	200		ConsultarDFe@2111573+cred
+2111573	XTRTecnologia	pdf chave prefeitura	200		ObterPDF@2111573+cred
+2111573	XTRTecnologia	pdf chave nacional	200		ObterPDF@2111573+cred
+2111573	XTRTecnologia	pdf xml prefeitura	200		RenderizarPDF@2111573
+2111573	XTRTecnologia	pdf xml nacional	200		RenderizarPDF@2111573
+2200400	Fisco	xml simples out	200	Fisco	MontarXML@2200400
+2200400	Fisco	xml simples nov	200	Fisco	MontarXML@2200400
+2200400	Fisco	xml nao optante nov	200	Fisco	MontarXML@2200400
+2200400	Fisco	xml mei nov	200	Fisco	MontarXML@2200400
+2200400	Fisco	transmissao simples out	200		Transmitir@2200400+cred
+2200400	Fisco	transmissao simples nov	200		Transmitir@2200400+cred
+2200400	Fisco	transmissao nao optante nov	200		Transmitir@2200400+cred
+2200400	Fisco	cancelamento prefeitura	200		Cancelar@2200400+cred
+2200400	Fisco	cancelamento nacional	200		Cancelar@2200400+cred
+2200400	Fisco	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2200400+cred
+2200400	Fisco	substituicao nova out antiga nacional	200		SubstituirNFSe@2200400+cred
+2200400	Fisco	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2200400+cred
+2200400	Fisco	consulta prefeitura	200		Consultar@2200400+cred
+2200400	Fisco	consulta nacional	200		Consultar@2200400+cred
+2200400	Fisco	consulta dps	200		ConsultarDPSPorChave@2200400+cred
+2200400	Fisco	consulta numero	200		ConsultarPorNumero@2200400+cred
+2200400	Fisco	distribuicao	200		ConsultarDFe@2200400+cred
+2200400	Fisco	pdf chave prefeitura	200		ObterPDF@2200400+cred
+2200400	Fisco	pdf chave nacional	200		ObterPDF@2200400+cred
+2200400	Fisco	pdf xml prefeitura	200		RenderizarPDF@2200400
+2200400	Fisco	pdf xml nacional	200		RenderizarPDF@2200400
+2304400	ISSFortaleza	xml simples out	200	ISSFortaleza	MontarXML@2304400
+2304400	ISSFortaleza	xml simples nov	200	ISSFortaleza	MontarXML@2304400
+2304400	ISSFortaleza	xml nao optante nov	200	ISSFortaleza	MontarXML@2304400
+2304400	ISSFortaleza	xml mei nov	200	ISSFortaleza	MontarXML@2304400
+2304400	ISSFortaleza	transmissao simples out	200		Transmitir@2304400+cred
+2304400	ISSFortaleza	transmissao simples nov	200		Transmitir@2304400+cred
+2304400	ISSFortaleza	transmissao nao optante nov	200		Transmitir@2304400+cred
+2304400	ISSFortaleza	cancelamento prefeitura	200		Cancelar@2304400+cred
+2304400	ISSFortaleza	cancelamento nacional	200		Cancelar@2304400+cred
+2304400	ISSFortaleza	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2304400+cred
+2304400	ISSFortaleza	substituicao nova out antiga nacional	200		SubstituirNFSe@2304400+cred
+2304400	ISSFortaleza	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2304400+cred
+2304400	ISSFortaleza	consulta prefeitura	200		Consultar@2304400+cred
+2304400	ISSFortaleza	consulta nacional	200		Consultar@2304400+cred
+2304400	ISSFortaleza	consulta dps	200		ConsultarDPSPorChave@2304400+cred
+2304400	ISSFortaleza	consulta numero	200		ConsultarPorNumero@2304400+cred
+2304400	ISSFortaleza	distribuicao	200		ConsultarDFe@2304400+cred
+2304400	ISSFortaleza	pdf chave prefeitura	200		ObterPDF@2304400+cred
+2304400	ISSFortaleza	pdf chave nacional	200		ObterPDF@2304400+cred
+2304400	ISSFortaleza	pdf xml prefeitura	200		RenderizarPDF@2304400
+2304400	ISSFortaleza	pdf xml nacional	200		RenderizarPDF@2304400
+2305233	SpeedGov	xml simples out	200	SpeedGov	MontarXML@2305233
+2305233	SpeedGov	xml simples nov	200	SpeedGov	MontarXML@2305233
+2305233	SpeedGov	xml nao optante nov	200	SpeedGov	MontarXML@2305233
+2305233	SpeedGov	xml mei nov	200	SpeedGov	MontarXML@2305233
+2305233	SpeedGov	transmissao simples out	200		Transmitir@2305233+cred
+2305233	SpeedGov	transmissao simples nov	200		Transmitir@2305233+cred
+2305233	SpeedGov	transmissao nao optante nov	200		Transmitir@2305233+cred
+2305233	SpeedGov	cancelamento prefeitura	200		EnviarEvento@2305233+cred
+2305233	SpeedGov	cancelamento nacional	200		EnviarEvento@2305233+cred
+2305233	SpeedGov	substituicao nova out antiga prefeitura	200		Emitir@2305233+cred
+2305233	SpeedGov	substituicao nova out antiga nacional	200		Emitir@2305233+cred
+2305233	SpeedGov	substituicao nova nov antiga prefeitura	200		Emitir@2305233+cred
+2305233	SpeedGov	consulta prefeitura	200		Consultar@2305233+cred
+2305233	SpeedGov	consulta nacional	200		Consultar@2305233+cred
+2305233	SpeedGov	consulta dps	200		ConsultarDPSPorChave@2305233+cred
+2305233	SpeedGov	consulta numero	200		ConsultarPorNumero@2305233+cred
+2305233	SpeedGov	distribuicao	200		ConsultarDFe@2305233+cred
+2305233	SpeedGov	pdf chave prefeitura	200		ObterPDF@2305233+cred
+2305233	SpeedGov	pdf chave nacional	200		ObterPDF@2305233+cred
+2305233	SpeedGov	pdf xml prefeitura	200		RenderizarPDF@2305233
+2305233	SpeedGov	pdf xml nacional	200		RenderizarPDF@2305233
+2313955	SSInformatica	xml simples out	200	SSInformatica	MontarXML@2313955
+2313955	SSInformatica	xml simples nov	200	SSInformatica	MontarXML@2313955
+2313955	SSInformatica	xml nao optante nov	200	SSInformatica	MontarXML@2313955
+2313955	SSInformatica	xml mei nov	200	SSInformatica	MontarXML@2313955
+2313955	SSInformatica	transmissao simples out	200		Transmitir@2313955+cred
+2313955	SSInformatica	transmissao simples nov	200		Transmitir@2313955+cred
+2313955	SSInformatica	transmissao nao optante nov	200		Transmitir@2313955+cred
+2313955	SSInformatica	cancelamento prefeitura	200		Cancelar@2313955+cred
+2313955	SSInformatica	cancelamento nacional	200		Cancelar@2313955+cred
+2313955	SSInformatica	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2313955+cred
+2313955	SSInformatica	substituicao nova out antiga nacional	200		SubstituirNFSe@2313955+cred
+2313955	SSInformatica	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2313955+cred
+2313955	SSInformatica	consulta prefeitura	200		Consultar@2313955+cred
+2313955	SSInformatica	consulta nacional	200		Consultar@2313955+cred
+2313955	SSInformatica	consulta dps	200		ConsultarDPSPorChave@2313955+cred
+2313955	SSInformatica	consulta numero	200		ConsultarPorNumero@2313955+cred
+2313955	SSInformatica	distribuicao	200		ConsultarDFe@2313955+cred
+2313955	SSInformatica	pdf chave prefeitura	200		ObterPDF@2313955+cred
+2313955	SSInformatica	pdf chave nacional	200		ObterPDF@2313955+cred
+2313955	SSInformatica	pdf xml prefeitura	200		RenderizarPDF@2313955
+2313955	SSInformatica	pdf xml nacional	200		RenderizarPDF@2313955
+2400208	Publica	xml simples out	200	Publica	MontarXML@2400208
+2400208	Publica	xml simples nov	200	Publica	MontarXML@2400208
+2400208	Publica	xml nao optante nov	200	Publica	MontarXML@2400208
+2400208	Publica	xml mei nov	200	Publica	MontarXML@2400208
+2400208	Publica	transmissao simples out	200		Transmitir@2400208+cred
+2400208	Publica	transmissao simples nov	200		Transmitir@2400208+cred
+2400208	Publica	transmissao nao optante nov	200		Transmitir@2400208+cred
+2400208	Publica	cancelamento prefeitura	200		Cancelar@2400208+cred
+2400208	Publica	cancelamento nacional	200		Cancelar@2400208+cred
+2400208	Publica	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2400208+cred
+2400208	Publica	substituicao nova out antiga nacional	200		SubstituirNFSe@2400208+cred
+2400208	Publica	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2400208+cred
+2400208	Publica	consulta prefeitura	200		Consultar@2400208+cred
+2400208	Publica	consulta nacional	200		Consultar@2400208+cred
+2400208	Publica	consulta dps	200		ConsultarDPSPorChave@2400208+cred
+2400208	Publica	consulta numero	200		ConsultarPorNumero@2400208+cred
+2400208	Publica	distribuicao	200		ConsultarDFe@2400208+cred
+2400208	Publica	pdf chave prefeitura	200		ObterPDF@2400208+cred
+2400208	Publica	pdf chave nacional	200		ObterPDF@2400208+cred
+2400208	Publica	pdf xml prefeitura	200		RenderizarPDF@2400208
+2400208	Publica	pdf xml nacional	200		RenderizarPDF@2400208
+2402006	Tinus	xml simples out	200	Tinus	MontarXML@2402006
+2402006	Tinus	xml simples nov	200	Tinus	MontarXML@2402006
+2402006	Tinus	xml nao optante nov	200	Tinus	MontarXML@2402006
+2402006	Tinus	xml mei nov	200	Tinus	MontarXML@2402006
+2402006	Tinus	transmissao simples out	200		Transmitir@2402006+cred
+2402006	Tinus	transmissao simples nov	200		Transmitir@2402006+cred
+2402006	Tinus	transmissao nao optante nov	200		Transmitir@2402006+cred
+2402006	Tinus	cancelamento prefeitura	200		Cancelar@2402006+cred
+2402006	Tinus	cancelamento nacional	200		Cancelar@2402006+cred
+2402006	Tinus	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2402006+cred
+2402006	Tinus	substituicao nova out antiga nacional	200		SubstituirNFSe@2402006+cred
+2402006	Tinus	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2402006+cred
+2402006	Tinus	consulta prefeitura	200		Consultar@2402006+cred
+2402006	Tinus	consulta nacional	200		Consultar@2402006+cred
+2402006	Tinus	consulta dps	200		ConsultarDPSPorChave@2402006+cred
+2402006	Tinus	consulta numero	200		ConsultarPorNumero@2402006+cred
+2402006	Tinus	distribuicao	200		ConsultarDFe@2402006+cred
+2402006	Tinus	pdf chave prefeitura	200		ObterPDF@2402006+cred
+2402006	Tinus	pdf chave nacional	200		ObterPDF@2402006+cred
+2402006	Tinus	pdf xml prefeitura	200		RenderizarPDF@2402006
+2402006	Tinus	pdf xml nacional	200		RenderizarPDF@2402006
+2404853	Tinus	xml simples out	200	Tinus	MontarXML@2404853
+2404853	Tinus	xml simples nov	200	Tinus	MontarXML@2404853
+2404853	Tinus	xml nao optante nov	200	Tinus	MontarXML@2404853
+2404853	Tinus	xml mei nov	200	Tinus	MontarXML@2404853
+2404853	Tinus	transmissao simples out	200		Transmitir@2404853+cred
+2404853	Tinus	transmissao simples nov	200		Transmitir@2404853+cred
+2404853	Tinus	transmissao nao optante nov	200		Transmitir@2404853+cred
+2404853	Tinus	cancelamento prefeitura	200		Cancelar@2404853+cred
+2404853	Tinus	cancelamento nacional	200		Cancelar@2404853+cred
+2404853	Tinus	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2404853+cred
+2404853	Tinus	substituicao nova out antiga nacional	200		SubstituirNFSe@2404853+cred
+2404853	Tinus	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2404853+cred
+2404853	Tinus	consulta prefeitura	200		Consultar@2404853+cred
+2404853	Tinus	consulta nacional	200		Consultar@2404853+cred
+2404853	Tinus	consulta dps	200		ConsultarDPSPorChave@2404853+cred
+2404853	Tinus	consulta numero	200		ConsultarPorNumero@2404853+cred
+2404853	Tinus	distribuicao	200		ConsultarDFe@2404853+cred
+2404853	Tinus	pdf chave prefeitura	200		ObterPDF@2404853+cred
+2404853	Tinus	pdf chave nacional	200		ObterPDF@2404853+cred
+2404853	Tinus	pdf xml prefeitura	200		RenderizarPDF@2404853
+2404853	Tinus	pdf xml nacional	200		RenderizarPDF@2404853
+2500106	Elmar	xml simples out	200	Elmar	MontarXML@2500106
+2500106	Elmar	xml simples nov	200	Elmar	MontarXML@2500106
+2500106	Elmar	xml nao optante nov	200	Elmar	MontarXML@2500106
+2500106	Elmar	xml mei nov	200	Elmar	MontarXML@2500106
+2500106	Elmar	transmissao simples out	200		Transmitir@2500106+cred
+2500106	Elmar	transmissao simples nov	200		Transmitir@2500106+cred
+2500106	Elmar	transmissao nao optante nov	200		Transmitir@2500106+cred
+2500106	Elmar	cancelamento prefeitura	200		Cancelar@2500106+cred
+2500106	Elmar	cancelamento nacional	200		Cancelar@2500106+cred
+2500106	Elmar	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2500106+cred
+2500106	Elmar	substituicao nova out antiga nacional	200		SubstituirNFSe@2500106+cred
+2500106	Elmar	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2500106+cred
+2500106	Elmar	consulta prefeitura	200		Consultar@2500106+cred
+2500106	Elmar	consulta nacional	200		Consultar@2500106+cred
+2500106	Elmar	consulta dps	200		ConsultarDPSPorChave@2500106+cred
+2500106	Elmar	consulta numero	200		ConsultarPorNumero@2500106+cred
+2500106	Elmar	distribuicao	200		ConsultarDFe@2500106+cred
+2500106	Elmar	pdf chave prefeitura	200		ObterPDF@2500106+cred
+2500106	Elmar	pdf chave nacional	200		ObterPDF@2500106+cred
+2500106	Elmar	pdf xml prefeitura	200		RenderizarPDF@2500106
+2500106	Elmar	pdf xml nacional	200		RenderizarPDF@2500106
+2500403	PublicSoft	xml simples out	200	PublicSoft	MontarXML@2500403
+2500403	PublicSoft	xml simples nov	200	PublicSoft	MontarXML@2500403
+2500403	PublicSoft	xml nao optante nov	200	PublicSoft	MontarXML@2500403
+2500403	PublicSoft	xml mei nov	200	PublicSoft	MontarXML@2500403
+2500403	PublicSoft	transmissao simples out	200		Transmitir@2500403+cred
+2500403	PublicSoft	transmissao simples nov	200		Transmitir@2500403+cred
+2500403	PublicSoft	transmissao nao optante nov	200		Transmitir@2500403+cred
+2500403	PublicSoft	cancelamento prefeitura	200		Cancelar@2500403+cred
+2500403	PublicSoft	cancelamento nacional	200		Cancelar@2500403+cred
+2500403	PublicSoft	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2500403+cred
+2500403	PublicSoft	substituicao nova out antiga nacional	200		SubstituirNFSe@2500403+cred
+2500403	PublicSoft	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2500403+cred
+2500403	PublicSoft	consulta prefeitura	200		Consultar@2500403+cred
+2500403	PublicSoft	consulta nacional	200		Consultar@2500403+cred
+2500403	PublicSoft	consulta dps	200		ConsultarDPSPorChave@2500403+cred
+2500403	PublicSoft	consulta numero	200		ConsultarPorNumero@2500403+cred
+2500403	PublicSoft	distribuicao	200		ConsultarDFe@2500403+cred
+2500403	PublicSoft	pdf chave prefeitura	200		ObterPDF@2500403+cred
+2500403	PublicSoft	pdf chave nacional	200		ObterPDF@2500403+cred
+2500403	PublicSoft	pdf xml prefeitura	200		RenderizarPDF@2500403
+2500403	PublicSoft	pdf xml nacional	200		RenderizarPDF@2500403
+2513901	NFOnline	xml simples out	200	NFOnline	MontarXML@2513901
+2513901	NFOnline	xml simples nov	200	NFOnline	MontarXML@2513901
+2513901	NFOnline	xml nao optante nov	200	NFOnline	MontarXML@2513901
+2513901	NFOnline	xml mei nov	200	NFOnline	MontarXML@2513901
+2513901	NFOnline	transmissao simples out	200		Transmitir@2513901+cred
+2513901	NFOnline	transmissao simples nov	200		Transmitir@2513901+cred
+2513901	NFOnline	transmissao nao optante nov	200		Transmitir@2513901+cred
+2513901	NFOnline	cancelamento prefeitura	200		Cancelar@2513901+cred
+2513901	NFOnline	cancelamento nacional	200		Cancelar@2513901+cred
+2513901	NFOnline	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2513901+cred
+2513901	NFOnline	substituicao nova out antiga nacional	200		SubstituirNFSe@2513901+cred
+2513901	NFOnline	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2513901+cred
+2513901	NFOnline	consulta prefeitura	200		Consultar@2513901+cred
+2513901	NFOnline	consulta nacional	200		Consultar@2513901+cred
+2513901	NFOnline	consulta dps	200		ConsultarDPSPorChave@2513901+cred
+2513901	NFOnline	consulta numero	200		ConsultarPorNumero@2513901+cred
+2513901	NFOnline	distribuicao	200		ConsultarDFe@2513901+cred
+2513901	NFOnline	pdf chave prefeitura	200		ObterPDF@2513901+cred
+2513901	NFOnline	pdf chave nacional	200		ObterPDF@2513901+cred
+2513901	NFOnline	pdf xml prefeitura	200		RenderizarPDF@2513901
+2513901	NFOnline	pdf xml nacional	200		RenderizarPDF@2513901
+2604007	HM2	xml simples out	200	HM2	MontarXML@2604007
+2604007	HM2	xml simples nov	200	HM2	MontarXML@2604007
+2604007	HM2	xml nao optante nov	200	HM2	MontarXML@2604007
+2604007	HM2	xml mei nov	200	HM2	MontarXML@2604007
+2604007	HM2	transmissao simples out	200		Transmitir@2604007+cred
+2604007	HM2	transmissao simples nov	200		Transmitir@2604007+cred
+2604007	HM2	transmissao nao optante nov	200		Transmitir@2604007+cred
+2604007	HM2	cancelamento prefeitura	200		Cancelar@2604007+cred
+2604007	HM2	cancelamento nacional	200		Cancelar@2604007+cred
+2604007	HM2	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2604007+cred
+2604007	HM2	substituicao nova out antiga nacional	200		SubstituirNFSe@2604007+cred
+2604007	HM2	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2604007+cred
+2604007	HM2	consulta prefeitura	200		Consultar@2604007+cred
+2604007	HM2	consulta nacional	200		Consultar@2604007+cred
+2604007	HM2	consulta dps	200		ConsultarDPSPorChave@2604007+cred
+2604007	HM2	consulta numero	200		ConsultarPorNumero@2604007+cred
+2604007	HM2	distribuicao	200		ConsultarDFe@2604007+cred
+2604007	HM2	pdf chave prefeitura	200		ObterPDF@2604007+cred
+2604007	HM2	pdf chave nacional	200		ObterPDF@2604007+cred
+2604007	HM2	pdf xml prefeitura	200		RenderizarPDF@2604007
+2604007	HM2	pdf xml nacional	200		RenderizarPDF@2604007
+2604106	Giss	xml simples out	200	Giss	MontarXML@2604106
+2604106	Giss	xml simples nov	200	Giss	MontarXML@2604106
+2604106	Giss	xml nao optante nov	200	Giss	MontarXML@2604106
+2604106	Giss	xml mei nov	200	Giss	MontarXML@2604106
+2604106	Giss	transmissao simples out	200		Transmitir@2604106+cred
+2604106	Giss	transmissao simples nov	200		Transmitir@2604106+cred
+2604106	Giss	transmissao nao optante nov	200		Transmitir@2604106+cred
+2604106	Giss	cancelamento prefeitura	200		Cancelar@2604106+cred
+2604106	Giss	cancelamento nacional	200		Cancelar@2604106+cred
+2604106	Giss	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2604106+cred
+2604106	Giss	substituicao nova out antiga nacional	200		SubstituirNFSe@2604106+cred
+2604106	Giss	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2604106+cred
+2604106	Giss	consulta prefeitura	200		Consultar@2604106+cred
+2604106	Giss	consulta nacional	200		Consultar@2604106+cred
+2604106	Giss	consulta dps	200		ConsultarDPSPorChave@2604106+cred
+2604106	Giss	consulta numero	200		ConsultarPorNumero@2604106+cred
+2604106	Giss	distribuicao	200		ConsultarDFe@2604106+cred
+2604106	Giss	pdf chave prefeitura	200		ObterPDF@2604106+cred
+2604106	Giss	pdf chave nacional	200		ObterPDF@2604106+cred
+2604106	Giss	pdf xml prefeitura	200		RenderizarPDF@2604106
+2604106	Giss	pdf xml nacional	200		RenderizarPDF@2604106
+2705200	Kalana	xml simples out	200	Kalana	MontarXML@2705200
+2705200	Kalana	xml simples nov	200	Kalana	MontarXML@2705200
+2705200	Kalana	xml nao optante nov	200	Kalana	MontarXML@2705200
+2705200	Kalana	xml mei nov	200	Kalana	MontarXML@2705200
+2705200	Kalana	transmissao simples out	200		Transmitir@2705200+cred
+2705200	Kalana	transmissao simples nov	200		Transmitir@2705200+cred
+2705200	Kalana	transmissao nao optante nov	200		Transmitir@2705200+cred
+2705200	Kalana	cancelamento prefeitura	200		Cancelar@2705200+cred
+2705200	Kalana	cancelamento nacional	200		Cancelar@2705200+cred
+2705200	Kalana	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2705200+cred
+2705200	Kalana	substituicao nova out antiga nacional	200		SubstituirNFSe@2705200+cred
+2705200	Kalana	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2705200+cred
+2705200	Kalana	consulta prefeitura	200		Consultar@2705200+cred
+2705200	Kalana	consulta nacional	200		Consultar@2705200+cred
+2705200	Kalana	consulta dps	200		ConsultarDPSPorChave@2705200+cred
+2705200	Kalana	consulta numero	200		ConsultarPorNumero@2705200+cred
+2705200	Kalana	distribuicao	200		ConsultarDFe@2705200+cred
+2705200	Kalana	pdf chave prefeitura	200		ObterPDF@2705200+cred
+2705200	Kalana	pdf chave nacional	200		ObterPDF@2705200+cred
+2705200	Kalana	pdf xml prefeitura	200		RenderizarPDF@2705200
+2705200	Kalana	pdf xml nacional	200		RenderizarPDF@2705200
+2708006	DBSeller	xml simples out	200	DBSeller	MontarXML@2708006
+2708006	DBSeller	xml simples nov	200	DBSeller	MontarXML@2708006
+2708006	DBSeller	xml nao optante nov	200	DBSeller	MontarXML@2708006
+2708006	DBSeller	xml mei nov	200	DBSeller	MontarXML@2708006
+2708006	DBSeller	transmissao simples out	200		Transmitir@2708006+cred
+2708006	DBSeller	transmissao simples nov	200		Transmitir@2708006+cred
+2708006	DBSeller	transmissao nao optante nov	200		Transmitir@2708006+cred
+2708006	DBSeller	cancelamento prefeitura	200		EnviarEvento@2708006+cred
+2708006	DBSeller	cancelamento nacional	200		EnviarEvento@2708006+cred
+2708006	DBSeller	substituicao nova out antiga prefeitura	200		Emitir@2708006+cred
+2708006	DBSeller	substituicao nova out antiga nacional	200		Emitir@2708006+cred
+2708006	DBSeller	substituicao nova nov antiga prefeitura	200		Emitir@2708006+cred
+2708006	DBSeller	consulta prefeitura	200		Consultar@2708006+cred
+2708006	DBSeller	consulta nacional	200		Consultar@2708006+cred
+2708006	DBSeller	consulta dps	200		ConsultarDPSPorChave@2708006+cred
+2708006	DBSeller	consulta numero	200		ConsultarPorNumero@2708006+cred
+2708006	DBSeller	distribuicao	200		ConsultarDFe@2708006+cred
+2708006	DBSeller	pdf chave prefeitura	200		ObterPDF@2708006+cred
+2708006	DBSeller	pdf chave nacional	200		ObterPDF@2708006+cred
+2708006	DBSeller	pdf xml prefeitura	200		RenderizarPDF@2708006
+2708006	DBSeller	pdf xml nacional	200		RenderizarPDF@2708006
+2800670	Agape	xml simples out	200	Agape	MontarXML@2800670
+2800670	Agape	xml simples nov	200	Agape	MontarXML@2800670
+2800670	Agape	xml nao optante nov	200	Agape	MontarXML@2800670
+2800670	Agape	xml mei nov	200	Agape	MontarXML@2800670
+2800670	Agape	transmissao simples out	200		Transmitir@2800670+cred
+2800670	Agape	transmissao simples nov	200		Transmitir@2800670+cred
+2800670	Agape	transmissao nao optante nov	200		Transmitir@2800670+cred
+2800670	Agape	cancelamento prefeitura	200		Cancelar@2800670+cred
+2800670	Agape	cancelamento nacional	200		Cancelar@2800670+cred
+2800670	Agape	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2800670+cred
+2800670	Agape	substituicao nova out antiga nacional	200		SubstituirNFSe@2800670+cred
+2800670	Agape	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2800670+cred
+2800670	Agape	consulta prefeitura	200		Consultar@2800670+cred
+2800670	Agape	consulta nacional	200		Consultar@2800670+cred
+2800670	Agape	consulta dps	200		ConsultarDPSPorChave@2800670+cred
+2800670	Agape	consulta numero	200		ConsultarPorNumero@2800670+cred
+2800670	Agape	distribuicao	200		ConsultarDFe@2800670+cred
+2800670	Agape	pdf chave prefeitura	200		ObterPDF@2800670+cred
+2800670	Agape	pdf chave nacional	200		ObterPDF@2800670+cred
+2800670	Agape	pdf xml prefeitura	200		RenderizarPDF@2800670
+2800670	Agape	pdf xml nacional	200		RenderizarPDF@2800670
+2900801	Saatri	xml simples out	200	Saatri	MontarXML@2900801
+2900801	Saatri	xml simples nov	200	Saatri	MontarXML@2900801
+2900801	Saatri	xml nao optante nov	200	Saatri	MontarXML@2900801
+2900801	Saatri	xml mei nov	200	Saatri	MontarXML@2900801
+2900801	Saatri	transmissao simples out	200		Transmitir@2900801+cred
+2900801	Saatri	transmissao simples nov	200		Transmitir@2900801+cred
+2900801	Saatri	transmissao nao optante nov	200		Transmitir@2900801+cred
+2900801	Saatri	cancelamento prefeitura	200		Cancelar@2900801+cred
+2900801	Saatri	cancelamento nacional	200		Cancelar@2900801+cred
+2900801	Saatri	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2900801+cred
+2900801	Saatri	substituicao nova out antiga nacional	200		SubstituirNFSe@2900801+cred
+2900801	Saatri	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2900801+cred
+2900801	Saatri	consulta prefeitura	200		Consultar@2900801+cred
+2900801	Saatri	consulta nacional	200		Consultar@2900801+cred
+2900801	Saatri	consulta dps	200		ConsultarDPSPorChave@2900801+cred
+2900801	Saatri	consulta numero	200		ConsultarPorNumero@2900801+cred
+2900801	Saatri	distribuicao	200		ConsultarDFe@2900801+cred
+2900801	Saatri	pdf chave prefeitura	200		ObterPDF@2900801+cred
+2900801	Saatri	pdf chave nacional	200		ObterPDF@2900801+cred
+2900801	Saatri	pdf xml prefeitura	200		RenderizarPDF@2900801
+2900801	Saatri	pdf xml nacional	200		RenderizarPDF@2900801
+2903300	EL	xml simples out	200	EL	MontarXML@2903300
+2903300	EL	xml simples nov	200	EL	MontarXML@2903300
+2903300	EL	xml nao optante nov	200	EL	MontarXML@2903300
+2903300	EL	xml mei nov	200	EL	MontarXML@2903300
+2903300	EL	transmissao simples out	200		Transmitir@2903300+cred
+2903300	EL	transmissao simples nov	200		Transmitir@2903300+cred
+2903300	EL	transmissao nao optante nov	200		Transmitir@2903300+cred
+2903300	EL	cancelamento prefeitura	200		Cancelar@2903300+cred
+2903300	EL	cancelamento nacional	200		Cancelar@2903300+cred
+2903300	EL	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2903300+cred
+2903300	EL	substituicao nova out antiga nacional	200		SubstituirNFSe@2903300+cred
+2903300	EL	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2903300+cred
+2903300	EL	consulta prefeitura	200		Consultar@2903300+cred
+2903300	EL	consulta nacional	200		Consultar@2903300+cred
+2903300	EL	consulta dps	200		ConsultarDPSPorChave@2903300+cred
+2903300	EL	consulta numero	200		ConsultarPorNumero@2903300+cred
+2903300	EL	distribuicao	200		ConsultarDFe@2903300+cred
+2903300	EL	pdf chave prefeitura	200		ObterPDF@2903300+cred
+2903300	EL	pdf chave nacional	200		ObterPDF@2903300+cred
+2903300	EL	pdf xml prefeitura	200		RenderizarPDF@2903300
+2903300	EL	pdf xml nacional	200		RenderizarPDF@2903300
+2905701	ISSCamacari	xml simples out	200	ISSCamacari	MontarXML@2905701
+2905701	ISSCamacari	xml simples nov	200	ISSCamacari	MontarXML@2905701
+2905701	ISSCamacari	xml nao optante nov	200	ISSCamacari	MontarXML@2905701
+2905701	ISSCamacari	xml mei nov	200	ISSCamacari	MontarXML@2905701
+2905701	ISSCamacari	transmissao simples out	200		Transmitir@2905701+cred
+2905701	ISSCamacari	transmissao simples nov	200		Transmitir@2905701+cred
+2905701	ISSCamacari	transmissao nao optante nov	200		Transmitir@2905701+cred
+2905701	ISSCamacari	cancelamento prefeitura	200		Cancelar@2905701+cred
+2905701	ISSCamacari	cancelamento nacional	200		Cancelar@2905701+cred
+2905701	ISSCamacari	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2905701+cred
+2905701	ISSCamacari	substituicao nova out antiga nacional	200		SubstituirNFSe@2905701+cred
+2905701	ISSCamacari	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2905701+cred
+2905701	ISSCamacari	consulta prefeitura	200		Consultar@2905701+cred
+2905701	ISSCamacari	consulta nacional	200		Consultar@2905701+cred
+2905701	ISSCamacari	consulta dps	200		ConsultarDPSPorChave@2905701+cred
+2905701	ISSCamacari	consulta numero	200		ConsultarPorNumero@2905701+cred
+2905701	ISSCamacari	distribuicao	200		ConsultarDFe@2905701+cred
+2905701	ISSCamacari	pdf chave prefeitura	200		ObterPDF@2905701+cred
+2905701	ISSCamacari	pdf chave nacional	200		ObterPDF@2905701+cred
+2905701	ISSCamacari	pdf xml prefeitura	200		RenderizarPDF@2905701
+2905701	ISSCamacari	pdf xml nacional	200		RenderizarPDF@2905701
+2906600	Sudoeste	xml simples out	200	Sudoeste	MontarXML@2906600
+2906600	Sudoeste	xml simples nov	200	Sudoeste	MontarXML@2906600
+2906600	Sudoeste	xml nao optante nov	200	Sudoeste	MontarXML@2906600
+2906600	Sudoeste	xml mei nov	200	Sudoeste	MontarXML@2906600
+2906600	Sudoeste	transmissao simples out	200		Transmitir@2906600+cred
+2906600	Sudoeste	transmissao simples nov	200		Transmitir@2906600+cred
+2906600	Sudoeste	transmissao nao optante nov	200		Transmitir@2906600+cred
+2906600	Sudoeste	cancelamento prefeitura	200		Cancelar@2906600+cred
+2906600	Sudoeste	cancelamento nacional	200		Cancelar@2906600+cred
+2906600	Sudoeste	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2906600+cred
+2906600	Sudoeste	substituicao nova out antiga nacional	200		SubstituirNFSe@2906600+cred
+2906600	Sudoeste	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2906600+cred
+2906600	Sudoeste	consulta prefeitura	200		Consultar@2906600+cred
+2906600	Sudoeste	consulta nacional	200		Consultar@2906600+cred
+2906600	Sudoeste	consulta dps	200		ConsultarDPSPorChave@2906600+cred
+2906600	Sudoeste	consulta numero	200		ConsultarPorNumero@2906600+cred
+2906600	Sudoeste	distribuicao	200		ConsultarDFe@2906600+cred
+2906600	Sudoeste	pdf chave prefeitura	200		ObterPDF@2906600+cred
+2906600	Sudoeste	pdf chave nacional	200		ObterPDF@2906600+cred
+2906600	Sudoeste	pdf xml prefeitura	200		RenderizarPDF@2906600
+2906600	Sudoeste	pdf xml nacional	200		RenderizarPDF@2906600
+2908804	EloTech	xml simples out	200	EloTech	MontarXML@2908804
+2908804	EloTech	xml simples nov	200	EloTech	MontarXML@2908804
+2908804	EloTech	xml nao optante nov	200	EloTech	MontarXML@2908804
+2908804	EloTech	xml mei nov	200	EloTech	MontarXML@2908804
+2908804	EloTech	transmissao simples out	200		Transmitir@2908804+cred
+2908804	EloTech	transmissao simples nov	200		Transmitir@2908804+cred
+2908804	EloTech	transmissao nao optante nov	200		Transmitir@2908804+cred
+2908804	EloTech	cancelamento prefeitura	200		Cancelar@2908804+cred
+2908804	EloTech	cancelamento nacional	200		Cancelar@2908804+cred
+2908804	EloTech	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2908804+cred
+2908804	EloTech	substituicao nova out antiga nacional	200		SubstituirNFSe@2908804+cred
+2908804	EloTech	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2908804+cred
+2908804	EloTech	consulta prefeitura	200		Consultar@2908804+cred
+2908804	EloTech	consulta nacional	200		Consultar@2908804+cred
+2908804	EloTech	consulta dps	200		ConsultarDPSPorChave@2908804+cred
+2908804	EloTech	consulta numero	200		ConsultarPorNumero@2908804+cred
+2908804	EloTech	distribuicao	200		ConsultarDFe@2908804+cred
+2908804	EloTech	pdf chave prefeitura	200		ObterPDF@2908804+cred
+2908804	EloTech	pdf chave nacional	200		ObterPDF@2908804+cred
+2908804	EloTech	pdf xml prefeitura	200		RenderizarPDF@2908804
+2908804	EloTech	pdf xml nacional	200		RenderizarPDF@2908804
+2919207	MetropolisWeb	xml simples out	200	MetropolisWeb	MontarXML@2919207
+2919207	MetropolisWeb	xml simples nov	200	MetropolisWeb	MontarXML@2919207
+2919207	MetropolisWeb	xml nao optante nov	200	MetropolisWeb	MontarXML@2919207
+2919207	MetropolisWeb	xml mei nov	200	MetropolisWeb	MontarXML@2919207
+2919207	MetropolisWeb	transmissao simples out	200		Transmitir@2919207+cred
+2919207	MetropolisWeb	transmissao simples nov	200		Transmitir@2919207+cred
+2919207	MetropolisWeb	transmissao nao optante nov	200		Transmitir@2919207+cred
+2919207	MetropolisWeb	cancelamento prefeitura	200		Cancelar@2919207+cred
+2919207	MetropolisWeb	cancelamento nacional	200		Cancelar@2919207+cred
+2919207	MetropolisWeb	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2919207+cred
+2919207	MetropolisWeb	substituicao nova out antiga nacional	200		SubstituirNFSe@2919207+cred
+2919207	MetropolisWeb	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2919207+cred
+2919207	MetropolisWeb	consulta prefeitura	200		Consultar@2919207+cred
+2919207	MetropolisWeb	consulta nacional	200		Consultar@2919207+cred
+2919207	MetropolisWeb	consulta dps	200		ConsultarDPSPorChave@2919207+cred
+2919207	MetropolisWeb	consulta numero	200		ConsultarPorNumero@2919207+cred
+2919207	MetropolisWeb	distribuicao	200		ConsultarDFe@2919207+cred
+2919207	MetropolisWeb	pdf chave prefeitura	200		ObterPDF@2919207+cred
+2919207	MetropolisWeb	pdf chave nacional	200		ObterPDF@2919207+cred
+2919207	MetropolisWeb	pdf xml prefeitura	200		RenderizarPDF@2919207
+2919207	MetropolisWeb	pdf xml nacional	200		RenderizarPDF@2919207
+2925303	GestaoISS	xml simples out	200	GestaoISS	MontarXML@2925303
+2925303	GestaoISS	xml simples nov	200	GestaoISS	MontarXML@2925303
+2925303	GestaoISS	xml nao optante nov	200	GestaoISS	MontarXML@2925303
+2925303	GestaoISS	xml mei nov	200	GestaoISS	MontarXML@2925303
+2925303	GestaoISS	transmissao simples out	200		Transmitir@2925303+cred
+2925303	GestaoISS	transmissao simples nov	200		Transmitir@2925303+cred
+2925303	GestaoISS	transmissao nao optante nov	200		Transmitir@2925303+cred
+2925303	GestaoISS	cancelamento prefeitura	200		Cancelar@2925303+cred
+2925303	GestaoISS	cancelamento nacional	200		Cancelar@2925303+cred
+2925303	GestaoISS	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2925303+cred
+2925303	GestaoISS	substituicao nova out antiga nacional	200		SubstituirNFSe@2925303+cred
+2925303	GestaoISS	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2925303+cred
+2925303	GestaoISS	consulta prefeitura	200		Consultar@2925303+cred
+2925303	GestaoISS	consulta nacional	200		Consultar@2925303+cred
+2925303	GestaoISS	consulta dps	200		ConsultarDPSPorChave@2925303+cred
+2925303	GestaoISS	consulta numero	200		ConsultarPorNumero@2925303+cred
+2925303	GestaoISS	distribuicao	200		ConsultarDFe@2925303+cred
+2925303	GestaoISS	pdf chave prefeitura	200		ObterPDF@2925303+cred
+2925303	GestaoISS	pdf chave nacional	200		ObterPDF@2925303+cred
+2925303	GestaoISS	pdf xml prefeitura	200		RenderizarPDF@2925303
+2925303	GestaoISS	pdf xml nacional	200		RenderizarPDF@2925303
+2927408	ISSSalvador	xml simples out	200	ISSSalvador	MontarXML@2927408
+2927408	ISSSalvador	xml simples nov	200	ISSSalvador	MontarXML@2927408
+2927408	ISSSalvador	xml nao optante nov	200	ISSSalvador	MontarXML@2927408
+2927408	ISSSalvador	xml mei nov	200	ISSSalvador	MontarXML@2927408
+2927408	ISSSalvador	transmissao simples out	200		Transmitir@2927408+cred
+2927408	ISSSalvador	transmissao simples nov	200		Transmitir@2927408+cred
+2927408	ISSSalvador	transmissao nao optante nov	200		Transmitir@2927408+cred
+2927408	ISSSalvador	cancelamento prefeitura	200		Cancelar@2927408+cred
+2927408	ISSSalvador	cancelamento nacional	200		Cancelar@2927408+cred
+2927408	ISSSalvador	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2927408+cred
+2927408	ISSSalvador	substituicao nova out antiga nacional	200		SubstituirNFSe@2927408+cred
+2927408	ISSSalvador	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2927408+cred
+2927408	ISSSalvador	consulta prefeitura	200		Consultar@2927408+cred
+2927408	ISSSalvador	consulta nacional	200		Consultar@2927408+cred
+2927408	ISSSalvador	consulta dps	200		ConsultarDPSPorChave@2927408+cred
+2927408	ISSSalvador	consulta numero	200		ConsultarPorNumero@2927408+cred
+2927408	ISSSalvador	distribuicao	200		ConsultarDFe@2927408+cred
+2927408	ISSSalvador	pdf chave prefeitura	200		ObterPDF@2927408+cred
+2927408	ISSSalvador	pdf chave nacional	200		ObterPDF@2927408+cred
+2927408	ISSSalvador	pdf xml prefeitura	200		RenderizarPDF@2927408
+2927408	ISSSalvador	pdf xml nacional	200		RenderizarPDF@2927408
+2930501	Ginfes	xml simples out	200	Ginfes	MontarXML@2930501
+2930501	Ginfes	xml simples nov	200	Ginfes	MontarXML@2930501
+2930501	Ginfes	xml nao optante nov	200	Ginfes	MontarXML@2930501
+2930501	Ginfes	xml mei nov	200	Ginfes	MontarXML@2930501
+2930501	Ginfes	transmissao simples out	200		Transmitir@2930501+cred
+2930501	Ginfes	transmissao simples nov	200		Transmitir@2930501+cred
+2930501	Ginfes	transmissao nao optante nov	200		Transmitir@2930501+cred
+2930501	Ginfes	cancelamento prefeitura	200		Cancelar@2930501+cred
+2930501	Ginfes	cancelamento nacional	200		Cancelar@2930501+cred
+2930501	Ginfes	substituicao nova out antiga prefeitura	200		SubstituirNFSe@2930501+cred
+2930501	Ginfes	substituicao nova out antiga nacional	200		SubstituirNFSe@2930501+cred
+2930501	Ginfes	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@2930501+cred
+2930501	Ginfes	consulta prefeitura	200		Consultar@2930501+cred
+2930501	Ginfes	consulta nacional	200		Consultar@2930501+cred
+2930501	Ginfes	consulta dps	200		ConsultarDPSPorChave@2930501+cred
+2930501	Ginfes	consulta numero	200		ConsultarPorNumero@2930501+cred
+2930501	Ginfes	distribuicao	200		ConsultarDFe@2930501+cred
+2930501	Ginfes	pdf chave prefeitura	200		ObterPDF@2930501+cred
+2930501	Ginfes	pdf chave nacional	200		ObterPDF@2930501+cred
+2930501	Ginfes	pdf xml prefeitura	200		RenderizarPDF@2930501
+2930501	Ginfes	pdf xml nacional	200		RenderizarPDF@2930501
+3100500	eReceita	xml simples out	200	eReceita	MontarXML@3100500
+3100500	eReceita	xml simples nov	200	eReceita	MontarXML@3100500
+3100500	eReceita	xml nao optante nov	200	eReceita	MontarXML@3100500
+3100500	eReceita	xml mei nov	200	eReceita	MontarXML@3100500
+3100500	eReceita	transmissao simples out	200		Transmitir@3100500+cred
+3100500	eReceita	transmissao simples nov	200		Transmitir@3100500+cred
+3100500	eReceita	transmissao nao optante nov	200		Transmitir@3100500+cred
+3100500	eReceita	cancelamento prefeitura	200		Cancelar@3100500+cred
+3100500	eReceita	cancelamento nacional	200		Cancelar@3100500+cred
+3100500	eReceita	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3100500+cred
+3100500	eReceita	substituicao nova out antiga nacional	200		SubstituirNFSe@3100500+cred
+3100500	eReceita	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3100500+cred
+3100500	eReceita	consulta prefeitura	200		Consultar@3100500+cred
+3100500	eReceita	consulta nacional	200		Consultar@3100500+cred
+3100500	eReceita	consulta dps	200		ConsultarDPSPorChave@3100500+cred
+3100500	eReceita	consulta numero	200		ConsultarPorNumero@3100500+cred
+3100500	eReceita	distribuicao	200		ConsultarDFe@3100500+cred
+3100500	eReceita	pdf chave prefeitura	200		ObterPDF@3100500+cred
+3100500	eReceita	pdf chave nacional	200		ObterPDF@3100500+cred
+3100500	eReceita	pdf xml prefeitura	200		RenderizarPDF@3100500
+3100500	eReceita	pdf xml nacional	200		RenderizarPDF@3100500
+3101508	Actcon	xml simples out	200	Actcon	MontarXML@3101508
+3101508	Actcon	xml simples nov	200	Actcon	MontarXML@3101508
+3101508	Actcon	xml nao optante nov	200	Actcon	MontarXML@3101508
+3101508	Actcon	xml mei nov	200	Actcon	MontarXML@3101508
+3101508	Actcon	transmissao simples out	200		Transmitir@3101508+cred
+3101508	Actcon	transmissao simples nov	200		Transmitir@3101508+cred
+3101508	Actcon	transmissao nao optante nov	200		Transmitir@3101508+cred
+3101508	Actcon	cancelamento prefeitura	200		Cancelar@3101508+cred
+3101508	Actcon	cancelamento nacional	200		Cancelar@3101508+cred
+3101508	Actcon	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3101508+cred
+3101508	Actcon	substituicao nova out antiga nacional	200		SubstituirNFSe@3101508+cred
+3101508	Actcon	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3101508+cred
+3101508	Actcon	consulta prefeitura	200		Consultar@3101508+cred
+3101508	Actcon	consulta nacional	200		Consultar@3101508+cred
+3101508	Actcon	consulta dps	200		ConsultarDPSPorChave@3101508+cred
+3101508	Actcon	consulta numero	200		ConsultarPorNumero@3101508+cred
+3101508	Actcon	distribuicao	200		ConsultarDFe@3101508+cred
+3101508	Actcon	pdf chave prefeitura	200		ObterPDF@3101508+cred
+3101508	Actcon	pdf chave nacional	200		ObterPDF@3101508+cred
+3101508	Actcon	pdf xml prefeitura	200		RenderizarPDF@3101508
+3101508	Actcon	pdf xml nacional	200		RenderizarPDF@3101508
+3102308	Pronim	xml simples out	200	Pronim	MontarXML@3102308
+3102308	Pronim	xml simples nov	200	Pronim	MontarXML@3102308
+3102308	Pronim	xml nao optante nov	200	Pronim	MontarXML@3102308
+3102308	Pronim	xml mei nov	200	Pronim	MontarXML@3102308
+3102308	Pronim	transmissao simples out	200		Transmitir@3102308+cred
+3102308	Pronim	transmissao simples nov	200		Transmitir@3102308+cred
+3102308	Pronim	transmissao nao optante nov	200		Transmitir@3102308+cred
+3102308	Pronim	cancelamento prefeitura	200		EnviarEvento@3102308+cred
+3102308	Pronim	cancelamento nacional	200		EnviarEvento@3102308+cred
+3102308	Pronim	substituicao nova out antiga prefeitura	200		Emitir@3102308+cred
+3102308	Pronim	substituicao nova out antiga nacional	200		Emitir@3102308+cred
+3102308	Pronim	substituicao nova nov antiga prefeitura	200		Emitir@3102308+cred
+3102308	Pronim	consulta prefeitura	200		Consultar@3102308+cred
+3102308	Pronim	consulta nacional	200		Consultar@3102308+cred
+3102308	Pronim	consulta dps	200		ConsultarDPSPorChave@3102308+cred
+3102308	Pronim	consulta numero	200		ConsultarPorNumero@3102308+cred
+3102308	Pronim	distribuicao	200		ConsultarDFe@3102308+cred
+3102308	Pronim	pdf chave prefeitura	200		ObterPDF@3102308+cred
+3102308	Pronim	pdf chave nacional	200		ObterPDF@3102308+cred
+3102308	Pronim	pdf xml prefeitura	200		RenderizarPDF@3102308
+3102308	Pronim	pdf xml nacional	200		RenderizarPDF@3102308
+3102407	Sintese	xml simples out	200	Sintese	MontarXML@3102407
+3102407	Sintese	xml simples nov	200	Sintese	MontarXML@3102407
+3102407	Sintese	xml nao optante nov	200	Sintese	MontarXML@3102407
+3102407	Sintese	xml mei nov	200	Sintese	MontarXML@3102407
+3102407	Sintese	transmissao simples out	200		Transmitir@3102407+cred
+3102407	Sintese	transmissao simples nov	200		Transmitir@3102407+cred
+3102407	Sintese	transmissao nao optante nov	200		Transmitir@3102407+cred
+3102407	Sintese	cancelamento prefeitura	200		Cancelar@3102407+cred
+3102407	Sintese	cancelamento nacional	200		Cancelar@3102407+cred
+3102407	Sintese	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3102407+cred
+3102407	Sintese	substituicao nova out antiga nacional	200		SubstituirNFSe@3102407+cred
+3102407	Sintese	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3102407+cred
+3102407	Sintese	consulta prefeitura	200		Consultar@3102407+cred
+3102407	Sintese	consulta nacional	200		Consultar@3102407+cred
+3102407	Sintese	consulta dps	200		ConsultarDPSPorChave@3102407+cred
+3102407	Sintese	consulta numero	200		ConsultarPorNumero@3102407+cred
+3102407	Sintese	distribuicao	200		ConsultarDFe@3102407+cred
+3102407	Sintese	pdf chave prefeitura	200		ObterPDF@3102407+cred
+3102407	Sintese	pdf chave nacional	200		ObterPDF@3102407+cred
+3102407	Sintese	pdf xml prefeitura	200		RenderizarPDF@3102407
+3102407	Sintese	pdf xml nacional	200		RenderizarPDF@3102407
+3103306	Adm	xml simples out	200	Adm	MontarXML@3103306
+3103306	Adm	xml simples nov	200	Adm	MontarXML@3103306
+3103306	Adm	xml nao optante nov	200	Adm	MontarXML@3103306
+3103306	Adm	xml mei nov	200	Adm	MontarXML@3103306
+3103306	Adm	transmissao simples out	200		Transmitir@3103306+cred
+3103306	Adm	transmissao simples nov	200		Transmitir@3103306+cred
+3103306	Adm	transmissao nao optante nov	200		Transmitir@3103306+cred
+3103306	Adm	cancelamento prefeitura	200		Cancelar@3103306+cred
+3103306	Adm	cancelamento nacional	200		Cancelar@3103306+cred
+3103306	Adm	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3103306+cred
+3103306	Adm	substituicao nova out antiga nacional	200		SubstituirNFSe@3103306+cred
+3103306	Adm	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3103306+cred
+3103306	Adm	consulta prefeitura	200		Consultar@3103306+cred
+3103306	Adm	consulta nacional	200		Consultar@3103306+cred
+3103306	Adm	consulta dps	200		ConsultarDPSPorChave@3103306+cred
+3103306	Adm	consulta numero	200		ConsultarPorNumero@3103306+cred
+3103306	Adm	distribuicao	200		ConsultarDFe@3103306+cred
+3103306	Adm	pdf chave prefeitura	200		ObterPDF@3103306+cred
+3103306	Adm	pdf chave nacional	200		ObterPDF@3103306+cred
+3103306	Adm	pdf xml prefeitura	200		RenderizarPDF@3103306
+3103306	Adm	pdf xml nacional	200		RenderizarPDF@3103306
+3103504	GovDigital	xml simples out	200	GovDigital	MontarXML@3103504
+3103504	GovDigital	xml simples nov	200	GovDigital	MontarXML@3103504
+3103504	GovDigital	xml nao optante nov	200	GovDigital	MontarXML@3103504
+3103504	GovDigital	xml mei nov	200	GovDigital	MontarXML@3103504
+3103504	GovDigital	transmissao simples out	200		Transmitir@3103504+cred
+3103504	GovDigital	transmissao simples nov	200		Transmitir@3103504+cred
+3103504	GovDigital	transmissao nao optante nov	200		Transmitir@3103504+cred
+3103504	GovDigital	cancelamento prefeitura	200		Cancelar@3103504+cred
+3103504	GovDigital	cancelamento nacional	200		Cancelar@3103504+cred
+3103504	GovDigital	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3103504+cred
+3103504	GovDigital	substituicao nova out antiga nacional	200		SubstituirNFSe@3103504+cred
+3103504	GovDigital	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3103504+cred
+3103504	GovDigital	consulta prefeitura	200		Consultar@3103504+cred
+3103504	GovDigital	consulta nacional	200		Consultar@3103504+cred
+3103504	GovDigital	consulta dps	200		ConsultarDPSPorChave@3103504+cred
+3103504	GovDigital	consulta numero	200		ConsultarPorNumero@3103504+cred
+3103504	GovDigital	distribuicao	200		ConsultarDFe@3103504+cred
+3103504	GovDigital	pdf chave prefeitura	200		ObterPDF@3103504+cred
+3103504	GovDigital	pdf chave nacional	200		ObterPDF@3103504+cred
+3103504	GovDigital	pdf xml prefeitura	200		RenderizarPDF@3103504
+3103504	GovDigital	pdf xml nacional	200		RenderizarPDF@3103504
+3104106	SimplISS	xml simples out	200	SimplISS	MontarXML@3104106
+3104106	SimplISS	xml simples nov	200	SimplISS	MontarXML@3104106
+3104106	SimplISS	xml nao optante nov	200	SimplISS	MontarXML@3104106
+3104106	SimplISS	xml mei nov	200	SimplISS	MontarXML@3104106
+3104106	SimplISS	transmissao simples out	200		Transmitir@3104106+cred
+3104106	SimplISS	transmissao simples nov	200		Transmitir@3104106+cred
+3104106	SimplISS	transmissao nao optante nov	200		Transmitir@3104106+cred
+3104106	SimplISS	cancelamento prefeitura	200		EnviarEvento@3104106+cred
+3104106	SimplISS	cancelamento nacional	200		EnviarEvento@3104106+cred
+3104106	SimplISS	substituicao nova out antiga prefeitura	200		Emitir@3104106+cred
+3104106	SimplISS	substituicao nova out antiga nacional	200		Emitir@3104106+cred
+3104106	SimplISS	substituicao nova nov antiga prefeitura	200		Emitir@3104106+cred
+3104106	SimplISS	consulta prefeitura	200		Consultar@3104106+cred
+3104106	SimplISS	consulta nacional	200		Consultar@3104106+cred
+3104106	SimplISS	consulta dps	200		ConsultarDPSPorChave@3104106+cred
+3104106	SimplISS	consulta numero	200		ConsultarPorNumero@3104106+cred
+3104106	SimplISS	distribuicao	200		ConsultarDFe@3104106+cred
+3104106	SimplISS	pdf chave prefeitura	200		ObterPDF@3104106+cred
+3104106	SimplISS	pdf chave nacional	200		ObterPDF@3104106+cred
+3104106	SimplISS	pdf xml prefeitura	200		RenderizarPDF@3104106
+3104106	SimplISS	pdf xml nacional	200		RenderizarPDF@3104106
+3107406	IPM	xml simples out	200	IPM	MontarXML@3107406
+3107406	IPM	xml simples nov	200	IPM	MontarXML@3107406
+3107406	IPM	xml nao optante nov	200	IPM	MontarXML@3107406
+3107406	IPM	xml mei nov	200	IPM	MontarXML@3107406
+3107406	IPM	transmissao simples out	200		Transmitir@3107406+cred
+3107406	IPM	transmissao simples nov	200		Transmitir@3107406+cred
+3107406	IPM	transmissao nao optante nov	200		Transmitir@3107406+cred
+3107406	IPM	cancelamento prefeitura	200		Cancelar@3107406+cred
+3107406	IPM	cancelamento nacional	200		Cancelar@3107406+cred
+3107406	IPM	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3107406+cred
+3107406	IPM	substituicao nova out antiga nacional	200		SubstituirNFSe@3107406+cred
+3107406	IPM	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3107406+cred
+3107406	IPM	consulta prefeitura	200		Consultar@3107406+cred
+3107406	IPM	consulta nacional	200		Consultar@3107406+cred
+3107406	IPM	consulta dps	200		ConsultarDPSPorChave@3107406+cred
+3107406	IPM	consulta numero	200		ConsultarPorNumero@3107406+cred
+3107406	IPM	distribuicao	200		ConsultarDFe@3107406+cred
+3107406	IPM	pdf chave prefeitura	200		ObterPDF@3107406+cred
+3107406	IPM	pdf chave nacional	200		ObterPDF@3107406+cred
+3107406	IPM	pdf xml prefeitura	200		RenderizarPDF@3107406
+3107406	IPM	pdf xml nacional	200		RenderizarPDF@3107406
+3108206	NFSeBrasil	xml simples out	200	NFSeBrasil	MontarXML@3108206
+3108206	NFSeBrasil	xml simples nov	200	NFSeBrasil	MontarXML@3108206
+3108206	NFSeBrasil	xml nao optante nov	200	NFSeBrasil	MontarXML@3108206
+3108206	NFSeBrasil	xml mei nov	200	NFSeBrasil	MontarXML@3108206
+3108206	NFSeBrasil	transmissao simples out	200		Transmitir@3108206+cred
+3108206	NFSeBrasil	transmissao simples nov	200		Transmitir@3108206+cred
+3108206	NFSeBrasil	transmissao nao optante nov	200		Transmitir@3108206+cred
+3108206	NFSeBrasil	cancelamento prefeitura	200		Cancelar@3108206+cred
+3108206	NFSeBrasil	cancelamento nacional	200		Cancelar@3108206+cred
+3108206	NFSeBrasil	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3108206+cred
+3108206	NFSeBrasil	substituicao nova out antiga nacional	200		SubstituirNFSe@3108206+cred
+3108206	NFSeBrasil	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3108206+cred
+3108206	NFSeBrasil	consulta prefeitura	200		Consultar@3108206+cred
+3108206	NFSeBrasil	consulta nacional	200		Consultar@3108206+cred
+3108206	NFSeBrasil	consulta dps	200		ConsultarDPSPorChave@3108206+cred
+3108206	NFSeBrasil	consulta numero	200		ConsultarPorNumero@3108206+cred
+3108206	NFSeBrasil	distribuicao	200		ConsultarDFe@3108206+cred
+3108206	NFSeBrasil	pdf chave prefeitura	200		ObterPDF@3108206+cred
+3108206	NFSeBrasil	pdf chave nacional	200		ObterPDF@3108206+cred
+3108206	NFSeBrasil	pdf xml prefeitura	200		RenderizarPDF@3108206
+3108206	NFSeBrasil	pdf xml nacional	200		RenderizarPDF@3108206
+3110400	SH3	xml simples out	200	SH3	MontarXML@3110400
+3110400	SH3	xml simples nov	200	SH3	MontarXML@3110400
+3110400	SH3	xml nao optante nov	200	SH3	MontarXML@3110400
+3110400	SH3	xml mei nov	200	SH3	MontarXML@3110400
+3110400	SH3	transmissao simples out	200		Transmitir@3110400+cred
+3110400	SH3	transmissao simples nov	200		Transmitir@3110400+cred
+3110400	SH3	transmissao nao optante nov	200		Transmitir@3110400+cred
+3110400	SH3	cancelamento prefeitura	200		Cancelar@3110400+cred
+3110400	SH3	cancelamento nacional	200		Cancelar@3110400+cred
+3110400	SH3	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3110400+cred
+3110400	SH3	substituicao nova out antiga nacional	200		SubstituirNFSe@3110400+cred
+3110400	SH3	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3110400+cred
+3110400	SH3	consulta prefeitura	200		Consultar@3110400+cred
+3110400	SH3	consulta nacional	200		Consultar@3110400+cred
+3110400	SH3	consulta dps	200		ConsultarDPSPorChave@3110400+cred
+3110400	SH3	consulta numero	200		ConsultarPorNumero@3110400+cred
+3110400	SH3	distribuicao	200		ConsultarDFe@3110400+cred
+3110400	SH3	pdf chave prefeitura	200		ObterPDF@3110400+cred
+3110400	SH3	pdf chave nacional	200		ObterPDF@3110400+cred
+3110400	SH3	pdf xml prefeitura	200		RenderizarPDF@3110400
+3110400	SH3	pdf xml nacional	200		RenderizarPDF@3110400
+3111101	Horus	xml simples out	200	Horus	MontarXML@3111101
+3111101	Horus	xml simples nov	200	Horus	MontarXML@3111101
+3111101	Horus	xml nao optante nov	200	Horus	MontarXML@3111101
+3111101	Horus	xml mei nov	200	Horus	MontarXML@3111101
+3111101	Horus	transmissao simples out	200		Transmitir@3111101+cred
+3111101	Horus	transmissao simples nov	200		Transmitir@3111101+cred
+3111101	Horus	transmissao nao optante nov	200		Transmitir@3111101+cred
+3111101	Horus	cancelamento prefeitura	200		Cancelar@3111101+cred
+3111101	Horus	cancelamento nacional	200		Cancelar@3111101+cred
+3111101	Horus	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3111101+cred
+3111101	Horus	substituicao nova out antiga nacional	200		SubstituirNFSe@3111101+cred
+3111101	Horus	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3111101+cred
+3111101	Horus	consulta prefeitura	200		Consultar@3111101+cred
+3111101	Horus	consulta nacional	200		Consultar@3111101+cred
+3111101	Horus	consulta dps	200		ConsultarDPSPorChave@3111101+cred
+3111101	Horus	consulta numero	200		ConsultarPorNumero@3111101+cred
+3111101	Horus	distribuicao	200		ConsultarDFe@3111101+cred
+3111101	Horus	pdf chave prefeitura	200		ObterPDF@3111101+cred
+3111101	Horus	pdf chave nacional	200		ObterPDF@3111101+cred
+3111101	Horus	pdf xml prefeitura	200		RenderizarPDF@3111101
+3111101	Horus	pdf xml nacional	200		RenderizarPDF@3111101
+3115300	IPM	xml simples out	200	IPM	MontarXML@3115300
+3115300	IPM	xml simples nov	200	IPM	MontarXML@3115300
+3115300	IPM	xml nao optante nov	200	IPM	MontarXML@3115300
+3115300	IPM	xml mei nov	200	IPM	MontarXML@3115300
+3115300	IPM	transmissao simples out	200		Transmitir@3115300+cred
+3115300	IPM	transmissao simples nov	200		Transmitir@3115300+cred
+3115300	IPM	transmissao nao optante nov	200		Transmitir@3115300+cred
+3115300	IPM	cancelamento prefeitura	200		Cancelar@3115300+cred
+3115300	IPM	cancelamento nacional	200		Cancelar@3115300+cred
+3115300	IPM	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3115300+cred
+3115300	IPM	substituicao nova out antiga nacional	200		SubstituirNFSe@3115300+cred
+3115300	IPM	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3115300+cred
+3115300	IPM	consulta prefeitura	200		Consultar@3115300+cred
+3115300	IPM	consulta nacional	200		Consultar@3115300+cred
+3115300	IPM	consulta dps	200		ConsultarDPSPorChave@3115300+cred
+3115300	IPM	consulta numero	200		ConsultarPorNumero@3115300+cred
+3115300	IPM	distribuicao	200		ConsultarDFe@3115300+cred
+3115300	IPM	pdf chave prefeitura	200		ObterPDF@3115300+cred
+3115300	IPM	pdf chave nacional	200		ObterPDF@3115300+cred
+3115300	IPM	pdf xml prefeitura	200		RenderizarPDF@3115300
+3115300	IPM	pdf xml nacional	200		RenderizarPDF@3115300
+3115607	ISSLegal	xml simples out	200	ISSLegal	MontarXML@3115607
+3115607	ISSLegal	xml simples nov	200	ISSLegal	MontarXML@3115607
+3115607	ISSLegal	xml nao optante nov	200	ISSLegal	MontarXML@3115607
+3115607	ISSLegal	xml mei nov	200	ISSLegal	MontarXML@3115607
+3115607	ISSLegal	transmissao simples out	200		Transmitir@3115607+cred
+3115607	ISSLegal	transmissao simples nov	200		Transmitir@3115607+cred
+3115607	ISSLegal	transmissao nao optante nov	200		Transmitir@3115607+cred
+3115607	ISSLegal	cancelamento prefeitura	200		Cancelar@3115607+cred
+3115607	ISSLegal	cancelamento nacional	200		Cancelar@3115607+cred
+3115607	ISSLegal	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3115607+cred
+3115607	ISSLegal	substituicao nova out antiga nacional	200		SubstituirNFSe@3115607+cred
+3115607	ISSLegal	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3115607+cred
+3115607	ISSLegal	consulta prefeitura	200		Consultar@3115607+cred
+3115607	ISSLegal	consulta nacional	200		Consultar@3115607+cred
+3115607	ISSLegal	consulta dps	200		ConsultarDPSPorChave@3115607+cred
+3115607	ISSLegal	consulta numero	200		ConsultarPorNumero@3115607+cred
+3115607	ISSLegal	distribuicao	200		ConsultarDFe@3115607+cred
+3115607	ISSLegal	pdf chave prefeitura	200		ObterPDF@3115607+cred
+3115607	ISSLegal	pdf chave nacional	200		ObterPDF@3115607+cred
+3115607	ISSLegal	pdf xml prefeitura	200		RenderizarPDF@3115607
+3115607	ISSLegal	pdf xml nacional	200		RenderizarPDF@3115607
+3118403	VersaTecnologia	xml simples out	200	VersaTecnologia	MontarXML@3118403
+3118403	VersaTecnologia	xml simples nov	200	VersaTecnologia	MontarXML@3118403
+3118403	VersaTecnologia	xml nao optante nov	200	VersaTecnologia	MontarXML@3118403
+3118403	VersaTecnologia	xml mei nov	200	VersaTecnologia	MontarXML@3118403
+3118403	VersaTecnologia	transmissao simples out	200		Transmitir@3118403+cred
+3118403	VersaTecnologia	transmissao simples nov	200		Transmitir@3118403+cred
+3118403	VersaTecnologia	transmissao nao optante nov	200		Transmitir@3118403+cred
+3118403	VersaTecnologia	cancelamento prefeitura	200		Cancelar@3118403+cred
+3118403	VersaTecnologia	cancelamento nacional	200		Cancelar@3118403+cred
+3118403	VersaTecnologia	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3118403+cred
+3118403	VersaTecnologia	substituicao nova out antiga nacional	200		SubstituirNFSe@3118403+cred
+3118403	VersaTecnologia	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3118403+cred
+3118403	VersaTecnologia	consulta prefeitura	200		Consultar@3118403+cred
+3118403	VersaTecnologia	consulta nacional	200		Consultar@3118403+cred
+3118403	VersaTecnologia	consulta dps	200		ConsultarDPSPorChave@3118403+cred
+3118403	VersaTecnologia	consulta numero	200		ConsultarPorNumero@3118403+cred
+3118403	VersaTecnologia	distribuicao	200		ConsultarDFe@3118403+cred
+3118403	VersaTecnologia	pdf chave prefeitura	200		ObterPDF@3118403+cred
+3118403	VersaTecnologia	pdf chave nacional	200		ObterPDF@3118403+cred
+3118403	VersaTecnologia	pdf xml prefeitura	200		RenderizarPDF@3118403
+3118403	VersaTecnologia	pdf xml nacional	200		RenderizarPDF@3118403
+3128709	GovDigital	xml simples out	200	GovDigital	MontarXML@3128709
+3128709	GovDigital	xml simples nov	200	GovDigital	MontarXML@3128709
+3128709	GovDigital	xml nao optante nov	200	GovDigital	MontarXML@3128709
+3128709	GovDigital	xml mei nov	200	GovDigital	MontarXML@3128709
+3128709	GovDigital	transmissao simples out	200		Transmitir@3128709+cred
+3128709	GovDigital	transmissao simples nov	200		Transmitir@3128709+cred
+3128709	GovDigital	transmissao nao optante nov	200		Transmitir@3128709+cred
+3128709	GovDigital	cancelamento prefeitura	200		Cancelar@3128709+cred
+3128709	GovDigital	cancelamento nacional	200		Cancelar@3128709+cred
+3128709	GovDigital	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3128709+cred
+3128709	GovDigital	substituicao nova out antiga nacional	200		SubstituirNFSe@3128709+cred
+3128709	GovDigital	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3128709+cred
+3128709	GovDigital	consulta prefeitura	200		Consultar@3128709+cred
+3128709	GovDigital	consulta nacional	200		Consultar@3128709+cred
+3128709	GovDigital	consulta dps	200		ConsultarDPSPorChave@3128709+cred
+3128709	GovDigital	consulta numero	200		ConsultarPorNumero@3128709+cred
+3128709	GovDigital	distribuicao	200		ConsultarDFe@3128709+cred
+3128709	GovDigital	pdf chave prefeitura	200		ObterPDF@3128709+cred
+3128709	GovDigital	pdf chave nacional	200		ObterPDF@3128709+cred
+3128709	GovDigital	pdf xml prefeitura	200		RenderizarPDF@3128709
+3128709	GovDigital	pdf xml nacional	200		RenderizarPDF@3128709
+3130101	ISSDigital	xml simples out	200	ISSDigital	MontarXML@3130101
+3130101	ISSDigital	xml simples nov	200	ISSDigital	MontarXML@3130101
+3130101	ISSDigital	xml nao optante nov	200	ISSDigital	MontarXML@3130101
+3130101	ISSDigital	xml mei nov	200	ISSDigital	MontarXML@3130101
+3130101	ISSDigital	transmissao simples out	200		Transmitir@3130101+cred
+3130101	ISSDigital	transmissao simples nov	200		Transmitir@3130101+cred
+3130101	ISSDigital	transmissao nao optante nov	200		Transmitir@3130101+cred
+3130101	ISSDigital	cancelamento prefeitura	200		EnviarEvento@3130101+cred
+3130101	ISSDigital	cancelamento nacional	200		EnviarEvento@3130101+cred
+3130101	ISSDigital	substituicao nova out antiga prefeitura	200		Emitir@3130101+cred
+3130101	ISSDigital	substituicao nova out antiga nacional	200		Emitir@3130101+cred
+3130101	ISSDigital	substituicao nova nov antiga prefeitura	200		Emitir@3130101+cred
+3130101	ISSDigital	consulta prefeitura	200		Consultar@3130101+cred
+3130101	ISSDigital	consulta nacional	200		Consultar@3130101+cred
+3130101	ISSDigital	consulta dps	200		ConsultarDPSPorChave@3130101+cred
+3130101	ISSDigital	consulta numero	200		ConsultarPorNumero@3130101+cred
+3130101	ISSDigital	distribuicao	200		ConsultarDFe@3130101+cred
+3130101	ISSDigital	pdf chave prefeitura	200		ObterPDF@3130101+cred
+3130101	ISSDigital	pdf chave nacional	200		ObterPDF@3130101+cred
+3130101	ISSDigital	pdf xml prefeitura	200		RenderizarPDF@3130101
+3130101	ISSDigital	pdf xml nacional	200		RenderizarPDF@3130101
+3131307	SigCorp	xml simples out	200	SigCorp	MontarXML@3131307
+3131307	SigCorp	xml simples nov	200	SigCorp	MontarXML@3131307
+3131307	SigCorp	xml nao optante nov	200	SigCorp	MontarXML@3131307
+3131307	SigCorp	xml mei nov	200	SigCorp	MontarXML@3131307
+3131307	SigCorp	transmissao simples out	200		Transmitir@3131307+cred
+3131307	SigCorp	transmissao simples nov	200		Transmitir@3131307+cred
+3131307	SigCorp	transmissao nao optante nov	200		Transmitir@3131307+cred
+3131307	SigCorp	cancelamento prefeitura	200		EnviarEvento@3131307+cred
+3131307	SigCorp	cancelamento nacional	200		EnviarEvento@3131307+cred
+3131307	SigCorp	substituicao nova out antiga prefeitura	200		Emitir@3131307+cred
+3131307	SigCorp	substituicao nova out antiga nacional	200		Emitir@3131307+cred
+3131307	SigCorp	substituicao nova nov antiga prefeitura	200		Emitir@3131307+cred
+3131307	SigCorp	consulta prefeitura	200		Consultar@3131307+cred
+3131307	SigCorp	consulta nacional	200		Consultar@3131307+cred
+3131307	SigCorp	consulta dps	200		ConsultarDPSPorChave@3131307+cred
+3131307	SigCorp	consulta numero	200		ConsultarPorNumero@3131307+cred
+3131307	SigCorp	distribuicao	200		ConsultarDFe@3131307+cred
+3131307	SigCorp	pdf chave prefeitura	200		ObterPDF@3131307+cred
+3131307	SigCorp	pdf chave nacional	200		ObterPDF@3131307+cred
+3131307	SigCorp	pdf xml prefeitura	200		RenderizarPDF@3131307
+3131307	SigCorp	pdf xml nacional	200		RenderizarPDF@3131307
+3133402	FGMaiss	xml simples out	200	FGMaiss	MontarXML@3133402
+3133402	FGMaiss	xml simples nov	200	FGMaiss	MontarXML@3133402
+3133402	FGMaiss	xml nao optante nov	200	FGMaiss	MontarXML@3133402
+3133402	FGMaiss	xml mei nov	200	FGMaiss	MontarXML@3133402
+3133402	FGMaiss	transmissao simples out	200		Transmitir@3133402+cred
+3133402	FGMaiss	transmissao simples nov	200		Transmitir@3133402+cred
+3133402	FGMaiss	transmissao nao optante nov	200		Transmitir@3133402+cred
+3133402	FGMaiss	cancelamento prefeitura	200		Cancelar@3133402+cred
+3133402	FGMaiss	cancelamento nacional	200		Cancelar@3133402+cred
+3133402	FGMaiss	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3133402+cred
+3133402	FGMaiss	substituicao nova out antiga nacional	200		SubstituirNFSe@3133402+cred
+3133402	FGMaiss	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3133402+cred
+3133402	FGMaiss	consulta prefeitura	200		Consultar@3133402+cred
+3133402	FGMaiss	consulta nacional	200		Consultar@3133402+cred
+3133402	FGMaiss	consulta dps	200		ConsultarDPSPorChave@3133402+cred
+3133402	FGMaiss	consulta numero	200		ConsultarPorNumero@3133402+cred
+3133402	FGMaiss	distribuicao	200		ConsultarDFe@3133402+cred
+3133402	FGMaiss	pdf chave prefeitura	200		ObterPDF@3133402+cred
+3133402	FGMaiss	pdf chave nacional	200		ObterPDF@3133402+cred
+3133402	FGMaiss	pdf xml prefeitura	200		RenderizarPDF@3133402
+3133402	FGMaiss	pdf xml nacional	200		RenderizarPDF@3133402
+3136702	fintelISS	xml simples out	200	fintelISS	MontarXML@3136702
+3136702	fintelISS	xml simples nov	200	fintelISS	MontarXML@3136702
+3136702	fintelISS	xml nao optante nov	200	fintelISS	MontarXML@3136702
+3136702	fintelISS	xml mei nov	200	fintelISS	MontarXML@3136702
+3136702	fintelISS	transmissao simples out	200		Transmitir@3136702+cred
+3136702	fintelISS	transmissao simples nov	200		Transmitir@3136702+cred
+3136702	fintelISS	transmissao nao optante nov	200		Transmitir@3136702+cred
+3136702	fintelISS	cancelamento prefeitura	200		Cancelar@3136702+cred
+3136702	fintelISS	cancelamento nacional	200		Cancelar@3136702+cred
+3136702	fintelISS	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3136702+cred
+3136702	fintelISS	substituicao nova out antiga nacional	200		SubstituirNFSe@3136702+cred
+3136702	fintelISS	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3136702+cred
+3136702	fintelISS	consulta prefeitura	200		Consultar@3136702+cred
+3136702	fintelISS	consulta nacional	200		Consultar@3136702+cred
+3136702	fintelISS	consulta dps	200		ConsultarDPSPorChave@3136702+cred
+3136702	fintelISS	consulta numero	200		ConsultarPorNumero@3136702+cred
+3136702	fintelISS	distribuicao	200		ConsultarDFe@3136702+cred
+3136702	fintelISS	pdf chave prefeitura	200		ObterPDF@3136702+cred
+3136702	fintelISS	pdf chave nacional	200		ObterPDF@3136702+cred
+3136702	fintelISS	pdf xml prefeitura	200		RenderizarPDF@3136702
+3136702	fintelISS	pdf xml nacional	200		RenderizarPDF@3136702
+3151107	Siappa	xml simples out	200	Siappa	MontarXML@3151107
+3151107	Siappa	xml simples nov	200	Siappa	MontarXML@3151107
+3151107	Siappa	xml nao optante nov	200	Siappa	MontarXML@3151107
+3151107	Siappa	xml mei nov	200	Siappa	MontarXML@3151107
+3151107	Siappa	transmissao simples out	200		Transmitir@3151107+cred
+3151107	Siappa	transmissao simples nov	200		Transmitir@3151107+cred
+3151107	Siappa	transmissao nao optante nov	200		Transmitir@3151107+cred
+3151107	Siappa	cancelamento prefeitura	200		Cancelar@3151107+cred
+3151107	Siappa	cancelamento nacional	200		Cancelar@3151107+cred
+3151107	Siappa	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3151107+cred
+3151107	Siappa	substituicao nova out antiga nacional	200		SubstituirNFSe@3151107+cred
+3151107	Siappa	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3151107+cred
+3151107	Siappa	consulta prefeitura	200		Consultar@3151107+cred
+3151107	Siappa	consulta nacional	200		Consultar@3151107+cred
+3151107	Siappa	consulta dps	200		ConsultarDPSPorChave@3151107+cred
+3151107	Siappa	consulta numero	200		ConsultarPorNumero@3151107+cred
+3151107	Siappa	distribuicao	200		ConsultarDFe@3151107+cred
+3151107	Siappa	pdf chave prefeitura	200		ObterPDF@3151107+cred
+3151107	Siappa	pdf chave nacional	200		ObterPDF@3151107+cred
+3151107	Siappa	pdf xml prefeitura	200		RenderizarPDF@3151107
+3151107	Siappa	pdf xml nacional	200		RenderizarPDF@3151107
+3201308	SilTecnologia	xml simples out	200	SilTecnologia	MontarXML@3201308
+3201308	SilTecnologia	xml simples nov	200	SilTecnologia	MontarXML@3201308
+3201308	SilTecnologia	xml nao optante nov	200	SilTecnologia	MontarXML@3201308
+3201308	SilTecnologia	xml mei nov	200	SilTecnologia	MontarXML@3201308
+3201308	SilTecnologia	transmissao simples out	200		Transmitir@3201308+cred
+3201308	SilTecnologia	transmissao simples nov	200		Transmitir@3201308+cred
+3201308	SilTecnologia	transmissao nao optante nov	200		Transmitir@3201308+cred
+3201308	SilTecnologia	cancelamento prefeitura	200		EnviarEvento@3201308+cred
+3201308	SilTecnologia	cancelamento nacional	200		EnviarEvento@3201308+cred
+3201308	SilTecnologia	substituicao nova out antiga prefeitura	200		Emitir@3201308+cred
+3201308	SilTecnologia	substituicao nova out antiga nacional	200		Emitir@3201308+cred
+3201308	SilTecnologia	substituicao nova nov antiga prefeitura	200		Emitir@3201308+cred
+3201308	SilTecnologia	consulta prefeitura	200		Consultar@3201308+cred
+3201308	SilTecnologia	consulta nacional	200		Consultar@3201308+cred
+3201308	SilTecnologia	consulta dps	200		ConsultarDPSPorChave@3201308+cred
+3201308	SilTecnologia	consulta numero	200		ConsultarPorNumero@3201308+cred
+3201308	SilTecnologia	distribuicao	200		ConsultarDFe@3201308+cred
+3201308	SilTecnologia	pdf chave prefeitura	200		ObterPDF@3201308+cred
+3201308	SilTecnologia	pdf chave nacional	200		ObterPDF@3201308+cred
+3201308	SilTecnologia	pdf xml prefeitura	200		RenderizarPDF@3201308
+3201308	SilTecnologia	pdf xml nacional	200		RenderizarPDF@3201308
+3300100	Tiplan	xml simples out	200	Tiplan	MontarXML@3300100
+3300100	Tiplan	xml simples nov	200	Tiplan	MontarXML@3300100
+3300100	Tiplan	xml nao optante nov	200	Tiplan	MontarXML@3300100
+3300100	Tiplan	xml mei nov	200	Tiplan	MontarXML@3300100
+3300100	Tiplan	transmissao simples out	200		Transmitir@3300100+cred
+3300100	Tiplan	transmissao simples nov	200		Transmitir@3300100+cred
+3300100	Tiplan	transmissao nao optante nov	200		Transmitir@3300100+cred
+3300100	Tiplan	cancelamento prefeitura	200		Cancelar@3300100+cred
+3300100	Tiplan	cancelamento nacional	200		Cancelar@3300100+cred
+3300100	Tiplan	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3300100+cred
+3300100	Tiplan	substituicao nova out antiga nacional	200		SubstituirNFSe@3300100+cred
+3300100	Tiplan	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3300100+cred
+3300100	Tiplan	consulta prefeitura	200		Consultar@3300100+cred
+3300100	Tiplan	consulta nacional	200		Consultar@3300100+cred
+3300100	Tiplan	consulta dps	200		ConsultarDPSPorChave@3300100+cred
+3300100	Tiplan	consulta numero	200		ConsultarPorNumero@3300100+cred
+3300100	Tiplan	distribuicao	200		ConsultarDFe@3300100+cred
+3300100	Tiplan	pdf chave prefeitura	200		ObterPDF@3300100+cred
+3300100	Tiplan	pdf chave nacional	200		ObterPDF@3300100+cred
+3300100	Tiplan	pdf xml prefeitura	200		RenderizarPDF@3300100
+3300100	Tiplan	pdf xml nacional	200		RenderizarPDF@3300100
+3300456	ModernizacaoPublica	xml simples out	200	ModernizacaoPublica	MontarXML@3300456
+3300456	ModernizacaoPublica	xml simples nov	200	ModernizacaoPublica	MontarXML@3300456
+3300456	ModernizacaoPublica	xml nao optante nov	200	ModernizacaoPublica	MontarXML@3300456
+3300456	ModernizacaoPublica	xml mei nov	200	ModernizacaoPublica	MontarXML@3300456
+3300456	ModernizacaoPublica	transmissao simples out	200		Transmitir@3300456+cred
+3300456	ModernizacaoPublica	transmissao simples nov	200		Transmitir@3300456+cred
+3300456	ModernizacaoPublica	transmissao nao optante nov	200		Transmitir@3300456+cred
+3300456	ModernizacaoPublica	cancelamento prefeitura	200		EnviarEvento@3300456+cred
+3300456	ModernizacaoPublica	cancelamento nacional	200		EnviarEvento@3300456+cred
+3300456	ModernizacaoPublica	substituicao nova out antiga prefeitura	200		Emitir@3300456+cred
+3300456	ModernizacaoPublica	substituicao nova out antiga nacional	200		Emitir@3300456+cred
+3300456	ModernizacaoPublica	substituicao nova nov antiga prefeitura	200		Emitir@3300456+cred
+3300456	ModernizacaoPublica	consulta prefeitura	200		Consultar@3300456+cred
+3300456	ModernizacaoPublica	consulta nacional	200		Consultar@3300456+cred
+3300456	ModernizacaoPublica	consulta dps	200		ConsultarDPSPorChave@3300456+cred
+3300456	ModernizacaoPublica	consulta numero	200		ConsultarPorNumero@3300456+cred
+3300456	ModernizacaoPublica	distribuicao	200		ConsultarDFe@3300456+cred
+3300456	ModernizacaoPublica	pdf chave prefeitura	200		ObterPDF@3300456+cred
+3300456	ModernizacaoPublica	pdf chave nacional	200		ObterPDF@3300456+cred
+3300456	ModernizacaoPublica	pdf xml prefeitura	200		RenderizarPDF@3300456
+3300456	ModernizacaoPublica	pdf xml nacional	200		RenderizarPDF@3300456
+3301504	SigISSWeb	xml simples out	200	SigISSWeb	MontarXML@3301504
+3301504	SigISSWeb	xml simples nov	200	SigISSWeb	MontarXML@3301504
+3301504	SigISSWeb	xml nao optante nov	200	SigISSWeb	MontarXML@3301504
+3301504	SigISSWeb	xml mei nov	200	SigISSWeb	MontarXML@3301504
+3301504	SigISSWeb	transmissao simples out	200		Transmitir@3301504+cred
+3301504	SigISSWeb	transmissao simples nov	200		Transmitir@3301504+cred
+3301504	SigISSWeb	transmissao nao optante nov	200		Transmitir@3301504+cred
+3301504	SigISSWeb	cancelamento prefeitura	200		Cancelar@3301504+cred
+3301504	SigISSWeb	cancelamento nacional	200		Cancelar@3301504+cred
+3301504	SigISSWeb	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3301504+cred
+3301504	SigISSWeb	substituicao nova out antiga nacional	200		SubstituirNFSe@3301504+cred
+3301504	SigISSWeb	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3301504+cred
+3301504	SigISSWeb	consulta prefeitura	200		Consultar@3301504+cred
+3301504	SigISSWeb	consulta nacional	200		Consultar@3301504+cred
+3301504	SigISSWeb	consulta dps	200		ConsultarDPSPorChave@3301504+cred
+3301504	SigISSWeb	consulta numero	200		ConsultarPorNumero@3301504+cred
+3301504	SigISSWeb	distribuicao	200		ConsultarDFe@3301504+cred
+3301504	SigISSWeb	pdf chave prefeitura	200		ObterPDF@3301504+cred
+3301504	SigISSWeb	pdf chave nacional	200		ObterPDF@3301504+cred
+3301504	SigISSWeb	pdf xml prefeitura	200		RenderizarPDF@3301504
+3301504	SigISSWeb	pdf xml nacional	200		RenderizarPDF@3301504
+3301900	CTA	xml simples out	200	CTA	MontarXML@3301900
+3301900	CTA	xml simples nov	200	CTA	MontarXML@3301900
+3301900	CTA	xml nao optante nov	200	CTA	MontarXML@3301900
+3301900	CTA	xml mei nov	200	CTA	MontarXML@3301900
+3301900	CTA	transmissao simples out	200		Transmitir@3301900+cred
+3301900	CTA	transmissao simples nov	200		Transmitir@3301900+cred
+3301900	CTA	transmissao nao optante nov	200		Transmitir@3301900+cred
+3301900	CTA	cancelamento prefeitura	200		Cancelar@3301900+cred
+3301900	CTA	cancelamento nacional	200		Cancelar@3301900+cred
+3301900	CTA	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3301900+cred
+3301900	CTA	substituicao nova out antiga nacional	200		SubstituirNFSe@3301900+cred
+3301900	CTA	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3301900+cred
+3301900	CTA	consulta prefeitura	200		Consultar@3301900+cred
+3301900	CTA	consulta nacional	200		Consultar@3301900+cred
+3301900	CTA	consulta dps	200		ConsultarDPSPorChave@3301900+cred
+3301900	CTA	consulta numero	200		ConsultarPorNumero@3301900+cred
+3301900	CTA	distribuicao	200		ConsultarDFe@3301900+cred
+3301900	CTA	pdf chave prefeitura	200		ObterPDF@3301900+cred
+3301900	CTA	pdf chave nacional	200		ObterPDF@3301900+cred
+3301900	CTA	pdf xml prefeitura	200		RenderizarPDF@3301900
+3301900	CTA	pdf xml nacional	200		RenderizarPDF@3301900
+3302007	Tiplan	xml simples out	200	Tiplan	MontarXML@3302007
+3302007	Tiplan	xml simples nov	200	Tiplan	MontarXML@3302007
+3302007	Tiplan	xml nao optante nov	200	Tiplan	MontarXML@3302007
+3302007	Tiplan	xml mei nov	200	Tiplan	MontarXML@3302007
+3302007	Tiplan	transmissao simples out	200		Transmitir@3302007+cred
+3302007	Tiplan	transmissao simples nov	200		Transmitir@3302007+cred
+3302007	Tiplan	transmissao nao optante nov	200		Transmitir@3302007+cred
+3302007	Tiplan	cancelamento prefeitura	200		EnviarEvento@3302007+cred
+3302007	Tiplan	cancelamento nacional	200		EnviarEvento@3302007+cred
+3302007	Tiplan	substituicao nova out antiga prefeitura	200		Emitir@3302007+cred
+3302007	Tiplan	substituicao nova out antiga nacional	200		Emitir@3302007+cred
+3302007	Tiplan	substituicao nova nov antiga prefeitura	200		Emitir@3302007+cred
+3302007	Tiplan	consulta prefeitura	200		Consultar@3302007+cred
+3302007	Tiplan	consulta nacional	200		Consultar@3302007+cred
+3302007	Tiplan	consulta dps	200		ConsultarDPSPorChave@3302007+cred
+3302007	Tiplan	consulta numero	200		ConsultarPorNumero@3302007+cred
+3302007	Tiplan	distribuicao	200		ConsultarDFe@3302007+cred
+3302007	Tiplan	pdf chave prefeitura	200		ObterPDF@3302007+cred
+3302007	Tiplan	pdf chave nacional	200		ObterPDF@3302007+cred
+3302007	Tiplan	pdf xml prefeitura	200		RenderizarPDF@3302007
+3302007	Tiplan	pdf xml nacional	200		RenderizarPDF@3302007
+3303609	fintelISS	xml simples out	200	fintelISS	MontarXML@3303609
+3303609	fintelISS	xml simples nov	200	fintelISS	MontarXML@3303609
+3303609	fintelISS	xml nao optante nov	200	fintelISS	MontarXML@3303609
+3303609	fintelISS	xml mei nov	200	fintelISS	MontarXML@3303609
+3303609	fintelISS	transmissao simples out	200		Transmitir@3303609+cred
+3303609	fintelISS	transmissao simples nov	200		Transmitir@3303609+cred
+3303609	fintelISS	transmissao nao optante nov	200		Transmitir@3303609+cred
+3303609	fintelISS	cancelamento prefeitura	200		Cancelar@3303609+cred
+3303609	fintelISS	cancelamento nacional	200		Cancelar@3303609+cred
+3303609	fintelISS	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3303609+cred
+3303609	fintelISS	substituicao nova out antiga nacional	200		SubstituirNFSe@3303609+cred
+3303609	fintelISS	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3303609+cred
+3303609	fintelISS	consulta prefeitura	200		Consultar@3303609+cred
+3303609	fintelISS	consulta nacional	200		Consultar@3303609+cred
+3303609	fintelISS	consulta dps	200		ConsultarDPSPorChave@3303609+cred
+3303609	fintelISS	consulta numero	200		ConsultarPorNumero@3303609+cred
+3303609	fintelISS	distribuicao	200		ConsultarDFe@3303609+cred
+3303609	fintelISS	pdf chave prefeitura	200		ObterPDF@3303609+cred
+3303609	fintelISS	pdf chave nacional	200		ObterPDF@3303609+cred
+3303609	fintelISS	pdf xml prefeitura	200		RenderizarPDF@3303609
+3303609	fintelISS	pdf xml nacional	200		RenderizarPDF@3303609
+3304110	AssessorPublico	xml simples out	200	AssessorPublico	MontarXML@3304110
+3304110	AssessorPublico	xml simples nov	200	AssessorPublico	MontarXML@3304110
+3304110	AssessorPublico	xml nao optante nov	200	AssessorPublico	MontarXML@3304110
+3304110	AssessorPublico	xml mei nov	200	AssessorPublico	MontarXML@3304110
+3304110	AssessorPublico	transmissao simples out	200		Transmitir@3304110+cred
+3304110	AssessorPublico	transmissao simples nov	200		Transmitir@3304110+cred
+3304110	AssessorPublico	transmissao nao optante nov	200		Transmitir@3304110+cred
+3304110	AssessorPublico	cancelamento prefeitura	200		Cancelar@3304110+cred
+3304110	AssessorPublico	cancelamento nacional	200		Cancelar@3304110+cred
+3304110	AssessorPublico	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3304110+cred
+3304110	AssessorPublico	substituicao nova out antiga nacional	200		SubstituirNFSe@3304110+cred
+3304110	AssessorPublico	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3304110+cred
+3304110	AssessorPublico	consulta prefeitura	200		Consultar@3304110+cred
+3304110	AssessorPublico	consulta nacional	200		Consultar@3304110+cred
+3304110	AssessorPublico	consulta dps	200		ConsultarDPSPorChave@3304110+cred
+3304110	AssessorPublico	consulta numero	200		ConsultarPorNumero@3304110+cred
+3304110	AssessorPublico	distribuicao	200		ConsultarDFe@3304110+cred
+3304110	AssessorPublico	pdf chave prefeitura	200		ObterPDF@3304110+cred
+3304110	AssessorPublico	pdf chave nacional	200		ObterPDF@3304110+cred
+3304110	AssessorPublico	pdf xml prefeitura	200		RenderizarPDF@3304110
+3304110	AssessorPublico	pdf xml nacional	200		RenderizarPDF@3304110
+3306008	PriMax	xml simples out	200	PriMax	MontarXML@3306008
+3306008	PriMax	xml simples nov	200	PriMax	MontarXML@3306008
+3306008	PriMax	xml nao optante nov	200	PriMax	MontarXML@3306008
+3306008	PriMax	xml mei nov	200	PriMax	MontarXML@3306008
+3306008	PriMax	transmissao simples out	200		Transmitir@3306008+cred
+3306008	PriMax	transmissao simples nov	200		Transmitir@3306008+cred
+3306008	PriMax	transmissao nao optante nov	200		Transmitir@3306008+cred
+3306008	PriMax	cancelamento prefeitura	200		Cancelar@3306008+cred
+3306008	PriMax	cancelamento nacional	200		Cancelar@3306008+cred
+3306008	PriMax	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3306008+cred
+3306008	PriMax	substituicao nova out antiga nacional	200		SubstituirNFSe@3306008+cred
+3306008	PriMax	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3306008+cred
+3306008	PriMax	consulta prefeitura	200		Consultar@3306008+cred
+3306008	PriMax	consulta nacional	200		Consultar@3306008+cred
+3306008	PriMax	consulta dps	200		ConsultarDPSPorChave@3306008+cred
+3306008	PriMax	consulta numero	200		ConsultarPorNumero@3306008+cred
+3306008	PriMax	distribuicao	200		ConsultarDFe@3306008+cred
+3306008	PriMax	pdf chave prefeitura	200		ObterPDF@3306008+cred
+3306008	PriMax	pdf chave nacional	200		ObterPDF@3306008+cred
+3306008	PriMax	pdf xml prefeitura	200		RenderizarPDF@3306008
+3306008	PriMax	pdf xml nacional	200		RenderizarPDF@3306008
+3306305	SimplISS	xml simples out	200	SimplISS	MontarXML@3306305
+3306305	SimplISS	xml simples nov	200	SimplISS	MontarXML@3306305
+3306305	SimplISS	xml nao optante nov	200	SimplISS	MontarXML@3306305
+3306305	SimplISS	xml mei nov	200	SimplISS	MontarXML@3306305
+3306305	SimplISS	transmissao simples out	200		Transmitir@3306305+cred
+3306305	SimplISS	transmissao simples nov	200		Transmitir@3306305+cred
+3306305	SimplISS	transmissao nao optante nov	200		Transmitir@3306305+cred
+3306305	SimplISS	cancelamento prefeitura	200		Cancelar@3306305+cred
+3306305	SimplISS	cancelamento nacional	200		Cancelar@3306305+cred
+3306305	SimplISS	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3306305+cred
+3306305	SimplISS	substituicao nova out antiga nacional	200		SubstituirNFSe@3306305+cred
+3306305	SimplISS	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3306305+cred
+3306305	SimplISS	consulta prefeitura	200		Consultar@3306305+cred
+3306305	SimplISS	consulta nacional	200		Consultar@3306305+cred
+3306305	SimplISS	consulta dps	200		ConsultarDPSPorChave@3306305+cred
+3306305	SimplISS	consulta numero	200		ConsultarPorNumero@3306305+cred
+3306305	SimplISS	distribuicao	200		ConsultarDFe@3306305+cred
+3306305	SimplISS	pdf chave prefeitura	200		ObterPDF@3306305+cred
+3306305	SimplISS	pdf chave nacional	200		ObterPDF@3306305+cred
+3306305	SimplISS	pdf xml prefeitura	200		RenderizarPDF@3306305
+3306305	SimplISS	pdf xml nacional	200		RenderizarPDF@3306305
+3500550	ISSMap	xml simples out	200	ISSMap	MontarXML@3500550
+3500550	ISSMap	xml simples nov	200	ISSMap	MontarXML@3500550
+3500550	ISSMap	xml nao optante nov	200	ISSMap	MontarXML@3500550
+3500550	ISSMap	xml mei nov	200	ISSMap	MontarXML@3500550
+3500550	ISSMap	transmissao simples out	200		Transmitir@3500550+cred
+3500550	ISSMap	transmissao simples nov	200		Transmitir@3500550+cred
+3500550	ISSMap	transmissao nao optante nov	200		Transmitir@3500550+cred
+3500550	ISSMap	cancelamento prefeitura	200		Cancelar@3500550+cred
+3500550	ISSMap	cancelamento nacional	200		Cancelar@3500550+cred
+3500550	ISSMap	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3500550+cred
+3500550	ISSMap	substituicao nova out antiga nacional	200		SubstituirNFSe@3500550+cred
+3500550	ISSMap	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3500550+cred
+3500550	ISSMap	consulta prefeitura	200		Consultar@3500550+cred
+3500550	ISSMap	consulta nacional	200		Consultar@3500550+cred
+3500550	ISSMap	consulta dps	200		ConsultarDPSPorChave@3500550+cred
+3500550	ISSMap	consulta numero	200		ConsultarPorNumero@3500550+cred
+3500550	ISSMap	distribuicao	200		ConsultarDFe@3500550+cred
+3500550	ISSMap	pdf chave prefeitura	200		ObterPDF@3500550+cred
+3500550	ISSMap	pdf chave nacional	200		ObterPDF@3500550+cred
+3500550	ISSMap	pdf xml prefeitura	200		RenderizarPDF@3500550
+3500550	ISSMap	pdf xml nacional	200		RenderizarPDF@3500550
+3503208	Giap	xml simples out	200	Giap	MontarXML@3503208
+3503208	Giap	xml simples nov	200	Giap	MontarXML@3503208
+3503208	Giap	xml nao optante nov	200	Giap	MontarXML@3503208
+3503208	Giap	xml mei nov	200	Giap	MontarXML@3503208
+3503208	Giap	transmissao simples out	200		Transmitir@3503208+cred
+3503208	Giap	transmissao simples nov	200		Transmitir@3503208+cred
+3503208	Giap	transmissao nao optante nov	200		Transmitir@3503208+cred
+3503208	Giap	cancelamento prefeitura	200		Cancelar@3503208+cred
+3503208	Giap	cancelamento nacional	200		Cancelar@3503208+cred
+3503208	Giap	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3503208+cred
+3503208	Giap	substituicao nova out antiga nacional	200		SubstituirNFSe@3503208+cred
+3503208	Giap	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3503208+cred
+3503208	Giap	consulta prefeitura	200		Consultar@3503208+cred
+3503208	Giap	consulta nacional	200		Consultar@3503208+cred
+3503208	Giap	consulta dps	200		ConsultarDPSPorChave@3503208+cred
+3503208	Giap	consulta numero	200		ConsultarPorNumero@3503208+cred
+3503208	Giap	distribuicao	200		ConsultarDFe@3503208+cred
+3503208	Giap	pdf chave prefeitura	200		ObterPDF@3503208+cred
+3503208	Giap	pdf chave nacional	200		ObterPDF@3503208+cred
+3503208	Giap	pdf xml prefeitura	200		RenderizarPDF@3503208
+3503208	Giap	pdf xml nacional	200		RenderizarPDF@3503208
+3503604	Sam	xml simples out	200	Sam	MontarXML@3503604
+3503604	Sam	xml simples nov	200	Sam	MontarXML@3503604
+3503604	Sam	xml nao optante nov	200	Sam	MontarXML@3503604
+3503604	Sam	xml mei nov	200	Sam	MontarXML@3503604
+3503604	Sam	transmissao simples out	200		Transmitir@3503604+cred
+3503604	Sam	transmissao simples nov	200		Transmitir@3503604+cred
+3503604	Sam	transmissao nao optante nov	200		Transmitir@3503604+cred
+3503604	Sam	cancelamento prefeitura	200		Cancelar@3503604+cred
+3503604	Sam	cancelamento nacional	200		Cancelar@3503604+cred
+3503604	Sam	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3503604+cred
+3503604	Sam	substituicao nova out antiga nacional	200		SubstituirNFSe@3503604+cred
+3503604	Sam	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3503604+cred
+3503604	Sam	consulta prefeitura	200		Consultar@3503604+cred
+3503604	Sam	consulta nacional	200		Consultar@3503604+cred
+3503604	Sam	consulta dps	200		ConsultarDPSPorChave@3503604+cred
+3503604	Sam	consulta numero	200		ConsultarPorNumero@3503604+cred
+3503604	Sam	distribuicao	200		ConsultarDFe@3503604+cred
+3503604	Sam	pdf chave prefeitura	200		ObterPDF@3503604+cred
+3503604	Sam	pdf chave nacional	200		ObterPDF@3503604+cred
+3503604	Sam	pdf xml prefeitura	200		RenderizarPDF@3503604
+3503604	Sam	pdf xml nacional	200		RenderizarPDF@3503604
+3503802	Prescon	xml simples out	200	Prescon	MontarXML@3503802
+3503802	Prescon	xml simples nov	200	Prescon	MontarXML@3503802
+3503802	Prescon	xml nao optante nov	200	Prescon	MontarXML@3503802
+3503802	Prescon	xml mei nov	200	Prescon	MontarXML@3503802
+3503802	Prescon	transmissao simples out	200		Transmitir@3503802+cred
+3503802	Prescon	transmissao simples nov	200		Transmitir@3503802+cred
+3503802	Prescon	transmissao nao optante nov	200		Transmitir@3503802+cred
+3503802	Prescon	cancelamento prefeitura	200		Cancelar@3503802+cred
+3503802	Prescon	cancelamento nacional	200		Cancelar@3503802+cred
+3503802	Prescon	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3503802+cred
+3503802	Prescon	substituicao nova out antiga nacional	200		SubstituirNFSe@3503802+cred
+3503802	Prescon	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3503802+cred
+3503802	Prescon	consulta prefeitura	200		Consultar@3503802+cred
+3503802	Prescon	consulta nacional	200		Consultar@3503802+cred
+3503802	Prescon	consulta dps	200		ConsultarDPSPorChave@3503802+cred
+3503802	Prescon	consulta numero	200		ConsultarPorNumero@3503802+cred
+3503802	Prescon	distribuicao	200		ConsultarDFe@3503802+cred
+3503802	Prescon	pdf chave prefeitura	200		ObterPDF@3503802+cred
+3503802	Prescon	pdf chave nacional	200		ObterPDF@3503802+cred
+3503802	Prescon	pdf xml prefeitura	200		RenderizarPDF@3503802
+3503802	Prescon	pdf xml nacional	200		RenderizarPDF@3503802
+3505302	WebFisco	xml simples out	200	WebFisco	MontarXML@3505302
+3505302	WebFisco	xml simples nov	200	WebFisco	MontarXML@3505302
+3505302	WebFisco	xml nao optante nov	200	WebFisco	MontarXML@3505302
+3505302	WebFisco	xml mei nov	200	WebFisco	MontarXML@3505302
+3505302	WebFisco	transmissao simples out	200		Transmitir@3505302+cred
+3505302	WebFisco	transmissao simples nov	200		Transmitir@3505302+cred
+3505302	WebFisco	transmissao nao optante nov	200		Transmitir@3505302+cred
+3505302	WebFisco	cancelamento prefeitura	200		Cancelar@3505302+cred
+3505302	WebFisco	cancelamento nacional	200		Cancelar@3505302+cred
+3505302	WebFisco	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3505302+cred
+3505302	WebFisco	substituicao nova out antiga nacional	200		SubstituirNFSe@3505302+cred
+3505302	WebFisco	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3505302+cred
+3505302	WebFisco	consulta prefeitura	200		Consultar@3505302+cred
+3505302	WebFisco	consulta nacional	200		Consultar@3505302+cred
+3505302	WebFisco	consulta dps	200		ConsultarDPSPorChave@3505302+cred
+3505302	WebFisco	consulta numero	200		ConsultarPorNumero@3505302+cred
+3505302	WebFisco	distribuicao	200		ConsultarDFe@3505302+cred
+3505302	WebFisco	pdf chave prefeitura	200		ObterPDF@3505302+cred
+3505302	WebFisco	pdf chave nacional	200		ObterPDF@3505302+cred
+3505302	WebFisco	pdf xml prefeitura	200		RenderizarPDF@3505302
+3505302	WebFisco	pdf xml nacional	200		RenderizarPDF@3505302
+3505500	RLZ	xml simples out	200	RLZ	MontarXML@3505500
+3505500	RLZ	xml simples nov	200	RLZ	MontarXML@3505500
+3505500	RLZ	xml nao optante nov	200	RLZ	MontarXML@3505500
+3505500	RLZ	xml mei nov	200	RLZ	MontarXML@3505500
+3505500	RLZ	transmissao simples out	200		Transmitir@3505500+cred
+3505500	RLZ	transmissao simples nov	200		Transmitir@3505500+cred
+3505500	RLZ	transmissao nao optante nov	200		Transmitir@3505500+cred
+3505500	RLZ	cancelamento prefeitura	200		EnviarEvento@3505500+cred
+3505500	RLZ	cancelamento nacional	200		EnviarEvento@3505500+cred
+3505500	RLZ	substituicao nova out antiga prefeitura	200		Emitir@3505500+cred
+3505500	RLZ	substituicao nova out antiga nacional	200		Emitir@3505500+cred
+3505500	RLZ	substituicao nova nov antiga prefeitura	200		Emitir@3505500+cred
+3505500	RLZ	consulta prefeitura	200		Consultar@3505500+cred
+3505500	RLZ	consulta nacional	200		Consultar@3505500+cred
+3505500	RLZ	consulta dps	200		ConsultarDPSPorChave@3505500+cred
+3505500	RLZ	consulta numero	200		ConsultarPorNumero@3505500+cred
+3505500	RLZ	distribuicao	200		ConsultarDFe@3505500+cred
+3505500	RLZ	pdf chave prefeitura	200		ObterPDF@3505500+cred
+3505500	RLZ	pdf chave nacional	200		ObterPDF@3505500+cred
+3505500	RLZ	pdf xml prefeitura	200		RenderizarPDF@3505500
+3505500	RLZ	pdf xml nacional	200		RenderizarPDF@3505500
+3505708	ISSBarueri	xml simples out	200	ISSBarueri	MontarXML@3505708
+3505708	ISSBarueri	xml simples nov	200	ISSBarueri	MontarXML@3505708
+3505708	ISSBarueri	xml nao optante nov	200	ISSBarueri	MontarXML@3505708
+3505708	ISSBarueri	xml mei nov	200	ISSBarueri	MontarXML@3505708
+3505708	ISSBarueri	transmissao simples out	200		Transmitir@3505708+cred
+3505708	ISSBarueri	transmissao simples nov	200		Transmitir@3505708+cred
+3505708	ISSBarueri	transmissao nao optante nov	200		Transmitir@3505708+cred
+3505708	ISSBarueri	cancelamento prefeitura	200		Cancelar@3505708+cred
+3505708	ISSBarueri	cancelamento nacional	200		Cancelar@3505708+cred
+3505708	ISSBarueri	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3505708+cred
+3505708	ISSBarueri	substituicao nova out antiga nacional	200		SubstituirNFSe@3505708+cred
+3505708	ISSBarueri	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3505708+cred
+3505708	ISSBarueri	consulta prefeitura	200		Consultar@3505708+cred
+3505708	ISSBarueri	consulta nacional	200		Consultar@3505708+cred
+3505708	ISSBarueri	consulta dps	200		ConsultarDPSPorChave@3505708+cred
+3505708	ISSBarueri	consulta numero	200		ConsultarPorNumero@3505708+cred
+3505708	ISSBarueri	distribuicao	200		ConsultarDFe@3505708+cred
+3505708	ISSBarueri	pdf chave prefeitura	200		ObterPDF@3505708+cred
+3505708	ISSBarueri	pdf chave nacional	200		ObterPDF@3505708+cred
+3505708	ISSBarueri	pdf xml prefeitura	200		RenderizarPDF@3505708
+3505708	ISSBarueri	pdf xml nacional	200		RenderizarPDF@3505708
+3506102	Conam	xml simples out	200	Conam	MontarXML@3506102
+3506102	Conam	xml simples nov	200	Conam	MontarXML@3506102
+3506102	Conam	xml nao optante nov	200	Conam	MontarXML@3506102
+3506102	Conam	xml mei nov	200	Conam	MontarXML@3506102
+3506102	Conam	transmissao simples out	200		Transmitir@3506102+cred
+3506102	Conam	transmissao simples nov	200		Transmitir@3506102+cred
+3506102	Conam	transmissao nao optante nov	200		Transmitir@3506102+cred
+3506102	Conam	cancelamento prefeitura	200		Cancelar@3506102+cred
+3506102	Conam	cancelamento nacional	200		Cancelar@3506102+cred
+3506102	Conam	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3506102+cred
+3506102	Conam	substituicao nova out antiga nacional	200		SubstituirNFSe@3506102+cred
+3506102	Conam	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3506102+cred
+3506102	Conam	consulta prefeitura	200		Consultar@3506102+cred
+3506102	Conam	consulta nacional	200		Consultar@3506102+cred
+3506102	Conam	consulta dps	200		ConsultarDPSPorChave@3506102+cred
+3506102	Conam	consulta numero	200		ConsultarPorNumero@3506102+cred
+3506102	Conam	distribuicao	200		ConsultarDFe@3506102+cred
+3506102	Conam	pdf chave prefeitura	200		ObterPDF@3506102+cred
+3506102	Conam	pdf chave nacional	200		ObterPDF@3506102+cred
+3506102	Conam	pdf xml prefeitura	200		RenderizarPDF@3506102
+3506102	Conam	pdf xml nacional	200		RenderizarPDF@3506102
+3509205	GeisWeb	xml simples out	200	GeisWeb	MontarXML@3509205
+3509205	GeisWeb	xml simples nov	200	GeisWeb	MontarXML@3509205
+3509205	GeisWeb	xml nao optante nov	200	GeisWeb	MontarXML@3509205
+3509205	GeisWeb	xml mei nov	200	GeisWeb	MontarXML@3509205
+3509205	GeisWeb	transmissao simples out	200		Transmitir@3509205+cred
+3509205	GeisWeb	transmissao simples nov	200		Transmitir@3509205+cred
+3509205	GeisWeb	transmissao nao optante nov	200		Transmitir@3509205+cred
+3509205	GeisWeb	cancelamento prefeitura	200		Cancelar@3509205+cred
+3509205	GeisWeb	cancelamento nacional	200		Cancelar@3509205+cred
+3509205	GeisWeb	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3509205+cred
+3509205	GeisWeb	substituicao nova out antiga nacional	200		SubstituirNFSe@3509205+cred
+3509205	GeisWeb	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3509205+cred
+3509205	GeisWeb	consulta prefeitura	200		Consultar@3509205+cred
+3509205	GeisWeb	consulta nacional	200		Consultar@3509205+cred
+3509205	GeisWeb	consulta dps	200		ConsultarDPSPorChave@3509205+cred
+3509205	GeisWeb	consulta numero	200		ConsultarPorNumero@3509205+cred
+3509205	GeisWeb	distribuicao	200		ConsultarDFe@3509205+cred
+3509205	GeisWeb	pdf chave prefeitura	200		ObterPDF@3509205+cred
+3509205	GeisWeb	pdf chave nacional	200		ObterPDF@3509205+cred
+3509205	GeisWeb	pdf xml prefeitura	200		RenderizarPDF@3509205
+3509205	GeisWeb	pdf xml nacional	200		RenderizarPDF@3509205
+3513108	Primax	xml simples out	200	Primax	MontarXML@3513108
+3513108	Primax	xml simples nov	200	Primax	MontarXML@3513108
+3513108	Primax	xml nao optante nov	200	Primax	MontarXML@3513108
+3513108	Primax	xml mei nov	200	Primax	MontarXML@3513108
+3513108	Primax	transmissao simples out	200		Transmitir@3513108+cred
+3513108	Primax	transmissao simples nov	200		Transmitir@3513108+cred
+3513108	Primax	transmissao nao optante nov	200		Transmitir@3513108+cred
+3513108	Primax	cancelamento prefeitura	200		Cancelar@3513108+cred
+3513108	Primax	cancelamento nacional	200		Cancelar@3513108+cred
+3513108	Primax	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3513108+cred
+3513108	Primax	substituicao nova out antiga nacional	200		SubstituirNFSe@3513108+cred
+3513108	Primax	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3513108+cred
+3513108	Primax	consulta prefeitura	200		Consultar@3513108+cred
+3513108	Primax	consulta nacional	200		Consultar@3513108+cred
+3513108	Primax	consulta dps	200		ConsultarDPSPorChave@3513108+cred
+3513108	Primax	consulta numero	200		ConsultarPorNumero@3513108+cred
+3513108	Primax	distribuicao	200		ConsultarDFe@3513108+cred
+3513108	Primax	pdf chave prefeitura	200		ObterPDF@3513108+cred
+3513108	Primax	pdf chave nacional	200		ObterPDF@3513108+cred
+3513108	Primax	pdf xml prefeitura	200		RenderizarPDF@3513108
+3513108	Primax	pdf xml nacional	200		RenderizarPDF@3513108
+3514007	PriMax	xml simples out	200	PriMax	MontarXML@3514007
+3514007	PriMax	xml simples nov	200	PriMax	MontarXML@3514007
+3514007	PriMax	xml nao optante nov	200	PriMax	MontarXML@3514007
+3514007	PriMax	xml mei nov	200	PriMax	MontarXML@3514007
+3514007	PriMax	transmissao simples out	200		Transmitir@3514007+cred
+3514007	PriMax	transmissao simples nov	200		Transmitir@3514007+cred
+3514007	PriMax	transmissao nao optante nov	200		Transmitir@3514007+cred
+3514007	PriMax	cancelamento prefeitura	200		Cancelar@3514007+cred
+3514007	PriMax	cancelamento nacional	200		Cancelar@3514007+cred
+3514007	PriMax	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3514007+cred
+3514007	PriMax	substituicao nova out antiga nacional	200		SubstituirNFSe@3514007+cred
+3514007	PriMax	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3514007+cred
+3514007	PriMax	consulta prefeitura	200		Consultar@3514007+cred
+3514007	PriMax	consulta nacional	200		Consultar@3514007+cred
+3514007	PriMax	consulta dps	200		ConsultarDPSPorChave@3514007+cred
+3514007	PriMax	consulta numero	200		ConsultarPorNumero@3514007+cred
+3514007	PriMax	distribuicao	200		ConsultarDFe@3514007+cred
+3514007	PriMax	pdf chave prefeitura	200		ObterPDF@3514007+cred
+3514007	PriMax	pdf chave nacional	200		ObterPDF@3514007+cred
+3514007	PriMax	pdf xml prefeitura	200		RenderizarPDF@3514007
+3514007	PriMax	pdf xml nacional	200		RenderizarPDF@3514007
+3518503	GeisWeb	xml simples out	200	GeisWeb	MontarXML@3518503
+3518503	GeisWeb	xml simples nov	200	GeisWeb	MontarXML@3518503
+3518503	GeisWeb	xml nao optante nov	200	GeisWeb	MontarXML@3518503
+3518503	GeisWeb	xml mei nov	200	GeisWeb	MontarXML@3518503
+3518503	GeisWeb	transmissao simples out	200		Transmitir@3518503+cred
+3518503	GeisWeb	transmissao simples nov	200		Transmitir@3518503+cred
+3518503	GeisWeb	transmissao nao optante nov	200		Transmitir@3518503+cred
+3518503	GeisWeb	cancelamento prefeitura	200		Cancelar@3518503+cred
+3518503	GeisWeb	cancelamento nacional	200		Cancelar@3518503+cred
+3518503	GeisWeb	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3518503+cred
+3518503	GeisWeb	substituicao nova out antiga nacional	200		SubstituirNFSe@3518503+cred
+3518503	GeisWeb	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3518503+cred
+3518503	GeisWeb	consulta prefeitura	200		Consultar@3518503+cred
+3518503	GeisWeb	consulta nacional	200		Consultar@3518503+cred
+3518503	GeisWeb	consulta dps	200		ConsultarDPSPorChave@3518503+cred
+3518503	GeisWeb	consulta numero	200		ConsultarPorNumero@3518503+cred
+3518503	GeisWeb	distribuicao	200		ConsultarDFe@3518503+cred
+3518503	GeisWeb	pdf chave prefeitura	200		ObterPDF@3518503+cred
+3518503	GeisWeb	pdf chave nacional	200		ObterPDF@3518503+cred
+3518503	GeisWeb	pdf xml prefeitura	200		RenderizarPDF@3518503
+3518503	GeisWeb	pdf xml nacional	200		RenderizarPDF@3518503
+3520202	Sistemas4R	xml simples out	200	Sistemas4R	MontarXML@3520202
+3520202	Sistemas4R	xml simples nov	200	Sistemas4R	MontarXML@3520202
+3520202	Sistemas4R	xml nao optante nov	200	Sistemas4R	MontarXML@3520202
+3520202	Sistemas4R	xml mei nov	200	Sistemas4R	MontarXML@3520202
+3520202	Sistemas4R	transmissao simples out	200		Transmitir@3520202+cred
+3520202	Sistemas4R	transmissao simples nov	200		Transmitir@3520202+cred
+3520202	Sistemas4R	transmissao nao optante nov	200		Transmitir@3520202+cred
+3520202	Sistemas4R	cancelamento prefeitura	200		Cancelar@3520202+cred
+3520202	Sistemas4R	cancelamento nacional	200		Cancelar@3520202+cred
+3520202	Sistemas4R	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3520202+cred
+3520202	Sistemas4R	substituicao nova out antiga nacional	200		SubstituirNFSe@3520202+cred
+3520202	Sistemas4R	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3520202+cred
+3520202	Sistemas4R	consulta prefeitura	200		Consultar@3520202+cred
+3520202	Sistemas4R	consulta nacional	200		Consultar@3520202+cred
+3520202	Sistemas4R	consulta dps	200		ConsultarDPSPorChave@3520202+cred
+3520202	Sistemas4R	consulta numero	200		ConsultarPorNumero@3520202+cred
+3520202	Sistemas4R	distribuicao	200		ConsultarDFe@3520202+cred
+3520202	Sistemas4R	pdf chave prefeitura	200		ObterPDF@3520202+cred
+3520202	Sistemas4R	pdf chave nacional	200		ObterPDF@3520202+cred
+3520202	Sistemas4R	pdf xml prefeitura	200		RenderizarPDF@3520202
+3520202	Sistemas4R	pdf xml nacional	200		RenderizarPDF@3520202
+3522604	SigISS	xml simples out	200	SigISS	MontarXML@3522604
+3522604	SigISS	xml simples nov	200	SigISS	MontarXML@3522604
+3522604	SigISS	xml nao optante nov	200	SigISS	MontarXML@3522604
+3522604	SigISS	xml mei nov	200	SigISS	MontarXML@3522604
+3522604	SigISS	transmissao simples out	200		Transmitir@3522604+cred
+3522604	SigISS	transmissao simples nov	200		Transmitir@3522604+cred
+3522604	SigISS	transmissao nao optante nov	200		Transmitir@3522604+cred
+3522604	SigISS	cancelamento prefeitura	200		Cancelar@3522604+cred
+3522604	SigISS	cancelamento nacional	200		Cancelar@3522604+cred
+3522604	SigISS	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3522604+cred
+3522604	SigISS	substituicao nova out antiga nacional	200		SubstituirNFSe@3522604+cred
+3522604	SigISS	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3522604+cred
+3522604	SigISS	consulta prefeitura	200		Consultar@3522604+cred
+3522604	SigISS	consulta nacional	200		Consultar@3522604+cred
+3522604	SigISS	consulta dps	200		ConsultarDPSPorChave@3522604+cred
+3522604	SigISS	consulta numero	200		ConsultarPorNumero@3522604+cred
+3522604	SigISS	distribuicao	200		ConsultarDFe@3522604+cred
+3522604	SigISS	pdf chave prefeitura	200		ObterPDF@3522604+cred
+3522604	SigISS	pdf chave nacional	200		ObterPDF@3522604+cred
+3522604	SigISS	pdf xml prefeitura	200		RenderizarPDF@3522604
+3522604	SigISS	pdf xml nacional	200		RenderizarPDF@3522604
+3529005	SigCorp	xml simples out	200	SigCorp	MontarXML@3529005
+3529005	SigCorp	xml simples nov	200	SigCorp	MontarXML@3529005
+3529005	SigCorp	xml nao optante nov	200	SigCorp	MontarXML@3529005
+3529005	SigCorp	xml mei nov	200	SigCorp	MontarXML@3529005
+3529005	SigCorp	transmissao simples out	200		Transmitir@3529005+cred
+3529005	SigCorp	transmissao simples nov	200		Transmitir@3529005+cred
+3529005	SigCorp	transmissao nao optante nov	200		Transmitir@3529005+cred
+3529005	SigCorp	cancelamento prefeitura	200		EnviarEvento@3529005+cred
+3529005	SigCorp	cancelamento nacional	200		EnviarEvento@3529005+cred
+3529005	SigCorp	substituicao nova out antiga prefeitura	200		Emitir@3529005+cred
+3529005	SigCorp	substituicao nova out antiga nacional	200		Emitir@3529005+cred
+3529005	SigCorp	substituicao nova nov antiga prefeitura	200		Emitir@3529005+cred
+3529005	SigCorp	consulta prefeitura	200		Consultar@3529005+cred
+3529005	SigCorp	consulta nacional	200		Consultar@3529005+cred
+3529005	SigCorp	consulta dps	200		ConsultarDPSPorChave@3529005+cred
+3529005	SigCorp	consulta numero	200		ConsultarPorNumero@3529005+cred
+3529005	SigCorp	distribuicao	200		ConsultarDFe@3529005+cred
+3529005	SigCorp	pdf chave prefeitura	200		ObterPDF@3529005+cred
+3529005	SigCorp	pdf chave nacional	200		ObterPDF@3529005+cred
+3529005	SigCorp	pdf xml prefeitura	200		RenderizarPDF@3529005
+3529005	SigCorp	pdf xml nacional	200		RenderizarPDF@3529005
+3533304	BWSistemas	xml simples out	200	BWSistemas	MontarXML@3533304
+3533304	BWSistemas	xml simples nov	200	BWSistemas	MontarXML@3533304
+3533304	BWSistemas	xml nao optante nov	200	BWSistemas	MontarXML@3533304
+3533304	BWSistemas	xml mei nov	200	BWSistemas	MontarXML@3533304
+3533304	BWSistemas	transmissao simples out	200		Transmitir@3533304+cred
+3533304	BWSistemas	transmissao simples nov	200		Transmitir@3533304+cred
+3533304	BWSistemas	transmissao nao optante nov	200		Transmitir@3533304+cred
+3533304	BWSistemas	cancelamento prefeitura	200		Cancelar@3533304+cred
+3533304	BWSistemas	cancelamento nacional	200		Cancelar@3533304+cred
+3533304	BWSistemas	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3533304+cred
+3533304	BWSistemas	substituicao nova out antiga nacional	200		SubstituirNFSe@3533304+cred
+3533304	BWSistemas	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3533304+cred
+3533304	BWSistemas	consulta prefeitura	200		Consultar@3533304+cred
+3533304	BWSistemas	consulta nacional	200		Consultar@3533304+cred
+3533304	BWSistemas	consulta dps	200		ConsultarDPSPorChave@3533304+cred
+3533304	BWSistemas	consulta numero	200		ConsultarPorNumero@3533304+cred
+3533304	BWSistemas	distribuicao	200		ConsultarDFe@3533304+cred
+3533304	BWSistemas	pdf chave prefeitura	200		ObterPDF@3533304+cred
+3533304	BWSistemas	pdf chave nacional	200		ObterPDF@3533304+cred
+3533304	BWSistemas	pdf xml prefeitura	200		RenderizarPDF@3533304
+3533304	BWSistemas	pdf xml nacional	200		RenderizarPDF@3533304
+3534401	eGoverneISS	xml simples out	200	eGoverneISS	MontarXML@3534401
+3534401	eGoverneISS	xml simples nov	200	eGoverneISS	MontarXML@3534401
+3534401	eGoverneISS	xml nao optante nov	200	eGoverneISS	MontarXML@3534401
+3534401	eGoverneISS	xml mei nov	200	eGoverneISS	MontarXML@3534401
+3534401	eGoverneISS	transmissao simples out	200		Transmitir@3534401+cred
+3534401	eGoverneISS	transmissao simples nov	200		Transmitir@3534401+cred
+3534401	eGoverneISS	transmissao nao optante nov	200		Transmitir@3534401+cred
+3534401	eGoverneISS	cancelamento prefeitura	200		Cancelar@3534401+cred
+3534401	eGoverneISS	cancelamento nacional	200		Cancelar@3534401+cred
+3534401	eGoverneISS	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3534401+cred
+3534401	eGoverneISS	substituicao nova out antiga nacional	200		SubstituirNFSe@3534401+cred
+3534401	eGoverneISS	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3534401+cred
+3534401	eGoverneISS	consulta prefeitura	200		Consultar@3534401+cred
+3534401	eGoverneISS	consulta nacional	200		Consultar@3534401+cred
+3534401	eGoverneISS	consulta dps	200		ConsultarDPSPorChave@3534401+cred
+3534401	eGoverneISS	consulta numero	200		ConsultarPorNumero@3534401+cred
+3534401	eGoverneISS	distribuicao	200		ConsultarDFe@3534401+cred
+3534401	eGoverneISS	pdf chave prefeitura	200		ObterPDF@3534401+cred
+3534401	eGoverneISS	pdf chave nacional	200		ObterPDF@3534401+cred
+3534401	eGoverneISS	pdf xml prefeitura	200		RenderizarPDF@3534401
+3534401	eGoverneISS	pdf xml nacional	200		RenderizarPDF@3534401
+3550308	ISSSaoPaulo	xml simples out	200	ISSSaoPaulo	MontarXML@3550308
+3550308	ISSSaoPaulo	xml simples nov	200	ISSSaoPaulo	MontarXML@3550308
+3550308	ISSSaoPaulo	xml nao optante nov	200	ISSSaoPaulo	MontarXML@3550308
+3550308	ISSSaoPaulo	xml mei nov	200	ISSSaoPaulo	MontarXML@3550308
+3550308	ISSSaoPaulo	transmissao simples out	200		Transmitir@3550308+cred
+3550308	ISSSaoPaulo	transmissao simples nov	200		Transmitir@3550308+cred
+3550308	ISSSaoPaulo	transmissao nao optante nov	200		Transmitir@3550308+cred
+3550308	ISSSaoPaulo	cancelamento prefeitura	200		Cancelar@3550308+cred
+3550308	ISSSaoPaulo	cancelamento nacional	200		Cancelar@3550308+cred
+3550308	ISSSaoPaulo	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3550308+cred
+3550308	ISSSaoPaulo	substituicao nova out antiga nacional	200		SubstituirNFSe@3550308+cred
+3550308	ISSSaoPaulo	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3550308+cred
+3550308	ISSSaoPaulo	consulta prefeitura	200		Consultar@3550308+cred
+3550308	ISSSaoPaulo	consulta nacional	200		Consultar@3550308+cred
+3550308	ISSSaoPaulo	consulta dps	200		ConsultarDPSPorChave@3550308+cred
+3550308	ISSSaoPaulo	consulta numero	200		ConsultarPorNumero@3550308+cred
+3550308	ISSSaoPaulo	distribuicao	200		ConsultarDFe@3550308+cred
+3550308	ISSSaoPaulo	pdf chave prefeitura	200		ObterPDF@3550308+cred
+3550308	ISSSaoPaulo	pdf chave nacional	200		ObterPDF@3550308+cred
+3550308	ISSSaoPaulo	pdf xml prefeitura	200		RenderizarPDF@3550308
+3550308	ISSSaoPaulo	pdf xml nacional	200		RenderizarPDF@3550308
+3550704	iiBrasil	xml simples out	200	iiBrasil	MontarXML@3550704
+3550704	iiBrasil	xml simples nov	200	iiBrasil	MontarXML@3550704
+3550704	iiBrasil	xml nao optante nov	200	iiBrasil	MontarXML@3550704
+3550704	iiBrasil	xml mei nov	200	iiBrasil	MontarXML@3550704
+3550704	iiBrasil	transmissao simples out	200		Transmitir@3550704+cred
+3550704	iiBrasil	transmissao simples nov	200		Transmitir@3550704+cred
+3550704	iiBrasil	transmissao nao optante nov	200		Transmitir@3550704+cred
+3550704	iiBrasil	cancelamento prefeitura	200		Cancelar@3550704+cred
+3550704	iiBrasil	cancelamento nacional	200		Cancelar@3550704+cred
+3550704	iiBrasil	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3550704+cred
+3550704	iiBrasil	substituicao nova out antiga nacional	200		SubstituirNFSe@3550704+cred
+3550704	iiBrasil	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3550704+cred
+3550704	iiBrasil	consulta prefeitura	200		Consultar@3550704+cred
+3550704	iiBrasil	consulta nacional	200		Consultar@3550704+cred
+3550704	iiBrasil	consulta dps	200		ConsultarDPSPorChave@3550704+cred
+3550704	iiBrasil	consulta numero	200		ConsultarPorNumero@3550704+cred
+3550704	iiBrasil	distribuicao	200		ConsultarDFe@3550704+cred
+3550704	iiBrasil	pdf chave prefeitura	200		ObterPDF@3550704+cred
+3550704	iiBrasil	pdf chave nacional	200		ObterPDF@3550704+cred
+3550704	iiBrasil	pdf xml prefeitura	200		RenderizarPDF@3550704
+3550704	iiBrasil	pdf xml nacional	200		RenderizarPDF@3550704
+3552551	Facundo	xml simples out	200	Facundo	MontarXML@3552551
+3552551	Facundo	xml simples nov	200	Facundo	MontarXML@3552551
+3552551	Facundo	xml nao optante nov	200	Facundo	MontarXML@3552551
+3552551	Facundo	xml mei nov	200	Facundo	MontarXML@3552551
+3552551	Facundo	transmissao simples out	200		Transmitir@3552551+cred
+3552551	Facundo	transmissao simples nov	200		Transmitir@3552551+cred
+3552551	Facundo	transmissao nao optante nov	200		Transmitir@3552551+cred
+3552551	Facundo	cancelamento prefeitura	200		Cancelar@3552551+cred
+3552551	Facundo	cancelamento nacional	200		Cancelar@3552551+cred
+3552551	Facundo	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3552551+cred
+3552551	Facundo	substituicao nova out antiga nacional	200		SubstituirNFSe@3552551+cred
+3552551	Facundo	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3552551+cred
+3552551	Facundo	consulta prefeitura	200		Consultar@3552551+cred
+3552551	Facundo	consulta nacional	200		Consultar@3552551+cred
+3552551	Facundo	consulta dps	200		ConsultarDPSPorChave@3552551+cred
+3552551	Facundo	consulta numero	200		ConsultarPorNumero@3552551+cred
+3552551	Facundo	distribuicao	200		ConsultarDFe@3552551+cred
+3552551	Facundo	pdf chave prefeitura	200		ObterPDF@3552551+cred
+3552551	Facundo	pdf chave nacional	200		ObterPDF@3552551+cred
+3552551	Facundo	pdf xml prefeitura	200		RenderizarPDF@3552551
+3552551	Facundo	pdf xml nacional	200		RenderizarPDF@3552551
+3556701	Balker	xml simples out	200	Balker	MontarXML@3556701
+3556701	Balker	xml simples nov	200	Balker	MontarXML@3556701
+3556701	Balker	xml nao optante nov	200	Balker	MontarXML@3556701
+3556701	Balker	xml mei nov	200	Balker	MontarXML@3556701
+3556701	Balker	transmissao simples out	200		Transmitir@3556701+cred
+3556701	Balker	transmissao simples nov	200		Transmitir@3556701+cred
+3556701	Balker	transmissao nao optante nov	200		Transmitir@3556701+cred
+3556701	Balker	cancelamento prefeitura	200		Cancelar@3556701+cred
+3556701	Balker	cancelamento nacional	200		Cancelar@3556701+cred
+3556701	Balker	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3556701+cred
+3556701	Balker	substituicao nova out antiga nacional	200		SubstituirNFSe@3556701+cred
+3556701	Balker	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3556701+cred
+3556701	Balker	consulta prefeitura	200		Consultar@3556701+cred
+3556701	Balker	consulta nacional	200		Consultar@3556701+cred
+3556701	Balker	consulta dps	200		ConsultarDPSPorChave@3556701+cred
+3556701	Balker	consulta numero	200		ConsultarPorNumero@3556701+cred
+3556701	Balker	distribuicao	200		ConsultarDFe@3556701+cred
+3556701	Balker	pdf chave prefeitura	200		ObterPDF@3556701+cred
+3556701	Balker	pdf chave nacional	200		ObterPDF@3556701+cred
+3556701	Balker	pdf xml prefeitura	200		RenderizarPDF@3556701
+3556701	Balker	pdf xml nacional	200		RenderizarPDF@3556701
+4100806	Equiplano	xml simples out	200	Equiplano	MontarXML@4100806
+4100806	Equiplano	xml simples nov	200	Equiplano	MontarXML@4100806
+4100806	Equiplano	xml nao optante nov	200	Equiplano	MontarXML@4100806
+4100806	Equiplano	xml mei nov	200	Equiplano	MontarXML@4100806
+4100806	Equiplano	transmissao simples out	200		Transmitir@4100806+cred
+4100806	Equiplano	transmissao simples nov	200		Transmitir@4100806+cred
+4100806	Equiplano	transmissao nao optante nov	200		Transmitir@4100806+cred
+4100806	Equiplano	cancelamento prefeitura	200		Cancelar@4100806+cred
+4100806	Equiplano	cancelamento nacional	200		Cancelar@4100806+cred
+4100806	Equiplano	substituicao nova out antiga prefeitura	200		SubstituirNFSe@4100806+cred
+4100806	Equiplano	substituicao nova out antiga nacional	200		SubstituirNFSe@4100806+cred
+4100806	Equiplano	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@4100806+cred
+4100806	Equiplano	consulta prefeitura	200		Consultar@4100806+cred
+4100806	Equiplano	consulta nacional	200		Consultar@4100806+cred
+4100806	Equiplano	consulta dps	200		ConsultarDPSPorChave@4100806+cred
+4100806	Equiplano	consulta numero	200		ConsultarPorNumero@4100806+cred
+4100806	Equiplano	distribuicao	200		ConsultarDFe@4100806+cred
+4100806	Equiplano	pdf chave prefeitura	200		ObterPDF@4100806+cred
+4100806	Equiplano	pdf chave nacional	200		ObterPDF@4100806+cred
+4100806	Equiplano	pdf xml prefeitura	200		RenderizarPDF@4100806
+4100806	Equiplano	pdf xml nacional	200		RenderizarPDF@4100806
+4103404	SysISS	xml simples out	200	SysISS	MontarXML@4103404
+4103404	SysISS	xml simples nov	200	SysISS	MontarXML@4103404
+4103404	SysISS	xml nao optante nov	200	SysISS	MontarXML@4103404
+4103404	SysISS	xml mei nov	200	SysISS	MontarXML@4103404
+4103404	SysISS	transmissao simples out	200		Transmitir@4103404+cred
+4103404	SysISS	transmissao simples nov	200		Transmitir@4103404+cred
+4103404	SysISS	transmissao nao optante nov	200		Transmitir@4103404+cred
+4103404	SysISS	cancelamento prefeitura	200		Cancelar@4103404+cred
+4103404	SysISS	cancelamento nacional	200		Cancelar@4103404+cred
+4103404	SysISS	substituicao nova out antiga prefeitura	200		SubstituirNFSe@4103404+cred
+4103404	SysISS	substituicao nova out antiga nacional	200		SubstituirNFSe@4103404+cred
+4103404	SysISS	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@4103404+cred
+4103404	SysISS	consulta prefeitura	200		Consultar@4103404+cred
+4103404	SysISS	consulta nacional	200		Consultar@4103404+cred
+4103404	SysISS	consulta dps	200		ConsultarDPSPorChave@4103404+cred
+4103404	SysISS	consulta numero	200		ConsultarPorNumero@4103404+cred
+4103404	SysISS	distribuicao	200		ConsultarDFe@4103404+cred
+4103404	SysISS	pdf chave prefeitura	200		ObterPDF@4103404+cred
+4103404	SysISS	pdf chave nacional	200		ObterPDF@4103404+cred
+4103404	SysISS	pdf xml prefeitura	200		RenderizarPDF@4103404
+4103404	SysISS	pdf xml nacional	200		RenderizarPDF@4103404
+4214003	IPM	xml simples out	200	IPM	MontarXML@4214003
+4214003	IPM	xml simples nov	200	IPM	MontarXML@4214003
+4214003	IPM	xml nao optante nov	200	IPM	MontarXML@4214003
+4214003	IPM	xml mei nov	200	IPM	MontarXML@4214003
+4214003	IPM	transmissao simples out	200		Transmitir@4214003+cred
+4214003	IPM	transmissao simples nov	200		Transmitir@4214003+cred
+4214003	IPM	transmissao nao optante nov	200		Transmitir@4214003+cred
+4214003	IPM	cancelamento prefeitura	200		Cancelar@4214003+cred
+4214003	IPM	cancelamento nacional	200		Cancelar@4214003+cred
+4214003	IPM	substituicao nova out antiga prefeitura	200		SubstituirNFSe@4214003+cred
+4214003	IPM	substituicao nova out antiga nacional	200		SubstituirNFSe@4214003+cred
+4214003	IPM	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@4214003+cred
+4214003	IPM	consulta prefeitura	200		Consultar@4214003+cred
+4214003	IPM	consulta nacional	200		Consultar@4214003+cred
+4214003	IPM	consulta dps	200		ConsultarDPSPorChave@4214003+cred
+4214003	IPM	consulta numero	200		ConsultarPorNumero@4214003+cred
+4214003	IPM	distribuicao	200		ConsultarDFe@4214003+cred
+4214003	IPM	pdf chave prefeitura	200		ObterPDF@4214003+cred
+4214003	IPM	pdf chave nacional	200		ObterPDF@4214003+cred
+4214003	IPM	pdf xml prefeitura	200		RenderizarPDF@4214003
+4214003	IPM	pdf xml nacional	200		RenderizarPDF@4214003
+4216057	CIGA	xml simples out	200	CIGA	MontarXML@4216057
+4216057	CIGA	xml simples nov	200	CIGA	MontarXML@4216057
+4216057	CIGA	xml nao optante nov	200	CIGA	MontarXML@4216057
+4216057	CIGA	xml mei nov	200	CIGA	MontarXML@4216057
+4216057	CIGA	transmissao simples out	200		Transmitir@4216057+cred
+4216057	CIGA	transmissao simples nov	200		Transmitir@4216057+cred
+4216057	CIGA	transmissao nao optante nov	200		Transmitir@4216057+cred
+4216057	CIGA	cancelamento prefeitura	200		Cancelar@4216057+cred
+4216057	CIGA	cancelamento nacional	200		Cancelar@4216057+cred
+4216057	CIGA	substituicao nova out antiga prefeitura	200		SubstituirNFSe@4216057+cred
+4216057	CIGA	substituicao nova out antiga nacional	200		SubstituirNFSe@4216057+cred
+4216057	CIGA	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@4216057+cred
+4216057	CIGA	consulta prefeitura	200		Consultar@4216057+cred
+4216057	CIGA	consulta nacional	200		Consultar@4216057+cred
+4216057	CIGA	consulta dps	200		ConsultarDPSPorChave@4216057+cred
+4216057	CIGA	consulta numero	200		ConsultarPorNumero@4216057+cred
+4216057	CIGA	distribuicao	200		ConsultarDFe@4216057+cred
+4216057	CIGA	pdf chave prefeitura	200		ObterPDF@4216057+cred
+4216057	CIGA	pdf chave nacional	200		ObterPDF@4216057+cred
+4216057	CIGA	pdf xml prefeitura	200		RenderizarPDF@4216057
+4216057	CIGA	pdf xml nacional	200		RenderizarPDF@4216057
+4300471	Citta	xml simples out	200	Citta	MontarXML@4300471
+4300471	Citta	xml simples nov	200	Citta	MontarXML@4300471
+4300471	Citta	xml nao optante nov	200	Citta	MontarXML@4300471
+4300471	Citta	xml mei nov	200	Citta	MontarXML@4300471
+4300471	Citta	transmissao simples out	200		Transmitir@4300471+cred
+4300471	Citta	transmissao simples nov	200		Transmitir@4300471+cred
+4300471	Citta	transmissao nao optante nov	200		Transmitir@4300471+cred
+4300471	Citta	cancelamento prefeitura	200		EnviarEvento@4300471+cred
+4300471	Citta	cancelamento nacional	200		EnviarEvento@4300471+cred
+4300471	Citta	substituicao nova out antiga prefeitura	200		Emitir@4300471+cred
+4300471	Citta	substituicao nova out antiga nacional	200		Emitir@4300471+cred
+4300471	Citta	substituicao nova nov antiga prefeitura	200		Emitir@4300471+cred
+4300471	Citta	consulta prefeitura	200		Consultar@4300471+cred
+4300471	Citta	consulta nacional	200		Consultar@4300471+cred
+4300471	Citta	consulta dps	200		ConsultarDPSPorChave@4300471+cred
+4300471	Citta	consulta numero	200		ConsultarPorNumero@4300471+cred
+4300471	Citta	distribuicao	200		ConsultarDFe@4300471+cred
+4300471	Citta	pdf chave prefeitura	200		ObterPDF@4300471+cred
+4300471	Citta	pdf chave nacional	200		ObterPDF@4300471+cred
+4300471	Citta	pdf xml prefeitura	200		RenderizarPDF@4300471
+4300471	Citta	pdf xml nacional	200		RenderizarPDF@4300471
+4300505	Digifred	xml simples out	200	Digifred	MontarXML@4300505
+4300505	Digifred	xml simples nov	200	Digifred	MontarXML@4300505
+4300505	Digifred	xml nao optante nov	200	Digifred	MontarXML@4300505
+4300505	Digifred	xml mei nov	200	Digifred	MontarXML@4300505
+4300505	Digifred	transmissao simples out	200		Transmitir@4300505+cred
+4300505	Digifred	transmissao simples nov	200		Transmitir@4300505+cred
+4300505	Digifred	transmissao nao optante nov	200		Transmitir@4300505+cred
+4300505	Digifred	cancelamento prefeitura	200		EnviarEvento@4300505+cred
+4300505	Digifred	cancelamento nacional	200		EnviarEvento@4300505+cred
+4300505	Digifred	substituicao nova out antiga prefeitura	200		Emitir@4300505+cred
+4300505	Digifred	substituicao nova out antiga nacional	200		Emitir@4300505+cred
+4300505	Digifred	substituicao nova nov antiga prefeitura	200		Emitir@4300505+cred
+4300505	Digifred	consulta prefeitura	200		Consultar@4300505+cred
+4300505	Digifred	consulta nacional	200		Consultar@4300505+cred
+4300505	Digifred	consulta dps	200		ConsultarDPSPorChave@4300505+cred
+4300505	Digifred	consulta numero	200		ConsultarPorNumero@4300505+cred
+4300505	Digifred	distribuicao	200		ConsultarDFe@4300505+cred
+4300505	Digifred	pdf chave prefeitura	200		ObterPDF@4300505+cred
+4300505	Digifred	pdf chave nacional	200		ObterPDF@4300505+cred
+4300505	Digifred	pdf xml prefeitura	200		RenderizarPDF@4300505
+4300505	Digifred	pdf xml nacional	200		RenderizarPDF@4300505
+4300877	Tecnos	xml simples out	200	Tecnos	MontarXML@4300877
+4300877	Tecnos	xml simples nov	200	Tecnos	MontarXML@4300877
+4300877	Tecnos	xml nao optante nov	200	Tecnos	MontarXML@4300877
+4300877	Tecnos	xml mei nov	200	Tecnos	MontarXML@4300877
+4300877	Tecnos	transmissao simples out	200		Transmitir@4300877+cred
+4300877	Tecnos	transmissao simples nov	200		Transmitir@4300877+cred
+4300877	Tecnos	transmissao nao optante nov	200		Transmitir@4300877+cred
+4300877	Tecnos	cancelamento prefeitura	200		Cancelar@4300877+cred
+4300877	Tecnos	cancelamento nacional	200		Cancelar@4300877+cred
+4300877	Tecnos	substituicao nova out antiga prefeitura	200		SubstituirNFSe@4300877+cred
+4300877	Tecnos	substituicao nova out antiga nacional	200		SubstituirNFSe@4300877+cred
+4300877	Tecnos	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@4300877+cred
+4300877	Tecnos	consulta prefeitura	200		Consultar@4300877+cred
+4300877	Tecnos	consulta nacional	200		Consultar@4300877+cred
+4300877	Tecnos	consulta dps	200		ConsultarDPSPorChave@4300877+cred
+4300877	Tecnos	consulta numero	200		ConsultarPorNumero@4300877+cred
+4300877	Tecnos	distribuicao	200		ConsultarDFe@4300877+cred
+4300877	Tecnos	pdf chave prefeitura	200		ObterPDF@4300877+cred
+4300877	Tecnos	pdf chave nacional	200		ObterPDF@4300877+cred
+4300877	Tecnos	pdf xml prefeitura	200		RenderizarPDF@4300877
+4300877	Tecnos	pdf xml nacional	200		RenderizarPDF@4300877
+4302204	ABase	xml simples out	200	ABase	MontarXML@4302204
+4302204	ABase	xml simples nov	200	ABase	MontarXML@4302204
+4302204	ABase	xml nao optante nov	200	ABase	MontarXML@4302204
+4302204	ABase	xml mei nov	200	ABase	MontarXML@4302204
+4302204	ABase	transmissao simples out	200		Transmitir@4302204+cred
+4302204	ABase	transmissao simples nov	200		Transmitir@4302204+cred
+4302204	ABase	transmissao nao optante nov	200		Transmitir@4302204+cred
+4302204	ABase	cancelamento prefeitura	200		EnviarEvento@4302204+cred
+4302204	ABase	cancelamento nacional	200		EnviarEvento@4302204+cred
+4302204	ABase	substituicao nova out antiga prefeitura	200		Emitir@4302204+cred
+4302204	ABase	substituicao nova out antiga nacional	200		Emitir@4302204+cred
+4302204	ABase	substituicao nova nov antiga prefeitura	200		Emitir@4302204+cred
+4302204	ABase	consulta prefeitura	200		Consultar@4302204+cred
+4302204	ABase	consulta nacional	200		Consultar@4302204+cred
+4302204	ABase	consulta dps	200		ConsultarDPSPorChave@4302204+cred
+4302204	ABase	consulta numero	200		ConsultarPorNumero@4302204+cred
+4302204	ABase	distribuicao	200		ConsultarDFe@4302204+cred
+4302204	ABase	pdf chave prefeitura	200		ObterPDF@4302204+cred
+4302204	ABase	pdf chave nacional	200		ObterPDF@4302204+cred
+4302204	ABase	pdf xml prefeitura	200		RenderizarPDF@4302204
+4302204	ABase	pdf xml nacional	200		RenderizarPDF@4302204
+4303673	DataSmart	xml simples out	200	DataSmart	MontarXML@4303673
+4303673	DataSmart	xml simples nov	200	DataSmart	MontarXML@4303673
+4303673	DataSmart	xml nao optante nov	200	DataSmart	MontarXML@4303673
+4303673	DataSmart	xml mei nov	200	DataSmart	MontarXML@4303673
+4303673	DataSmart	transmissao simples out	200		Transmitir@4303673+cred
+4303673	DataSmart	transmissao simples nov	200		Transmitir@4303673+cred
+4303673	DataSmart	transmissao nao optante nov	200		Transmitir@4303673+cred
+4303673	DataSmart	cancelamento prefeitura	200		Cancelar@4303673+cred
+4303673	DataSmart	cancelamento nacional	200		Cancelar@4303673+cred
+4303673	DataSmart	substituicao nova out antiga prefeitura	200		SubstituirNFSe@4303673+cred
+4303673	DataSmart	substituicao nova out antiga nacional	200		SubstituirNFSe@4303673+cred
+4303673	DataSmart	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@4303673+cred
+4303673	DataSmart	consulta prefeitura	200		Consultar@4303673+cred
+4303673	DataSmart	consulta nacional	200		Consultar@4303673+cred
+4303673	DataSmart	consulta dps	200		ConsultarDPSPorChave@4303673+cred
+4303673	DataSmart	consulta numero	200		ConsultarPorNumero@4303673+cred
+4303673	DataSmart	distribuicao	200		ConsultarDFe@4303673+cred
+4303673	DataSmart	pdf chave prefeitura	200		ObterPDF@4303673+cred
+4303673	DataSmart	pdf chave nacional	200		ObterPDF@4303673+cred
+4303673	DataSmart	pdf xml prefeitura	200		RenderizarPDF@4303673
+4303673	DataSmart	pdf xml nacional	200		RenderizarPDF@4303673
+4303905	Infisc	xml simples out	200	Infisc	MontarXML@4303905
+4303905	Infisc	xml simples nov	200	Infisc	MontarXML@4303905
+4303905	Infisc	xml nao optante nov	200	Infisc	MontarXML@4303905
+4303905	Infisc	xml mei nov	200	Infisc	MontarXML@4303905
+4303905	Infisc	transmissao simples out	200		Transmitir@4303905+cred
+4303905	Infisc	transmissao simples nov	200		Transmitir@4303905+cred
+4303905	Infisc	transmissao nao optante nov	200		Transmitir@4303905+cred
+4303905	Infisc	cancelamento prefeitura	200		EnviarEvento@4303905+cred
+4303905	Infisc	cancelamento nacional	200		EnviarEvento@4303905+cred
+4303905	Infisc	substituicao nova out antiga prefeitura	200		Emitir@4303905+cred
+4303905	Infisc	substituicao nova out antiga nacional	200		Emitir@4303905+cred
+4303905	Infisc	substituicao nova nov antiga prefeitura	200		Emitir@4303905+cred
+4303905	Infisc	consulta prefeitura	200		Consultar@4303905+cred
+4303905	Infisc	consulta nacional	200		Consultar@4303905+cred
+4303905	Infisc	consulta dps	200		ConsultarDPSPorChave@4303905+cred
+4303905	Infisc	consulta numero	200		ConsultarPorNumero@4303905+cred
+4303905	Infisc	distribuicao	200		ConsultarDFe@4303905+cred
+4303905	Infisc	pdf chave prefeitura	200		ObterPDF@4303905+cred
+4303905	Infisc	pdf chave nacional	200		ObterPDF@4303905+cred
+4303905	Infisc	pdf xml prefeitura	200		RenderizarPDF@4303905
+4303905	Infisc	pdf xml nacional	200		RenderizarPDF@4303905
+4307450	Abase	xml simples out	200	Abase	MontarXML@4307450
+4307450	Abase	xml simples nov	200	Abase	MontarXML@4307450
+4307450	Abase	xml nao optante nov	200	Abase	MontarXML@4307450
+4307450	Abase	xml mei nov	200	Abase	MontarXML@4307450
+4307450	Abase	transmissao simples out	200		Transmitir@4307450+cred
+4307450	Abase	transmissao simples nov	200		Transmitir@4307450+cred
+4307450	Abase	transmissao nao optante nov	200		Transmitir@4307450+cred
+4307450	Abase	cancelamento prefeitura	200		EnviarEvento@4307450+cred
+4307450	Abase	cancelamento nacional	200		EnviarEvento@4307450+cred
+4307450	Abase	substituicao nova out antiga prefeitura	200		Emitir@4307450+cred
+4307450	Abase	substituicao nova out antiga nacional	200		Emitir@4307450+cred
+4307450	Abase	substituicao nova nov antiga prefeitura	200		Emitir@4307450+cred
+4307450	Abase	consulta prefeitura	200		Consultar@4307450+cred
+4307450	Abase	consulta nacional	200		Consultar@4307450+cred
+4307450	Abase	consulta dps	200		ConsultarDPSPorChave@4307450+cred
+4307450	Abase	consulta numero	200		ConsultarPorNumero@4307450+cred
+4307450	Abase	distribuicao	200		ConsultarDFe@4307450+cred
+4307450	Abase	pdf chave prefeitura	200		ObterPDF@4307450+cred
+4307450	Abase	pdf chave nacional	200		ObterPDF@4307450+cred
+4307450	Abase	pdf xml prefeitura	200		RenderizarPDF@4307450
+4307450	Abase	pdf xml nacional	200		RenderizarPDF@4307450
+4307906	Infisc	xml simples out	200	Infisc	MontarXML@4307906
+4307906	Infisc	xml simples nov	200	Infisc	MontarXML@4307906
+4307906	Infisc	xml nao optante nov	200	Infisc	MontarXML@4307906
+4307906	Infisc	xml mei nov	200	Infisc	MontarXML@4307906
+4307906	Infisc	transmissao simples out	200		Transmitir@4307906+cred
+4307906	Infisc	transmissao simples nov	200		Transmitir@4307906+cred
+4307906	Infisc	transmissao nao optante nov	200		Transmitir@4307906+cred
+4307906	Infisc	cancelamento prefeitura	200		EnviarEvento@4307906+cred
+4307906	Infisc	cancelamento nacional	200		EnviarEvento@4307906+cred
+4307906	Infisc	substituicao nova out antiga prefeitura	200		Emitir@4307906+cred
+4307906	Infisc	substituicao nova out antiga nacional	200		Emitir@4307906+cred
+4307906	Infisc	substituicao nova nov antiga prefeitura	200		Emitir@4307906+cred
+4307906	Infisc	consulta prefeitura	200		Consultar@4307906+cred
+4307906	Infisc	consulta nacional	200		Consultar@4307906+cred
+4307906	Infisc	consulta dps	200		ConsultarDPSPorChave@4307906+cred
+4307906	Infisc	consulta numero	200		ConsultarPorNumero@4307906+cred
+4307906	Infisc	distribuicao	200		ConsultarDFe@4307906+cred
+4307906	Infisc	pdf chave prefeitura	200		ObterPDF@4307906+cred
+4307906	Infisc	pdf chave nacional	200		ObterPDF@4307906+cred
+4307906	Infisc	pdf xml prefeitura	200		RenderizarPDF@4307906
+4307906	Infisc	pdf xml nacional	200		RenderizarPDF@4307906
+4319901	DBSeller	xml simples out	200	DBSeller	MontarXML@4319901
+4319901	DBSeller	xml simples nov	200	DBSeller	MontarXML@4319901
+4319901	DBSeller	xml nao optante nov	200	DBSeller	MontarXML@4319901
+4319901	DBSeller	xml mei nov	200	DBSeller	MontarXML@4319901
+4319901	DBSeller	transmissao simples out	200		Transmitir@4319901+cred
+4319901	DBSeller	transmissao simples nov	200		Transmitir@4319901+cred
+4319901	DBSeller	transmissao nao optante nov	200		Transmitir@4319901+cred
+4319901	DBSeller	cancelamento prefeitura	200		Cancelar@4319901+cred
+4319901	DBSeller	cancelamento nacional	200		Cancelar@4319901+cred
+4319901	DBSeller	substituicao nova out antiga prefeitura	200		SubstituirNFSe@4319901+cred
+4319901	DBSeller	substituicao nova out antiga nacional	200		SubstituirNFSe@4319901+cred
+4319901	DBSeller	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@4319901+cred
+4319901	DBSeller	consulta prefeitura	200		Consultar@4319901+cred
+4319901	DBSeller	consulta nacional	200		Consultar@4319901+cred
+4319901	DBSeller	consulta dps	200		ConsultarDPSPorChave@4319901+cred
+4319901	DBSeller	consulta numero	200		ConsultarPorNumero@4319901+cred
+4319901	DBSeller	distribuicao	200		ConsultarDFe@4319901+cred
+4319901	DBSeller	pdf chave prefeitura	200		ObterPDF@4319901+cred
+4319901	DBSeller	pdf chave nacional	200		ObterPDF@4319901+cred
+4319901	DBSeller	pdf xml prefeitura	200		RenderizarPDF@4319901
+4319901	DBSeller	pdf xml nacional	200		RenderizarPDF@4319901
+5002100	NEAInformatica	xml simples out	200	NEAInformatica	MontarXML@5002100
+5002100	NEAInformatica	xml simples nov	200	NEAInformatica	MontarXML@5002100
+5002100	NEAInformatica	xml nao optante nov	200	NEAInformatica	MontarXML@5002100
+5002100	NEAInformatica	xml mei nov	200	NEAInformatica	MontarXML@5002100
+5002100	NEAInformatica	transmissao simples out	200		Transmitir@5002100+cred
+5002100	NEAInformatica	transmissao simples nov	200		Transmitir@5002100+cred
+5002100	NEAInformatica	transmissao nao optante nov	200		Transmitir@5002100+cred
+5002100	NEAInformatica	cancelamento prefeitura	200		Cancelar@5002100+cred
+5002100	NEAInformatica	cancelamento nacional	200		Cancelar@5002100+cred
+5002100	NEAInformatica	substituicao nova out antiga prefeitura	200		SubstituirNFSe@5002100+cred
+5002100	NEAInformatica	substituicao nova out antiga nacional	200		SubstituirNFSe@5002100+cred
+5002100	NEAInformatica	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@5002100+cred
+5002100	NEAInformatica	consulta prefeitura	200		Consultar@5002100+cred
+5002100	NEAInformatica	consulta nacional	200		Consultar@5002100+cred
+5002100	NEAInformatica	consulta dps	200		ConsultarDPSPorChave@5002100+cred
+5002100	NEAInformatica	consulta numero	200		ConsultarPorNumero@5002100+cred
+5002100	NEAInformatica	distribuicao	200		ConsultarDFe@5002100+cred
+5002100	NEAInformatica	pdf chave prefeitura	200		ObterPDF@5002100+cred
+5002100	NEAInformatica	pdf chave nacional	200		ObterPDF@5002100+cred
+5002100	NEAInformatica	pdf xml prefeitura	200		RenderizarPDF@5002100
+5002100	NEAInformatica	pdf xml nacional	200		RenderizarPDF@5002100
+5100607	Coplan	xml simples out	200	Coplan	MontarXML@5100607
+5100607	Coplan	xml simples nov	200	Coplan	MontarXML@5100607
+5100607	Coplan	xml nao optante nov	200	Coplan	MontarXML@5100607
+5100607	Coplan	xml mei nov	200	Coplan	MontarXML@5100607
+5100607	Coplan	transmissao simples out	200		Transmitir@5100607+cred
+5100607	Coplan	transmissao simples nov	200		Transmitir@5100607+cred
+5100607	Coplan	transmissao nao optante nov	200		Transmitir@5100607+cred
+5100607	Coplan	cancelamento prefeitura	200		Cancelar@5100607+cred
+5100607	Coplan	cancelamento nacional	200		Cancelar@5100607+cred
+5100607	Coplan	substituicao nova out antiga prefeitura	200		SubstituirNFSe@5100607+cred
+5100607	Coplan	substituicao nova out antiga nacional	200		SubstituirNFSe@5100607+cred
+5100607	Coplan	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@5100607+cred
+5100607	Coplan	consulta prefeitura	200		Consultar@5100607+cred
+5100607	Coplan	consulta nacional	200		Consultar@5100607+cred
+5100607	Coplan	consulta dps	200		ConsultarDPSPorChave@5100607+cred
+5100607	Coplan	consulta numero	200		ConsultarPorNumero@5100607+cred
+5100607	Coplan	distribuicao	200		ConsultarDFe@5100607+cred
+5100607	Coplan	pdf chave prefeitura	200		ObterPDF@5100607+cred
+5100607	Coplan	pdf chave nacional	200		ObterPDF@5100607+cred
+5100607	Coplan	pdf xml prefeitura	200		RenderizarPDF@5100607
+5100607	Coplan	pdf xml nacional	200		RenderizarPDF@5100607
+5104559	FISSLex	xml simples out	200	FISSLex	MontarXML@5104559
+5104559	FISSLex	xml simples nov	200	FISSLex	MontarXML@5104559
+5104559	FISSLex	xml nao optante nov	200	FISSLex	MontarXML@5104559
+5104559	FISSLex	xml mei nov	200	FISSLex	MontarXML@5104559
+5104559	FISSLex	transmissao simples out	200		Transmitir@5104559+cred
+5104559	FISSLex	transmissao simples nov	200		Transmitir@5104559+cred
+5104559	FISSLex	transmissao nao optante nov	200		Transmitir@5104559+cred
+5104559	FISSLex	cancelamento prefeitura	200		Cancelar@5104559+cred
+5104559	FISSLex	cancelamento nacional	200		Cancelar@5104559+cred
+5104559	FISSLex	substituicao nova out antiga prefeitura	200		SubstituirNFSe@5104559+cred
+5104559	FISSLex	substituicao nova out antiga nacional	200		SubstituirNFSe@5104559+cred
+5104559	FISSLex	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@5104559+cred
+5104559	FISSLex	consulta prefeitura	200		Consultar@5104559+cred
+5104559	FISSLex	consulta nacional	200		Consultar@5104559+cred
+5104559	FISSLex	consulta dps	200		ConsultarDPSPorChave@5104559+cred
+5104559	FISSLex	consulta numero	200		ConsultarPorNumero@5104559+cred
+5104559	FISSLex	distribuicao	200		ConsultarDFe@5104559+cred
+5104559	FISSLex	pdf chave prefeitura	200		ObterPDF@5104559+cred
+5104559	FISSLex	pdf chave nacional	200		ObterPDF@5104559+cred
+5104559	FISSLex	pdf xml prefeitura	200		RenderizarPDF@5104559
+5104559	FISSLex	pdf xml nacional	200		RenderizarPDF@5104559
+5202353	Sigep	xml simples out	200	Sigep	MontarXML@5202353
+5202353	Sigep	xml simples nov	200	Sigep	MontarXML@5202353
+5202353	Sigep	xml nao optante nov	200	Sigep	MontarXML@5202353
+5202353	Sigep	xml mei nov	200	Sigep	MontarXML@5202353
+5202353	Sigep	transmissao simples out	200		Transmitir@5202353+cred
+5202353	Sigep	transmissao simples nov	200		Transmitir@5202353+cred
+5202353	Sigep	transmissao nao optante nov	200		Transmitir@5202353+cred
+5202353	Sigep	cancelamento prefeitura	200		Cancelar@5202353+cred
+5202353	Sigep	cancelamento nacional	200		Cancelar@5202353+cred
+5202353	Sigep	substituicao nova out antiga prefeitura	200		SubstituirNFSe@5202353+cred
+5202353	Sigep	substituicao nova out antiga nacional	200		SubstituirNFSe@5202353+cred
+5202353	Sigep	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@5202353+cred
+5202353	Sigep	consulta prefeitura	200		Consultar@5202353+cred
+5202353	Sigep	consulta nacional	200		Consultar@5202353+cred
+5202353	Sigep	consulta dps	200		ConsultarDPSPorChave@5202353+cred
+5202353	Sigep	consulta numero	200		ConsultarPorNumero@5202353+cred
+5202353	Sigep	distribuicao	200		ConsultarDFe@5202353+cred
+5202353	Sigep	pdf chave prefeitura	200		ObterPDF@5202353+cred
+5202353	Sigep	pdf chave nacional	200		ObterPDF@5202353+cred
+5202353	Sigep	pdf xml prefeitura	200		RenderizarPDF@5202353
+5202353	Sigep	pdf xml nacional	200		RenderizarPDF@5202353
+5300108	ISSNet	xml simples out	200	ISSNet	MontarXML@5300108
+5300108	ISSNet	xml simples nov	200	PadraoNacional	MontarXML@3304557
+5300108	ISSNet	xml nao optante nov	200	ISSNet	MontarXML@5300108
+5300108	ISSNet	xml mei nov	200	ISSNet	MontarXML@5300108
+5300108	ISSNet	transmissao simples out	200		Transmitir@5300108+cred
+5300108	ISSNet	transmissao simples nov	200		Transmitir@3304557
+5300108	ISSNet	transmissao nao optante nov	200		Transmitir@5300108+cred
+5300108	ISSNet	cancelamento prefeitura	200		EnviarEvento@5300108+cred
+5300108	ISSNet	cancelamento nacional	200		EnviarEvento@3304557
+5300108	ISSNet	substituicao nova out antiga prefeitura	200		Emitir@5300108+cred
+5300108	ISSNet	substituicao nova out antiga nacional	200		Emitir@3304557
+5300108	ISSNet	substituicao nova nov antiga prefeitura	200		Emitir@3304557
+5300108	ISSNet	consulta prefeitura	200		Consultar@5300108+cred
+5300108	ISSNet	consulta nacional	200		Consultar@3304557
+5300108	ISSNet	consulta dps	200		ConsultarDPSPorChave@3304557 ConsultarDPSPorChave@5300108+cred
+5300108	ISSNet	consulta numero	200		ConsultarPorNumero@5300108+cred
+5300108	ISSNet	distribuicao	200		ConsultarDFe@5300108+cred
+5300108	ISSNet	pdf chave prefeitura	200		ObterPDF@5300108+cred
+5300108	ISSNet	pdf chave nacional	200		ObterPDF@3304557
+5300108	ISSNet	pdf xml prefeitura	200		RenderizarPDF@5300108
+5300108	ISSNet	pdf xml nacional	200		RenderizarPDF@3304557

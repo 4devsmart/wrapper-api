@@ -1,0 +1,166 @@
+<EnvNfe>
+<prf xsi:type="xsd:string">00.000.000/0000-00</prf>
+<usr xsi:type="xsd:string">12.345.678/0001-90</usr>
+<ctr xsi:type="xsd:string">4</ctr>
+<dataemissao xsi:type="xsd:string">01/09/2026</dataemissao>
+<localestab xsi:type="xsd:string">NAOINFORMADO</localestab>
+<nifinf>
+</nifinf>
+<nifmotivo>
+</nifmotivo>
+<cnpjcpfnif>
+</cnpjcpfnif>
+<cnpjcpfnifnome xsi:type="xsd:string">Tomador de Teste</cnpjcpfnifnome>
+<im>
+</im>
+<ie>
+</ie>
+<lgr xsi:type="xsd:string">Rua de Teste</lgr>
+<num xsi:type="xsd:string">2</num>
+<cpl>
+</cpl>
+<bai xsi:type="xsd:string">Centro</bai>
+<cep xsi:type="xsd:string">94170068</cep>
+<cid>
+</cid>
+<est>
+</est>
+<pais>
+</pais>
+<epr>
+</epr>
+<fone>
+</fone>
+<mail>
+</mail>
+<paisloc xsi:type="xsd:string">BR</paisloc>
+<loc xsi:type="xsd:string">3306008</loc>
+<txt xsi:type="xsd:string">teste de layout</txt>
+<impfederal xsi:type="xsd:string">0.00</impfederal>
+<impestadual xsi:type="xsd:string">0.00</impestadual>
+<impmunicipal xsi:type="xsd:string">0.00</impmunicipal>
+<item1 xsi:type="xsd:string">01.05</item1>
+<aliq1 xsi:type="xsd:string">0.00</aliq1>
+<impret xsi:type="xsd:string">NAO</impret>
+<val1 xsi:type="xsd:string">1.00</val1>
+<codnbs xsi:type="xsd:string">111062000</codnbs>
+<clatribscbs>
+</clatribscbs>
+<sittribpiscofins xsi:type="xsd:string">00</sittribpiscofins>
+<tipretpiscofins>
+</tipretpiscofins>
+<bpis>
+</bpis>
+<apis>
+</apis>
+<pis>
+</pis>
+<bcofins>
+</bcofins>
+<acofins>
+</acofins>
+<cofins>
+</cofins>
+<birrf>
+</birrf>
+<airrf>
+</airrf>
+<irrf>
+</irrf>
+<bcsll>
+</bcsll>
+<acsll>
+</acsll>
+<csll>
+</csll>
+<binss>
+</binss>
+<ainss>
+</ainss>
+<inss>
+</inss>
+<desci>
+</desci>
+<desco>
+</desco>
+<descoutros>
+</descoutros>
+<per>
+</per>
+<per2>
+</per2>
+<valtrib xsi:type="xsd:string">1.00</valtrib>
+<iss xsi:type="xsd:string">0.00</iss>
+<issret>
+</issret>
+<issrec xsi:type="xsd:string">0.00</issrec>
+<liqpag xsi:type="xsd:string">1.00</liqpag>
+<ssusr xsi:type="xsd:string">SIM</ssusr>
+<ssanexo>
+</ssanexo>
+<ssdtini xsi:type="xsd:string">30/12/1899</ssdtini>
+<infobrasopcao>
+</infobrasopcao>
+<infobrascodobra>
+</infobrascodobra>
+<infobrasim>
+</infobrasim>
+<ccib>
+</ccib>
+<infobrascep>
+</infobrascep>
+<infobrasmunicipio>
+</infobrasmunicipio>
+<infobrasufproviciaregiao>
+</infobrasufproviciaregiao>
+<infobraslogradouro>
+</infobraslogradouro>
+<infobrasnumero>
+</infobrasnumero>
+<infobrascomplemento>
+</infobrascomplemento>
+<infobrasbairro>
+</infobrasbairro>
+<infoatividadeeventoopcao>
+</infoatividadeeventoopcao>
+<infoatividadeeventodatainicial>
+</infoatividadeeventodatainicial>
+<infoatividadeeventodatafinal>
+</infoatividadeeventodatafinal>
+<infoatividadeeventodescricao>
+</infoatividadeeventodescricao>
+<infoatividadeeventoidentificacao>
+</infoatividadeeventoidentificacao>
+<infoatividadeeventocep>
+</infoatividadeeventocep>
+<infoatividadeeventomunicipio>
+</infoatividadeeventomunicipio>
+<infoatividadeeventoufregiaoestado>
+</infoatividadeeventoufregiaoestado>
+<infoatividadeeventologradouro>
+</infoatividadeeventologradouro>
+<infoatividadeeventonumero>
+</infoatividadeeventonumero>
+<infoatividadeeventocomplemento>
+</infoatividadeeventocomplemento>
+<infoatividadeeventobairro>
+</infoatividadeeventobairro>
+<infocomextmodoprest xsi:type="xsd:string">0</infocomextmodoprest>
+<infocomextvinculo xsi:type="xsd:string">0</infocomextvinculo>
+<infocomextmoeda_codigo>
+</infocomextmoeda_codigo>
+<infocomextvlrmoeda>
+</infocomextvlrmoeda>
+<infocomextmecprest>
+</infocomextmecprest>
+<infocomextmectomador>
+</infocomextmectomador>
+<vincopemovtempbens>
+</vincopemovtempbens>
+<didsidadri>
+</didsidadri>
+<reaverb>
+</reaverb>
+<compartdpsmdic xsi:type="xsd:string">0</compartdpsmdic>
+</EnvNfe>
+

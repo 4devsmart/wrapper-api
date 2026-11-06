@@ -1,0 +1,332 @@
+<EnvNfe>
+<prf xsi:type="xsd:string">00.000.000/0000-00</prf>
+<usr xsi:type="xsd:string">12.345.678/0001-90</usr>
+<ctr xsi:type="xsd:string">4</ctr>
+<cnpjcpfnif>
+</cnpjcpfnif>
+<cnpjcpfnifnome xsi:type="xsd:string">Tomador de Teste</cnpjcpfnifnome>
+<ie>
+</ie>
+<im>
+</im>
+<lgr xsi:type="xsd:string">Rua de Teste</lgr>
+<num xsi:type="xsd:string">2</num>
+<cpl>
+</cpl>
+<bai xsi:type="xsd:string">Centro</bai>
+<cid>
+</cid>
+<est>
+</est>
+<cep xsi:type="xsd:string">94170068</cep>
+<fon>
+</fon>
+<mail>
+</mail>
+<dataemissao xsi:type="xsd:string">01/09/2026</dataemissao>
+<localestab xsi:type="xsd:string">NAOINFORMADO</localestab>
+<nifinf>
+</nifinf>
+<nifmotivo>
+</nifmotivo>
+<pais>
+</pais>
+<epr>
+</epr>
+<f1n>
+</f1n>
+<f1d>
+</f1d>
+<f1v>
+</f1v>
+<f2n>
+</f2n>
+<f2d>
+</f2d>
+<f2v>
+</f2v>
+<f3n>
+</f3n>
+<f3d>
+</f3d>
+<f3v>
+</f3v>
+<f4n>
+</f4n>
+<f4d>
+</f4d>
+<f4v>
+</f4v>
+<f5n>
+</f5n>
+<f5d>
+</f5d>
+<f5v>
+</f5v>
+<f6n>
+</f6n>
+<f6d>
+</f6d>
+<f6v>
+</f6v>
+<item1 xsi:type="xsd:string">01.05</item1>
+<item2>
+</item2>
+<item3>
+</item3>
+<aliq1 xsi:type="xsd:string">0.00</aliq1>
+<aliq2 xsi:type="xsd:string">0.00</aliq2>
+<aliq3 xsi:type="xsd:string">0.00</aliq3>
+<val1 xsi:type="xsd:string">1.00</val1>
+<val2 xsi:type="xsd:string">0.00</val2>
+<val3 xsi:type="xsd:string">0.00</val3>
+<codnbs xsi:type="xsd:string">111062000</codnbs>
+<clatribscbs>
+</clatribscbs>
+<sittribpiscofins xsi:type="xsd:string">00</sittribpiscofins>
+<tipretpiscofins>
+</tipretpiscofins>
+<loc xsi:type="xsd:string">0000</loc>
+<impret xsi:type="xsd:string">NAO</impret>
+<txt xsi:type="xsd:string">teste de layout</txt>
+<impfederal>
+</impfederal>
+<impestadual>
+</impestadual>
+<impmunicipal>
+</impmunicipal>
+<val xsi:type="xsd:string">1.00</val>
+<valtrib xsi:type="xsd:string">1.00</valtrib>
+<iss xsi:type="xsd:string">0.00</iss>
+<issret xsi:type="xsd:string">0.00</issret>
+<issrec xsi:type="xsd:string">0.00</issrec>
+<liqpag xsi:type="xsd:string">1.00</liqpag>
+<desci xsi:type="xsd:string">0.00</desci>
+<desco xsi:type="xsd:string">0.00</desco>
+<binss>
+</binss>
+<birrf>
+</birrf>
+<bcsll>
+</bcsll>
+<airrf>
+</airrf>
+<irrf>
+</irrf>
+<acsll>
+</acsll>
+<csll>
+</csll>
+<ainss>
+</ainss>
+<inss>
+</inss>
+<bpis>
+</bpis>
+<apis>
+</apis>
+<pis>
+</pis>
+<bcofins>
+</bcofins>
+<acofins>
+</acofins>
+<cofins>
+</cofins>
+<item4>
+</item4>
+<item5>
+</item5>
+<item6>
+</item6>
+<item7>
+</item7>
+<item8>
+</item8>
+<aliq4 xsi:type="xsd:string">0.00</aliq4>
+<aliq5 xsi:type="xsd:string">0.00</aliq5>
+<aliq6 xsi:type="xsd:string">0.00</aliq6>
+<aliq7 xsi:type="xsd:string">0.00</aliq7>
+<aliq8 xsi:type="xsd:string">0.00</aliq8>
+<val4 xsi:type="xsd:string">0.00</val4>
+<val5 xsi:type="xsd:string">0.00</val5>
+<val6 xsi:type="xsd:string">0.00</val6>
+<val7 xsi:type="xsd:string">0.00</val7>
+<val8 xsi:type="xsd:string">0.00</val8>
+<iteser1 xsi:type="xsd:string">01.05</iteser1>
+<iteser2>
+</iteser2>
+<iteser3>
+</iteser3>
+<iteser4>
+</iteser4>
+<iteser5>
+</iteser5>
+<iteser6>
+</iteser6>
+<iteser7>
+</iteser7>
+<iteser8>
+</iteser8>
+<alqser1 xsi:type="xsd:string">0.00</alqser1>
+<alqser2 xsi:type="xsd:string">0.00</alqser2>
+<alqser3 xsi:type="xsd:string">0.00</alqser3>
+<alqser4 xsi:type="xsd:string">0.00</alqser4>
+<alqser5 xsi:type="xsd:string">0.00</alqser5>
+<alqser6 xsi:type="xsd:string">0.00</alqser6>
+<alqser7 xsi:type="xsd:string">0.00</alqser7>
+<alqser8 xsi:type="xsd:string">0.00</alqser8>
+<valser1 xsi:type="xsd:string">1.00</valser1>
+<valser2 xsi:type="xsd:string">0.00</valser2>
+<valser3 xsi:type="xsd:string">0.00</valser3>
+<valser4 xsi:type="xsd:string">0.00</valser4>
+<valser5 xsi:type="xsd:string">0.00</valser5>
+<valser6 xsi:type="xsd:string">0.00</valser6>
+<valser7 xsi:type="xsd:string">0.00</valser7>
+<valser8 xsi:type="xsd:string">0.00</valser8>
+<paisloc xsi:type="xsd:string">BR</paisloc>
+<ssrecbr xsi:type="xsd:string">0.00</ssrecbr>
+<ssusr xsi:type="xsd:string">SIM</ssusr>
+<ssanexo>
+</ssanexo>
+<ssdtini xsi:type="xsd:string">30/12/1899</ssdtini>
+<percded>
+</percded>
+<per2>
+</per2>
+<infobrasopcao xsi:type="xsd:string">0</infobrasopcao>
+<infobrascodobra>
+</infobrascodobra>
+<infobrasim>
+</infobrasim>
+<ccib xsi:type="xsd:string">00000000</ccib>
+<infobrascep>
+</infobrascep>
+<infobrasmunicipio>
+</infobrasmunicipio>
+<infobrasufproviciaregiao>
+</infobrasufproviciaregiao>
+<infobraslogradouro>
+</infobraslogradouro>
+<infobrasnumero>
+</infobrasnumero>
+<infobrascomplemento>
+</infobrascomplemento>
+<infobrasbairro>
+</infobrasbairro>
+<infoatividadeeventoopcao xsi:type="xsd:string">0</infoatividadeeventoopcao>
+<infoatividadeeventodatainicial>
+</infoatividadeeventodatainicial>
+<infoatividadeeventodatafinal>
+</infoatividadeeventodatafinal>
+<infoatividadeeventodescricao>
+</infoatividadeeventodescricao>
+<infoatividadeeventoidentificacao>
+</infoatividadeeventoidentificacao>
+<infoatividadeeventocep>
+</infoatividadeeventocep>
+<infoatividadeeventomunicipio>
+</infoatividadeeventomunicipio>
+<infoatividadeeventoufregiaoestado>
+</infoatividadeeventoufregiaoestado>
+<infoatividadeeventologradouro>
+</infoatividadeeventologradouro>
+<infoatividadeeventonumero>
+</infoatividadeeventonumero>
+<infoatividadeeventocomplemento>
+</infoatividadeeventocomplemento>
+<infoatividadeeventobairro>
+</infoatividadeeventobairro>
+<infocomextmodoprest xsi:type="xsd:string">0</infocomextmodoprest>
+<infocomextvinculo xsi:type="xsd:string">0</infocomextvinculo>
+<infocomextmoeda_codigo xsi:type="xsd:string">000</infocomextmoeda_codigo>
+<infocomextvlrmoeda xsi:type="xsd:string">0.00</infocomextvlrmoeda>
+<infocomextmecprest xsi:type="xsd:string">00</infocomextmecprest>
+<infocomextmectomador xsi:type="xsd:string">00</infocomextmectomador>
+<vincopemovtempbens xsi:type="xsd:string">0</vincopemovtempbens>
+<didsidadri>
+</didsidadri>
+<reaverb>
+</reaverb>
+<compartdpsmdic xsi:type="xsd:string">0</compartdpsmdic>
+<itemsac1>
+</itemsac1>
+<itemsaq1>
+</itemsaq1>
+<itemsav1>
+</itemsav1>
+<itemsat1>
+</itemsat1>
+<itemsac2>
+</itemsac2>
+<itemsaq2>
+</itemsaq2>
+<itemsav2>
+</itemsav2>
+<itemsat2>
+</itemsat2>
+<itemsac3>
+</itemsac3>
+<itemsaq3>
+</itemsaq3>
+<itemsav3>
+</itemsav3>
+<itemsat3>
+</itemsat3>
+<itemsac4>
+</itemsac4>
+<itemsaq4>
+</itemsaq4>
+<itemsav4>
+</itemsav4>
+<itemsat4>
+</itemsat4>
+<itemsac5>
+</itemsac5>
+<itemsaq5>
+</itemsaq5>
+<itemsav5>
+</itemsav5>
+<itemsat5>
+</itemsat5>
+<sslimite xsi:type="xsd:string">NAO</sslimite>
+<descoutros>
+</descoutros>
+<f7n>
+</f7n>
+<f7d>
+</f7d>
+<f7v>
+</f7v>
+<f8n>
+</f8n>
+<f8d>
+</f8d>
+<f8v>
+</f8v>
+<f9n>
+</f9n>
+<f9d>
+</f9d>
+<f9v>
+</f9v>
+<f10n>
+</f10n>
+<f10d>
+</f10d>
+<f10v>
+</f10v>
+<f11n>
+</f11n>
+<f11d>
+</f11d>
+<f11v>
+</f11v>
+<f12n>
+</f12n>
+<f12d>
+</f12d>
+<f12v>
+</f12v>
+</EnvNfe>
+

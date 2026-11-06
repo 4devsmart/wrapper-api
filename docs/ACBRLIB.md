@@ -106,6 +106,13 @@ uma sustenta um pedaço do contrato:
 | `0003-giss-totrib-emite-indtottrib` | sem valor a declarar, o gravador do GISS emite `<indTotTrib>0</indTotTrib>` em vez de um ramo de `totTrib` só com zeros | a saída do E160 de carga tributária para quem não informa `valores.totTrib` |
 | `0004-padraonacional-chave-usa-cloc-emi-informado` | a chave da DPS sai do `cLocEmi` informado, não do município da sessão | emitir pelo Ambiente Nacional num município que a lib atende por outra classe, com a sessão em `MunicipioADN`: é a saída do EM110 de Brasília para o Simples |
 
+Cada mudança na lib também aparece no golden de XML, em
+`internal/nfse/testdata/golden_xml`: um arquivo por combinação de provedor, versão
+e API própria. `make test-integracao-nfse` o compara com a lib real, e o
+`publicar.yml` faz o mesmo contra a imagem publicada. Depois de um bump a diferença
+é esperada e é o que se quer ler: regere com `make golden-nfse`, com uma API de pé,
+e revise o diff antes de commitar.
+
 A cada bump, confira se o trunk2 já resolveu algum deles. Na r48784 nenhum
 foi resolvido, mas o ACBr passou a emitir o `indTotTrib` quando ele vem 0 no INI
 (ACBR-9885) e a escolher o ramo de `totTrib` pelo regime do Simples. O 0003 foi

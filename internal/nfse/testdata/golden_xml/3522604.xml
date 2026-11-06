@@ -1,0 +1,51 @@
+<GerarNota xmlns="urn:sigiss_ws">
+<DescricaoRps>
+<cnpj>12345678000190</cnpj>
+<senha>
+</senha>
+<crc>
+</crc>
+<crc_estado>
+</crc_estado>
+<servico>0105</servico>
+<situacao>tp</situacao>
+<valor>1,0000</valor>
+<base>0,0000</base>
+<descricaoNF>teste de layout</descricaoNF>
+<tomador_tipo>1</tomador_tipo>
+<tomador_cnpj>11144477735</tomador_cnpj>
+<tomador_razao>Tomador de Teste</tomador_razao>
+<tomador_fantasia>
+</tomador_fantasia>
+<tomador_endereco>Rua de Teste</tomador_endereco>
+<tomador_numero>2</tomador_numero>
+<tomador_bairro>Centro</tomador_bairro>
+<tomador_CEP>94170068</tomador_CEP>
+<tomador_cod_cidade>4309209</tomador_cod_cidade>
+<rps_num>4</rps_num>
+<rps_serie>5</rps_serie>
+<rps_tipo>1</rps_tipo>
+<rps_dia>01</rps_dia>
+<rps_mes>09</rps_mes>
+<rps_ano>2026</rps_ano>
+<rps_substituido>
+</rps_substituido>
+<cod_outro_municipio>3522604</cod_outro_municipio>
+<retencao_iss>0,0000</retencao_iss>
+<retencao_pis>2</retencao_pis>
+<retencao_cofins>2</retencao_cofins>
+<retencao_csll>2</retencao_csll>
+<pis>0,0000</pis>
+<cofins>0,0000</cofins>
+<inss>0,0000</inss>
+<irrf>0,0000</irrf>
+<csll>0,0000</csll>
+<dps_serv_cnbs>111062000</dps_serv_cnbs>
+<dps_serv_mdprestacao>0</dps_serv_mdprestacao>
+<dps_serv_mecafcomexp>00</dps_serv_mecafcomexp>
+<dps_serv_mecafcomext>00</dps_serv_mecafcomext>
+<dps_serv_vincprest>0</dps_serv_vincprest>
+<dps_serv_movtempbens>0</dps_serv_movtempbens>
+</DescricaoRps>
+</GerarNota>
+

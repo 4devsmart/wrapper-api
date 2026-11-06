@@ -1,0 +1,57 @@
+<Rps xmlns="http://www.gerenciadecidades.com.br/xsd/envio_lote_rps_reforma.xsd">
+<IdentificacaoRps>
+<NumeroRps>4</NumeroRps>
+</IdentificacaoRps>
+<DataEmissao>01/09/2026</DataEmissao>
+<Servico>
+<Valores>
+<ValorServicos>1.00</ValorServicos>
+<BaseCalculo>0.00</BaseCalculo>
+<Aliquota>0.00</Aliquota>
+</Valores>
+<CodigoServico>0105</CodigoServico>
+<TipoLancamento>P</TipoLancamento>
+<Discriminacao>teste de layout</Discriminacao>
+<MunicipioPrestacaoServico>
+</MunicipioPrestacaoServico>
+</Servico>
+<PrestadorServico>
+<IdentificacaoPrestador>
+<CnpjCpf>12345678000190</CnpjCpf>
+<InscricaoMunicipal>
+</InscricaoMunicipal>
+<Regime>1</Regime>
+</IdentificacaoPrestador>
+</PrestadorServico>
+<TomadorServico>
+<IdentificacaoTomador>
+<CnpjCpf>11144477735</CnpjCpf>
+</IdentificacaoTomador>
+<RazaoSocial>Tomador de Teste</RazaoSocial>
+<Endereco>
+<Rua>Rua de Teste</Rua>
+<Numero>2</Numero>
+<Bairro>Centro</Bairro>
+<Cidade>4309209</Cidade>
+<Estado>RS</Estado>
+<Cep>94170068</Cep>
+<ProvReg>.</ProvReg>
+</Endereco>
+</TomadorServico>
+<OrgaoGerador>
+<CodigoMunicipio>3509205</CodigoMunicipio>
+<Uf>SP</Uf>
+</OrgaoGerador>
+<OutrosImpostos>
+<Pis>0.00</Pis>
+<Cofins>0.00</Cofins>
+<Csll>0.00</Csll>
+<Irrf>0.00</Irrf>
+<Inss>0.00</Inss>
+</OutrosImpostos>
+<NCM>
+</NCM>
+<NBS>111062000</NBS>
+<CodigoNacional>010501</CodigoNacional>
+</Rps>
+
