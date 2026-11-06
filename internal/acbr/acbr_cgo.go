@@ -39,6 +39,10 @@ import (
 // bufferLen é o tamanho inicial do buffer de resposta (mesma convenção do SDK
 // oficial: BUFFER_LEN=256). Se a resposta for maior, esTamanho retorna o
 // tamanho real e relemos via NFSE_UltimoRetorno.
+//
+// O buffer tem sempre um byte a mais: a lib copia até esTamanho bytes e ainda põe
+// o NUL (StrLCopy), então um buffer do tamanho exato transborda em toda resposta
+// que o preenche, e o byte cai no heap do Go.
 const bufferLen = 256
 
 // Valores de SSL obrigatórios no Linux (ver enums do ACBr / SDK C#):
@@ -112,11 +116,7 @@ func (s *dfeSession) run(t Sessao, fn func(h C.LibHandle) (Result, error)) (Resu
 
 	if s.cfg.LogPath != "" {
 		_ = os.MkdirAll(s.cfg.LogPath, 0o755)
-		nivel := s.cfg.LogNivel
-		if nivel == "" {
-			nivel = "4"
-		}
-		_ = os.WriteFile(cfgPath, []byte("[Principal]\nLogNivel="+nivel+"\nLogPath="+s.cfg.LogPath+"\n"), 0o644)
+		_ = os.WriteFile(cfgPath, []byte("[Principal]\nLogNivel="+s.cfg.LogNivel+"\nLogPath="+s.cfg.LogPath+"\n"), 0o644)
 	}
 
 	cArq := C.CString(cfgPath)
@@ -183,7 +183,7 @@ func (s *dfeSession) applyConfig(h C.LibHandle, t Sessao, savePath string) error
 // callBuf aplica a convenção de buffer da ACBrLib usando a UltimoRetorno do
 // serviço (via vtable). Igual à callBuffer do NFSe, mas genérica.
 func (s *dfeSession) callBuf(h C.LibHandle, call func(buf *C.char, size *C.int) C.int) (int, string) {
-	buf := make([]byte, bufferLen)
+	buf := make([]byte, bufferLen+1)
 	size := C.int(bufferLen)
 	ret := int(call((*C.char)(unsafe.Pointer(&buf[0])), &size))
 	var resp string
@@ -640,11 +640,7 @@ func (l *cgoLib) withSession(t Sessao, fn func(h C.LibHandle) (Result, error)) (
 	// arquivo de config, então gravamos [Principal] LogNivel/LogPath ANTES.
 	if l.cfg.LogPath != "" {
 		_ = os.MkdirAll(l.cfg.LogPath, 0o755)
-		nivel := l.cfg.LogNivel
-		if nivel == "" {
-			nivel = "4"
-		}
-		preCfg := "[Principal]\nLogNivel=" + nivel + "\nLogPath=" + l.cfg.LogPath + "\n"
+		preCfg := "[Principal]\nLogNivel=" + l.cfg.LogNivel + "\nLogPath=" + l.cfg.LogPath + "\n"
 		_ = os.WriteFile(cfgPath, []byte(preCfg), 0o644)
 	}
 
@@ -731,7 +727,7 @@ func configCarregarINI(h C.LibHandle, ini string) (int, string) {
 // maior e é relida via NFSE_UltimoRetorno. Em caso de erro sem conteúdo no
 // buffer, busca a mensagem no último retorno.
 func callBuffer(h C.LibHandle, call func(buf *C.char, size *C.int) C.int) (int, string) {
-	buf := make([]byte, bufferLen)
+	buf := make([]byte, bufferLen+1)
 	size := C.int(bufferLen)
 	ret := int(call((*C.char)(unsafe.Pointer(&buf[0])), &size))
 

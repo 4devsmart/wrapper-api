@@ -356,7 +356,10 @@ Leia **[docs/LIMITACOES.md](docs/LIMITACOES.md)**. O essencial:
   transmissão, ainda antes de o documento sair;
 - **não paralelize a distribuição DF-e do mesmo CNPJ.** O cursor é seu;
 - **o envio à SEFAZ não é exercitado em CI**, porque exige um certificado A1
-  real. Transmita em homologação com o seu certificado antes de mudar `MODO`.
+  real. Transmita em homologação com o seu certificado antes de mudar `MODO`;
+- **dê tempo para encerrar.** O compose já define `stop_grace_period`. Com
+  `docker run`, use `--stop-timeout 120`: nos 10s padrão, uma transmissão em curso
+  morre no meio. Se aumentar `ACBR_WORKER_TIMEOUT_SECONDS`, suba este prazo junto.
 
 ---
 
