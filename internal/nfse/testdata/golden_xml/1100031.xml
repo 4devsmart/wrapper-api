@@ -7,6 +7,7 @@
 <nDPS>4</nDPS>
 <dCompet>2026-09-01</dCompet>
 <tpEmit>1</tpEmit>
+<finNFSe>0</finNFSe>
 <cLocEmi>1100031</cLocEmi>
 <prest>
 <CNPJ>12345678000190</CNPJ>
@@ -38,8 +39,8 @@
 <cServ>
 <cTribNac>010501</cTribNac>
 <cTribMun>101</cTribMun>
-<xDescServ>teste de layout</xDescServ>
 <cNBS>111062000</cNBS>
+<xDescServ>teste de layout</xDescServ>
 </cServ>
 </serv>
 <valores>

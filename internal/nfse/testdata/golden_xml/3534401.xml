@@ -5,8 +5,6 @@
 <eis1:CEPPrestacaoServico>94170068</eis1:CEPPrestacaoServico>
 <eis1:ChaveAutenticacao>
 </eis1:ChaveAutenticacao>
-<eis1:CidadePrestacaoServico>
-</eis1:CidadePrestacaoServico>
 <eis1:CodigoCidadeIBGEPrestacaoServico>4309209</eis1:CodigoCidadeIBGEPrestacaoServico>
 <eis1:DataRecibo>2026-09-01</eis1:DataRecibo>
 <eis1:EnderecoPrestacaoServico>Rua de Teste</eis1:EnderecoPrestacaoServico>
@@ -15,8 +13,6 @@
 <eis1:NotificarTomadorPorEmail>false</eis1:NotificarTomadorPorEmail>
 <eis1:NumeroPrestacaoServico>2</eis1:NumeroPrestacaoServico>
 <eis1:NumeroRecibo>4</eis1:NumeroRecibo>
-<eis1:PaisPrestacaoServico>
-</eis1:PaisPrestacaoServico>
 <eis1:SemIncidenciaISS>false</eis1:SemIncidenciaISS>
 <eis1:SimplesNacional>true</eis1:SimplesNacional>
 <eis1:SubstituicaoTributaria>false</eis1:SubstituicaoTributaria>

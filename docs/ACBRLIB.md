@@ -113,7 +113,8 @@ e API própria. `make test-integracao-nfse` o compara com a lib real, e o
 é esperada e é o que se quer ler: regere com `make golden-nfse`, com uma API de pé,
 e revise o diff antes de commitar.
 
-A cada bump, confira se o trunk2 já resolveu algum deles. Na r48784 nenhum
+A cada bump, confira se o trunk2 já resolveu algum deles. Na r49010 nenhum foi
+resolvido, e o `make acbr-analise` mostra por onde começar. Na r48784 nenhum
 foi resolvido, mas o ACBr passou a emitir o `indTotTrib` quando ele vem 0 no INI
 (ACBR-9885) e a escolher o ramo de `totTrib` pelo regime do Simples. O 0003 foi
 reescrito sobre esse código e ficou só com o caso que o ACBr ainda não cobre.

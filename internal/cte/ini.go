@@ -32,6 +32,7 @@ func ToINI(p PedidoEmissao) string {
 	b.KV("versao", cmp.Or(inf.Versao, "4.00"))
 
 	b.identificacao(inf.Ide, p.Ambiente)
+	b.compraGovernamental(inf.Ide.GCompraGov)
 	b.complemento(inf.Compl)
 	b.emitente(inf.Emit)
 
@@ -113,6 +114,18 @@ func ToINI(p PedidoEmissao) string {
 }
 
 // identificacao emite a seção [ide] + [toma4] (tomador externo do CT-e Normal).
+// compraGovernamental vai em seção própria desde a NT 2026/004, quando a leitura
+// foi para a classe base da Reforma. Em [ide], onde ficava, o dado é descartado em
+// silêncio: achado pelo teste de lockstep ao ensaiar o bump.
+func (b *iniBuilder) compraGovernamental(g *CompraGovReduzido) {
+	if g == nil {
+		return
+	}
+	b.Secao("gCompraGov")
+	b.KVIntOpt("tpEnteGov", g.TpEnteGov)
+	b.KVOpt("pRedutor", inifmt.MoneyOpt(g.PRedutor))
+}
+
 func (b *iniBuilder) identificacao(id Ide, ambiente string) {
 	b.Secao("ide")
 	b.KVIntOpt("cUF", id.CUF)
@@ -156,11 +169,6 @@ func (b *iniBuilder) identificacao(id Ide, ambiente string) {
 	b.KV("indIEToma", strconv.Itoa(id.IndIEToma))
 	b.KVOpt("dhCont", b.DataHoraOpt(id.DhCont))
 	b.KVOpt("xJust", id.XJust)
-	// gCompraGov não tem seção própria: a lib lê tpEnteGov e pRedutor de [ide].
-	if g := id.GCompraGov; g != nil {
-		b.KVIntOpt("tpEnteGov", g.TpEnteGov)
-		b.KVOpt("pRedutor", inifmt.MoneyOpt(g.PRedutor))
-	}
 	// O indicador do tomador vai na seção PRÓPRIA, não em [ide]: o leitor da lib
 	// faz Ide.toma03.Toma := ReadString('toma3','toma') e toma4.toma :=
 	// ReadString('toma4','toma'). Escrito em [ide], o valor era simplesmente

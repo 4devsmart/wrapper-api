@@ -287,6 +287,7 @@ IdentificacaoNFSe	xLocPrestacao
 IdentificacaoNFSe	xNBS
 IdentificacaoNFSe	xTribMun
 IdentificacaoNFSe	xTribNac
+IdentificacaoRps	chNFSeRej
 IdentificacaoRps	cLocEmi
 IdentificacaoRps	cMotivoEmisTI
 IdentificacaoRps	Competencia

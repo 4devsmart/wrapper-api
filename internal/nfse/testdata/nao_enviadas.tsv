@@ -26,3 +26,6 @@
 # chave ninguém precisa: o Padrão Nacional não emite o número sequencial do
 # pedido, e a lib trabalha com 0.
 Evento/nPedRegEvento	sequencial do pedido de registro de evento; o Padrão Nacional não o emite
+
+# NT 009: nova DPS após rejeição, ainda só em produção restrita.
+IdentificacaoRps/chNFSeRej	chave da NFS-e rejeitada (NT 009); sem contrato enquanto a NT não tem data de produção

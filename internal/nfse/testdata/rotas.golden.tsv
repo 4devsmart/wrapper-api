@@ -565,6 +565,27 @@
 2111573	XTRTecnologia	pdf chave nacional	200		ObterPDF@2111573+cred
 2111573	XTRTecnologia	pdf xml prefeitura	200		RenderizarPDF@2111573
 2111573	XTRTecnologia	pdf xml nacional	200		RenderizarPDF@2111573
+2112209	SpeedGov	xml simples out	200	SpeedGov	MontarXML@2112209
+2112209	SpeedGov	xml simples nov	200	SpeedGov	MontarXML@2112209
+2112209	SpeedGov	xml nao optante nov	200	SpeedGov	MontarXML@2112209
+2112209	SpeedGov	xml mei nov	200	SpeedGov	MontarXML@2112209
+2112209	SpeedGov	transmissao simples out	200		Transmitir@2112209+cred
+2112209	SpeedGov	transmissao simples nov	200		Transmitir@2112209+cred
+2112209	SpeedGov	transmissao nao optante nov	200		Transmitir@2112209+cred
+2112209	SpeedGov	cancelamento prefeitura	200		EnviarEvento@2112209+cred
+2112209	SpeedGov	cancelamento nacional	200		EnviarEvento@2112209+cred
+2112209	SpeedGov	substituicao nova out antiga prefeitura	200		Emitir@2112209+cred
+2112209	SpeedGov	substituicao nova out antiga nacional	200		Emitir@2112209+cred
+2112209	SpeedGov	substituicao nova nov antiga prefeitura	200		Emitir@2112209+cred
+2112209	SpeedGov	consulta prefeitura	200		Consultar@2112209+cred
+2112209	SpeedGov	consulta nacional	200		Consultar@2112209+cred
+2112209	SpeedGov	consulta dps	200		ConsultarDPSPorChave@2112209+cred
+2112209	SpeedGov	consulta numero	200		ConsultarPorNumero@2112209+cred
+2112209	SpeedGov	distribuicao	200		ConsultarDFe@2112209+cred
+2112209	SpeedGov	pdf chave prefeitura	200		ObterPDF@2112209+cred
+2112209	SpeedGov	pdf chave nacional	200		ObterPDF@2112209+cred
+2112209	SpeedGov	pdf xml prefeitura	200		RenderizarPDF@2112209
+2112209	SpeedGov	pdf xml nacional	200		RenderizarPDF@2112209
 2200400	Fisco	xml simples out	200	Fisco	MontarXML@2200400
 2200400	Fisco	xml simples nov	200	Fisco	MontarXML@2200400
 2200400	Fisco	xml nao optante nov	200	Fisco	MontarXML@2200400
@@ -607,27 +628,6 @@
 2304400	ISSFortaleza	pdf chave nacional	200		ObterPDF@2304400+cred
 2304400	ISSFortaleza	pdf xml prefeitura	200		RenderizarPDF@2304400
 2304400	ISSFortaleza	pdf xml nacional	200		RenderizarPDF@2304400
-2305233	SpeedGov	xml simples out	200	SpeedGov	MontarXML@2305233
-2305233	SpeedGov	xml simples nov	200	SpeedGov	MontarXML@2305233
-2305233	SpeedGov	xml nao optante nov	200	SpeedGov	MontarXML@2305233
-2305233	SpeedGov	xml mei nov	200	SpeedGov	MontarXML@2305233
-2305233	SpeedGov	transmissao simples out	200		Transmitir@2305233+cred
-2305233	SpeedGov	transmissao simples nov	200		Transmitir@2305233+cred
-2305233	SpeedGov	transmissao nao optante nov	200		Transmitir@2305233+cred
-2305233	SpeedGov	cancelamento prefeitura	200		EnviarEvento@2305233+cred
-2305233	SpeedGov	cancelamento nacional	200		EnviarEvento@2305233+cred
-2305233	SpeedGov	substituicao nova out antiga prefeitura	200		Emitir@2305233+cred
-2305233	SpeedGov	substituicao nova out antiga nacional	200		Emitir@2305233+cred
-2305233	SpeedGov	substituicao nova nov antiga prefeitura	200		Emitir@2305233+cred
-2305233	SpeedGov	consulta prefeitura	200		Consultar@2305233+cred
-2305233	SpeedGov	consulta nacional	200		Consultar@2305233+cred
-2305233	SpeedGov	consulta dps	200		ConsultarDPSPorChave@2305233+cred
-2305233	SpeedGov	consulta numero	200		ConsultarPorNumero@2305233+cred
-2305233	SpeedGov	distribuicao	200		ConsultarDFe@2305233+cred
-2305233	SpeedGov	pdf chave prefeitura	200		ObterPDF@2305233+cred
-2305233	SpeedGov	pdf chave nacional	200		ObterPDF@2305233+cred
-2305233	SpeedGov	pdf xml prefeitura	200		RenderizarPDF@2305233
-2305233	SpeedGov	pdf xml nacional	200		RenderizarPDF@2305233
 2313955	SSInformatica	xml simples out	200	SSInformatica	MontarXML@2313955
 2313955	SSInformatica	xml simples nov	200	SSInformatica	MontarXML@2313955
 2313955	SSInformatica	xml nao optante nov	200	SSInformatica	MontarXML@2313955
@@ -1804,27 +1804,6 @@
 3505302	WebFisco	pdf chave nacional	200		ObterPDF@3505302+cred
 3505302	WebFisco	pdf xml prefeitura	200		RenderizarPDF@3505302
 3505302	WebFisco	pdf xml nacional	200		RenderizarPDF@3505302
-3505500	RLZ	xml simples out	200	RLZ	MontarXML@3505500
-3505500	RLZ	xml simples nov	200	RLZ	MontarXML@3505500
-3505500	RLZ	xml nao optante nov	200	RLZ	MontarXML@3505500
-3505500	RLZ	xml mei nov	200	RLZ	MontarXML@3505500
-3505500	RLZ	transmissao simples out	200		Transmitir@3505500+cred
-3505500	RLZ	transmissao simples nov	200		Transmitir@3505500+cred
-3505500	RLZ	transmissao nao optante nov	200		Transmitir@3505500+cred
-3505500	RLZ	cancelamento prefeitura	200		EnviarEvento@3505500+cred
-3505500	RLZ	cancelamento nacional	200		EnviarEvento@3505500+cred
-3505500	RLZ	substituicao nova out antiga prefeitura	200		Emitir@3505500+cred
-3505500	RLZ	substituicao nova out antiga nacional	200		Emitir@3505500+cred
-3505500	RLZ	substituicao nova nov antiga prefeitura	200		Emitir@3505500+cred
-3505500	RLZ	consulta prefeitura	200		Consultar@3505500+cred
-3505500	RLZ	consulta nacional	200		Consultar@3505500+cred
-3505500	RLZ	consulta dps	200		ConsultarDPSPorChave@3505500+cred
-3505500	RLZ	consulta numero	200		ConsultarPorNumero@3505500+cred
-3505500	RLZ	distribuicao	200		ConsultarDFe@3505500+cred
-3505500	RLZ	pdf chave prefeitura	200		ObterPDF@3505500+cred
-3505500	RLZ	pdf chave nacional	200		ObterPDF@3505500+cred
-3505500	RLZ	pdf xml prefeitura	200		RenderizarPDF@3505500
-3505500	RLZ	pdf xml nacional	200		RenderizarPDF@3505500
 3505708	ISSBarueri	xml simples out	200	ISSBarueri	MontarXML@3505708
 3505708	ISSBarueri	xml simples nov	200	ISSBarueri	MontarXML@3505708
 3505708	ISSBarueri	xml nao optante nov	200	ISSBarueri	MontarXML@3505708
@@ -1930,6 +1909,27 @@
 3514007	PriMax	pdf chave nacional	200		ObterPDF@3514007+cred
 3514007	PriMax	pdf xml prefeitura	200		RenderizarPDF@3514007
 3514007	PriMax	pdf xml nacional	200		RenderizarPDF@3514007
+3516903	RLZ	xml simples out	200	RLZ	MontarXML@3516903
+3516903	RLZ	xml simples nov	200	RLZ	MontarXML@3516903
+3516903	RLZ	xml nao optante nov	200	RLZ	MontarXML@3516903
+3516903	RLZ	xml mei nov	200	RLZ	MontarXML@3516903
+3516903	RLZ	transmissao simples out	200		Transmitir@3516903+cred
+3516903	RLZ	transmissao simples nov	200		Transmitir@3516903+cred
+3516903	RLZ	transmissao nao optante nov	200		Transmitir@3516903+cred
+3516903	RLZ	cancelamento prefeitura	200		EnviarEvento@3516903+cred
+3516903	RLZ	cancelamento nacional	200		EnviarEvento@3516903+cred
+3516903	RLZ	substituicao nova out antiga prefeitura	200		Emitir@3516903+cred
+3516903	RLZ	substituicao nova out antiga nacional	200		Emitir@3516903+cred
+3516903	RLZ	substituicao nova nov antiga prefeitura	200		Emitir@3516903+cred
+3516903	RLZ	consulta prefeitura	200		Consultar@3516903+cred
+3516903	RLZ	consulta nacional	200		Consultar@3516903+cred
+3516903	RLZ	consulta dps	200		ConsultarDPSPorChave@3516903+cred
+3516903	RLZ	consulta numero	200		ConsultarPorNumero@3516903+cred
+3516903	RLZ	distribuicao	200		ConsultarDFe@3516903+cred
+3516903	RLZ	pdf chave prefeitura	200		ObterPDF@3516903+cred
+3516903	RLZ	pdf chave nacional	200		ObterPDF@3516903+cred
+3516903	RLZ	pdf xml prefeitura	200		RenderizarPDF@3516903
+3516903	RLZ	pdf xml nacional	200		RenderizarPDF@3516903
 3518503	GeisWeb	xml simples out	200	GeisWeb	MontarXML@3518503
 3518503	GeisWeb	xml simples nov	200	GeisWeb	MontarXML@3518503
 3518503	GeisWeb	xml nao optante nov	200	GeisWeb	MontarXML@3518503
@@ -1972,48 +1972,6 @@
 3520202	Sistemas4R	pdf chave nacional	200		ObterPDF@3520202+cred
 3520202	Sistemas4R	pdf xml prefeitura	200		RenderizarPDF@3520202
 3520202	Sistemas4R	pdf xml nacional	200		RenderizarPDF@3520202
-3522604	SigISS	xml simples out	200	SigISS	MontarXML@3522604
-3522604	SigISS	xml simples nov	200	SigISS	MontarXML@3522604
-3522604	SigISS	xml nao optante nov	200	SigISS	MontarXML@3522604
-3522604	SigISS	xml mei nov	200	SigISS	MontarXML@3522604
-3522604	SigISS	transmissao simples out	200		Transmitir@3522604+cred
-3522604	SigISS	transmissao simples nov	200		Transmitir@3522604+cred
-3522604	SigISS	transmissao nao optante nov	200		Transmitir@3522604+cred
-3522604	SigISS	cancelamento prefeitura	200		Cancelar@3522604+cred
-3522604	SigISS	cancelamento nacional	200		Cancelar@3522604+cred
-3522604	SigISS	substituicao nova out antiga prefeitura	200		SubstituirNFSe@3522604+cred
-3522604	SigISS	substituicao nova out antiga nacional	200		SubstituirNFSe@3522604+cred
-3522604	SigISS	substituicao nova nov antiga prefeitura	200		SubstituirNFSe@3522604+cred
-3522604	SigISS	consulta prefeitura	200		Consultar@3522604+cred
-3522604	SigISS	consulta nacional	200		Consultar@3522604+cred
-3522604	SigISS	consulta dps	200		ConsultarDPSPorChave@3522604+cred
-3522604	SigISS	consulta numero	200		ConsultarPorNumero@3522604+cred
-3522604	SigISS	distribuicao	200		ConsultarDFe@3522604+cred
-3522604	SigISS	pdf chave prefeitura	200		ObterPDF@3522604+cred
-3522604	SigISS	pdf chave nacional	200		ObterPDF@3522604+cred
-3522604	SigISS	pdf xml prefeitura	200		RenderizarPDF@3522604
-3522604	SigISS	pdf xml nacional	200		RenderizarPDF@3522604
-3529005	SigCorp	xml simples out	200	SigCorp	MontarXML@3529005
-3529005	SigCorp	xml simples nov	200	SigCorp	MontarXML@3529005
-3529005	SigCorp	xml nao optante nov	200	SigCorp	MontarXML@3529005
-3529005	SigCorp	xml mei nov	200	SigCorp	MontarXML@3529005
-3529005	SigCorp	transmissao simples out	200		Transmitir@3529005+cred
-3529005	SigCorp	transmissao simples nov	200		Transmitir@3529005+cred
-3529005	SigCorp	transmissao nao optante nov	200		Transmitir@3529005+cred
-3529005	SigCorp	cancelamento prefeitura	200		EnviarEvento@3529005+cred
-3529005	SigCorp	cancelamento nacional	200		EnviarEvento@3529005+cred
-3529005	SigCorp	substituicao nova out antiga prefeitura	200		Emitir@3529005+cred
-3529005	SigCorp	substituicao nova out antiga nacional	200		Emitir@3529005+cred
-3529005	SigCorp	substituicao nova nov antiga prefeitura	200		Emitir@3529005+cred
-3529005	SigCorp	consulta prefeitura	200		Consultar@3529005+cred
-3529005	SigCorp	consulta nacional	200		Consultar@3529005+cred
-3529005	SigCorp	consulta dps	200		ConsultarDPSPorChave@3529005+cred
-3529005	SigCorp	consulta numero	200		ConsultarPorNumero@3529005+cred
-3529005	SigCorp	distribuicao	200		ConsultarDFe@3529005+cred
-3529005	SigCorp	pdf chave prefeitura	200		ObterPDF@3529005+cred
-3529005	SigCorp	pdf chave nacional	200		ObterPDF@3529005+cred
-3529005	SigCorp	pdf xml prefeitura	200		RenderizarPDF@3529005
-3529005	SigCorp	pdf xml nacional	200		RenderizarPDF@3529005
 3533304	BWSistemas	xml simples out	200	BWSistemas	MontarXML@3533304
 3533304	BWSistemas	xml simples nov	200	BWSistemas	MontarXML@3533304
 3533304	BWSistemas	xml nao optante nov	200	BWSistemas	MontarXML@3533304

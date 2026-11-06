@@ -1,6 +1,10 @@
 package nfse
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/4devsmart/wrapper-api/internal/fiscal"
+)
 
 // NotaTecnica registra qual leiaute vale num ambiente de um provedor.
 //
@@ -23,7 +27,12 @@ type NotaTecnica struct {
 }
 
 // notasTecnicas fica no fonte pelo mesmo motivo de vigencias.
-var notasTecnicas = []NotaTecnica{}
+var notasTecnicas = []NotaTecnica{
+	{
+		Provedor: "PadraoNacional", Ambiente: fiscal.AmbienteHomologacao, Versao: "009.1.01",
+		Base: "NT SE/CGNFS-e 009 v1.01; o ACBr a liga só em homologação desde a r48803",
+	},
+}
 
 // NotaTecnicaDe é a NT em vigor na rota, vazia se não houver nenhuma além do
 // leiaute de base.

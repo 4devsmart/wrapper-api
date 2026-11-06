@@ -34,7 +34,11 @@ FONTE = RAIZ / "acbr-source/acbr/Fontes/ACBrDFe"
 # extração manual só olhava o primeiro, e por isso 91 chaves de evento do CT-e e
 # 29 do MDF-e ficaram de fora do lockstep.
 DOCUMENTOS = {
+    # A partir da NT 2026/004 o leitor do CT-e herda de TDFeRTCIniReader, e as
+    # seções de IBS/CBS moram na classe base. Sem ela, o snapshot acusa 44 chaves
+    # que enviamos como ignoradas, e elas continuam lidas.
     "cte": (["ACBrCTe/Base/ACBrCTe.IniReader.pas",
+             "ACBrDFe.RTC.IniReader.pas",
              "ACBrCTe/Base/Servicos/ACBrCTe.EnvEvento.pas"],
             "internal/cte/testdata/lerini_chaves.tsv"),
     "mdfe": (["ACBrMDFe/Base/ACBrMDFe.IniReader.pas",
@@ -53,6 +57,11 @@ DOCUMENTOS = {
               "ACBrNFSeX/Base/WebServices/ACBrNFSeXWebserviceBase.pas"],
              "internal/nfse/testdata/lerini_chaves.tsv"),
 }
+
+# A classe base da Reforma lê a mesma seção com ou sem índice, conforme quem chama:
+# Idx1 < 0 é 'IBSCBS', o resto 'IBSCBS001'. O último sSecao do "if" é o indexado, e
+# só ele ficaria no snapshot, que então acusa como ignorado o [IBSCBS] que a lib lê.
+SECAO_COM_E_SEM_INDICE = {"ACBrDFe.RTC.IniReader.pas"}
 
 # sSecao := 'Nome';  ou  sSecao := 'Nome' + IntToStrZero(i, 3);
 #
@@ -121,7 +130,10 @@ def extrair(caminhos):
     """
     pares = set()
     for caminho in caminhos:
-        pares |= extrair_de(caminho)
+        lidos = extrair_de(caminho)
+        if caminho.name in SECAO_COM_E_SEM_INDICE:
+            lidos |= {(s.removesuffix("*"), c) for s, c in lidos}
+        pares |= lidos
     return pares
 
 

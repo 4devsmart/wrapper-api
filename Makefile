@@ -8,7 +8,7 @@ SHELL   := /bin/bash
 # ACBR_REV é a FONTE ÚNICA da revisão do ACBr: o script de download monta a tag
 # do release a partir dela, e o snapshot de chaves do lockstep é regenerado em
 # lockstep com ela. Ao bumpar, republique as libs e regenere os snapshots.
-ACBR_REV ?= 48784
+ACBR_REV ?= 49010
 # O FortesReport CE entra nos .so junto com o ACBr (ele rasteriza DACTE/DAMDFE/
 # DANFSE). Seguia o master, o que fazia METADE do binário flutuar enquanto o
 # ACBr era pinado com cuidado: um build de 2026-08 pegou um FortesReport de

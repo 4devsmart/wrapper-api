@@ -1,0 +1,61 @@
+<DPS xmlns="http://www.sped.fazenda.gov.br/nfse" versao="1.01">
+<infDPS Id="DPS351690321234567800019000005000000000000004">
+<tpAmb>2</tpAmb>
+<dhEmi>2026-09-01T00:00:00-03:00</dhEmi>
+<verAplic>integracao</verAplic>
+<serie>5</serie>
+<nDPS>4</nDPS>
+<dCompet>2026-09-01</dCompet>
+<tpEmit>1</tpEmit>
+<cLocEmi>3516903</cLocEmi>
+<prest>
+<CNPJ>12345678000190</CNPJ>
+<fone>5130000000</fone>
+<email>teste@example.com</email>
+<regTrib>
+<opSimpNac>3</opSimpNac>
+<regApTribSN>1</regApTribSN>
+<regEspTrib>0</regEspTrib>
+</regTrib>
+</prest>
+<toma>
+<CPF>11144477735</CPF>
+<xNome>Tomador de Teste</xNome>
+<end>
+<endNac>
+<cMun>4309209</cMun>
+<CEP>94170068</CEP>
+</endNac>
+<xLgr>Rua de Teste</xLgr>
+<nro>2</nro>
+<xBairro>Centro</xBairro>
+</end>
+</toma>
+<serv>
+<locPrest>
+<cLocPrestacao>3516903</cLocPrestacao>
+</locPrest>
+<cServ>
+<cTribNac>010501</cTribNac>
+<cTribMun>101</cTribMun>
+<xDescServ>teste de layout</xDescServ>
+<cNBS>111062000</cNBS>
+</cServ>
+</serv>
+<valores>
+<vServPrest>
+<vServ>1.00</vServ>
+</vServPrest>
+<trib>
+<tribMun>
+<tribISSQN>1</tribISSQN>
+<tpRetISSQN>1</tpRetISSQN>
+</tribMun>
+<totTrib>
+<pTotTribSN>9.00</pTotTribSN>
+</totTrib>
+</trib>
+</valores>
+</infDPS>
+</DPS>
+
