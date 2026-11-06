@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+# A proxima versao, a partir da atual e dos commits desde a ultima release.
+#
+#   semver-bump <atual> [major|minor|patch] < mensagens
+#
+# stdin traz a mensagem inteira de cada commit, cada uma terminada por NUL — o
+# que `git log -z --format=%B` escreve. E uma funcao pura de proposito: e a
+# parte da release que vale testar.
+#
+# Conventional Commits decidem o nivel:
+#
+#   assunto `tipo!:` ou rodape `BREAKING CHANGE:`   major
+#   `feat`                                          minor
+#   qualquer outro                                  patch
+#
+# Abaixo de 1.0.0 uma quebra sobe o MINOR, como o SemVer §4 permite: 1.0.0 se
+# declara com `bump=major`, nunca por acidente. Um bump dado a mao pode ir acima
+# do que os commits pedem, nunca abaixo — um `feat` nao sai como patch.
+#
+# Imprime `<proxima versao> <nivel aplicado>`.
+set -euo pipefail
+
+current="${1:?uso: semver-bump <atual> [major|minor|patch] < mensagens}"
+forced="${2:-}"
+
+semver='^([0-9]+)\.([0-9]+)\.([0-9]+)$'
+if ! [[ "$current" =~ $semver ]]; then
+  echo "VERSION tem '$current', que nao e MAJOR.MINOR.PATCH." >&2
+  exit 1
+fi
+major="${BASH_REMATCH[1]}"
+minor="${BASH_REMATCH[2]}"
+patch="${BASH_REMATCH[3]}"
+
+rank() {
+  case "$1" in
+    major) echo 3 ;;
+    minor) echo 2 ;;
+    patch) echo 1 ;;
+    *) echo 0 ;;
+  esac
+}
+
+breaking_subject='^[a-z]+(\([a-z0-9-]+\))?!:'
+feature_subject='^feat(\([a-z0-9-]+\))?:'
+
+level=''
+while IFS= read -r -d '' message; do
+  subject="${message%%$'\n'*}"
+
+  if [[ "$subject" =~ $breaking_subject ]] || grep -qE '^BREAKING[ -]CHANGE:' <<<"$message"; then
+    level=major
+  elif [[ "$subject" =~ $feature_subject ]] && [ "$level" != major ]; then
+    level=minor
+  elif [ -z "$level" ]; then
+    level=patch
+  fi
+done
+
+if [ -z "$level" ]; then
+  echo "Nenhum commit desde a ultima release: nada a lancar." >&2
+  exit 1
+fi
+
+if [ "$level" = major ] && [ "$major" = 0 ]; then
+  level=minor
+fi
+
+if [ -n "$forced" ]; then
+  if [ "$(rank "$forced")" = 0 ]; then
+    echo "bump='$forced' nao e major, minor nem patch." >&2
+    exit 1
+  fi
+  if [ "$(rank "$forced")" -lt "$(rank "$level")" ]; then
+    echo "bump=$forced esta abaixo do que os commits pedem ($level)." >&2
+    exit 1
+  fi
+  level="$forced"
+fi
+
+case "$level" in
+  major) echo "$((major + 1)).0.0 $level" ;;
+  minor) echo "$major.$((minor + 1)).0 $level" ;;
+  patch) echo "$major.$minor.$((patch + 1)) $level" ;;
+esac

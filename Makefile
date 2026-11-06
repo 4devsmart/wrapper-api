@@ -188,6 +188,16 @@ acbr-chaves:
 acbr-chaves-conferir:
 	@python3 scripts/gerar-chaves-lerini.py --conferir
 
+## ci: o gate do make finish. Lint, spec e integração ficam no CI
+ci:
+	$(MAKE) fmt-check vet test acbr-libs-publicadas
+
+## acbr-libs-publicadas: falha se o release das libs não tiver a revisão pinada
+# É a lib, a primeira das três coisas que uma versão entrega: sem ela no release,
+# o build da imagem falharia só depois, na branch da release.
+acbr-libs-publicadas:
+	@ACBR_REV=$(ACBR_REV) ACBR_LIBS_RELEASE=$(ACBR_LIBS_RELEASE) ./scripts/conferir-libs-publicadas.sh
+
 ## acbr-libs-baixar: baixa as libs nativas dos anexos de release (cache local)
 acbr-libs-baixar:
 	@ACBR_REV=$(ACBR_REV) ACBR_LIBS_DIR=$(ACBRLIBS) \
@@ -236,6 +246,9 @@ limpar:
 help:
 	@grep -hE '^## ' $(MAKEFILE_LIST) | sed 's/^## /  /' | sort
 
-.PHONY: build build-cgo run test test-integracao-nfse test-cgo openapi openapi-check openapi-valida yaml-valida enums-conferir vet fmt fmt-check tidy limpar help \
+.PHONY: ci acbr-libs-publicadas build build-cgo run test test-integracao-nfse test-cgo openapi openapi-check openapi-valida yaml-valida enums-conferir vet fmt fmt-check tidy limpar help \
 	acbr-fonte acbr-compilar acbr-extrair \
 	acbr-libs-baixar acbr-libs-publicar acbr-libs-conferir imagem-libs-conferir docker-build up down
+
+# O fluxo git: feature, fix, finish, release, ship (ver scripts/git-flow.mk).
+include scripts/git-flow.mk

@@ -1,0 +1,321 @@
+#!/usr/bin/env bash
+# Corta uma release. O UNICO caminho para um bump.
+#
+#   release [--dry-run] [major|minor|patch]
+#   release --baseline [X.Y.Z]   marca o ponto de partida num projeto que adota o
+#                                fluxo; a versao dada passa a ser a de VERSION
+#
+# ── De onde vem a versao ────────────────────────────────────────────────
+#
+# `VERSION` guarda a versao atual, e a ultima release e o commit `chore(release):`
+# mais novo em develop — o unico tipo de commit que pode mexer em `VERSION`
+# (`scripts/check-version`). O que sai e todo commit depois dele, e
+# `scripts/semver-bump` le as mensagens para escolher o nivel. A tag e escrita
+# para quem navega o historico; nada aqui a le de volta, porque uma tag nunca
+# publicada nem baixada mudaria a resposta.
+#
+# ── O que faz ───────────────────────────────────────────────────────────
+#
+# Em develop, com a arvore limpa e nao atras de origin: o gate, a menos que a
+# arvore de develop ja tenha passado (`scripts/gate-stamp`); depois `VERSION` e
+# `CHANGELOG.md` num commit `chore(release): vX.Y.Z`, uma tag anotada nele e uma
+# branch `release/vX.Y.Z` nele. Publica develop, a branch e a tag, e abre o Pull
+# Request para main com o changelog no corpo. main NAO anda aqui: quem move e
+# `make ship`, depois da revisao.
+#
+# O agente nunca roda de verdade: confere com --dry-run e entrega o comando a
+# pessoa.
+set -euo pipefail
+. "$(dirname "${BASH_SOURCE[0]}")/flow-lib.sh"
+
+dry_run=0
+baseline=0
+baseline_version=''
+forced=''
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) dry_run=1 ;;
+    --baseline) baseline=1 ;;
+    major|minor|patch) forced="$arg" ;;
+    [0-9]*.[0-9]*.[0-9]*) baseline_version="$arg" ;;
+    '') ;;
+    *) echo "Argumento '$arg' desconhecido. Uso: release [--dry-run] [major|minor|patch] | --baseline [X.Y.Z]" >&2; exit 1 ;;
+  esac
+done
+
+require_clean_develop() {
+  if [ "$(current_branch)" != "$DEVELOP_BRANCH" ]; then
+    echo "Isto se faz em $DEVELOP_BRANCH, e voce esta em '$(current_branch)'." >&2
+    exit 1
+  fi
+  if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+    echo "Ha mudancas nao commitadas. A release sai de um $DEVELOP_BRANCH limpo." >&2
+    exit 1
+  fi
+}
+
+# ── Baseline: o primeiro marco de um projeto que ja tinha historia ──────
+#
+# Sem um commit `chore(release):` nao ha de onde contar. O baseline e um commit
+# com a versao de partida, e nao vira tag nem e entregue: e so o marco.
+#
+# A versao de partida e a de VERSION, ou a dada. Dar uma serve quando o projeto
+# ja tem tags de versao acima de VERSION (um hook antigo que tagueava cada
+# commit): a primeira release cairia numa tag existente. Parta da maior.
+if [ "$baseline" = 1 ]; then
+  require_clean_develop
+  if git log --format=%s "$DEVELOP_BRANCH" | grep -q '^chore(release):'; then
+    echo "$DEVELOP_BRANCH ja tem um commit de release: o baseline nao e preciso." >&2
+    exit 1
+  fi
+  if [ -n "$baseline_version" ]; then
+    if ! [[ "$baseline_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+      echo "'$baseline_version' nao e MAJOR.MINOR.PATCH." >&2
+      exit 1
+    fi
+    echo "$baseline_version" >VERSION
+  fi
+  [ -f VERSION ] || echo "0.0.0" >VERSION
+  version="$(tr -d '[:space:]' <VERSION)"
+
+  highest="$(git tag -l 'v[0-9]*' | sed 's/^v//' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1 || true)"
+  if [ -n "$highest" ] && [ "$(printf '%s\n%s\n' "$highest" "$version" | sort -V | tail -1)" != "$version" ]; then
+    git checkout -- VERSION 2>/dev/null || true
+    echo "Ja existe a tag v$highest, acima de v$version: a primeira release poderia cair numa tag existente." >&2
+    echo "Parta dela: make release-baseline version=$highest" >&2
+    exit 1
+  fi
+  git add VERSION
+  git commit --allow-empty --no-verify -m "chore(release): v$version (baseline)"
+  echo "Baseline marcado em v$version. A proxima 'make release' conta a partir daqui."
+  exit 0
+fi
+
+for ref in "$DEVELOP_BRANCH" "$MAIN_BRANCH"; do
+  if ! has_branch "$ref"; then
+    echo "Nao ha branch '$ref'. 'make feature' ou 'make fix' cria $DEVELOP_BRANCH a partir de $MAIN_BRANCH." >&2
+    exit 1
+  fi
+done
+
+# main so anda para release, entao esta sempre atras de develop. Se nao esta,
+# algo chegou a main que develop nao tem — um merge pelo botao do GitHub, por
+# exemplo. A pergunta e feita ao main do origin, e nao ao local, que pode estar
+# semanas atrasado e responder que esta tudo bem.
+pull_main
+if ! git merge-base --is-ancestor "$MAIN_BRANCH" "$DEVELOP_BRANCH"; then
+  echo "$MAIN_BRANCH tem commits que $DEVELOP_BRANCH nao tem. Traga-os para $DEVELOP_BRANCH antes da release." >&2
+  exit 1
+fi
+
+if ! git cat-file -e "$DEVELOP_BRANCH:VERSION" 2>/dev/null; then
+  echo "$DEVELOP_BRANCH nao tem VERSION. Rode 'make release-baseline' em $DEVELOP_BRANCH primeiro." >&2
+  exit 1
+fi
+version="$(git show "$DEVELOP_BRANCH:VERSION" | tr -d '[:space:]')"
+
+# Le o log inteiro em vez de parar no primeiro: sair cedo fecha o pipe, e sob
+# pipefail o SIGPIPE do git derruba o script.
+last="$(git log --format='%H %s' "$DEVELOP_BRANCH" | awk '!found && $2 ~ /^chore\(release\):/ { print $1; found = 1 }')"
+if [ -z "$last" ]; then
+  echo "Nenhum commit 'chore(release):' em $DEVELOP_BRANCH: nao ha de onde contar." >&2
+  echo "Num projeto que esta adotando o fluxo, rode uma vez em $DEVELOP_BRANCH: make release-baseline" >&2
+  exit 1
+fi
+
+released="$(git show "$last:VERSION" | tr -d '[:space:]')"
+if [ "$released" != "$version" ]; then
+  echo "VERSION diz $version, e o ultimo commit de release ($(git rev-parse --short "$last")) escreveu $released." >&2
+  echo "VERSION mudou fora de uma release." >&2
+  exit 1
+fi
+
+if [[ "$(git log -1 --format=%s "$last")" != *"(baseline)" ]] \
+  && git rev-parse --verify --quiet "refs/tags/v$version" >/dev/null \
+  && [ "$(git rev-parse "v$version^{commit}")" != "$last" ]; then
+  echo "A tag v$version nao aponta para o commit de release $(git rev-parse --short "$last")." >&2
+  exit 1
+fi
+
+# ── O que esta release leva ─────────────────────────────────────────────
+#
+# Normalmente, tudo depois da ultima release: `ultima..develop`.
+#
+# Depois de um baseline, nao. O baseline marca a adocao do fluxo, e e feito
+# depois de o trabalho em andamento entrar em develop — contar a partir dele
+# deixaria de fora tudo o que ainda nao foi para producao. Ali a pergunta certa
+# e outra: **o que main nao tem**. Commit cujo assunto ja esta em main tambem sai:
+# e trabalho entregue por outro caminho (um merge pelo botao do GitHub) que
+# voltou rebaseado, com outro hash e o mesmo conteudo.
+#
+# A lista e montada uma vez, do mais antigo ao mais novo, e tudo abaixo — o
+# nivel do bump, o changelog, a contagem — le dela.
+last_subject="$(git log -1 --format=%s "$last")"
+commits=()
+if [[ "$last_subject" == *"(baseline)" ]]; then
+  pull_main
+  entregues="$(git log --format=%s "$MAIN_BRANCH")"
+  while IFS= read -r sha; do
+    subject="$(git log -1 --format=%s "$sha")"
+    [[ "$subject" =~ ^chore\(release\): ]] && continue
+    grep -qxF -- "$subject" <<<"$entregues" && continue
+    commits+=("$sha")
+  done < <(git rev-list --reverse --no-merges "$MAIN_BRANCH..$DEVELOP_BRANCH")
+else
+  while IFS= read -r sha; do
+    commits+=("$sha")
+  done < <(git rev-list --reverse --no-merges "$last..$DEVELOP_BRANCH")
+fi
+
+if [ ${#commits[@]} -eq 0 ]; then
+  echo "Nenhum commit desde a ultima release: nada a lancar." >&2
+  exit 1
+fi
+
+mensagens() {
+  local sha
+  for sha in "${commits[@]}"; do
+    git log -1 -z --format=%B "$sha"
+  done
+}
+
+# Atribuicao, e nao `read < <(...)`: uma falha dentro de process substitution
+# nunca chega ao `set -e`, e a release seguiria com versao vazia.
+bumped="$(mensagens | ./scripts/semver-bump "$version" "$forced")"
+next="${bumped% *}"
+level="${bumped#* }"
+
+if git rev-parse --verify --quiet "refs/tags/v$next" >/dev/null; then
+  echo "A tag v$next ja existe ($(git rev-parse --short "v$next^{commit}")). Apague-a se for resto de outro processo:" >&2
+  echo "  git tag -d v$next   (e no remoto: git push origin :refs/tags/v$next)" >&2
+  exit 1
+fi
+
+# Uma secao do CHANGELOG. Grupos seguem os tipos do Conventional Commits; uma
+# quebra aparece no proprio titulo E no do tipo, e um commit sem tipo conhecido
+# ainda aparece, em "Outros", em vez de sumir.
+section() {
+  local subjects
+  subjects="$(for sha in "${commits[@]}"; do git log -1 --format='%h %s' "$sha"; done)"
+
+  printf '## %s — %s\n' "$next" "$(date +%F)"
+
+  # wrapper-api: o que exige acao de quem atualiza vem primeiro, de uma linha
+  # `Antes-de-atualizar: ...` na mensagem do commit. Quem faz a mudanca e quem sabe.
+  local avisos
+  avisos="$(for sha in "${commits[@]}"; do
+    git log -1 --format='%(trailers:key=Antes-de-atualizar,valueonly,unfold)' "$sha"
+  done | sed '/^$/d; s/^/- /')"
+  if [ -n "$avisos" ]; then
+    printf '\n### Antes de atualizar\n\n%s\n' "$avisos"
+  fi
+
+  local breaking
+  breaking="$(for sha in "${commits[@]}"; do
+    git log -1 --format=%B "$sha" | grep -qE '^BREAKING[ -]CHANGE:' && git log -1 --format=%h "$sha"
+  done || true)"
+  emit 'Mudancas incompativeis' "$(
+    grep -E '^[0-9a-f]+ [a-z]+(\([a-z0-9-]+\))?!: ' <<<"$subjects" || true
+    for sha in $breaking; do grep -E "^$sha " <<<"$subjects" | grep -vE '^[0-9a-f]+ [a-z]+(\([a-z0-9-]+\))?!: ' || true; done
+  )"
+
+  emit 'Funcionalidades' "$(by_type feat <<<"$subjects")"
+  emit 'Correcoes' "$(by_type fix <<<"$subjects")"
+  emit 'Desempenho' "$(by_type perf <<<"$subjects")"
+  emit 'Refatoracao' "$(by_type refactor <<<"$subjects")"
+  emit 'Documentacao' "$(by_type docs <<<"$subjects")"
+  emit 'Testes' "$(by_type test <<<"$subjects")"
+  emit 'Infraestrutura' "$(by_type 'build|ci' <<<"$subjects")"
+  emit 'Manutencao' "$(by_type 'chore|style' <<<"$subjects")"
+  emit 'Outros' "$(grep -vE "^[0-9a-f]+ ($COMMIT_TYPES)(\([a-z0-9-]+\))?!?: " <<<"$subjects" || true)"
+}
+
+by_type() {
+  grep -E "^[0-9a-f]+ ($1)(\([a-z0-9-]+\))?!?: " || true
+}
+
+emit() {
+  [ -z "$2" ] && return 0
+  printf '\n### %s\n\n' "$1"
+  sed -E \
+    -e 's/^([0-9a-f]+) [a-z]+\(([a-z0-9-]+)\)!?: (.*)$/- **\2**: \3 (\1)/' \
+    -e 's/^([0-9a-f]+) [a-z]+!?: (.*)$/- \2 (\1)/' \
+    -e 's/^([0-9a-f]+) ([^-].*)$/- \2 (\1)/' <<<"$2"
+}
+
+echo "Versao atual:           $version"
+echo "Ultimo commit release:  $(git log -1 --format='%h %s' "$last")"
+echo "Commits nesta release:  ${#commits[@]}"
+echo "Proxima versao:         $next ($level)"
+
+if [ "$dry_run" = 1 ]; then
+  echo ""
+  section
+  echo ""
+  echo "Dry run: nada mudou. Para cortar, a PESSOA roda: make release${forced:+ bump=$forced}"
+  exit 0
+fi
+
+require_clean_develop
+
+if has_origin; then
+  git fetch --quiet origin
+  if git rev-parse --verify --quiet "refs/remotes/origin/$DEVELOP_BRANCH" >/dev/null \
+    && ! git merge-base --is-ancestor "origin/$DEVELOP_BRANCH" "$DEVELOP_BRANCH"; then
+    echo "origin/$DEVELOP_BRANCH tem commits que este $DEVELOP_BRANCH nao tem. 'git pull --ff-only' primeiro." >&2
+    exit 1
+  fi
+fi
+
+# O gate, uma vez: um develop cuja arvore `make finish` ja gateou nao e gateado de novo.
+if ./scripts/gate-stamp has "$DEVELOP_BRANCH"; then
+  echo "A arvore de $DEVELOP_BRANCH ja passou no gate."
+else
+  # shellcheck disable=SC2086
+  $GATE_CMD
+  ./scripts/gate-stamp record "$DEVELOP_BRANCH"
+fi
+
+notes="$(section)"
+
+header=$'# Changelog\n\nEscrito por `make release`. Nao edite a mao.\n'
+previous=''
+if [ -f CHANGELOG.md ]; then
+  previous="$(awk 'kept || /^## / { kept = 1; print }' CHANGELOG.md)"
+fi
+{
+  printf '%s\n' "$header"
+  printf '%s\n' "$notes"
+  if [ -n "$previous" ]; then
+    printf '\n%s\n' "$previous"
+  fi
+} >CHANGELOG.md
+echo "$next" >VERSION
+
+git add VERSION CHANGELOG.md
+git commit -m "chore(release): v$next"
+git tag -a "v$next" -m "v$next"
+git branch "release/v$next"
+
+# So mudou VERSION e CHANGELOG.md: o que o gate mediu continua valendo.
+./scripts/gate-stamp inherit HEAD
+
+echo ""
+echo "Release v$next em $(git rev-parse --short HEAD), com tag, em release/v$next."
+
+if ! has_origin; then
+  echo "Nao ha origin: nada a publicar, nem Pull Request a abrir."
+  exit 0
+fi
+
+git push origin "$DEVELOP_BRANCH" "release/v$next" "refs/tags/v$next"
+
+if ! command -v gh >/dev/null 2>&1; then
+  echo "'gh' nao esta instalado: abra o Pull Request release/v$next -> $MAIN_BRANCH a mao." >&2
+  exit 1
+fi
+
+gh pr create --base "$MAIN_BRANCH" --head "release/v$next" --title "chore(release): v$next" --body "$notes"
+
+echo ""
+echo "Revise o Pull Request. Para entregar — $MAIN_BRANCH anda e o deploy comeca:  make ship"

@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# VERSION e CHANGELOG.md so mudam num commit de release.
+#
+# Um bump fora da release faz duas versoes coexistirem e o changelog mentir sobre
+# o que foi entregue.
+#
+# ── Por que NAO roda no pre-commit ──────────────────────────────────────
+#
+# No pre-commit a mensagem ainda nao existe, e `git log -1` le a mensagem do
+# commit ANTERIOR. Os dois momentos em que da para checar de verdade:
+#   commit-msg  — os arquivos staged E a mensagem sendo escrita existem;
+#   CI          — o intervalo de commits existe, cada um com sua mensagem.
+set -euo pipefail
+. "$(dirname "${BASH_SOURCE[0]}")/flow-lib.sh"
+
+release_files() {
+  grep -E '^(VERSION|CHANGELOG\.md)$' || true
+}
+
+# ── commit-msg: recebe o arquivo da mensagem ────────────────────────────
+if [ $# -gt 0 ] && [ -f "$1" ]; then
+  touched="$(git diff --cached --name-only | release_files)"
+  [ -z "$touched" ] && exit 0
+
+  if head -1 "$1" | grep -q '^chore(release):'; then
+    exit 0
+  fi
+
+  echo "Este commit mexe em $(echo $touched | tr '\n' ' ')e nao e um commit de release." >&2
+  echo "" >&2
+  echo "  Versao se corta com 'make release', e so ele mexe nesses arquivos." >&2
+  echo "  Para tirar do stage: git restore --staged $(echo $touched | tr '\n' ' ')" >&2
+  exit 1
+fi
+
+# ── CI: confere cada commit do intervalo ────────────────────────────────
+base="${1:-origin/$MAIN_BRANCH}"
+
+if ! git rev-parse --verify --quiet "$base" >/dev/null; then
+  echo "Base '$base' nao existe neste clone; nada a conferir."
+  exit 0
+fi
+
+failed=0
+while read -r sha; do
+  [ -z "$sha" ] && continue
+  touched="$(git show --name-only --format= "$sha" | release_files)"
+  [ -z "$touched" ] && continue
+
+  subject="$(git log -1 --format=%s "$sha")"
+  echo "$subject" | grep -q '^chore(release):' && continue
+
+  echo "$sha mexe em arquivo de release e nao e commit de release: $subject" >&2
+  failed=1
+done < <(git rev-list "$base..HEAD")
+
+exit "$failed"

@@ -1,17 +1,17 @@
 name: Release
 
-# Promove a imagem JÁ TESTADA de um commit de main para as tags de distribuição.
-# NÃO rebuilda: re-aponta as tags para o MESMO digest que passou pelo CI e pelo
-# teste de fumaça, ou seja, exatamente os bits que foram verificados.
+# Entrega: promove a imagem JÁ TESTADA da release para as tags de distribuição.
+# NÃO rebuilda: re-aponta as tags para o MESMO digest que passou pelo publicar.yml,
+# ou seja, exatamente os bits que foram verificados.
 #
-#   1. merge em main   → Publicar imagem publica :<sha> e :latest
-#   2. validado        → git tag v1.2.3 && git push origin v1.2.3
-#   3. este workflow   → promove :<sha> para :v1.2.3 (+ :stable)
+#   1. make release → release/vX.Y.Z: o publicar.yml publica :<sha> se tudo passar
+#   2. make ship    → a main anda para o commit da release, se o passo 1 passou
+#   3. este workflow → :<sha> vira :vX.Y.Z, :vX, :stable e :latest, e sai a página
 #
-# Pré-release (tag com hífen, ex. v1.2.3-rc1) não move :stable.
+# Nada dispara pela tag: o `make release` a cria antes de a imagem existir.
 on:
   push:
-    tags: ["v*"]
+    branches: [main]
 
 permissions:
   # write, e não read, porque este workflow cria a página do Release. É a única
@@ -32,16 +32,29 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Antes de tudo: sem registro no changelog, nada é promovido. A seção precisa
-      # estar no commit da tag, então corrija e crie a tag de novo.
-      - name: a versão está no changelog
+      # A main só anda por `make ship`, mas o primeiro push dela depois de adotar o
+      # fluxo, e qualquer exceção, não é entrega: aí não há nada a promover.
+      - name: é uma entrega?
+        id: versao
         run: |
-          case "$GITHUB_REF_NAME" in
-            *-*) echo "pré-release: changelog opcional" ;;
-            *) scripts/changelog-da-versao.sh "$GITHUB_REF_NAME" >/dev/null ;;
-          esac
+          set -eu
+          VERSAO="v$(tr -d '[:space:]' < VERSION 2>/dev/null || true)"
+          ASSUNTO="$(git log -1 --format=%s)"
+          if [ "$ASSUNTO" = "chore(release): $VERSAO" ]; then
+            echo "VERSAO=$VERSAO" >> "$GITHUB_ENV"
+            echo "entrega=sim" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::'$ASSUNTO' não é commit de release: nada a promover."
+            echo "entrega=nao" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Sem registro no changelog, nada é promovido.
+      - name: a versão está no changelog
+        if: steps.versao.outputs.entrega == 'sim'
+        run: scripts/changelog-da-versao.sh "$VERSAO" >/dev/null
 
       - uses: docker/login-action@v3
+        if: steps.versao.outputs.entrega == 'sim'
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -51,22 +64,18 @@ jobs:
       # porque aquela conferência foi contra as libs do commit, e esta é contra as
       # do release.
       - name: baixa as libs do release
+        if: steps.versao.outputs.entrega == 'sim'
         run: make acbr-libs-baixar
 
       - name: as libs da imagem são as do release
+        if: steps.versao.outputs.entrega == 'sim'
         run: scripts/conferir-libs-imagem.sh "${IMAGEM}:${GITHUB_SHA}" acbr-libs
 
-      - name: promove :<sha> → :vX.Y.Z (+ :stable)
+      - name: promove :<sha> → :vX.Y.Z (+ :stable e :latest)
+        if: steps.versao.outputs.entrega == 'sim'
         run: |
           set -eu
-          VERSAO="${GITHUB_REF_NAME}"
           ORIGEM="${IMAGEM}:${GITHUB_SHA}"
-
-          # Tag fora do padrão viraria tag de imagem e moveria o :stable.
-          if ! printf '%s' "$VERSAO" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
-            echo "::error::$VERSAO não é uma versão vX.Y.Z"
-            exit 1
-          fi
 
           if ! docker buildx imagetools inspect "$ORIGEM" >/dev/null 2>&1; then
             echo "::error::$ORIGEM não existe no registry: o commit não é de main ou a publicação dele não passou."
@@ -74,21 +83,16 @@ jobs:
           fi
 
           TAGS="-t ${IMAGEM}:${VERSAO}"
-          case "$VERSAO" in
-            *-*) echo "Pré-release ($VERSAO): não move :stable nem a tag maior." ;;
-            *)
-              # A tag maior (:v1) é a que o compose do README usa: ela acompanha
-              # correção e recurso dentro da major, e para de andar na virada,
-              # que é onde há quebra. Sem ela o exemplo do README aponta para
-              # uma tag que não existe.
-              MAIOR="${VERSAO%%.*}"
-              # Só a versão mais alta move as tags que andam: um hotfix numa linha
-              # antiga publica a própria tag, sem levar :stable e :v1 para trás.
-              mais_alta() { git tag -l "$1" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1; }
-              if [ "$(mais_alta "${MAIOR}.*")" = "$VERSAO" ]; then TAGS="$TAGS -t ${IMAGEM}:${MAIOR}"; fi
-              if [ "$(mais_alta 'v*')" = "$VERSAO" ]; then TAGS="$TAGS -t ${IMAGEM}:stable"; fi
-              ;;
-          esac
+          # A tag maior (:v1) é a que o compose do README usa: ela acompanha
+          # correção e recurso dentro da major, e para de andar na virada, que é
+          # onde há quebra. Sem ela o exemplo do README aponta para uma tag que não
+          # existe.
+          MAIOR="${VERSAO%%.*}"
+          # Só a versão mais alta move as tags que andam: um hotfix numa linha
+          # antiga publica a própria tag, sem levar :stable e :v1 para trás.
+          mais_alta() { git tag -l "$1" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1; }
+          if [ "$(mais_alta "${MAIOR}.*")" = "$VERSAO" ]; then TAGS="$TAGS -t ${IMAGEM}:${MAIOR}"; fi
+          if [ "$(mais_alta 'v*')" = "$VERSAO" ]; then TAGS="$TAGS -t ${IMAGEM}:stable -t ${IMAGEM}:latest"; fi
 
           # imagetools create copia o manifesto (mesmo digest) para as tags novas.
           docker buildx imagetools create $TAGS "$ORIGEM"
@@ -111,12 +115,11 @@ jobs:
       # tags, e quem abre o repositório vê como "Latest" o que estiver lá, que
       # já foi um pacote de binários de biblioteca.
       - name: "publica a página do Release"
+        if: steps.versao.outputs.entrega == 'sim'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -eu
-          VERSAO="${GITHUB_REF_NAME}"
-          ANTERIOR="$(git describe --tags --abbrev=0 --match 'v*' "${VERSAO}^" 2>/dev/null || true)"
 
           # Os binários da ACBrLib são anexos de UM release por revisão do ACBr,
           # não de todo release: 56 MB em cada versão, inclusive nas que só
@@ -152,16 +155,9 @@ jobs:
 
           {
             # O changelog abre a página: é onde está o que exige ação de quem atualiza.
-            case "$VERSAO" in
-              *-*) ;;
-              *) scripts/changelog-da-versao.sh "$VERSAO"; printf '\n---\n\n' ;;
-            esac
-            printf 'Imagem: `%s:%s`' "$IMAGEM" "$VERSAO"
-            case "$VERSAO" in
-              *-*) printf ' (pré-release: não move `:stable` nem a tag maior)\n' ;;
-              *)   printf ', que é o mesmo digest de `:%s` e `:stable`.\n' "${VERSAO%%.*}" ;;
-            esac
-            printf '\n'
+            scripts/changelog-da-versao.sh "$VERSAO"
+            printf '\n---\n\n'
+            printf 'Imagem: `%s:%s`\n\n' "$IMAGEM" "$VERSAO"
             # O digest não muda quando alguém move uma tag. É ele que se fixa no
             # deploy: image: ...@sha256:...
             printf 'Digest: `%s@%s`\n\n' "$IMAGEM" "$DIGEST"
@@ -174,28 +170,17 @@ jobs:
                 printf 'O `make acbr-libs-baixar` os busca de lá.\n\n' 
               fi
             fi
-            # Pré-release não exige changelog: a lista de commits faz esse papel.
-            case "$VERSAO" in
-              *-*)
-                if [ -n "$ANTERIOR" ]; then
-                  printf '## Mudanças desde %s\n\n' "$ANTERIOR"
-                  git log --no-merges --pretty='- %s' "${ANTERIOR}..${VERSAO}"
-                fi
-                ;;
-            esac
             printf '\n\nComo subir, escopo e o que conferir antes de apontar para produção:\n'
             printf '[README](../blob/%s/README.md) e [docs/LIMITACOES.md](../blob/%s/docs/LIMITACOES.md).\n' "$VERSAO" "$VERSAO"
           } > /tmp/notas.md
 
-          PRE=""
-          case "$VERSAO" in *-*) PRE="--prerelease --latest=false" ;; esac
 
           # Idempotente: reexecutar o workflow atualiza as notas em vez de falhar.
           if gh release view "$VERSAO" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release edit "$VERSAO" --repo "$GITHUB_REPOSITORY" \
-              --notes-file /tmp/notas.md $PRE
+              --notes-file /tmp/notas.md
           else
             gh release create "$VERSAO" --repo "$GITHUB_REPOSITORY" \
-              --title "$VERSAO" --notes-file /tmp/notas.md --verify-tag $PRE
+              --title "$VERSAO" --notes-file /tmp/notas.md --verify-tag
           fi
           echo "página: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/tag/${VERSAO}"

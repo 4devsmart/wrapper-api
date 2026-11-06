@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# O pre-push: a guarda de main e depois o gate — uma vez por arvore.
+#
+# A guarda sempre roda (`check-not-main`). O gate so roda para o que nunca
+# passou nele: `make finish` gateia e registra a arvore antes do push, entao o
+# push dele nao roda de novo. Um push de outra coisa — commit feito a mao em
+# develop, branch de trabalho publicada antes do finish — roda aqui, e registra.
+# Com PREPUSH_GATE=0 so a guarda roda.
+set -euo pipefail
+. "$(dirname "${BASH_SOURCE[0]}")/flow-lib.sh"
+
+remote="${1:-origin}"
+refs="$(cat)"
+
+printf '%s\n' "$refs" | ./scripts/check-not-main "$remote"
+
+[ "$PREPUSH_GATE" = 1 ] || exit 0
+
+unchecked=()
+while read -r _local_ref local_sha _remote_ref _remote_sha; do
+  [ -n "${local_sha:-}" ] || continue
+  # Uma delecao nao envia arvore.
+  [[ "$local_sha" =~ ^0+$ ]] && continue
+  ./scripts/gate-stamp has "$local_sha" || unchecked+=("$local_sha")
+done <<<"$refs"
+
+if [ ${#unchecked[@]} -eq 0 ]; then
+  echo "Tudo neste push ja passou no gate: nao roda de novo."
+  exit 0
+fi
+
+echo "Ainda nao gateado: $(for sha in "${unchecked[@]}"; do git rev-parse --short "$sha"; done | tr '\n' ' ')— rodando o gate."
+
+# O gate mede a arvore em checkout. So da para carimbar o que foi medido.
+head_tree="$(git rev-parse 'HEAD^{tree}')"
+dirty="$(git status --porcelain --untracked-files=no)"
+
+# shellcheck disable=SC2086
+$GATE_CMD
+
+for sha in "${unchecked[@]}"; do
+  if [ -z "$dirty" ] && [ "$(git rev-parse "$sha^{tree}")" = "$head_tree" ]; then
+    ./scripts/gate-stamp record "$sha"
+  fi
+done

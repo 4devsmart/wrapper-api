@@ -1,0 +1,208 @@
+#!/usr/bin/env bash
+# O fluxo de branches: trabalho em feat/* e fix/*, integracao em develop,
+# release em main.
+#
+#   git-flow start <tipo> <nome>   branch nova a partir de develop
+#   git-flow finish                a branch, rebaseada e gateada UMA vez, entra em
+#                                  develop por fast-forward, e develop e publicado
+#   git-flow sync                  a branch rebaseada sobre um develop atualizado
+#
+# Historico linear: uma branch entra em develop por fast-forward depois de um
+# rebase, nunca por merge commit.
+set -euo pipefail
+. "$(dirname "${BASH_SOURCE[0]}")/flow-lib.sh"
+
+# develop nasce de main na primeira vez que e preciso. Dali em diante main so
+# guarda releases, entao e o ponto de partida certo.
+ensure_develop() {
+  has_branch "$DEVELOP_BRANCH" && return 0
+
+  # Nao existe local, mas pode existir no origin: e esse que vale.
+  if has_origin && git ls-remote --exit-code --heads origin "$DEVELOP_BRANCH" >/dev/null 2>&1; then
+    git fetch --quiet origin "$DEVELOP_BRANCH"
+    git branch "$DEVELOP_BRANCH" "origin/$DEVELOP_BRANCH"
+    echo "$DEVELOP_BRANCH criado a partir de origin/$DEVELOP_BRANCH."
+    return 0
+  fi
+
+  pull_main
+
+  if ! has_branch "$MAIN_BRANCH"; then
+    echo "Nao ha $DEVELOP_BRANCH nem $MAIN_BRANCH para partir." >&2
+    exit 1
+  fi
+
+  git branch "$DEVELOP_BRANCH" "$MAIN_BRANCH"
+  echo "$DEVELOP_BRANCH nao existia: criado de $MAIN_BRANCH em $(git rev-parse --short "$MAIN_BRANCH")."
+}
+
+# Atualiza develop a partir de origin, quando origin tem um. `fetch d:d` so faz
+# fast-forward e recusa se develop divergiu — que e a intencao. Um develop A
+# FRENTE de origin (trabalho terminado e ainda nao publicado) nao e divergencia.
+pull_develop() {
+  has_origin || return 0
+  git ls-remote --exit-code --heads origin "$DEVELOP_BRANCH" >/dev/null 2>&1 || return 0
+
+  if [ "$(current_branch)" = "$DEVELOP_BRANCH" ]; then
+    git pull --ff-only origin "$DEVELOP_BRANCH"
+  else
+    git fetch origin "$DEVELOP_BRANCH"
+    git merge-base --is-ancestor "origin/$DEVELOP_BRANCH" "$DEVELOP_BRANCH" && return 0
+    git fetch origin "$DEVELOP_BRANCH:$DEVELOP_BRANCH"
+  fi
+}
+
+types_regex() {
+  echo "$BRANCH_TYPES" | tr ' ' '|'
+}
+
+start() {
+  local type="${1:-}" name="${2:-}"
+
+  if ! [[ "$type" =~ ^($(types_regex))$ ]]; then
+    echo "Tipo de branch '$type' desconhecido. Tipos: $BRANCH_TYPES" >&2
+    exit 1
+  fi
+
+  if [ -z "$name" ]; then
+    echo "Uso: make $([ "$type" = feat ] && echo feature || echo "$type") name=<modulo>-<assunto>" >&2
+    echo "Exemplo: make fix name=romaneio-peso-duplicado" >&2
+    exit 1
+  fi
+
+  # `name=fix/x` e `name=x` sao a mesma branch.
+  name="${name#"$type"/}"
+
+  if ! [[ "$name" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
+    echo "'$name' nao serve de nome: palavras minusculas ligadas por '-', como romaneio-peso-duplicado." >&2
+    exit 1
+  fi
+
+  local branch="$type/$name"
+  if has_branch "$branch"; then
+    echo "$branch ja existe. Para retomar: git checkout $branch && make sync" >&2
+    exit 1
+  fi
+
+  ensure_develop
+  pull_develop
+
+  # Mudancas nao commitadas vem junto, como `git checkout -b` faz: trabalho
+  # comecado em develop por engano vai para a sua branch.
+  git checkout -b "$branch" "$DEVELOP_BRANCH"
+}
+
+# ── Quanto tempo cada passo do gate levou ──────────────────────────────
+timings=()
+finish_started=$SECONDS
+
+minutes() {
+  printf '%d:%02d' $(($1 / 60)) $(($1 % 60))
+}
+
+timed() {
+  local started=$SECONDS outcome=0
+  "$@" || outcome=$?
+  local mark="✔"
+  [ "$outcome" -eq 0 ] || mark="✘"
+  timings+=("$(printf '%s %7s  %s' "$mark" "$(minutes $((SECONDS - started)))" "$*")")
+  return "$outcome"
+}
+
+print_timings() {
+  [ ${#timings[@]} -gt 0 ] || return 0
+  echo ""
+  echo "Tempo por passo:"
+  printf '  %s\n' "${timings[@]}"
+  printf '  %9s  total, com o rebase e o push\n' "$(minutes $((SECONDS - finish_started)))"
+}
+
+finish() {
+  local branch
+  branch="$(current_branch)"
+  trap print_timings EXIT
+
+  if ! [[ "$branch" =~ ^($(types_regex))/ ]]; then
+    echo "'finish' fecha uma branch $BRANCH_TYPES (tipo/nome), e voce esta em '$branch'." >&2
+    exit 1
+  fi
+
+  if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+    echo "Ha mudancas nao commitadas. Commite ou guarde (git stash) antes de terminar." >&2
+    exit 1
+  fi
+
+  ensure_develop
+  pull_develop
+
+  if [ "$(git rev-list --count "$DEVELOP_BRANCH..$branch")" = 0 ]; then
+    echo "$branch nao tem commit que $DEVELOP_BRANCH nao tenha: nada a terminar." >&2
+    exit 1
+  fi
+
+  git rebase "$DEVELOP_BRANCH"
+
+  # O gate roda UMA vez, na arvore que develop vai guardar: depois do rebase, o
+  # fast-forward abaixo nao muda nada nela. O push abaixo nao o roda de novo
+  # para a arvore registrada aqui.
+  if ./scripts/gate-stamp has HEAD; then
+    echo "Esta arvore ja passou no gate: nao roda de novo."
+  else
+    # shellcheck disable=SC2086
+    timed $GATE_CMD
+    ./scripts/gate-stamp record HEAD
+  fi
+
+  git checkout "$DEVELOP_BRANCH"
+  git merge --ff-only "$branch"
+
+  # `-D`, e nao `-d`, depois de conferir que a branch inteira esta em develop.
+  # `-d` compara tambem com a copia no origin, e uma branch publicada antes do
+  # rebase tem la o historico antigo: o git recusava apagar, e o finish morria
+  # aqui — com develop ja movido e sem o push.
+  git merge-base --is-ancestor "$branch" "$DEVELOP_BRANCH"
+  git branch -D "$branch"
+
+  echo ""
+  echo "$branch esta em $DEVELOP_BRANCH, agora em $(git rev-parse --short HEAD)."
+
+  has_origin || return 0
+
+  if ! git push origin "$DEVELOP_BRANCH"; then
+    echo "" >&2
+    echo "$DEVELOP_BRANCH andou aqui e nao chegou a origin. Tente de novo: git push origin $DEVELOP_BRANCH" >&2
+    exit 1
+  fi
+  echo "$DEVELOP_BRANCH publicado: origin em $(git rev-parse --short "origin/$DEVELOP_BRANCH")."
+
+  # A copia remota da branch, se foi publicada, ja nao tem o que guardar.
+  if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+    git push origin --delete "$branch" || echo "Nao consegui apagar origin/$branch; apague a mao." >&2
+  fi
+}
+
+sync() {
+  local branch
+  branch="$(current_branch)"
+
+  if [ "$branch" = "$MAIN_BRANCH" ]; then
+    echo "$MAIN_BRANCH so anda por 'make ship'. 'sync' e para $DEVELOP_BRANCH ou uma branch de trabalho." >&2
+    exit 1
+  fi
+
+  ensure_develop
+  pull_develop
+
+  [ "$branch" = "$DEVELOP_BRANCH" ] && return 0
+  git rebase "$DEVELOP_BRANCH"
+}
+
+case "${1:-}" in
+  start) start "${2:-}" "${3:-}" ;;
+  finish) finish ;;
+  sync) sync ;;
+  *)
+    echo "Uso: git-flow start <tipo> <nome> | finish | sync" >&2
+    exit 1
+    ;;
+esac

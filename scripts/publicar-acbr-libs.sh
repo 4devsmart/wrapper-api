@@ -2,23 +2,21 @@
 # Publica o cache local (acbr-libs/) como anexos de um release, para que
 # scripts/baixar-acbr-libs.sh possa consumi-lo.
 #
-# Rode UMA VEZ por revisão do ACBr, depois de compilar as libs do fonte, e
-# depois de a tag da versão existir. Exige o gh CLI autenticado.
+# Rode UMA VEZ por revisão do ACBr, depois de compilar as libs do fonte e ANTES do
+# commit que sobe ACBR_REV: o `make finish` e o publicar.yml baixam deste release, e
+# a revisão nova não passa sem ele. Exige o gh CLI autenticado.
 #
-# ORDEM: o release precisa existir antes dos anexos. Numa revisão nova do ACBr:
-#
-#   1. make acbr-fonte && make acbr-compilar && make acbr-extrair
-#   2. suba ACBR_REV e ACBR_LIBS_RELEASE no Makefile, e mescle
-#   3. git tag -a vX.Y.Z -m vX.Y.Z && git push origin vX.Y.Z
-#   4. make acbr-libs-publicar
+#   make acbr-fonte acbr-compilar acbr-extrair ACBR_REV=49010
+#   make acbr-libs-publicar ACBR_REV=49010 ACBR_LIBS_RELEASE=acbrlib-r49010
 #
 set -euo pipefail
 
 REPO="${ACBR_REPO:-4devsmart/wrapper-api}"
 REV="${ACBR_REV:?defina ACBR_REV (o Makefile passa)}"
 ORIGEM="${ACBR_LIBS_DIR:-acbr-libs}"
-# Anexa a um release v* já existente, criado pelo release.yml ao empurrar a tag.
-# Não cria release próprio: a aba de Releases tem só versões deste serviço.
+# Release próprio da revisão, acbrlib-rNNNNN: a lib não depende de versão do wrapper
+# existir, e várias versões usam as mesmas libs. Sai como pré-release para nunca
+# levar o selo "Latest", que é das versões do serviço.
 TAG="${ACBR_LIBS_RELEASE:?defina ACBR_LIBS_RELEASE (o Makefile passa)}"
 
 ARQUIVOS=(
@@ -38,13 +36,8 @@ echo "$REV" > "$ORIGEM/revisao.txt"
 echo "checksums:"; sed 's/^/  /' "$ORIGEM/SHA256SUMS"
 
 if ! gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
-  echo "ERRO: o release '$TAG' não existe." >&2
-  echo "      Ele é criado pelo workflow release.yml ao empurrar a tag:" >&2
-  echo >&2
-  echo "        git tag -a $TAG -m $TAG && git push origin $TAG" >&2
-  echo >&2
-  echo "      Depois rode este comando de novo para anexar os binários." >&2
-  exit 1
+  gh release create "$TAG" --repo "$REPO" --prerelease --latest=false \
+    --title "ACBrLib r$REV" --notes "Binários da ACBrLib r$REV com os patches de docker/acbr-patches."
 fi
 
 gh release upload "$TAG" --repo "$REPO" --clobber \

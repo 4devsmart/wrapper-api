@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Conventional Commits: <tipo>(<escopo>): <assunto>.
+#
+# O idioma do assunto nao e imposto — e do projeto. O tamanho e SUBJECT_MAX, e a
+# coautoria de assistente so e recusada com REFUSE_AI_COAUTHOR=1
+# (`.workflow.conf`).
+set -euo pipefail
+. "$(dirname "${BASH_SOURCE[0]}")/flow-lib.sh"
+
+file="${1:?uso: check-commit-msg <arquivo-da-mensagem>}"
+message="$(grep -v '^#' "$file" || true)"
+subject="$(echo "$message" | head -1)"
+
+# Merge, revert e fixup passam: o formato deles e do git, nao nosso.
+case "$subject" in
+  Merge*|Revert*|fixup!*|squash!*|amend!*) exit 0 ;;
+esac
+
+if ! echo "$subject" | grep -qE "^($COMMIT_TYPES)(\([a-z0-9-]+\))?!?: .+"; then
+  cat >&2 <<MSG
+A mensagem nao esta em Conventional Commits.
+
+  Recebido: $subject
+
+  Formato:  <tipo>(<escopo>): <o que muda>
+  Tipos:    $COMMIT_TYPES
+  Exemplo:  fix(romaneio): peso por destino somava a mesma nota duas vezes
+MSG
+  exit 1
+fi
+
+if [ "${#subject}" -gt "$SUBJECT_MAX" ]; then
+  echo "O assunto tem ${#subject} caracteres; o limite e $SUBJECT_MAX." >&2
+  exit 1
+fi
+
+if [ "$REFUSE_AI_COAUTHOR" = 1 ] \
+  && echo "$message" | grep -iqE '^Co-Authored-By:.*(claude|copilot|cursor|chatgpt|gpt-|anthropic|openai)'; then
+  cat >&2 <<'MSG'
+A mensagem carrega um Co-Authored-By de assistente.
+
+  O autor e sempre quem operou. Remova a linha.
+  Para desligar na origem, em .claude/settings.json:  "attribution": {"commit": "", "pr": ""}
+MSG
+  exit 1
+fi
