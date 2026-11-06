@@ -19,6 +19,9 @@ var atualizarGolden = flag.Bool("atualizar-golden", false, "regrava os goldens d
 // diferente: num arquivo grande, o diff inteiro esconde o que importa.
 func conferirGolden(t *testing.T, nome, obtido string) {
 	t.Helper()
+	// Parte dos gravadores emite CRLF, e o Git guarda LF: sem isto o golden
+	// passaria aqui e falharia em toda cópia nova do repositório.
+	obtido = strings.ReplaceAll(obtido, "\r\n", "\n")
 	caminho := filepath.Join("testdata", nome)
 	if *atualizarGolden {
 		if err := os.MkdirAll(filepath.Dir(caminho), 0o755); err != nil {
@@ -33,10 +36,11 @@ func conferirGolden(t *testing.T, nome, obtido string) {
 	if err != nil {
 		t.Fatalf("sem golden (rode com -atualizar-golden): %v", err)
 	}
-	if string(b) == obtido {
+	guardado := strings.ReplaceAll(string(b), "\r\n", "\n")
+	if guardado == obtido {
 		return
 	}
-	quero, got := strings.Split(string(b), "\n"), strings.Split(obtido, "\n")
+	quero, got := strings.Split(guardado, "\n"), strings.Split(obtido, "\n")
 	for i := 0; i < len(quero) && i < len(got); i++ {
 		if quero[i] != got[i] {
 			t.Fatalf("%s difere na linha %d:\n quero: %s\n  veio: %s", nome, i+1, quero[i], got[i])
