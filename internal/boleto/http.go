@@ -35,10 +35,10 @@ func (m *Modulo) Registrar(r modulo.Router) {
 	r.HandleFunc("POST /remessa", m.handleRemessa)
 	r.HandleFunc("POST /retorno", m.handleRetorno)
 	r.HandleFunc("POST /registro", m.handleRegistro)
-	// ConsultarTitulos existe no binding mas NÃO é exposto: a seção de filtro que
-	// ele exigiria ([BoletoConsulta]) não aparece em lugar nenhum do fonte oficial
-	// do ACBr, então o formato do INI seria chute. Rota que só sabe falhar é pior
-	// que rota ausente: ver docs/LIMITACOES.md.
+	// Consulta de títulos não existe aqui: a seção de filtro que ela exigiria
+	// ([BoletoConsulta]) não aparece em lugar nenhum do fonte oficial do ACBr, então
+	// o formato do INI seria chute. Rota que só sabe falhar é pior que rota ausente:
+	// ver docs/LIMITACOES.md.
 }
 
 // --- PDF --------------------------------------------------------------------

@@ -139,9 +139,9 @@ transmitir: falhou ali, nada saiu.
   ISSNet. As consultas sem chave (`/consultas/{tipo}`) continuam só no ISSNet.
   Na substituição, a nota nova decide: em competência a partir de 01/11 ela vai
   pelo Ambiente Nacional, mesmo com a antiga no ISSNet.
-- **Boletos: `ConsultarTitulos` não é exposto.** O método existe no binding, mas
-  a seção de filtro que ele exigiria (`[BoletoConsulta]`) não aparece no fonte
-  oficial do ACBr: o formato do INI seria chute.
+- **Boletos: não há consulta de títulos.** A seção de filtro que ela exigiria
+  (`[BoletoConsulta]`) não aparece no fonte oficial do ACBr: o formato do INI
+  seria chute.
 
 ## Representação gráfica (PDF)
 

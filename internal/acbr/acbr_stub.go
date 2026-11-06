@@ -12,7 +12,6 @@ func newServicos(_ config.ACBr) *Servicos {
 		NFSe:   indisponivel{nome: "nfse"},
 		CTe:    indisponivel{nome: "cte"},
 		MDFe:   indisponivel{nome: "mdfe"},
-		NFe:    indisponivel{nome: "nfe"},
 		Boleto: indisponivel{nome: "boleto"},
 	}
 }

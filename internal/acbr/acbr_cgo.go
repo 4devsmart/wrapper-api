@@ -17,7 +17,7 @@ package acbr
 
 /*
 #cgo CFLAGS: -I${SRCDIR}
-#cgo LDFLAGS: -lacbrnfse64 -lacbrcte64 -lacbrmdfe64 -lacbrnfe64 -lacbrboleto64
+#cgo LDFLAGS: -lacbrnfse64 -lacbrcte64 -lacbrmdfe64 -lacbrboleto64
 #include "acbrlib.h"
 */
 import "C"
@@ -64,7 +64,6 @@ func newServicos(cfg config.ACBr) *Servicos {
 		NFSe:   &cgoLib{cfg: cfg},
 		CTe:    newCTeLib(cfg),
 		MDFe:   newMDFeLib(cfg),
-		NFe:    newNFeLib(cfg),
 		Boleto: newBoletoLib(cfg),
 	}
 }
@@ -606,23 +605,6 @@ func (l *cgoLib) ObterPDF(t TenantConfig, chave string) (Result, error) {
 		defer C.free(unsafe.Pointer(cChave))
 		code, resp := callBuffer(h, func(buf *C.char, size *C.int) C.int {
 			return C.NFSE_ObterDANFSE(h, cChave, buf, size)
-		})
-		return Result{Codigo: code, Resposta: resp}, nil
-	})
-}
-
-// XmlParaIni carrega um XML de NFSe e devolve o INI canônico (CarregarXML +
-// ObterIni). Ferramenta de diagnóstico para descobrir o conjunto completo de
-// campos que a lib espera.
-func (l *cgoLib) XmlParaIni(t TenantConfig, xml string) (Result, error) {
-	return l.withSession(t, func(h C.LibHandle) (Result, error) {
-		cXML, freeXML := cstrFree(xml)
-		defer freeXML()
-		if code := int(C.NFSE_CarregarXML(h, cXML)); code != 0 {
-			return Result{Codigo: code, Resposta: ultimoRetorno(h, 0)}, nil
-		}
-		code, resp := callBuffer(h, func(buf *C.char, size *C.int) C.int {
-			return C.NFSE_ObterIni(h, 0, buf, size)
 		})
 		return Result{Codigo: code, Resposta: resp}, nil
 	})
