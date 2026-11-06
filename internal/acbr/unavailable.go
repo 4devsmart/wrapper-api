@@ -7,7 +7,7 @@ type indisponivel struct {
 	nome string // rótulo do serviço (nfse/cte/mdfe): informativo
 }
 
-// indisponivel satisfaz as cinco interfaces de serviço (é o stub sem -tags
+// indisponivel satisfaz as quatro interfaces de serviço (é o stub sem -tags
 // acbrlib, compilado no CI). No build cgo, a conformidade dos tipos reais é
 // garantida pela construção em newServicos (acbr_cgo.go).
 var (

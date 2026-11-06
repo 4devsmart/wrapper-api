@@ -14,7 +14,7 @@ import (
 	"github.com/4devsmart/wrapper-api/internal/platform/config"
 )
 
-// remoto implementa as cinco interfaces de serviço delegando a um processo
+// remoto implementa as quatro interfaces de serviço delegando a um processo
 // fiscal-worker (ver rpc.go). Um único tipo atende todas elas, como o stub
 // indisponivel, o que muda é o campo servico, que endereça o binding do outro
 // lado.
@@ -23,7 +23,7 @@ type remoto struct {
 	pool    *poolWorkers
 }
 
-// remoto satisfaz as cinco interfaces de serviço.
+// remoto satisfaz as quatro interfaces de serviço.
 var (
 	_ NFSeServico   = remoto{}
 	_ CTeServico    = remoto{}

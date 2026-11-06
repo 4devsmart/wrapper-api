@@ -16,7 +16,7 @@ import (
 	"github.com/4devsmart/wrapper-api/internal/platform/config"
 )
 
-// servicoFake embute indisponivel (que já satisfaz as cinco interfaces) e
+// servicoFake embute indisponivel (que já satisfaz as quatro interfaces) e
 // sobrescreve apenas o que o teste exercita.
 type servicoFake struct {
 	indisponivel
@@ -54,7 +54,7 @@ func (f *servicoFake) Emitir(t TenantConfig, ini string) (Result, error) {
 
 func (f *servicoFake) Version() (string, error) { return f.versaoFake, nil }
 
-// servicosFake monta um *Servicos com o mesmo fake nos cinco serviços.
+// servicosFake monta um *Servicos com o mesmo fake nos quatro serviços.
 func servicosFake(f *servicoFake) *Servicos {
 	return &Servicos{NFSe: f, CTe: f, MDFe: f, Boleto: f}
 }
