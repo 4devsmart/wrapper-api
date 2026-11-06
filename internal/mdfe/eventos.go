@@ -46,7 +46,7 @@ type DocInclusao struct {
 // [EVENTO] (idLote) + [EVENTO001] com os campos comuns (TODO o detEvento fica na
 // própria [EVENTO001]; não há [detEvento]). cOrgao = 2 primeiros dígitos da
 // chave. No fluxo CarregarEventoINI a lib NÃO auto-preenche cOrgao/CNPJCPF/
-// dhEvento. Ver .claude/skills/acbr-especialista/referencia/mdfe-eventos.md.
+// dhEvento.
 func eventoHeader(b *iniBuilder, chave, cnpj, dhEvento, tpEvento string, nSeq int) {
 	cOrgao := ""
 	if len(chave) >= 2 {

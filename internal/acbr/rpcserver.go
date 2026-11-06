@@ -109,21 +109,21 @@ func chamarComum(sv Servico, p Pedido) (Resposta, bool) {
 	case "Version":
 		return respostaVersao(sv.Version()), true
 	case "Emitir":
-		return resposta(sv.Emitir(p.Tenant, a.INI)), true
+		return resposta(sv.Emitir(p.Sessao, a.INI)), true
 	case "MontarXML":
-		return resposta(sv.MontarXML(p.Tenant, a.INI)), true
+		return resposta(sv.MontarXML(p.Sessao, a.INI)), true
 	case "ValidarRegras":
-		return resposta(sv.ValidarRegras(p.Tenant, a.INI)), true
+		return resposta(sv.ValidarRegras(p.Sessao, a.INI)), true
 	case "Transmitir":
-		return resposta(sv.Transmitir(p.Tenant, a.XML)), true
+		return resposta(sv.Transmitir(p.Sessao, a.XML)), true
 	case "Consultar":
-		return resposta(sv.Consultar(p.Tenant, a.Chave)), true
+		return resposta(sv.Consultar(p.Sessao, a.Chave)), true
 	case "Cancelar":
-		return resposta(sv.Cancelar(p.Tenant, a.INI)), true
+		return resposta(sv.Cancelar(p.Sessao, a.INI)), true
 	case "ObterPDF":
-		return resposta(sv.ObterPDF(p.Tenant, a.Chave)), true
+		return resposta(sv.ObterPDF(p.Sessao, a.Chave)), true
 	case "RenderizarPDF":
-		return resposta(sv.RenderizarPDF(p.Tenant, a.XML)), true
+		return resposta(sv.RenderizarPDF(p.Sessao, a.XML)), true
 	}
 	return Resposta{}, false
 }
@@ -136,25 +136,25 @@ func chamarNFSe(sv NFSeServico, p Pedido) (Resposta, bool) {
 		if a.Sub != nil {
 			sub = *a.Sub
 		}
-		return resposta(sv.SubstituirNFSe(p.Tenant, a.INI, sub)), true
+		return resposta(sv.SubstituirNFSe(p.Sessao, a.INI, sub)), true
 	case "EnviarEvento":
-		return resposta(sv.EnviarEvento(p.Tenant, a.INI)), true
+		return resposta(sv.EnviarEvento(p.Sessao, a.INI)), true
 	case "InformacoesProvedor":
-		return resposta(sv.InformacoesProvedor(p.Tenant)), true
+		return resposta(sv.InformacoesProvedor(p.Sessao)), true
 	case "ConsultarDFe":
-		return resposta(sv.ConsultarDFe(p.Tenant, a.NSU)), true
+		return resposta(sv.ConsultarDFe(p.Sessao, a.NSU)), true
 	case "ConsultarDPSPorChave":
-		return resposta(sv.ConsultarDPSPorChave(p.Tenant, a.Chave)), true
+		return resposta(sv.ConsultarDPSPorChave(p.Sessao, a.Chave)), true
 	case "ConsultarPorNumero":
-		return resposta(sv.ConsultarPorNumero(p.Tenant, a.Numero, a.Pagina)), true
+		return resposta(sv.ConsultarPorNumero(p.Sessao, a.Numero, a.Pagina)), true
 	case "ConsultarPorFaixa":
-		return resposta(sv.ConsultarPorFaixa(p.Tenant, a.Numero, a.NumeroFinal, a.Pagina)), true
+		return resposta(sv.ConsultarPorFaixa(p.Sessao, a.Numero, a.NumeroFinal, a.Pagina)), true
 	case "ConsultarPorRps":
-		return resposta(sv.ConsultarPorRps(p.Tenant, a.Numero, a.Serie, a.Tipo, a.CodVerificacao)), true
+		return resposta(sv.ConsultarPorRps(p.Sessao, a.Numero, a.Serie, a.Tipo, a.CodVerificacao)), true
 	case "ConsultarSituacao":
-		return resposta(sv.ConsultarSituacao(p.Tenant, a.Protocolo, a.NumLote)), true
+		return resposta(sv.ConsultarSituacao(p.Sessao, a.Protocolo, a.NumLote)), true
 	case "ConsultarLoteRps":
-		return resposta(sv.ConsultarLoteRps(p.Tenant, a.Protocolo, a.NumLote)), true
+		return resposta(sv.ConsultarLoteRps(p.Sessao, a.Protocolo, a.NumLote)), true
 	}
 	return Resposta{}, false
 }
@@ -163,15 +163,15 @@ func chamarCTe(sv CTeServico, p Pedido) (Resposta, bool) {
 	a := p.Args
 	switch p.Metodo {
 	case "CartaCorrecao":
-		return resposta(sv.CartaCorrecao(p.Tenant, a.INI)), true
+		return resposta(sv.CartaCorrecao(p.Sessao, a.INI)), true
 	case "EnviarEvento":
-		return resposta(sv.EnviarEvento(p.Tenant, a.INI)), true
+		return resposta(sv.EnviarEvento(p.Sessao, a.INI)), true
 	case "StatusServico":
-		return resposta(sv.StatusServico(p.Tenant)), true
+		return resposta(sv.StatusServico(p.Sessao)), true
 	case "ConsultaCadastro":
-		return resposta(sv.ConsultaCadastro(p.Tenant, a.UF, a.Documento, a.EhIE)), true
+		return resposta(sv.ConsultaCadastro(p.Sessao, a.UF, a.Documento, a.EhIE)), true
 	case "SalvarEventoPDF":
-		return resposta(sv.SalvarEventoPDF(p.Tenant, a.XMLDoc, a.XMLEvento)), true
+		return resposta(sv.SalvarEventoPDF(p.Sessao, a.XMLDoc, a.XMLEvento)), true
 	}
 	return Resposta{}, false
 }
@@ -180,15 +180,15 @@ func chamarMDFe(sv MDFeServico, p Pedido) (Resposta, bool) {
 	a := p.Args
 	switch p.Metodo {
 	case "Encerrar":
-		return resposta(sv.Encerrar(p.Tenant, a.INI)), true
+		return resposta(sv.Encerrar(p.Sessao, a.INI)), true
 	case "EnviarEvento":
-		return resposta(sv.EnviarEvento(p.Tenant, a.INI)), true
+		return resposta(sv.EnviarEvento(p.Sessao, a.INI)), true
 	case "StatusServico":
-		return resposta(sv.StatusServico(p.Tenant)), true
+		return resposta(sv.StatusServico(p.Sessao)), true
 	case "ConsultaNaoEncerrados":
-		return resposta(sv.ConsultaNaoEncerrados(p.Tenant, a.CNPJ)), true
+		return resposta(sv.ConsultaNaoEncerrados(p.Sessao, a.CNPJ)), true
 	case "SalvarEventoPDF":
-		return resposta(sv.SalvarEventoPDF(p.Tenant, a.XMLDoc, a.XMLEvento)), true
+		return resposta(sv.SalvarEventoPDF(p.Sessao, a.XMLDoc, a.XMLEvento)), true
 	}
 	return Resposta{}, false
 }
@@ -199,13 +199,13 @@ func chamarBoleto(sv BoletoServico, p Pedido) (Resposta, bool) {
 	case "Version":
 		return respostaVersao(sv.Version()), true
 	case "GerarPDF":
-		return resposta(sv.GerarPDF(p.Tenant, a.INI)), true
+		return resposta(sv.GerarPDF(p.Sessao, a.INI)), true
 	case "GerarRemessa":
-		return resposta(sv.GerarRemessa(p.Tenant, a.INI, a.NumArquivo)), true
+		return resposta(sv.GerarRemessa(p.Sessao, a.INI, a.NumArquivo)), true
 	case "LerRetorno":
-		return resposta(sv.LerRetorno(p.Tenant, a.ConfigINI, a.Retorno)), true
+		return resposta(sv.LerRetorno(p.Sessao, a.ConfigINI, a.Retorno)), true
 	case "Registrar":
-		return resposta(sv.Registrar(p.Tenant, boletoOnline(a))), true
+		return resposta(sv.Registrar(p.Sessao, boletoOnline(a))), true
 	}
 	return Resposta{}, false
 }

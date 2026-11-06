@@ -50,7 +50,7 @@ func (l *boletoLib) Version() (string, error) {
 // GerarPDF inclui os títulos do INI (config+títulos) e devolve o PDF do boleto.
 // tpSaida vazio em IncluirTitulos: só carrega; o PDF é gerado por SalvarPDF
 // (base64). Geração offline, não fala com o banco.
-func (l *boletoLib) GerarPDF(_ TenantConfig, ini string) (Result, error) {
+func (l *boletoLib) GerarPDF(_ Sessao, ini string) (Result, error) {
 	return l.withSession(func(h C.LibHandle, _ string) (Result, error) {
 		cIni := C.CString(ini)
 		defer C.free(unsafe.Pointer(cIni))
@@ -71,7 +71,7 @@ func (l *boletoLib) GerarPDF(_ TenantConfig, ini string) (Result, error) {
 // GerarRemessa inclui os títulos e gera o arquivo de remessa CNAB. O
 // GerarRemessaStream devolve o arquivo em base64 → decodificamos para o texto
 // CNAB em Result.Resposta.
-func (l *boletoLib) GerarRemessa(_ TenantConfig, ini string, numArquivo int) (Result, error) {
+func (l *boletoLib) GerarRemessa(_ Sessao, ini string, numArquivo int) (Result, error) {
 	return l.withSession(func(h C.LibHandle, _ string) (Result, error) {
 		cIni := C.CString(ini)
 		defer C.free(unsafe.Pointer(cIni))
@@ -100,7 +100,7 @@ func (l *boletoLib) GerarRemessa(_ TenantConfig, ini string, numArquivo int) (Re
 // devolveria INI (ignora TipoResposta), por isso gravamos o conteúdo num arquivo
 // temporário da sessão. Result.Resposta = JSON (árvore Retorno -> CEDENTE/BANCO/
 // CONTA/TITULOn). Ver skill acbr-especialista/referencia/boleto-retorno.md.
-func (l *boletoLib) LerRetorno(_ TenantConfig, configINI, retornoConteudo string) (Result, error) {
+func (l *boletoLib) LerRetorno(_ Sessao, configINI, retornoConteudo string) (Result, error) {
 	return l.withSession(func(h C.LibHandle, dir string) (Result, error) {
 		cCfg := C.CString(configINI)
 		defer C.free(unsafe.Pointer(cCfg))
@@ -126,7 +126,7 @@ func (l *boletoLib) LerRetorno(_ TenantConfig, configINI, retornoConteudo string
 // 0=incluir, 1=alterar, 2=baixar, 3/4=consultar. crt/key = certificado mTLS (ou
 // nil). Erro de credencial/conexão volta como Codigo!=0 + msg (não derruba a
 // API). NOTA: validação real exige credenciais de sandbox do banco.
-func (l *boletoLib) Registrar(_ TenantConfig, op BoletoOnline) (Result, error) {
+func (l *boletoLib) Registrar(_ Sessao, op BoletoOnline) (Result, error) {
 	return l.withSession(func(h C.LibHandle, dir string) (Result, error) {
 		l.setCert(h, dir, op.CertCRT, op.CertKEY)
 		cIni := C.CString(op.INI)

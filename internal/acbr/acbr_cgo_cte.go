@@ -39,7 +39,7 @@ func (l *cteLib) Backend() string { return "cgo" }
 func (l *cteLib) Close() error    { return nil }
 
 func (l *cteLib) Version() (string, error) {
-	res, err := l.s.run(TenantConfig{}, func(h C.LibHandle) (Result, error) {
+	res, err := l.s.run(Sessao{}, func(h C.LibHandle) (Result, error) {
 		code, resp := l.s.callBuf(h, func(b *C.char, sz *C.int) C.int { return C.CTE_Versao(h, b, sz) })
 		return Result{Codigo: code, Resposta: resp}, nil
 	})
@@ -52,7 +52,7 @@ func (l *cteLib) Version() (string, error) {
 	return res.Resposta, nil
 }
 
-func (l *cteLib) Emitir(t TenantConfig, ini string) (Result, error) {
+func (l *cteLib) Emitir(t Sessao, ini string) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		cIni := C.CString(ini)
 		defer C.free(unsafe.Pointer(cIni))
@@ -79,7 +79,7 @@ func (l *cteLib) Emitir(t TenantConfig, ini string) (Result, error) {
 
 // MontarXML carrega o INI e devolve o XML montado, SEM transmitir à SEFAZ
 // (CTE_CarregarINI → CTE_ObterXml). Preview/validação local.
-func (l *cteLib) MontarXML(t TenantConfig, ini string) (Result, error) {
+func (l *cteLib) MontarXML(t Sessao, ini string) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		cIni := C.CString(ini)
 		defer C.free(unsafe.Pointer(cIni))
@@ -94,7 +94,7 @@ func (l *cteLib) MontarXML(t TenantConfig, ini string) (Result, error) {
 // ValidarRegras carrega o INI e roda CTE_ValidarRegrasdeNegocios: as rejeições
 // que a SEFAZ daria, antecipadas localmente, sem certificado e sem rede. É a
 // validação da geração. XSD fica de fora: ver o comentário da interface.
-func (l *cteLib) ValidarRegras(t TenantConfig, ini string) (Result, error) {
+func (l *cteLib) ValidarRegras(t Sessao, ini string) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		cIni := C.CString(ini)
 		defer C.free(unsafe.Pointer(cIni))
@@ -110,7 +110,7 @@ func (l *cteLib) ValidarRegras(t TenantConfig, ini string) (Result, error) {
 
 // Transmitir envia o XML montado na geração (CTE_CarregarXML → CTE_Enviar). A lib
 // assina no envio, então é aqui, e só aqui, que o certificado é necessário.
-func (l *cteLib) Transmitir(t TenantConfig, xml string) (Result, error) {
+func (l *cteLib) Transmitir(t Sessao, xml string) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		cXML := C.CString(xml)
 		defer C.free(unsafe.Pointer(cXML))
@@ -138,7 +138,7 @@ func (l *cteLib) Transmitir(t TenantConfig, xml string) (Result, error) {
 	})
 }
 
-func (l *cteLib) Consultar(t TenantConfig, chave string) (Result, error) {
+func (l *cteLib) Consultar(t Sessao, chave string) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		c := C.CString(chave)
 		defer C.free(unsafe.Pointer(c))
@@ -149,24 +149,24 @@ func (l *cteLib) Consultar(t TenantConfig, chave string) (Result, error) {
 
 // Cancelar: o INI é o evento de cancelamento (tpEvento 110111, formato indexado
 // [EVENTO001]). Mesmo mecanismo de qualquer evento.
-func (l *cteLib) Cancelar(t TenantConfig, ini string) (Result, error) {
+func (l *cteLib) Cancelar(t Sessao, ini string) (Result, error) {
 	return l.enviarEventoINI(t, ini)
 }
 
 // CartaCorrecao: o INI é a CC-e (tpEvento 110110, [EVENTO001]+[DETEVENTO001..]).
-func (l *cteLib) CartaCorrecao(t TenantConfig, ini string) (Result, error) {
+func (l *cteLib) CartaCorrecao(t Sessao, ini string) (Result, error) {
 	return l.enviarEventoINI(t, ini)
 }
 
 // EnviarEvento: evento genérico do CT-e (EPEC, comprovante de entrega, etc.).
-func (l *cteLib) EnviarEvento(t TenantConfig, ini string) (Result, error) {
+func (l *cteLib) EnviarEvento(t Sessao, ini string) (Result, error) {
 	return l.enviarEventoINI(t, ini)
 }
 
 // enviarEventoINI carrega o INI do evento (CTE_CarregarEventoINI) e o transmite
 // (CTE_EnviarEvento). Comum a cancelamento e CC-e: a diferença é só o tpEvento
 // no INI. Em sucesso, anexa o XML do protocolo de evento.
-func (l *cteLib) enviarEventoINI(t TenantConfig, ini string) (Result, error) {
+func (l *cteLib) enviarEventoINI(t Sessao, ini string) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		cIni := C.CString(ini)
 		defer C.free(unsafe.Pointer(cIni))
@@ -187,7 +187,7 @@ func (l *cteLib) enviarEventoINI(t TenantConfig, ini string) (Result, error) {
 // RenderizarPDF gera o DACTE a partir do XML já autorizado (CarregarXML →
 // SalvarPDF), fora do caminho de emissão. É o que permite o PDF sob demanda:
 // perder o render deixou de significar perder o documento.
-func (l *cteLib) RenderizarPDF(t TenantConfig, xml string) (Result, error) {
+func (l *cteLib) RenderizarPDF(t Sessao, xml string) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		cXML := C.CString(xml)
 		defer C.free(unsafe.Pointer(cXML))
@@ -205,14 +205,14 @@ func (l *cteLib) RenderizarPDF(t TenantConfig, xml string) (Result, error) {
 
 // ObterPDF sob demanda não é suportado para CT-e (o DACTE é gerado na emissão e
 // servido do storage). Implementado para satisfazer a interface Servico.
-func (l *cteLib) ObterPDF(_ TenantConfig, _ string) (Result, error) {
+func (l *cteLib) ObterPDF(_ Sessao, _ string) (Result, error) {
 	return Result{}, fmt.Errorf("ObterPDF sob demanda não suportado para CT-e; use o PDF da emissão")
 }
 
 // SalvarEventoPDF gera o DACTE do evento a partir do XML do CT-e + o XML do
 // evento (ambos passados como conteúdo, não path). Devolve o PDF em Result.PDF
 // (base64 → bytes), mesmo padrão do CTE_SalvarPDF.
-func (l *cteLib) SalvarEventoPDF(t TenantConfig, xmlDoc, xmlEvento string) (Result, error) {
+func (l *cteLib) SalvarEventoPDF(t Sessao, xmlDoc, xmlEvento string) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		cDoc := C.CString(xmlDoc)
 		cEv := C.CString(xmlEvento)
@@ -230,7 +230,7 @@ func (l *cteLib) SalvarEventoPDF(t TenantConfig, xmlDoc, xmlEvento string) (Resu
 }
 
 // StatusServico consulta o status do serviço da SEFAZ-CTe.
-func (l *cteLib) StatusServico(t TenantConfig) (Result, error) {
+func (l *cteLib) StatusServico(t Sessao) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		code, resp := l.s.callBuf(h, func(b *C.char, sz *C.int) C.int { return C.CTE_StatusServico(h, b, sz) })
 		return Result{Codigo: code, Resposta: resp}, nil
@@ -238,7 +238,7 @@ func (l *cteLib) StatusServico(t TenantConfig) (Result, error) {
 }
 
 // ConsultaCadastro consulta o cadastro de um contribuinte na UF.
-func (l *cteLib) ConsultaCadastro(t TenantConfig, uf, nDocumento string, ehIE bool) (Result, error) {
+func (l *cteLib) ConsultaCadastro(t Sessao, uf, nDocumento string, ehIE bool) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		cUF := C.CString(uf)
 		cDoc := C.CString(nDocumento)

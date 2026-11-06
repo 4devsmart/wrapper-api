@@ -31,12 +31,12 @@ import (
 // o método novo nasceria fora da conferência.
 type espiao struct {
 	metodo string
-	tenant TenantConfig
+	sessao Sessao
 	args   []any
 }
 
-func (e *espiao) reg(metodo string, t TenantConfig, args ...any) (Result, error) {
-	e.metodo, e.tenant, e.args = metodo, t, args
+func (e *espiao) reg(metodo string, t Sessao, args ...any) (Result, error) {
+	e.metodo, e.sessao, e.args = metodo, t, args
 	return Result{Resposta: "ok"}, nil
 }
 
@@ -48,94 +48,94 @@ func (e *espiao) Version() (string, error) {
 }
 
 // Servico (comum a NFS-e, CT-e e MDF-e).
-func (e *espiao) Emitir(t TenantConfig, ini string) (Result, error) {
+func (e *espiao) Emitir(t Sessao, ini string) (Result, error) {
 	return e.reg("Emitir", t, ini)
 }
-func (e *espiao) MontarXML(t TenantConfig, ini string) (Result, error) {
+func (e *espiao) MontarXML(t Sessao, ini string) (Result, error) {
 	return e.reg("MontarXML", t, ini)
 }
-func (e *espiao) ValidarRegras(t TenantConfig, ini string) (Result, error) {
+func (e *espiao) ValidarRegras(t Sessao, ini string) (Result, error) {
 	return e.reg("ValidarRegras", t, ini)
 }
-func (e *espiao) Transmitir(t TenantConfig, xml string) (Result, error) {
+func (e *espiao) Transmitir(t Sessao, xml string) (Result, error) {
 	return e.reg("Transmitir", t, xml)
 }
-func (e *espiao) Consultar(t TenantConfig, chave string) (Result, error) {
+func (e *espiao) Consultar(t Sessao, chave string) (Result, error) {
 	return e.reg("Consultar", t, chave)
 }
-func (e *espiao) Cancelar(t TenantConfig, ini string) (Result, error) {
+func (e *espiao) Cancelar(t Sessao, ini string) (Result, error) {
 	return e.reg("Cancelar", t, ini)
 }
-func (e *espiao) ObterPDF(t TenantConfig, chave string) (Result, error) {
+func (e *espiao) ObterPDF(t Sessao, chave string) (Result, error) {
 	return e.reg("ObterPDF", t, chave)
 }
-func (e *espiao) RenderizarPDF(t TenantConfig, xml string) (Result, error) {
+func (e *espiao) RenderizarPDF(t Sessao, xml string) (Result, error) {
 	return e.reg("RenderizarPDF", t, xml)
 }
 
 // NFS-e.
-func (e *espiao) SubstituirNFSe(t TenantConfig, ini string, sub SubstituicaoNFSe) (Result, error) {
+func (e *espiao) SubstituirNFSe(t Sessao, ini string, sub SubstituicaoNFSe) (Result, error) {
 	return e.reg("SubstituirNFSe", t, ini, sub)
 }
-func (e *espiao) InformacoesProvedor(t TenantConfig) (Result, error) {
+func (e *espiao) InformacoesProvedor(t Sessao) (Result, error) {
 	return e.reg("InformacoesProvedor", t)
 }
-func (e *espiao) ConsultarDFe(t TenantConfig, nsu int) (Result, error) {
+func (e *espiao) ConsultarDFe(t Sessao, nsu int) (Result, error) {
 	return e.reg("ConsultarDFe", t, nsu)
 }
-func (e *espiao) ConsultarDPSPorChave(t TenantConfig, chave string) (Result, error) {
+func (e *espiao) ConsultarDPSPorChave(t Sessao, chave string) (Result, error) {
 	return e.reg("ConsultarDPSPorChave", t, chave)
 }
-func (e *espiao) ConsultarPorNumero(t TenantConfig, numero string, pagina int) (Result, error) {
+func (e *espiao) ConsultarPorNumero(t Sessao, numero string, pagina int) (Result, error) {
 	return e.reg("ConsultarPorNumero", t, numero, pagina)
 }
-func (e *espiao) ConsultarPorFaixa(t TenantConfig, inicial, final string, pagina int) (Result, error) {
+func (e *espiao) ConsultarPorFaixa(t Sessao, inicial, final string, pagina int) (Result, error) {
 	return e.reg("ConsultarPorFaixa", t, inicial, final, pagina)
 }
-func (e *espiao) ConsultarPorRps(t TenantConfig, numero, serie, tipo, cod string) (Result, error) {
+func (e *espiao) ConsultarPorRps(t Sessao, numero, serie, tipo, cod string) (Result, error) {
 	return e.reg("ConsultarPorRps", t, numero, serie, tipo, cod)
 }
-func (e *espiao) ConsultarSituacao(t TenantConfig, protocolo, numLote string) (Result, error) {
+func (e *espiao) ConsultarSituacao(t Sessao, protocolo, numLote string) (Result, error) {
 	return e.reg("ConsultarSituacao", t, protocolo, numLote)
 }
-func (e *espiao) ConsultarLoteRps(t TenantConfig, protocolo, numLote string) (Result, error) {
+func (e *espiao) ConsultarLoteRps(t Sessao, protocolo, numLote string) (Result, error) {
 	return e.reg("ConsultarLoteRps", t, protocolo, numLote)
 }
 
 // CT-e e MDF-e.
-func (e *espiao) CartaCorrecao(t TenantConfig, ini string) (Result, error) {
+func (e *espiao) CartaCorrecao(t Sessao, ini string) (Result, error) {
 	return e.reg("CartaCorrecao", t, ini)
 }
-func (e *espiao) Encerrar(t TenantConfig, ini string) (Result, error) {
+func (e *espiao) Encerrar(t Sessao, ini string) (Result, error) {
 	return e.reg("Encerrar", t, ini)
 }
-func (e *espiao) EnviarEvento(t TenantConfig, ini string) (Result, error) {
+func (e *espiao) EnviarEvento(t Sessao, ini string) (Result, error) {
 	return e.reg("EnviarEvento", t, ini)
 }
-func (e *espiao) StatusServico(t TenantConfig) (Result, error) {
+func (e *espiao) StatusServico(t Sessao) (Result, error) {
 	return e.reg("StatusServico", t)
 }
-func (e *espiao) ConsultaCadastro(t TenantConfig, uf, doc string, ehIE bool) (Result, error) {
+func (e *espiao) ConsultaCadastro(t Sessao, uf, doc string, ehIE bool) (Result, error) {
 	return e.reg("ConsultaCadastro", t, uf, doc, ehIE)
 }
-func (e *espiao) ConsultaNaoEncerrados(t TenantConfig, cnpj string) (Result, error) {
+func (e *espiao) ConsultaNaoEncerrados(t Sessao, cnpj string) (Result, error) {
 	return e.reg("ConsultaNaoEncerrados", t, cnpj)
 }
-func (e *espiao) SalvarEventoPDF(t TenantConfig, xmlDoc, xmlEvento string) (Result, error) {
+func (e *espiao) SalvarEventoPDF(t Sessao, xmlDoc, xmlEvento string) (Result, error) {
 	return e.reg("SalvarEventoPDF", t, xmlDoc, xmlEvento)
 }
 
 // Boleto.
-func (e *espiao) GerarPDF(t TenantConfig, ini string) (Result, error) {
+func (e *espiao) GerarPDF(t Sessao, ini string) (Result, error) {
 	return e.reg("GerarPDF", t, ini)
 }
-func (e *espiao) GerarRemessa(t TenantConfig, ini string, numArquivo int) (Result, error) {
+func (e *espiao) GerarRemessa(t Sessao, ini string, numArquivo int) (Result, error) {
 	return e.reg("GerarRemessa", t, ini, numArquivo)
 }
-func (e *espiao) LerRetorno(t TenantConfig, configINI, retorno string) (Result, error) {
+func (e *espiao) LerRetorno(t Sessao, configINI, retorno string) (Result, error) {
 	return e.reg("LerRetorno", t, configINI, retorno)
 }
-func (e *espiao) Registrar(t TenantConfig, op BoletoOnline) (Result, error) {
+func (e *espiao) Registrar(t Sessao, op BoletoOnline) (Result, error) {
 	return e.reg("Registrar", t, op)
 }
 
@@ -147,7 +147,7 @@ func TestDespacho_CadaMetodoChegaComOsArgumentosCertos(t *testing.T) {
 	t.Cleanup(ts.Close)
 	svc := newRemotos(config.ACBr{Workers: []string{ts.URL}, WorkerSlots: 1, WorkerTimeout: 5 * time.Second})
 
-	tenant := TenantConfig{CNPJ: "12345678000199", PFXBase64: "cGZ4", SenhaPFX: "segredo"}
+	sessao := Sessao{CNPJ: "12345678000199", PFXBase64: "cGZ4", SenhaPFX: "segredo"}
 
 	casos := []struct {
 		servico string
@@ -170,7 +170,7 @@ func TestDespacho_CadaMetodoChegaComOsArgumentosCertos(t *testing.T) {
 				continue // não atravessam a fronteira com argumentos
 			}
 			t.Run(c.servico+"/"+m.Name, func(t *testing.T) {
-				entradas, esperado := sentinelas(t, m.Type, tenant)
+				entradas, esperado := sentinelas(t, m.Type, sessao)
 				*e = espiao{}
 
 				saida := v.MethodByName(m.Name).Call(entradas)
@@ -182,8 +182,8 @@ func TestDespacho_CadaMetodoChegaComOsArgumentosCertos(t *testing.T) {
 				if e.metodo != m.Name {
 					t.Fatalf("o worker executou %q; o cliente devia ter pedido %q", e.metodo, m.Name)
 				}
-				if e.tenant.PFXBase64 != tenant.PFXBase64 {
-					t.Errorf("o tenant não atravessou: %+v", e.tenant)
+				if e.sessao.PFXBase64 != sessao.PFXBase64 {
+					t.Errorf("o sessao não atravessou: %+v", e.sessao)
 				}
 				if !reflect.DeepEqual(e.args, esperado) {
 					t.Errorf("os argumentos chegaram trocados ou incompletos.\n  enviado:  %#v\n  recebido: %#v",
@@ -203,14 +203,14 @@ func TestDespacho_CadaMetodoChegaComOsArgumentosCertos(t *testing.T) {
 // e devolve também o que o espião deve receber do outro lado. Distinto por
 // posição é o que faz um campo de Args trocado aparecer: dois argumentos do
 // mesmo tipo com o mesmo valor esconderiam a troca.
-func sentinelas(t *testing.T, tipo reflect.Type, tenant TenantConfig) ([]reflect.Value, []any) {
+func sentinelas(t *testing.T, tipo reflect.Type, sessao Sessao) ([]reflect.Value, []any) {
 	t.Helper()
 	var entradas []reflect.Value
 	var esperado []any
 	for i := range tipo.NumIn() {
 		in := tipo.In(i)
-		if in == reflect.TypeOf(TenantConfig{}) {
-			entradas = append(entradas, reflect.ValueOf(tenant))
+		if in == reflect.TypeOf(Sessao{}) {
+			entradas = append(entradas, reflect.ValueOf(sessao))
 			continue
 		}
 		v := sentinela(t, in, i)

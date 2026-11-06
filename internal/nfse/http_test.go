@@ -34,7 +34,7 @@ type libFake struct {
 	iniMontar, iniCancelar, iniSubstituir             string
 	iniEvento, iniEmitir                              string
 	xmlTransmitido, chaveDPS, chaveConsulta, chavePDF string
-	tenant                                            acbr.TenantConfig
+	sessao                                            acbr.Sessao
 	sub                                               acbr.SubstituicaoNFSe
 
 	resMontar, resTransmitir, resCancelar, resConsulta acbr.Result
@@ -49,9 +49,9 @@ type libFake struct {
 
 // ConsultarDFe responde como a lib responde por classe: no município marcado
 // em dfeNaoImplementado, o ERR_NAO_IMP que sai antes de qualquer byte.
-func (f *libFake) ConsultarDFe(t acbr.TenantConfig, nsu int) (acbr.Result, error) {
-	f.nsu, f.tenant = nsu, t
-	cmun := cfgDoTenant(t, "CodigoMunicipio")
+func (f *libFake) ConsultarDFe(t acbr.Sessao, nsu int) (acbr.Result, error) {
+	f.nsu, f.sessao = nsu, t
+	cmun := cfgDaSessao(t, "CodigoMunicipio")
 	f.municipiosDFe = append(f.municipiosDFe, cmun)
 	if f.dfeNaoImplementado[cmun] {
 		return acbr.Result{Resposta: "Serviço Consultar DFe não implementado para este provedor"}, nil
@@ -59,76 +59,76 @@ func (f *libFake) ConsultarDFe(t acbr.TenantConfig, nsu int) (acbr.Result, error
 	return f.resConsulta, f.errDFe
 }
 
-func (f *libFake) ConsultarLoteRps(t acbr.TenantConfig, protocolo, _ string) (acbr.Result, error) {
-	f.protocoloLote, f.tenant = protocolo, t
+func (f *libFake) ConsultarLoteRps(t acbr.Sessao, protocolo, _ string) (acbr.Result, error) {
+	f.protocoloLote, f.sessao = protocolo, t
 	return f.resLote, nil
 }
 
-func (f *libFake) Emitir(t acbr.TenantConfig, ini string) (acbr.Result, error) {
-	f.iniEmitir, f.tenant = ini, t
+func (f *libFake) Emitir(t acbr.Sessao, ini string) (acbr.Result, error) {
+	f.iniEmitir, f.sessao = ini, t
 	return f.resTransmitir, nil
 }
 
-func (f *libFake) EnviarEvento(t acbr.TenantConfig, ini string) (acbr.Result, error) {
-	f.iniEvento, f.tenant = ini, t
+func (f *libFake) EnviarEvento(t acbr.Sessao, ini string) (acbr.Result, error) {
+	f.iniEvento, f.sessao = ini, t
 	return f.resEvento, nil
 }
 
-// InformacoesProvedor NÃO registra o tenant: ela é chamada DEPOIS da operação,
-// para enriquecer um erro, e sobrescrever f.tenant aqui apagaria a sessão que os
+// InformacoesProvedor NÃO registra o sessao: ela é chamada DEPOIS da operação,
+// para enriquecer um erro, e sobrescrever f.sessao aqui apagaria a sessão que os
 // testes da operação conferem.
-func (f *libFake) InformacoesProvedor(acbr.TenantConfig) (acbr.Result, error) {
+func (f *libFake) InformacoesProvedor(acbr.Sessao) (acbr.Result, error) {
 	return f.resProvedor, nil
 }
 
-func (f *libFake) MontarXML(t acbr.TenantConfig, ini string) (acbr.Result, error) {
-	f.iniMontar, f.tenant = ini, t
+func (f *libFake) MontarXML(t acbr.Sessao, ini string) (acbr.Result, error) {
+	f.iniMontar, f.sessao = ini, t
 	return f.resMontar, nil
 }
 
 // A lib NÃO expõe validação de regras para NFS-e. O fake reproduz isso: é a
 // diferença que a resposta precisa comunicar em vez de esconder.
-func (f *libFake) ValidarRegras(acbr.TenantConfig, string) (acbr.Result, error) {
+func (f *libFake) ValidarRegras(acbr.Sessao, string) (acbr.Result, error) {
 	return acbr.Result{}, acbr.ErrNaoSuportado
 }
 
-func (f *libFake) Transmitir(t acbr.TenantConfig, xml string) (acbr.Result, error) {
-	f.xmlTransmitido, f.tenant = xml, t
+func (f *libFake) Transmitir(t acbr.Sessao, xml string) (acbr.Result, error) {
+	f.xmlTransmitido, f.sessao = xml, t
 	return f.resTransmitir, f.errTransmitir
 }
 
-func (f *libFake) Cancelar(t acbr.TenantConfig, ini string) (acbr.Result, error) {
-	f.iniCancelar, f.tenant = ini, t
+func (f *libFake) Cancelar(t acbr.Sessao, ini string) (acbr.Result, error) {
+	f.iniCancelar, f.sessao = ini, t
 	return f.resCancelar, nil
 }
 
-func (f *libFake) SubstituirNFSe(t acbr.TenantConfig, ini string, s acbr.SubstituicaoNFSe) (acbr.Result, error) {
-	f.iniSubstituir, f.sub, f.tenant = ini, s, t
+func (f *libFake) SubstituirNFSe(t acbr.Sessao, ini string, s acbr.SubstituicaoNFSe) (acbr.Result, error) {
+	f.iniSubstituir, f.sub, f.sessao = ini, s, t
 	return f.resTransmitir, nil
 }
 
-func (f *libFake) ConsultarDPSPorChave(t acbr.TenantConfig, chave string) (acbr.Result, error) {
-	f.chaveDPS, f.tenant = chave, t
+func (f *libFake) ConsultarDPSPorChave(t acbr.Sessao, chave string) (acbr.Result, error) {
+	f.chaveDPS, f.sessao = chave, t
 	return f.resConsulta, nil
 }
 
-func (f *libFake) Consultar(t acbr.TenantConfig, chave string) (acbr.Result, error) {
-	f.chaveConsulta, f.tenant = chave, t
+func (f *libFake) Consultar(t acbr.Sessao, chave string) (acbr.Result, error) {
+	f.chaveConsulta, f.sessao = chave, t
 	return f.resConsulta, nil
 }
 
-func (f *libFake) ObterPDF(t acbr.TenantConfig, chave string) (acbr.Result, error) {
-	f.chavePDF, f.tenant = chave, t
+func (f *libFake) ObterPDF(t acbr.Sessao, chave string) (acbr.Result, error) {
+	f.chavePDF, f.sessao = chave, t
 	return acbr.Result{PDF: []byte("%PDF-1.4")}, nil
 }
 
-func (f *libFake) RenderizarPDF(t acbr.TenantConfig, _ string) (acbr.Result, error) {
-	f.tenant = t
+func (f *libFake) RenderizarPDF(t acbr.Sessao, _ string) (acbr.Result, error) {
+	f.sessao = t
 	return acbr.Result{PDF: []byte("%PDF-1.4 local")}, nil
 }
 
-func (f *libFake) ConsultarPorNumero(t acbr.TenantConfig, n string, pg int) (acbr.Result, error) {
-	f.tenant = t
+func (f *libFake) ConsultarPorNumero(t acbr.Sessao, n string, pg int) (acbr.Result, error) {
+	f.sessao = t
 	return acbr.Result{Resposta: "numero=" + n + ";pagina=" + itoa(pg)}, nil
 }
 
@@ -229,7 +229,7 @@ func envelope(cmun string, extra map[string]any) map[string]any {
 	return c
 }
 
-func cfgDoTenant(t acbr.TenantConfig, chave string) string {
+func cfgDaSessao(t acbr.Sessao, chave string) string {
 	for _, kv := range t.Config {
 		if kv.Key == chave {
 			return kv.Value
@@ -331,10 +331,10 @@ func TestGerarNaoRecebeCertificadoEDevolveOIDdaDPS(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d: %s", rec.Code, rec.Body)
 	}
-	if f.tenant.PFXBase64 != "" {
-		t.Errorf("a geração montou tenant com certificado: %+v", f.tenant)
+	if f.sessao.PFXBase64 != "" {
+		t.Errorf("a geração montou sessao com certificado: %+v", f.sessao)
 	}
-	if got := cfgDoTenant(f.tenant, "CodigoMunicipio"); got != munPadraoNacional {
+	if got := cfgDaSessao(f.sessao, "CodigoMunicipio"); got != munPadraoNacional {
 		t.Errorf("CodigoMunicipio = %q, quero %q", got, munPadraoNacional)
 	}
 
@@ -391,10 +391,10 @@ func TestTransmiteComCertificadoEEmitente(t *testing.T) {
 	if f.xmlTransmitido != xml {
 		t.Error("a lib recebeu XML diferente do enviado")
 	}
-	if f.tenant.PFXBase64 == "" {
+	if f.sessao.PFXBase64 == "" {
 		t.Error("o certificado não chegou ao binding")
 	}
-	if got := cfgDoTenant(f.tenant, "Emitente.InscMun"); got != "9876" {
+	if got := cfgDaSessao(f.sessao, "Emitente.InscMun"); got != "9876" {
 		t.Errorf("Emitente.InscMun = %q; sem cadastro no servidor ele vem do pedido", got)
 	}
 	var resp RespostaTransmissao
@@ -416,7 +416,7 @@ func TestAmbienteVemDoXMLNaoDoCliente(t *testing.T) {
 				"xml_b64":  base64.StdEncoding.EncodeToString([]byte(xmlFixture(c.tpAmb))),
 				"ambiente": map[string]string{"1": "homologacao", "2": "producao"}[c.tpAmb],
 			}))
-			if got := cfgDoTenant(f.tenant, "Ambiente"); got != c.ordinal {
+			if got := cfgDaSessao(f.sessao, "Ambiente"); got != c.ordinal {
 				t.Errorf("ordinal = %q, quero %q (tpAmb=%s)", got, c.ordinal, c.tpAmb)
 			}
 		})
@@ -831,22 +831,22 @@ func TestCredenciaisSoValemForaDoPadraoNacional(t *testing.T) {
 	}
 	pn := &libFake{resTransmitir: acbr.Result{Resposta: "[Envio]\nSucesso=1\n"}}
 	post(t, muxDe(pn), "/nfse/transmissao", corpo(munPadraoNacional))
-	if cfgDoTenant(pn.tenant, "Emitente.WSUser") != "" {
+	if cfgDaSessao(pn.sessao, "Emitente.WSUser") != "" {
 		t.Error("credenciais de prefeitura foram enviadas ao Padrão Nacional")
 	}
 
 	ab := &libFake{resTransmitir: acbr.Result{Resposta: "[Envio]\nSucesso=1\n"}}
 	post(t, muxDe(ab), "/nfse/transmissao", corpo(munAbrasf))
-	if cfgDoTenant(ab.tenant, "Emitente.WSUser") != "u" || cfgDoTenant(ab.tenant, "Emitente.WSChaveAcesso") != "tk" {
-		t.Errorf("credenciais não chegaram ao provedor ABRASF: %+v", ab.tenant.Config)
+	if cfgDaSessao(ab.sessao, "Emitente.WSUser") != "u" || cfgDaSessao(ab.sessao, "Emitente.WSChaveAcesso") != "tk" {
+		t.Errorf("credenciais não chegaram ao provedor ABRASF: %+v", ab.sessao.Config)
 	}
 
 	// Na API própria o layout é o nacional, mas quem autentica é o provedor: o
 	// ABase lê WSChaveAcesso. Decidir pelo layout descartava a chave.
 	ap := &libFake{resTransmitir: acbr.Result{Resposta: "[Envio]\nSucesso=1\n"}}
 	post(t, muxDe(ap), "/nfse/transmissao", corpo(munAPIPropriaCred))
-	if cfgDoTenant(ap.tenant, "Emitente.WSChaveAcesso") != "tk" {
-		t.Errorf("credenciais não chegaram ao provedor com API própria: %+v", ap.tenant.Config)
+	if cfgDaSessao(ap.sessao, "Emitente.WSChaveAcesso") != "tk" {
+		t.Errorf("credenciais não chegaram ao provedor com API própria: %+v", ap.sessao.Config)
 	}
 }
 
@@ -893,15 +893,15 @@ func TestDistribuicaoTentaOMunicipioECaiParaOADN(t *testing.T) {
 			if strings.Join(f.municipiosDFe, ",") != strings.Join(c.quero, ",") {
 				t.Errorf("sessões abertas em %v, quero %v", f.municipiosDFe, c.quero)
 			}
-			if got := cfgDoTenant(f.tenant, "Emitente.CNPJ"); got != "12345678000190" {
+			if got := cfgDaSessao(f.sessao, "Emitente.CNPJ"); got != "12345678000190" {
 				t.Errorf("Emitente.CNPJ = %q: a fila é do CNPJ do emitente", got)
 			}
 			if f.nsu != 5 {
 				t.Errorf("nsu = %d, quero 5", f.nsu)
 			}
 			if c.quero[len(c.quero)-1] == MunicipioADN &&
-				(cfgDoTenant(f.tenant, "Emitente.WSUser") != "" || cfgDoTenant(f.tenant, "Emitente.WSChaveAcesso") != "") {
-				t.Errorf("credenciais de prefeitura foram para o ADN: %+v", f.tenant.Config)
+				(cfgDaSessao(f.sessao, "Emitente.WSUser") != "" || cfgDaSessao(f.sessao, "Emitente.WSChaveAcesso") != "") {
+				t.Errorf("credenciais de prefeitura foram para o ADN: %+v", f.sessao.Config)
 			}
 			if !strings.Contains(rec.Body.String(), "UltimoNSU=7") {
 				t.Errorf("a resposta crua não voltou: %s", rec.Body)
@@ -1455,7 +1455,7 @@ func TestPDFPorChaveEPorXML(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("por XML: status = %d: %s", rec.Code, rec.Body)
 	}
-	if f2.tenant.PFXBase64 != "" {
+	if f2.sessao.PFXBase64 != "" {
 		t.Error("render local pediu certificado")
 	}
 	if !strings.Contains(rec.Body.String(), "pdf_b64") {
@@ -1464,7 +1464,7 @@ func TestPDFPorChaveEPorXML(t *testing.T) {
 	// Sem CodigoMunicipio a lib nem lê o XML: quem lê é a classe do provedor, e
 	// ela é escolhida pelo município. O pedido não trouxe nenhum, então tem de
 	// sair do próprio XML.
-	if got := cfgDoTenant(f2.tenant, "CodigoMunicipio"); got != munPadraoNacional {
+	if got := cfgDaSessao(f2.sessao, "CodigoMunicipio"); got != munPadraoNacional {
 		t.Errorf("CodigoMunicipio = %q, quero %q: sem ele a lib responde "+
 			"\"Nenhum provedor selecionado\"", got, munPadraoNacional)
 	}
@@ -1481,7 +1481,7 @@ func TestPDFPorXMLPrefereOMunicipioDoPedido(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d: %s", rec.Code, rec.Body)
 	}
-	if got := cfgDoTenant(f.tenant, "CodigoMunicipio"); got != munAbrasf {
+	if got := cfgDaSessao(f.sessao, "CodigoMunicipio"); got != munAbrasf {
 		t.Errorf("CodigoMunicipio = %q, quero %q", got, munAbrasf)
 	}
 }
@@ -1496,7 +1496,7 @@ func TestPDFPorXMLSemMunicipioRecusaAntesDaLib(t *testing.T) {
 	if rec.Code != http.StatusBadRequest {
 		t.Fatalf("status = %d, quero 400: %s", rec.Code, rec.Body)
 	}
-	if f.tenant.Config != nil {
+	if f.sessao.Config != nil {
 		t.Error("o pedido chegou à lib mesmo sem município")
 	}
 }

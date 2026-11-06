@@ -26,8 +26,7 @@ type InfViagens struct {
 // ToINIPagamentoOperacao monta o INI do evento 110116. Seções (todas top-level):
 // [EVENTO]/[EVENTO001] + [infViagens] + [infPagNNN] (+ [CompNNNKKK],
 // [infPrazoNNNKKK] quando a prazo, [infBancNNN]). Índices de 3 dígitos; os de
-// Comp/infPrazo são compostos (infPag+item). Ver
-// .claude/skills/acbr-especialista/referencia/mdfe-eventos.md.
+// Comp/infPrazo são compostos (infPag+item).
 func ToINIPagamentoOperacao(chave, cnpj, dhEvento string, p PedidoPagamentoOperacao) string {
 	var b iniBuilder
 	eventoHeader(&b, chave, cnpj, dhEvento, "110116", p.NSeqEvento)

@@ -17,74 +17,74 @@ var (
 	_ BoletoServico = indisponivel{}
 )
 
-func (indisponivel) Backend() string                                { return "stub" }
-func (indisponivel) Version() (string, error)                       { return "", ErrUnavailable }
-func (indisponivel) Emitir(TenantConfig, string) (Result, error)    { return Result{}, ErrUnavailable }
-func (indisponivel) MontarXML(TenantConfig, string) (Result, error) { return Result{}, ErrUnavailable }
-func (indisponivel) ValidarRegras(TenantConfig, string) (Result, error) {
+func (indisponivel) Backend() string                          { return "stub" }
+func (indisponivel) Version() (string, error)                 { return "", ErrUnavailable }
+func (indisponivel) Emitir(Sessao, string) (Result, error)    { return Result{}, ErrUnavailable }
+func (indisponivel) MontarXML(Sessao, string) (Result, error) { return Result{}, ErrUnavailable }
+func (indisponivel) ValidarRegras(Sessao, string) (Result, error) {
 	return Result{}, ErrUnavailable
 }
-func (indisponivel) Transmitir(TenantConfig, string) (Result, error) {
+func (indisponivel) Transmitir(Sessao, string) (Result, error) {
 	return Result{}, ErrUnavailable
 }
-func (indisponivel) Consultar(TenantConfig, string) (Result, error) { return Result{}, ErrUnavailable }
-func (indisponivel) Cancelar(TenantConfig, string) (Result, error)  { return Result{}, ErrUnavailable }
-func (indisponivel) ObterPDF(TenantConfig, string) (Result, error)  { return Result{}, ErrUnavailable }
-func (indisponivel) RenderizarPDF(TenantConfig, string) (Result, error) {
+func (indisponivel) Consultar(Sessao, string) (Result, error) { return Result{}, ErrUnavailable }
+func (indisponivel) Cancelar(Sessao, string) (Result, error)  { return Result{}, ErrUnavailable }
+func (indisponivel) ObterPDF(Sessao, string) (Result, error)  { return Result{}, ErrUnavailable }
+func (indisponivel) RenderizarPDF(Sessao, string) (Result, error) {
 	return Result{}, ErrUnavailable
 }
-func (indisponivel) Encerrar(TenantConfig, string) (Result, error) { return Result{}, ErrUnavailable }
-func (indisponivel) EnviarEvento(TenantConfig, string) (Result, error) {
+func (indisponivel) Encerrar(Sessao, string) (Result, error) { return Result{}, ErrUnavailable }
+func (indisponivel) EnviarEvento(Sessao, string) (Result, error) {
 	return Result{}, ErrUnavailable
 }
-func (indisponivel) CartaCorrecao(TenantConfig, string) (Result, error) {
+func (indisponivel) CartaCorrecao(Sessao, string) (Result, error) {
 	return Result{}, ErrUnavailable
 }
-func (indisponivel) SalvarEventoPDF(TenantConfig, string, string) (Result, error) {
+func (indisponivel) SalvarEventoPDF(Sessao, string, string) (Result, error) {
 	return Result{}, ErrUnavailable
 }
-func (indisponivel) SubstituirNFSe(TenantConfig, string, SubstituicaoNFSe) (Result, error) {
+func (indisponivel) SubstituirNFSe(Sessao, string, SubstituicaoNFSe) (Result, error) {
 	return Result{}, ErrUnavailable
 }
-func (indisponivel) InformacoesProvedor(TenantConfig) (Result, error) {
+func (indisponivel) InformacoesProvedor(Sessao) (Result, error) {
 	return Result{}, ErrUnavailable
 }
-func (indisponivel) ConsultarDFe(TenantConfig, int) (Result, error) {
+func (indisponivel) ConsultarDFe(Sessao, int) (Result, error) {
 	return Result{}, ErrUnavailable
 }
-func (indisponivel) StatusServico(TenantConfig) (Result, error) { return Result{}, ErrUnavailable }
-func (indisponivel) ConsultaCadastro(TenantConfig, string, string, bool) (Result, error) {
+func (indisponivel) StatusServico(Sessao) (Result, error) { return Result{}, ErrUnavailable }
+func (indisponivel) ConsultaCadastro(Sessao, string, string, bool) (Result, error) {
 	return Result{}, ErrUnavailable
 }
-func (indisponivel) ConsultaNaoEncerrados(TenantConfig, string) (Result, error) {
+func (indisponivel) ConsultaNaoEncerrados(Sessao, string) (Result, error) {
 	return Result{}, ErrUnavailable
 }
-func (indisponivel) ConsultarDPSPorChave(TenantConfig, string) (Result, error) {
+func (indisponivel) ConsultarDPSPorChave(Sessao, string) (Result, error) {
 	return Result{}, ErrUnavailable
 }
-func (indisponivel) ConsultarPorNumero(TenantConfig, string, int) (Result, error) {
+func (indisponivel) ConsultarPorNumero(Sessao, string, int) (Result, error) {
 	return Result{}, ErrUnavailable
 }
-func (indisponivel) ConsultarPorFaixa(TenantConfig, string, string, int) (Result, error) {
+func (indisponivel) ConsultarPorFaixa(Sessao, string, string, int) (Result, error) {
 	return Result{}, ErrUnavailable
 }
-func (indisponivel) ConsultarPorRps(TenantConfig, string, string, string, string) (Result, error) {
+func (indisponivel) ConsultarPorRps(Sessao, string, string, string, string) (Result, error) {
 	return Result{}, ErrUnavailable
 }
-func (indisponivel) ConsultarSituacao(TenantConfig, string, string) (Result, error) {
+func (indisponivel) ConsultarSituacao(Sessao, string, string) (Result, error) {
 	return Result{}, ErrUnavailable
 }
-func (indisponivel) ConsultarLoteRps(TenantConfig, string, string) (Result, error) {
+func (indisponivel) ConsultarLoteRps(Sessao, string, string) (Result, error) {
 	return Result{}, ErrUnavailable
 }
-func (indisponivel) GerarPDF(TenantConfig, string) (Result, error) { return Result{}, ErrUnavailable }
-func (indisponivel) GerarRemessa(TenantConfig, string, int) (Result, error) {
+func (indisponivel) GerarPDF(Sessao, string) (Result, error) { return Result{}, ErrUnavailable }
+func (indisponivel) GerarRemessa(Sessao, string, int) (Result, error) {
 	return Result{}, ErrUnavailable
 }
-func (indisponivel) LerRetorno(TenantConfig, string, string) (Result, error) {
+func (indisponivel) LerRetorno(Sessao, string, string) (Result, error) {
 	return Result{}, ErrUnavailable
 }
-func (indisponivel) Registrar(TenantConfig, BoletoOnline) (Result, error) {
+func (indisponivel) Registrar(Sessao, BoletoOnline) (Result, error) {
 	return Result{}, ErrUnavailable
 }
 func (indisponivel) Close() error { return nil }

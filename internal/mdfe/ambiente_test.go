@@ -24,7 +24,7 @@ func geracaoCom(t *testing.T, ambiente string, tpAmb int) (*libFake, int, string
 	return f, rec.Code, rec.Body.String()
 }
 
-func ordinalDaSessao(t *testing.T, tn acbr.TenantConfig) string {
+func ordinalDaSessao(t *testing.T, tn acbr.Sessao) string {
 	t.Helper()
 	for _, kv := range tn.Config {
 		if kv.Key == "Ambiente" {
@@ -50,7 +50,7 @@ func TestAmbiente_SessaoEXMLNuncaDivergem(t *testing.T) {
 			if code != http.StatusOK {
 				t.Fatalf("HTTP %d: %s", code, corpo)
 			}
-			if got := ordinalDaSessao(t, f.tenantMontar); got != c.ordinal {
+			if got := ordinalDaSessao(t, f.sessaoMontar); got != c.ordinal {
 				t.Errorf("sessão nativa com Ambiente=%s, esperava %s", got, c.ordinal)
 			}
 			if !strings.Contains(f.iniMontar, c.tpAmb) {
@@ -93,7 +93,7 @@ func TestAmbiente_TpAmbExplicitoDeixaDeSerIgnorado(t *testing.T) {
 		if code != http.StatusOK {
 			t.Fatalf("HTTP %d: coerente tem de passar: %s", code, corpo)
 		}
-		if got := ordinalDaSessao(t, f.tenantMontar); got != "0" {
+		if got := ordinalDaSessao(t, f.sessaoMontar); got != "0" {
 			t.Errorf("sessão com Ambiente=%s, esperava 0 (produção)", got)
 		}
 		if !strings.Contains(f.iniMontar, "tpAmb=1") {

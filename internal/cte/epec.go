@@ -30,8 +30,7 @@ type TomadorEPEC struct {
 }
 
 // ToINIEPEC monta o INI do EPEC (110113), indexado: campos do detEvento na
-// [EVENTO001] + seção fixa [TOMADOR]. Ver
-// .claude/skills/acbr-especialista/referencia/cte-eventos.md.
+// [EVENTO001] + seção fixa [TOMADOR].
 func ToINIEPEC(chave, cnpj, dhEvento string, p PedidoEPEC) string {
 	var b iniBuilder
 	eventoHeader(&b, chave, cnpj, dhEvento, "110113", p.NSeqEvento)

@@ -76,7 +76,7 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, p.InfMDFe.Ide.TpAmb, "infMDFe.ide.tpAmb") || !fiscal.ModalSuportado(w, modalTexto(p.InfMDFe.Ide.Modal), modalRodoviario) {
 		return
 	}
-	t := fiscal.Tenant(cnpj, secaoACBr, p.Ambiente, fiscal.Certificado{})
+	t := fiscal.Sessao(cnpj, secaoACBr, p.Ambiente, fiscal.Certificado{})
 	xml, val, res, err := fiscal.Montar(m.svc, t, ToINI(p))
 	if err != nil {
 		fiscal.ResponderErroDaLib(w, "MDF-e", res, err)
@@ -150,7 +150,7 @@ func (m *Modulo) handleTransmissao(w http.ResponseWriter, r *http.Request) {
 	// O ambiente vem do XML, não do cliente. Divergir dá rejeição 252, ou,
 	// pior, manda um documento de homologação para o webservice de produção.
 	ambiente := fiscal.Primeiro(fiscal.AmbienteDoXML(xml), p.Ambiente)
-	t := fiscal.Tenant(fiscal.CNPJDaChave(chave), secaoACBr, ambiente, p.Certificado)
+	t := fiscal.Sessao(fiscal.CNPJDaChave(chave), secaoACBr, ambiente, p.Certificado)
 
 	res, err := m.svc.Transmitir(t, xml)
 	if err != nil {
@@ -228,7 +228,7 @@ func (m *Modulo) handleEvento(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t := fiscal.Tenant(cnpj, secaoACBr, p.Ambiente, p.Certificado)
+	t := fiscal.Sessao(cnpj, secaoACBr, p.Ambiente, p.Certificado)
 	res, err := envia(t, ini)
 	if err != nil {
 		fiscal.ResponderErroDaLib(w, "MDF-e", res, err)
@@ -247,7 +247,7 @@ func (m *Modulo) handleEvento(w http.ResponseWriter, r *http.Request) {
 // prepararEvento monta o INI do tipo pedido e escolhe o método de envio.
 // errMsg != "" é erro do cliente; envia == nil é tipo inexistente.
 func (m *Modulo) prepararEvento(tipo, chave, cnpj, dh string, p PedidoEvento) (
-	ini string, envia func(acbr.TenantConfig, string) (acbr.Result, error), errMsg string) {
+	ini string, envia func(acbr.Sessao, string) (acbr.Result, error), errMsg string) {
 
 	// Genérico cobre condutor, DF-e e pagamento; encerramento e cancelamento
 	// têm método próprio na lib.
@@ -334,7 +334,7 @@ func (m *Modulo) handleConsulta(w http.ResponseWriter, r *http.Request) {
 	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 		return
 	}
-	t := fiscal.Tenant(fiscal.CNPJDaChave(chave), secaoACBr, p.Ambiente, p.Certificado)
+	t := fiscal.Sessao(fiscal.CNPJDaChave(chave), secaoACBr, p.Ambiente, p.Certificado)
 	res, err := m.svc.Consultar(t, chave)
 	if err != nil {
 		fiscal.ResponderErroDaLib(w, "MDF-e", res, err)
@@ -380,19 +380,19 @@ func (m *Modulo) handleNaoEncerrados(w http.ResponseWriter, r *http.Request) {
 	m.responderCru(w, res, err)
 }
 
-func (m *Modulo) lerPedidoSefaz(w http.ResponseWriter, r *http.Request) (PedidoSefaz, acbr.TenantConfig, bool) {
+func (m *Modulo) lerPedidoSefaz(w http.ResponseWriter, r *http.Request) (PedidoSefaz, acbr.Sessao, bool) {
 	var p PedidoSefaz
 	if !httpx.LerJSON(w, r, &p) {
-		return p, acbr.TenantConfig{}, false
+		return p, acbr.Sessao{}, false
 	}
 	if err := p.Certificado.Validar(); err != nil {
 		httpx.ErroJSON(w, http.StatusBadRequest, "certificado_invalido", err.Error())
-		return p, acbr.TenantConfig{}, false
+		return p, acbr.Sessao{}, false
 	}
 	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
-		return p, acbr.TenantConfig{}, false
+		return p, acbr.Sessao{}, false
 	}
-	t := fiscal.Tenant(fiscal.SoDigitos(p.CNPJ), secaoACBr, p.Ambiente, p.Certificado)
+	t := fiscal.Sessao(fiscal.SoDigitos(p.CNPJ), secaoACBr, p.Ambiente, p.Certificado)
 	return p, t, true
 }
 
@@ -429,7 +429,7 @@ func (m *Modulo) handlePDF(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	res, err := m.svc.RenderizarPDF(fiscal.Tenant("", secaoACBr, "", fiscal.Certificado{}), xml)
+	res, err := m.svc.RenderizarPDF(fiscal.Sessao("", secaoACBr, "", fiscal.Certificado{}), xml)
 	m.responderPDF(w, res, err)
 }
 
@@ -446,7 +446,7 @@ func (m *Modulo) handlePDFEvento(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	res, err := m.svc.SalvarEventoPDF(fiscal.Tenant("", secaoACBr, "", fiscal.Certificado{}), xml, evt)
+	res, err := m.svc.SalvarEventoPDF(fiscal.Sessao("", secaoACBr, "", fiscal.Certificado{}), xml, evt)
 	m.responderPDF(w, res, err)
 }
 

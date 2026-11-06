@@ -101,7 +101,7 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 
 	// O provedor da resposta é o da sessão: é por ele que a nota vai sair.
 	sessao := MunicipioDaSessao(cmun, p)
-	t := m.tenant(cnpj, sessao, p.InfDPS.Prest.Pessoa, p.Ambiente, fiscal.Certificado{}, Credenciais{})
+	t := m.sessao(cnpj, sessao, p.InfDPS.Prest.Pessoa, p.Ambiente, fiscal.Certificado{}, Credenciais{})
 	xml, val, res, err := fiscal.Montar(m.svc, t, ToINIDoLayout(layout, p))
 	if err != nil {
 		m.responderErro(w, res, err)
@@ -215,7 +215,7 @@ func (m *Modulo) handleTransmissao(w http.ResponseWriter, r *http.Request) {
 	}
 	ambiente := fiscal.Primeiro(fiscal.AmbienteDoXML(xml), p.Ambiente)
 	sessao := MunicipioDaSessaoDoXML(p.Municipio, xml)
-	t := m.tenantEmitente(p.Emitente, sessao, ambiente, p.Certificado, p.Credenciais)
+	t := m.sessaoDoEmitente(p.Emitente, sessao, ambiente, p.Certificado, p.Credenciais)
 
 	res, err := m.svc.Transmitir(t, xml)
 	if err != nil {
@@ -348,7 +348,7 @@ func (m *Modulo) handleEvento(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	p.Municipio = MunicipioDoEvento(tipo, p)
-	t := m.tenantEmitente(p.Emitente, p.Municipio, p.Ambiente,
+	t := m.sessaoDoEmitente(p.Emitente, p.Municipio, p.Ambiente,
 		p.Certificado, p.Credenciais)
 
 	if tipo == "substituicao" {
@@ -371,7 +371,7 @@ func (m *Modulo) handleEvento(w http.ResponseWriter, r *http.Request) {
 // nesse campo é o link da nota, quando o provedor manda um, e o CancelaNFSe
 // localiza a nota pelo número. Exigir a chave ali recusava o cancelamento de
 // nota GISS autorizada sem link, com o número em mãos.
-func (m *Modulo) cancelar(w http.ResponseWriter, t acbr.TenantConfig, layout Layout, p PedidoEvento) {
+func (m *Modulo) cancelar(w http.ResponseWriter, t acbr.Sessao, layout Layout, p PedidoEvento) {
 	if layout == LayoutPadraoNacional && strings.TrimSpace(p.Chave) == "" {
 		httpx.ErroJSON(w, http.StatusBadRequest, "campo_obrigatorio", "chave da NFS-e é obrigatória")
 		return
@@ -426,7 +426,7 @@ func (m *Modulo) cancelar(w http.ResponseWriter, t acbr.TenantConfig, layout Lay
 // A validação do motivo é local de propósito: xMotivo é obrigatório e tem
 // mínimo de 15 caracteres no schema do evento, e o ADN recusa por schema sem
 // dizer qual campo faltou.
-func (m *Modulo) cancelarPorEvento(w http.ResponseWriter, t acbr.TenantConfig,
+func (m *Modulo) cancelarPorEvento(w http.ResponseWriter, t acbr.Sessao,
 	p PedidoEvento, e CancelamentoPedido) {
 
 	if msg := ValidarCancelamentoPN(e); msg != "" {
@@ -465,7 +465,7 @@ func (m *Modulo) cancelarPorEvento(w http.ResponseWriter, t acbr.TenantConfig,
 // de substituição: a nota nova carrega o grupo subst apontando a chave da
 // antiga, e é a emissão dela que substitui. Os demais provedores usam o
 // SubstituiNFSe, que identifica a antiga por número.
-func (m *Modulo) substituir(w http.ResponseWriter, t acbr.TenantConfig, layout Layout, p PedidoEvento) {
+func (m *Modulo) substituir(w http.ResponseWriter, t acbr.Sessao, layout Layout, p PedidoEvento) {
 	var e SubstituicaoPedido
 	if msg := fiscal.DecodarAninhado("evento", p.Evento, &e); msg != "" {
 		httpx.ErroJSON(w, http.StatusBadRequest, "pedido_invalido", msg)
@@ -504,7 +504,7 @@ func (m *Modulo) substituir(w http.ResponseWriter, t acbr.TenantConfig, layout L
 // substituirPorDPS é a substituição do Padrão Nacional: emitir a DPS nova com o
 // grupo subst. A chamada é a MESMA da emissão, e a resposta também: o que
 // identifica a substituição é o grupo dentro do documento.
-func (m *Modulo) substituirPorDPS(w http.ResponseWriter, t acbr.TenantConfig,
+func (m *Modulo) substituirPorDPS(w http.ResponseWriter, t acbr.Sessao,
 	cmun string, e SubstituicaoPedido) {
 
 	if msg := ValidarSubstituicaoPN(e); msg != "" {
@@ -596,7 +596,7 @@ func (m *Modulo) handleConsultaDPS(w http.ResponseWriter, r *http.Request) {
 	// a NFS-e encontrada encerra a busca. Não achar lá, ou falhar, cai no provedor
 	// do município, onde a nota também pode estar.
 	if simplesSaiPeloAmbienteNacional[fiscal.SoDigitos(p.Municipio)] {
-		tn := m.tenantEmitente(p.Emitente, MunicipioADN, p.Ambiente, p.Certificado, p.Credenciais)
+		tn := m.sessaoDoEmitente(p.Emitente, MunicipioADN, p.Ambiente, p.Certificado, p.Credenciais)
 		if res, err := m.svc.ConsultarDPSPorChave(tn, chave); err == nil && reChaveNaResposta.MatchString(res.Resposta) {
 			m.responderConsulta(w, tn, MunicipioADN, res, nil)
 			return
@@ -673,7 +673,7 @@ func (m *Modulo) handleDistribuicao(w http.ResponseWriter, r *http.Request) {
 	}
 	if cmun := fiscal.SoDigitos(p.Municipio); cmun != "" {
 		if _, ok := LayoutDoMunicipio(cmun); ok {
-			t := m.tenantEmitente(p.Emitente, cmun, p.Ambiente, p.Certificado, p.Credenciais)
+			t := m.sessaoDoEmitente(p.Emitente, cmun, p.Ambiente, p.Certificado, p.Credenciais)
 			res, err := m.svc.ConsultarDFe(t, p.NSU)
 			if err != nil || !OperacaoNaoSuportada(res.Resposta) {
 				m.responderConsulta(w, t, cmun, res, err)
@@ -681,26 +681,26 @@ func (m *Modulo) handleDistribuicao(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	t := m.tenantEmitente(p.Emitente, MunicipioADN, p.Ambiente, p.Certificado, Credenciais{})
+	t := m.sessaoDoEmitente(p.Emitente, MunicipioADN, p.Ambiente, p.Certificado, Credenciais{})
 	res, err := m.svc.ConsultarDFe(t, p.NSU)
 	m.responderConsulta(w, t, MunicipioADN, res, err)
 }
 
 // lerConsulta lê o pedido e abre a sessão no município informado, que é quem
 // decide o provedor consultado.
-func (m *Modulo) lerConsulta(w http.ResponseWriter, r *http.Request) (PedidoConsulta, acbr.TenantConfig, bool) {
+func (m *Modulo) lerConsulta(w http.ResponseWriter, r *http.Request) (PedidoConsulta, acbr.Sessao, bool) {
 	var p PedidoConsulta
 	if !m.lerPedidoConsulta(w, r, &p) {
-		return p, acbr.TenantConfig{}, false
+		return p, acbr.Sessao{}, false
 	}
 	if _, ok := m.layout(w, p.Municipio); !ok {
-		return p, acbr.TenantConfig{}, false
+		return p, acbr.Sessao{}, false
 	}
 	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
-		return p, acbr.TenantConfig{}, false
+		return p, acbr.Sessao{}, false
 	}
 	p.Municipio = MunicipioDaNota(p.Municipio, p.Chave)
-	t := m.tenantEmitente(p.Emitente, p.Municipio, p.Ambiente,
+	t := m.sessaoDoEmitente(p.Emitente, p.Municipio, p.Ambiente,
 		p.Certificado, p.Credenciais)
 	return p, t, true
 }
@@ -718,7 +718,7 @@ func (m *Modulo) lerPedidoConsulta(w http.ResponseWriter, r *http.Request, p *Pe
 	return true
 }
 
-func (m *Modulo) responderConsulta(w http.ResponseWriter, t acbr.TenantConfig,
+func (m *Modulo) responderConsulta(w http.ResponseWriter, t acbr.Sessao,
 	cmun string, res acbr.Result, err error) {
 
 	if err != nil {
@@ -765,7 +765,7 @@ func (m *Modulo) handlePDF(w http.ResponseWriter, r *http.Request) {
 	var err error
 	// A sessão e o município usados sobrevivem ao switch: são eles que dizem
 	// QUAL provedor recusou, quando a lib recusa.
-	var t acbr.TenantConfig
+	var t acbr.Sessao
 	var cmun string
 	switch {
 	case strings.TrimSpace(p.XMLBase64) != "":
@@ -784,7 +784,7 @@ func (m *Modulo) handlePDF(w http.ResponseWriter, r *http.Request) {
 		}
 		cmun = MunicipioDaNota(cmun, ChaveDoXML(xml))
 		// Render local: não fala com o provedor, então não pede certificado.
-		t = fiscal.Tenant("", secaoACBr, "", fiscal.Certificado{})
+		t = fiscal.Sessao("", secaoACBr, "", fiscal.Certificado{})
 		t.Config = append(t.Config,
 			acbr.ConfigKV{Section: secaoACBr, Key: "CodigoMunicipio", Value: cmun})
 		res, err = m.svc.RenderizarPDF(t, xml)
@@ -800,7 +800,7 @@ func (m *Modulo) handlePDF(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		cmun = MunicipioDaNota(fiscal.SoDigitos(p.Municipio), p.Chave)
-		t = m.tenantEmitente(p.Emitente, cmun, p.Ambiente,
+		t = m.sessaoDoEmitente(p.Emitente, cmun, p.Ambiente,
 			p.Certificado, p.Credenciais)
 		res, err = m.svc.ObterPDF(t, p.Chave)
 	default:
@@ -841,7 +841,7 @@ func (m *Modulo) handleMunicipio(w http.ResponseWriter, r *http.Request) {
 		"suportado": ok,
 	}
 	if ok && r.URL.Query().Get("capacidades") == "1" {
-		t := m.tenantEmitente(Emitente{}, codigo, "", fiscal.Certificado{}, Credenciais{})
+		t := m.sessaoDoEmitente(Emitente{}, codigo, "", fiscal.Certificado{}, Credenciais{})
 		if c, lido := m.capacidades(t); lido {
 			corpo["capacidades"] = c
 			corpo["operacoes"] = Operacoes(layout, c)
@@ -871,21 +871,21 @@ func (m *Modulo) layout(w http.ResponseWriter, cmun string) (Layout, bool) {
 	return l, true
 }
 
-// tenant monta a sessão a partir do prestador do próprio pedido (ao gerar).
-func (m *Modulo) tenant(cnpj, cmun string, prest Pessoa, ambiente string,
-	cert fiscal.Certificado, cred Credenciais) acbr.TenantConfig {
-	return m.tenantEmitente(Emitente{
+// sessao monta a sessão a partir do prestador do próprio pedido (ao gerar).
+func (m *Modulo) sessao(cnpj, cmun string, prest Pessoa, ambiente string,
+	cert fiscal.Certificado, cred Credenciais) acbr.Sessao {
+	return m.sessaoDoEmitente(Emitente{
 		CNPJ: cnpj, InscMun: prest.IM, RazaoSocial: prest.XNome,
 	}, cmun, ambiente, cert, cred)
 }
 
-// tenantEmitente monta a sessão nativa. O emitente vem do pedido porque não há
+// sessaoDoEmitente monta a sessão nativa. O emitente vem do pedido porque não há
 // cadastro no servidor: é a consequência direta de não persistir nada.
-func (m *Modulo) tenantEmitente(e Emitente, cmun, ambiente string,
-	cert fiscal.Certificado, cred Credenciais) acbr.TenantConfig {
+func (m *Modulo) sessaoDoEmitente(e Emitente, cmun, ambiente string,
+	cert fiscal.Certificado, cred Credenciais) acbr.Sessao {
 
 	cnpj := fiscal.SoDigitos(e.CNPJ)
-	t := fiscal.Tenant(cnpj, secaoACBr, ambiente, cert)
+	t := fiscal.Sessao(cnpj, secaoACBr, ambiente, cert)
 	t.Config = append(t.Config,
 		acbr.ConfigKV{Section: secaoACBr, Key: "CodigoMunicipio", Value: fiscal.SoDigitos(cmun)},
 		acbr.ConfigKV{Section: secaoACBr, Key: "Emitente.CNPJ", Value: cnpj},
@@ -926,7 +926,7 @@ func (m *Modulo) tenantEmitente(e Emitente, cmun, ambiente string,
 // Os detalhes trazem o que aquele provedor DE FATO expõe, perguntado à lib
 // (ObterInformacoesProvedor). É o que transforma "não dá" em "não dá, e o que
 // dá é isto".
-func (m *Modulo) naoSuportada(w http.ResponseWriter, t acbr.TenantConfig,
+func (m *Modulo) naoSuportada(w http.ResponseWriter, t acbr.Sessao,
 	cmun, resposta, operacao string) bool {
 
 	if !OperacaoNaoSuportada(resposta) {
@@ -948,10 +948,10 @@ func (m *Modulo) naoSuportada(w http.ResponseWriter, t acbr.TenantConfig,
 	return true
 }
 
-// capacidades pergunta à lib o que o provedor do tenant expõe. Best-effort: a
+// capacidades pergunta à lib o que o provedor da sessão expõe. Best-effort: a
 // resposta só enriquece um erro que já vai ser devolvido, e falhar aqui não
 // pode trocar o erro real por outro.
-func (m *Modulo) capacidades(t acbr.TenantConfig) (Capacidades, bool) {
+func (m *Modulo) capacidades(t acbr.Sessao) (Capacidades, bool) {
 	res, err := m.svc.InformacoesProvedor(t)
 	if err != nil || strings.TrimSpace(res.Resposta) == "" {
 		return Capacidades{}, false

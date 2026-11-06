@@ -66,7 +66,7 @@ func TestXMLDoSimplesAbreSessaoNacional(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d: %s", rec.Code, rec.Body)
 	}
-	if got := cfgDoTenant(f.tenant, "CodigoMunicipio"); got != MunicipioADN {
+	if got := cfgDaSessao(f.sessao, "CodigoMunicipio"); got != MunicipioADN {
 		t.Errorf("sessão em %q, quero %q", got, MunicipioADN)
 	}
 	if !strings.Contains(f.iniMontar, "cLocEmi=5300108") {
@@ -89,7 +89,7 @@ func TestXMLForaDaRegraContinuaNoProvedor(t *testing.T) {
 			if rec.Code != http.StatusOK {
 				t.Fatalf("status = %d: %s", rec.Code, rec.Body)
 			}
-			if got := cfgDoTenant(f.tenant, "CodigoMunicipio"); got != munAPIPropria {
+			if got := cfgDaSessao(f.sessao, "CodigoMunicipio"); got != munAPIPropria {
 				t.Errorf("sessão em %q, quero %q", got, munAPIPropria)
 			}
 			if !strings.Contains(rec.Body.String(), `"provedor":"ISSNet"`) {
@@ -152,13 +152,13 @@ func TestTransmissaoDecidePeloXML(t *testing.T) {
 			if rec.Code != http.StatusOK {
 				t.Fatalf("status = %d: %s", rec.Code, rec.Body)
 			}
-			if got := cfgDoTenant(f.tenant, "CodigoMunicipio"); got != c.quero {
+			if got := cfgDaSessao(f.sessao, "CodigoMunicipio"); got != c.quero {
 				t.Errorf("sessão em %q, quero %q", got, c.quero)
 			}
 			if f.xmlTransmitido != xml {
 				t.Error("o XML não pode mudar no caminho")
 			}
-			if tem := cfgDoTenant(f.tenant, "Emitente.WSUser") != ""; tem != (c.quero == munAPIPropria) {
+			if tem := cfgDaSessao(f.sessao, "Emitente.WSUser") != ""; tem != (c.quero == munAPIPropria) {
 				t.Errorf("credenciais da prefeitura na sessão = %v com sessão em %s", tem, c.quero)
 			}
 		})
@@ -200,21 +200,21 @@ func TestEventosEConsultasSeguemAChave(t *testing.T) {
 				"chave":  c.chave,
 				"evento": map[string]any{"codigo": "1", "motivo": "erro na emissão da nota"},
 			}))
-			if got := cfgDoTenant(f.tenant, "CodigoMunicipio"); got != c.quero {
+			if got := cfgDaSessao(f.sessao, "CodigoMunicipio"); got != c.quero {
 				t.Errorf("sessão em %q, quero %q", got, c.quero)
 			}
 		})
 		t.Run("consulta/"+c.nome, func(t *testing.T) {
 			f := &libFake{resConsulta: acbr.Result{Resposta: "ok"}}
 			post(t, muxDe(f), "/nfse/consulta", envelope(munAPIPropria, map[string]any{"chave": c.chave}))
-			if got := cfgDoTenant(f.tenant, "CodigoMunicipio"); got != c.quero {
+			if got := cfgDaSessao(f.sessao, "CodigoMunicipio"); got != c.quero {
 				t.Errorf("sessão em %q, quero %q", got, c.quero)
 			}
 		})
 		t.Run("pdf por chave/"+c.nome, func(t *testing.T) {
 			f := &libFake{resConsulta: acbr.Result{PDF: []byte("%PDF")}}
 			post(t, muxDe(f), "/nfse/pdf", envelope(munAPIPropria, map[string]any{"chave": c.chave}))
-			if got := cfgDoTenant(f.tenant, "CodigoMunicipio"); got != c.quero {
+			if got := cfgDaSessao(f.sessao, "CodigoMunicipio"); got != c.quero {
 				t.Errorf("sessão em %q, quero %q", got, c.quero)
 			}
 		})
@@ -222,7 +222,7 @@ func TestEventosEConsultasSeguemAChave(t *testing.T) {
 			f := &libFake{resConsulta: acbr.Result{PDF: []byte("%PDF")}}
 			xml := `<NFSe><infNFSe Id="NFS` + c.chave + `"><cLocEmi>5300108</cLocEmi></infNFSe></NFSe>`
 			post(t, muxDe(f), "/nfse/pdf", map[string]any{"xml_b64": base64.StdEncoding.EncodeToString([]byte(xml))})
-			if got := cfgDoTenant(f.tenant, "CodigoMunicipio"); got != c.quero {
+			if got := cfgDaSessao(f.sessao, "CodigoMunicipio"); got != c.quero {
 				t.Errorf("sessão em %q, quero %q", got, c.quero)
 			}
 		})
@@ -253,7 +253,7 @@ func TestSubstituicaoPelaNotaNova(t *testing.T) {
 					"codigo":      "99", "motivo": "correção dos dados da nota",
 				},
 			}))
-			if got := cfgDoTenant(f.tenant, "CodigoMunicipio"); got != c.quero {
+			if got := cfgDaSessao(f.sessao, "CodigoMunicipio"); got != c.quero {
 				t.Errorf("sessão em %q, quero %q", got, c.quero)
 			}
 		})
@@ -267,14 +267,14 @@ func TestConsultaDPSProcuraNosDoisSistemas(t *testing.T) {
 	t.Run("achou no nacional", func(t *testing.T) {
 		f := &libFake{resConsulta: acbr.Result{Resposta: "[Consulta]\nChave=" + chaveNacionalDeBrasilia + "\n"}}
 		post(t, muxDe(f), "/nfse/consulta-dps", envelope(munAPIPropria, map[string]any{"chave": idDPS}))
-		if got := cfgDoTenant(f.tenant, "CodigoMunicipio"); got != MunicipioADN {
+		if got := cfgDaSessao(f.sessao, "CodigoMunicipio"); got != MunicipioADN {
 			t.Errorf("sessão em %q, quero %q", got, MunicipioADN)
 		}
 	})
 	t.Run("não achou no nacional", func(t *testing.T) {
 		f := &libFake{resConsulta: acbr.Result{Resposta: "[Consulta]\nSucesso=0\n"}}
 		post(t, muxDe(f), "/nfse/consulta-dps", envelope(munAPIPropria, map[string]any{"chave": idDPS}))
-		if got := cfgDoTenant(f.tenant, "CodigoMunicipio"); got != munAPIPropria {
+		if got := cfgDaSessao(f.sessao, "CodigoMunicipio"); got != munAPIPropria {
 			t.Errorf("a busca terminou em %q, quero %q", got, munAPIPropria)
 		}
 	})

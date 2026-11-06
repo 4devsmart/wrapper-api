@@ -1,6 +1,6 @@
 // Package fiscal é o vocabulário comum aos módulos de documento (CT-e, MDF-e,
 // NFS-e, boletos): o certificado que chega no payload, o ambiente, a montagem
-// do TenantConfig e a tradução dos erros da lib para HTTP.
+// do Sessao e a tradução dos erros da lib para HTTP.
 //
 // Existe para que essas quatro decisões sejam tomadas UMA vez. Num serviço em
 // que cada requisição carrega um certificado alheio, "cada módulo trata do seu
@@ -205,13 +205,13 @@ func AmbienteValido(w http.ResponseWriter, ambiente string) (string, bool) {
 	return a, true
 }
 
-// Tenant monta a configuração da sessão nativa. secao é a seção de config do
+// Sessao monta a configuração da sessão nativa. secao é a seção de config do
 // documento na ACBrLib ("CTe", "MDFe", "NFSe").
 //
 // cert zerado é legítimo e é o caso da geração: montar e validar não assinam
 // nem falam com a SEFAZ, então não precisam de certificado.
-func Tenant(cnpj, secao, ambiente string, cert Certificado) acbr.TenantConfig {
-	return acbr.TenantConfig{
+func Sessao(cnpj, secao, ambiente string, cert Certificado) acbr.Sessao {
+	return acbr.Sessao{
 		CNPJ:      cnpj,
 		PFXBase64: strings.TrimSpace(cert.PFXBase64),
 		SenhaPFX:  cert.Senha,
@@ -287,13 +287,13 @@ type Validacao struct {
 }
 
 // Montar gera o documento, e é comum a todos: monta o XML a partir do INI e roda
-// as regras de negócio. Não assina e não fala com a SEFAZ, por isso o Tenant
+// as regras de negócio. Não assina e não fala com a SEFAZ, por isso a Sessao
 // que chega aqui não precisa (nem deve) trazer certificado.
 //
 // São duas sessões nativas. É deliberado: sem certificado, abrir sessão é
 // barato: o custo real, carregar o PFX, só existe na transmissão. Juntar as duas num
 // método do binding é otimização a fazer depois de medir.
-func Montar(svc acbr.Servico, t acbr.TenantConfig, ini string) (xml string, val Validacao, res acbr.Result, err error) {
+func Montar(svc acbr.Servico, t acbr.Sessao, ini string) (xml string, val Validacao, res acbr.Result, err error) {
 	res, err = svc.MontarXML(t, ini)
 	if err != nil {
 		return "", Validacao{}, res, err
@@ -315,7 +315,7 @@ func Montar(svc acbr.Servico, t acbr.TenantConfig, ini string) (xml string, val 
 // SetRetorno(ErrOK, Erros) incondicionalmente, e o MDF-e faz igual. Quem diz que
 // passou é a RESPOSTA VIR VAZIA. Conferir o código daria "válido" para qualquer
 // documento.
-func validarRegras(svc acbr.Servico, t acbr.TenantConfig, ini string) (Validacao, acbr.Result, error) {
+func validarRegras(svc acbr.Servico, t acbr.Sessao, ini string) (Validacao, acbr.Result, error) {
 	res, err := svc.ValidarRegras(t, ini)
 	switch {
 	case errors.Is(err, acbr.ErrNaoSuportado):

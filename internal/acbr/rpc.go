@@ -52,10 +52,14 @@ var metodosLocais = map[string]bool{
 
 // Pedido é uma chamada de método do binding.
 type Pedido struct {
-	Servico string       `json:"servico"`
-	Metodo  string       `json:"metodo"`
-	Tenant  TenantConfig `json:"tenant"`
-	Args    Args         `json:"args"`
+	Servico string `json:"servico"`
+	Metodo  string `json:"metodo"`
+	// A tag continua "tenant" de propósito. API e worker sobem em containers
+	// separados e o protocolo não tem versão: com outro nome, durante uma
+	// atualização o lado antigo ignoraria o campo em silêncio e abriria a sessão
+	// sem certificado.
+	Sessao Sessao `json:"tenant"`
+	Args   Args   `json:"args"`
 }
 
 // Args reúne os argumentos de TODOS os métodos das interfaces de serviço, cada
