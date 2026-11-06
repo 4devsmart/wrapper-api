@@ -1,6 +1,9 @@
 package nfse
 
-import "strings"
+import (
+	"regexp"
+	"strings"
+)
 
 // Emissao é o resultado estruturado de uma emissão, extraído da resposta do
 // ACBr (formato INI com seções [Envio] e [ErroN]/[AlertaN]).
@@ -51,10 +54,22 @@ type Mensagem struct {
 // prefeitura. Nunca conclua daqui que o MUNICÍPIO não oferece o serviço: no
 // Padrão Nacional o cancelamento existe, por evento, e era esta mensagem que
 // aparecia quando chamávamos o webservice errado.
+//
+// Só as mensagens de erro contam, e pela frase inteira. A resposta traz o XML da
+// nota (XmlEnvio, XmlRetorno), e procurar nela inteira transformava em recusa uma
+// nota AUTORIZADA cuja descrição citasse um sistema "implementado" num "provedor"
+// de internet: o cliente lia que nada saiu, e reemitia.
 func OperacaoNaoSuportada(resp string) bool {
-	s := strings.ToLower(resp)
-	return strings.Contains(s, "implementado") && strings.Contains(s, "provedor")
+	erros, _ := lerRespostaINI(resp, func(_, _, _ string) {})
+	for _, e := range erros {
+		if reServicoNaoImplementado.MatchString(e.Descricao) {
+			return true
+		}
+	}
+	return false
 }
+
+var reServicoNaoImplementado = regexp.MustCompile(`(?i)implementado\s+(?:para\s+este|pelo)\s+provedor`)
 
 // ParseEnvio interpreta a resposta INI do ACBr (NFSE_Emitir) em uma Emissao.
 // Quando a resposta não é INI (ex.: mensagem de erro pura), devolve um erro

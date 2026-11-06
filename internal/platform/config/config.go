@@ -116,6 +116,30 @@ func (c Config) String() string {
 // EmProducao indica implantação de produção (endurece o boot).
 func (c Config) EmProducao() bool { return strings.EqualFold(c.Modo, "producao") }
 
+// logNivelPadrao é o nível do log da ACBr quando só o caminho é informado.
+const logNivelPadrao = "4"
+
+// margemDeEncerramento é o que o processo ainda tem depois do teto de uma chamada
+// para responder e fechar.
+const margemDeEncerramento = 10 * time.Second
+
+// PrazoDeEncerramento é quanto esperar pelas chamadas em curso ao encerrar. Tem de
+// cobrir o teto de uma chamada: cortar antes deixa documento em limbo, transmitido
+// e sem resposta.
+func (a ACBr) PrazoDeEncerramento() time.Duration {
+	return a.WorkerTimeout + margemDeEncerramento
+}
+
+// ExigirToken recusa a API sem token em produção. É da API, e não de Load, porque
+// o worker só escuta num socket local e não tem token: exigir dele impedia a
+// produção de subir pelo compose.
+func (c Config) ExigirToken() error {
+	if c.EmProducao() && c.AuthToken == "" {
+		return fmt.Errorf("produção exige API_TOKEN: sem ele a API aceita qualquer chamador")
+	}
+	return nil
+}
+
 // Load lê a configuração do ambiente, com defaults sensatos para dev.
 func Load() (Config, error) {
 	cfg := Config{
@@ -140,10 +164,12 @@ func Load() (Config, error) {
 		},
 	}
 
+	// Com caminho e sem nível, o log da ACBr liga no nível padrão: a trava abaixo
+	// precisa olhar o nível que vale, e não o que foi digitado.
+	if cfg.ACBr.LogPath != "" && cfg.ACBr.LogNivel == "" {
+		cfg.ACBr.LogNivel = logNivelPadrao
+	}
 	if cfg.EmProducao() {
-		if cfg.AuthToken == "" {
-			return Config{}, fmt.Errorf("produção exige API_TOKEN: sem ele a API aceita qualquer chamador")
-		}
 		// O log de nível 3+ da ACBr grava XML e certificado em disco. Num serviço
 		// que recebe o certificado por payload, deixar isso ligado em produção
 		// transforma "não persistimos nada" em mentira, e sem aviso.

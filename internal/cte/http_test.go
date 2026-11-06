@@ -376,6 +376,22 @@ func TestEventoCancelamentoMontaINIIndexado(t *testing.T) {
 	}
 }
 
+// O dhEvento informado com offset é um instante: a lib não converte, só carimba o
+// fuso da UF sobre o relógio.
+func TestEventoConverteDhEventoParaOFusoDaChave(t *testing.T) {
+	f := &libFake{resEvento: acbr.Result{Resposta: "[Evento]\ncStat=135\n"}}
+	post(t, muxDe(f), "/cte/eventos/cancelamento", map[string]any{
+		"chave":       chaveFixture,
+		"protocolo":   "135240000000001",
+		"certificado": certValido(),
+		"dhEvento":    "2026-11-06T15:00:00Z",
+		"evento":      map[string]any{"justificativa": "erro de digitacao no destinatario"},
+	})
+	if quero := "dhEvento=06/11/2026 12:00:00"; !strings.Contains(f.iniEvento, quero) {
+		t.Errorf("INI do evento não tem %q:\n%s", quero, f.iniEvento)
+	}
+}
+
 func TestEventoExigeCamposDoTipo(t *testing.T) {
 	casos := map[string]struct {
 		tipo   string

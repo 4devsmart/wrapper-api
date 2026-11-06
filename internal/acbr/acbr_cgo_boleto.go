@@ -210,7 +210,7 @@ func (l *boletoLib) cfgVal(h C.LibHandle, sec, key, val string) {
 // callBuf/ultRet: convenção de buffer da ACBrLib, usando Boleto_UltimoRetorno
 // (NÃO a do NFSe: é outra .so).
 func (l *boletoLib) callBuf(h C.LibHandle, call func(buf *C.char, size *C.int) C.int) (int, string) {
-	buf := make([]byte, bufferLen)
+	buf := make([]byte, bufferLen+1)
 	size := C.int(bufferLen)
 	ret := int(call((*C.char)(unsafe.Pointer(&buf[0])), &size))
 	var resp string

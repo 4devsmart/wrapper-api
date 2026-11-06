@@ -253,11 +253,44 @@ func TestLinhas_DescartaVaziasENormalizaCRLF(t *testing.T) {
 	}
 }
 
-// O StringToDateTime do ACBr não aceita fuso: a lib aplica o do estado ao gerar.
-func TestAgoraLocal_NoFormatoQueALibAceita(t *testing.T) {
-	got := AgoraLocal()
-	if _, err := time.Parse("2006-01-02 15:04:05", got); err != nil {
-		t.Errorf("AgoraLocal() = %q, fora do formato esperado: %v", got, err)
+// A lib carimba o fuso da UF sobre o relógio recebido. Sem converter aqui, o
+// evento sairia com a hora do container, que roda em UTC.
+func TestDataHoraDoEvento_SemInformarSaiNoFusoDaChave(t *testing.T) {
+	t.Setenv("TZ", "UTC")
+	const formato = "02/01/2006 15:04:05"
+	casos := map[string]int{"35": -3, "13": -4, "51": -4}
+	for cuf, horas := range casos {
+		fuso := time.FixedZone("", horas*3600)
+		got, err := time.ParseInLocation(formato, DataHoraDoEvento("", cuf+"00"), fuso)
+		if err != nil {
+			t.Fatalf("cUF %s: %v", cuf, err)
+		}
+		if d := time.Since(got); d < -5*time.Second || d > 5*time.Second {
+			t.Errorf("cUF %s: %s de diferença para agora", cuf, d)
+		}
+	}
+}
+
+func TestDataHoraDoEvento_InformadoConverteParaOFuso(t *testing.T) {
+	casos := []struct{ nome, informado, chave, quero string }{
+		{"instante em UTC em SP", "2026-11-06T15:00:00Z", "35", "06/11/2026 12:00:00"},
+		{"instante em UTC no AM", "2026-11-06T15:00:00Z", "13", "06/11/2026 11:00:00"},
+		{"relógio de parede fica", "2026-11-06T15:00:00", "13", "06/11/2026 15:00:00"},
+	}
+	for _, c := range casos {
+		t.Run(c.nome, func(t *testing.T) {
+			if got := DataHoraDoEvento(c.informado, c.chave); got != c.quero {
+				t.Errorf("= %q, quero %q", got, c.quero)
+			}
+		})
+	}
+}
+
+func TestFusoDaChave_ChaveCurtaNaoEstoura(t *testing.T) {
+	for _, c := range []string{"", "1"} {
+		if FusoDaChave(c) == nil {
+			t.Errorf("chave %q sem fuso", c)
+		}
 	}
 }
 

@@ -99,7 +99,7 @@ func main() {
 
 	// Prazo generoso: uma transmissão em curso está falando com a SEFAZ e não
 	// pode ser interrompida no meio: seria um documento em limbo.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cfg.ACBr.PrazoDeEncerramento())
 	defer cancel()
 	if err := srv.Shutdown(shutdownCtx); err != nil {
 		slog.Error("erro no shutdown do worker", "err", err)

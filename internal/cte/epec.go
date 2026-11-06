@@ -3,6 +3,7 @@ package cte
 import (
 	"cmp"
 
+	"github.com/4devsmart/wrapper-api/internal/fiscal"
 	"github.com/4devsmart/wrapper-api/internal/platform/inifmt"
 )
 
@@ -41,7 +42,7 @@ func ToINIEPEC(chave, cnpj, dhEvento string, p PedidoEPEC) string {
 	b.KV("modal", cmp.Or(p.Modal, "01"))
 	b.KVOpt("UFIni", p.UFIni)
 	b.KVOpt("UFFim", p.UFFim)
-	b.KVOpt("dhEmi", p.DhEmi)
+	b.KVOpt("dhEmi", inifmt.DataHoraNoFuso(p.DhEmi, fiscal.FusoDaChave(chave)))
 	b.Secao("TOMADOR")
 	b.KV("toma", cmp.Or(p.Tomador.Toma, "1"))
 	b.KVOpt("UF", p.Tomador.UF)
