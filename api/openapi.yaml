@@ -5840,8 +5840,8 @@ components:
           description: 'competência. Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
         dhEmi:
           type: string
-          format: date
-          description: 'emissão; vazio = hoje. Data no formato AAAA-MM-DD. Também aceita DD/MM/AAAA e RFC 3339, caso em que a hora é descartada.'
+          format: date-time
+          description: 'emissão; vazio = agora. Data e hora. COM offset (2026-08-23T14:05:00-03:00) a entrada é um instante e é convertida para o fuso do documento; SEM offset (2026-08-23T14:05:00) é lida como relógio de parede do emitente e não sofre conversão. Vazio usa o momento da chamada.'
         tpEmit:
           type: integer
           enum: [1, 2, 3]
