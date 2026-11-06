@@ -1564,3 +1564,23 @@ func TestNomeECapacidades(t *testing.T) {
 		}
 	}
 }
+
+// Nota autorizada não pode voltar como recusa: quem lê 422 entende que nada saiu,
+// e emite de novo. As palavras vêm da descrição do serviço, no XML da resposta.
+func TestTransmissao_NotaAutorizadaQueCitaOProvedorNaoViraRecusa(t *testing.T) {
+	f := &libFake{resTransmitir: acbr.Result{
+		Resposta: "[Envio]\nSucesso=1\nNumeroNota=123\n" +
+			"XmlEnvio=<xDescServ>Sistema implementado para provedor de internet</xDescServ>\n",
+		XML: "<NFSe/>",
+	}}
+	xml := base64.StdEncoding.EncodeToString([]byte(xmlFixture("2")))
+
+	rec := post(t, muxDe(f), "/nfse/transmissao", envelope(munPadraoNacional, map[string]any{"xml_b64": xml}))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, quero 200: %s", rec.Code, rec.Body)
+	}
+	if !strings.Contains(rec.Body.String(), `"status":"autorizado"`) {
+		t.Errorf("a nota autorizada se perdeu: %s", rec.Body)
+	}
+}
