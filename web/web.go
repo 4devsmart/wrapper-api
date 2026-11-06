@@ -9,10 +9,7 @@
 // pacote de poucas linhas, como o api/.
 package web
 
-import (
-	"embed"
-	"strings"
-)
+import "embed"
 
 //go:embed swagger/swagger-ui-bundle.js swagger/swagger-ui.css swagger/VERSION
 var swagger embed.FS
@@ -20,12 +17,3 @@ var swagger embed.FS
 // Swagger devolve o sistema de arquivos com os assets do Swagger UI, já sem o
 // prefixo "swagger/".
 func Swagger() embed.FS { return swagger }
-
-// VersaoSwagger é a versão vendorizada, para a página poder declará-la.
-func VersaoSwagger() string {
-	b, err := swagger.ReadFile("swagger/VERSION")
-	if err != nil {
-		return "?"
-	}
-	return strings.TrimSpace(string(b))
-}

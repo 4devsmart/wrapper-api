@@ -15,15 +15,11 @@ import (
 // slots limita quantas chamadas nativas correm em paralelo neste processo. É
 // defesa em profundidade: o cliente já respeita o mesmo limite, mas o worker não
 // depende disso para se proteger. slots<=0 vira 1.
-func RPCHandler(s *Servicos, slots int) http.Handler {
-	h, _ := RPCHandlerReciclavel(s, slots, 0)
-	return h
-}
-
-// RPCHandlerReciclavel é o RPCHandler com teto de chamadas: o canal devolvido é
-// fechado quando o worker atinge maxCalls, sinalizando ao processo que ele deve
-// drenar e sair (o supervisor sobe um novo). maxCalls<=0 desliga a reciclagem.
-func RPCHandlerReciclavel(s *Servicos, slots, maxCalls int) (http.Handler, <-chan struct{}) {
+//
+// O canal devolvido é fechado quando o worker atinge maxCalls, sinalizando ao
+// processo que ele deve drenar e sair (o supervisor sobe um novo). maxCalls<=0
+// desliga a reciclagem.
+func RPCHandler(s *Servicos, slots, maxCalls int) (http.Handler, <-chan struct{}) {
 	if slots <= 0 {
 		slots = 1
 	}

@@ -33,6 +33,12 @@ type servicoFake struct {
 	versaoFake string
 }
 
+// handlerDeTeste é o RPCHandler sem reciclagem.
+func handlerDeTeste(s *Servicos, slots int) http.Handler {
+	h, _ := RPCHandler(s, slots, 0)
+	return h
+}
+
 func (f *servicoFake) Emitir(t TenantConfig, ini string) (Result, error) {
 	f.chamadas.Add(1)
 	if n := f.emCurso.Add(1); n > f.pico.Load() {
@@ -66,7 +72,7 @@ func clienteDe(t *testing.T, endereco string, slots int, timeout time.Duration) 
 // workerDeTeste sobe o handler RPC num servidor HTTP efêmero.
 func workerDeTeste(t *testing.T, f *servicoFake, slots int) string {
 	t.Helper()
-	ts := httptest.NewServer(RPCHandler(servicosFake(f), slots))
+	ts := httptest.NewServer(handlerDeTeste(servicosFake(f), slots))
 	t.Cleanup(ts.Close)
 	return ts.URL
 }
@@ -192,7 +198,7 @@ func TestRemoto_QuedaDuranteChamadaAvisaRiscoDeDuplicidade(t *testing.T) {
 
 func TestRPC_MetodoDesconhecido(t *testing.T) {
 	f := &servicoFake{}
-	ts := httptest.NewServer(RPCHandler(servicosFake(f), 1))
+	ts := httptest.NewServer(handlerDeTeste(servicosFake(f), 1))
 	defer ts.Close()
 
 	resp, err := http.Post(ts.URL+RotaRPC, "application/json",
@@ -308,7 +314,7 @@ func TestRemoto_SaudavelRefleteOWorker(t *testing.T) {
 // atravessar para as próximas indefinidamente.
 func TestReciclagemSinalizaAposTeto(t *testing.T) {
 	f := &servicoFake{}
-	h, reciclar := RPCHandlerReciclavel(servicosFake(f), 1, 2)
+	h, reciclar := RPCHandler(servicosFake(f), 1, 2)
 	ts := httptest.NewServer(h)
 	defer ts.Close()
 	svc := clienteDe(t, ts.URL, 1, 5*time.Second)
@@ -336,7 +342,7 @@ func TestReciclagemSinalizaAposTeto(t *testing.T) {
 // reciclar com um único worker abriria janela de indisponibilidade.
 func TestReciclagemDesligadaPorPadrao(t *testing.T) {
 	f := &servicoFake{}
-	h, reciclar := RPCHandlerReciclavel(servicosFake(f), 1, 0)
+	h, reciclar := RPCHandler(servicosFake(f), 1, 0)
 	ts := httptest.NewServer(h)
 	defer ts.Close()
 	svc := clienteDe(t, ts.URL, 1, 5*time.Second)
@@ -421,7 +427,7 @@ func TestRPC_GerarETransmitirAtravessamOWorker(t *testing.T) {
 		resMontar:     Result{Codigo: 0, XML: "<CTe><infCte Id=\"CTe35...\"/></CTe>"},
 		resTransmitir: Result{Codigo: 0, Resposta: "cStat=100", XML: "<cteProc/>"},
 	}
-	ts := httptest.NewServer(RPCHandler(&Servicos{NFSe: f, CTe: f, MDFe: f, NFe: f, Boleto: f}, 1))
+	ts := httptest.NewServer(handlerDeTeste(&Servicos{NFSe: f, CTe: f, MDFe: f, NFe: f, Boleto: f}, 1))
 	t.Cleanup(ts.Close)
 	cli := clienteDe(t, ts.URL, 1, 5*time.Second).CTe
 
@@ -459,7 +465,7 @@ func TestRPC_GerarETransmitirAtravessamOWorker(t *testing.T) {
 // depois). A sentinela tem de sobreviver ao JSON do RPC.
 func TestRPC_NaoSuportadoNaoViraIndisponivel(t *testing.T) {
 	f := &fluxoFake{errValidar: ErrNaoSuportado}
-	ts := httptest.NewServer(RPCHandler(&Servicos{NFSe: f, CTe: f, MDFe: f, NFe: f, Boleto: f}, 1))
+	ts := httptest.NewServer(handlerDeTeste(&Servicos{NFSe: f, CTe: f, MDFe: f, NFe: f, Boleto: f}, 1))
 	t.Cleanup(ts.Close)
 
 	_, err := clienteDe(t, ts.URL, 1, 5*time.Second).NFSe.ValidarRegras(TenantConfig{}, "[DPS]")

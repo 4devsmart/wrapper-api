@@ -24,7 +24,7 @@ import (
 var provedorFamiliaTSV string
 
 // Familia é a família de layout de um provedor de NFS-e. Determina a tradução
-// que aplicamos (entrada JSON → layout) e se já há suporte de emissão.
+// que aplicamos (entrada JSON → layout).
 type Familia string
 
 const (
@@ -53,10 +53,6 @@ func (f Familia) LayoutBase() string {
 		return ""
 	}
 }
-
-// Suportada indica se a emissão dessa família já funciona ponta a ponta hoje.
-// Por ora, só o Padrão Nacional.
-func (f Familia) Suportada() bool { return f == FamiliaPadraoNacional }
 
 var (
 	famOnce   sync.Once

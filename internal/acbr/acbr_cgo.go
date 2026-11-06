@@ -456,16 +456,6 @@ func salvarPDF(h C.LibHandle) []byte {
 	return nil
 }
 
-// iniValue extrai "chave=valor" de um texto INI simples (primeira ocorrência).
-func iniValue(text, key string) string {
-	for _, line := range strings.Split(text, "\n") {
-		if k, v, ok := strings.Cut(strings.TrimSpace(line), "="); ok && k == key {
-			return strings.TrimSpace(v)
-		}
-	}
-	return ""
-}
-
 // SubstituirNFSe carrega a DPS substituta (NFSE_CarregarINI) e transmite a
 // substituição da NFS-e antiga (NFSE_SubstituirNFSe). O componente exige a nota
 // nova carregada antes. Em sucesso captura o XML; o PDF sai sob demanda.
