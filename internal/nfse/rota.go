@@ -40,7 +40,7 @@ func RotaDoMunicipio(cmun string) (Rota, bool) {
 func (r Rota) Provedor() string { return provedorDoMunicipio(r.Sessao) }
 
 func (r Rota) nacional() Rota {
-	r.Sessao, r.Layout = MunicipioADN, LayoutPadraoNacional
+	r.Sessao, r.Layout = SessaoNacional, LayoutPadraoNacional
 	return r
 }
 
@@ -107,7 +107,7 @@ func (r Rota) DoEvento(tipo string, p PedidoEvento) Rota {
 // caminhos, o Ambiente Nacional responde primeiro.
 func (r Rota) SessoesDaConsultaDPS() []string {
 	if temDoisCaminhos(r.Municipio) {
-		return []string{MunicipioADN, r.Sessao}
+		return []string{SessaoNacional, r.Sessao}
 	}
 	return []string{r.Sessao}
 }
@@ -131,23 +131,26 @@ func (m *Modulo) rota(w http.ResponseWriter, cmun string) (Rota, bool) {
 	return r, true
 }
 
-// MunicipioADN é o município pelo qual a sessão nativa fala com o ADN
-// (Ambiente de Dados Nacional) quando a distribuição não pode sair pelo
-// município do cliente.
+// SessaoNacional é o município que abre a sessão quando a operação tem de sair
+// pelo Ambiente Nacional e o município do documento é atendido por outra classe.
 //
-// A lib escolhe a classe do provedor pelo CodigoMunicipio, e a Distribuição
-// DF-e só existe em algumas: a do Padrão Nacional e as de API própria de
-// Betha, Fiorilli, Infisc, ISSNet e outras. As demais levantam ERR_NAO_IMP
-// antes de qualquer byte sair, e quem emite num município ABRASF ou próprio
-// ficava sem a fila do ADN. Nem toda classe que implementa fala com o ADN: nos
-// municípios Infisc do RS (Caxias do Sul, Canoas e outros) a URL é o sefin da
-// prefeitura, com NSU próprio, por isso o município do pedido continua tendo
-// preferência e este só entra no lugar do ERR_NAO_IMP.
+// A lib escolhe a classe do provedor pelo CodigoMunicipio, e não há como pedir o
+// Padrão Nacional de outro jeito. Por isso a sessão fala em nome deste município
+// em dois casos: a emissão de quem a tabela de vigências manda para o nacional, e
+// a Distribuição DF-e, que só existe em algumas classes (a do Padrão Nacional e
+// as de API própria de Betha, Fiorilli, Infisc, ISSNet e outras). As demais
+// levantam ERR_NAO_IMP antes de qualquer byte sair.
 //
-// Qualquer município atendido pelo PadraoNacional puro serve, porque o ADN é o
-// mesmo para todos. O código é o do Rio de Janeiro, e um teste garante que a
-// tabela continua a classificá-lo assim.
-const MunicipioADN = "3304557"
+// Nem toda classe que implementa a distribuição fala com o ADN: nos municípios
+// Infisc do RS (Caxias do Sul, Canoas e outros) a URL é o sefin da prefeitura, com
+// NSU próprio, por isso ali o município do pedido continua tendo preferência e
+// este só entra no lugar do ERR_NAO_IMP.
+//
+// Qualquer município atendido pelo PadraoNacional puro serve. O código é o do Rio
+// de Janeiro, e um teste garante que a tabela continua a classificá-lo assim. A
+// nota não sai em nome do Rio: o documento leva o cLocEmi real, e é dele que sai a
+// chave (patch 0004 da lib).
+const SessaoNacional = "3304557"
 
 // competenciaSimplesNacional é a primeira competência em que ME e EPP do Simples
 // não emitem mais no sistema próprio do município (Resolução CGSN 191/2026).

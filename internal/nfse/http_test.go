@@ -865,13 +865,13 @@ func TestDistribuicaoTentaOMunicipioECaiParaOADN(t *testing.T) {
 		naoImplementa bool
 		quero         []string
 	}{
-		{"sem município", "", false, []string{MunicipioADN}},
-		{"desconhecido", munDesconhecido, false, []string{MunicipioADN}},
+		{"sem município", "", false, []string{SessaoNacional}},
+		{"desconhecido", munDesconhecido, false, []string{SessaoNacional}},
 		{"padrão nacional", munPadraoNacional, false, []string{munPadraoNacional}},
 		{"infisc com sefin da prefeitura", munInfiscSefin, false, []string{munInfiscSefin}},
-		{"abrasf", munAbrasf, true, []string{munAbrasf, MunicipioADN}},
-		{"próprio", munProprio, true, []string{munProprio, MunicipioADN}},
-		{"api própria sem distribuição", munAPIPropriaCred, true, []string{munAPIPropriaCred, MunicipioADN}},
+		{"abrasf", munAbrasf, true, []string{munAbrasf, SessaoNacional}},
+		{"próprio", munProprio, true, []string{munProprio, SessaoNacional}},
+		{"api própria sem distribuição", munAPIPropriaCred, true, []string{munAPIPropriaCred, SessaoNacional}},
 	}
 	for _, c := range casos {
 		t.Run(c.nome, func(t *testing.T) {
@@ -899,7 +899,7 @@ func TestDistribuicaoTentaOMunicipioECaiParaOADN(t *testing.T) {
 			if f.nsu != 5 {
 				t.Errorf("nsu = %d, quero 5", f.nsu)
 			}
-			if c.quero[len(c.quero)-1] == MunicipioADN &&
+			if c.quero[len(c.quero)-1] == SessaoNacional &&
 				(cfgDaSessao(f.sessao, "Emitente.WSUser") != "" || cfgDaSessao(f.sessao, "Emitente.WSChaveAcesso") != "") {
 				t.Errorf("credenciais de prefeitura foram para o ADN: %+v", f.sessao.Config)
 			}
@@ -941,18 +941,18 @@ func TestDistribuicaoExigeCertificado(t *testing.T) {
 // ter URL própria de distribuição no .ini, como os Infisc do RS: aí a fila seria
 // a da prefeitura. Se uma atualização da tabela mover o Rio, este teste é o
 // aviso para trocar o código.
-func TestMunicipioADNContinuaPadraoNacionalPuro(t *testing.T) {
-	if l, ok := LayoutDoMunicipio(MunicipioADN); !ok || l != LayoutPadraoNacional {
-		t.Fatalf("layout de %s = %q (ok=%v), quero padrao_nacional", MunicipioADN, l, ok)
+func TestSessaoNacionalContinuaPadraoNacionalPuro(t *testing.T) {
+	if l, ok := LayoutDoMunicipio(SessaoNacional); !ok || l != LayoutPadraoNacional {
+		t.Fatalf("layout de %s = %q (ok=%v), quero padrao_nacional", SessaoNacional, l, ok)
 	}
-	if p := provedorDoMunicipio(MunicipioADN); !strings.EqualFold(p, "PadraoNacional") {
-		t.Errorf("provedor de %s = %q, quero PadraoNacional", MunicipioADN, p)
+	if p := provedorDoMunicipio(SessaoNacional); !strings.EqualFold(p, "PadraoNacional") {
+		t.Errorf("provedor de %s = %q, quero PadraoNacional", SessaoNacional, p)
 	}
-	if tabelas.APIPropriaNFSe(MunicipioADN) {
-		t.Errorf("%s passou a usar API própria do provedor: escolha outro município para o ADN", MunicipioADN)
+	if tabelas.APIPropriaNFSe(SessaoNacional) {
+		t.Errorf("%s passou a usar API própria do provedor: escolha outro município para o ADN", SessaoNacional)
 	}
-	if tabelas.DistribuicaoPropriaNFSe(MunicipioADN) {
-		t.Errorf("%s ganhou URL própria de distribuição no .ini: escolha outro município para o ADN", MunicipioADN)
+	if tabelas.DistribuicaoPropriaNFSe(SessaoNacional) {
+		t.Errorf("%s ganhou URL própria de distribuição no .ini: escolha outro município para o ADN", SessaoNacional)
 	}
 }
 

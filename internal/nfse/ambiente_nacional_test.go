@@ -67,8 +67,8 @@ func TestXMLDoSimplesAbreSessaoNacional(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d: %s", rec.Code, rec.Body)
 	}
-	if got := cfgDaSessao(f.sessao, "CodigoMunicipio"); got != MunicipioADN {
-		t.Errorf("sessão em %q, quero %q", got, MunicipioADN)
+	if got := cfgDaSessao(f.sessao, "CodigoMunicipio"); got != SessaoNacional {
+		t.Errorf("sessão em %q, quero %q", got, SessaoNacional)
 	}
 	if !strings.Contains(f.iniMontar, "cLocEmi=5300108") {
 		t.Errorf("o INI perdeu o município da nota:\n%s", f.iniMontar)
@@ -138,7 +138,7 @@ func TestTransmissaoDecidePeloXML(t *testing.T) {
 	casos := []struct {
 		nome, dCompet, op, quero string
 	}{
-		{"Simples em novembro", "2026-11-05", "3", MunicipioADN},
+		{"Simples em novembro", "2026-11-05", "3", SessaoNacional},
 		{"Simples em outubro", "2026-10-31", "3", munAPIPropria},
 		{"não optante", "2026-11-05", "1", munAPIPropria},
 	}
@@ -172,7 +172,7 @@ func TestRotaDaNota(t *testing.T) {
 	casos := []struct {
 		nome, cmun, chave, quero string
 	}{
-		{"nota do Sistema Nacional", munAPIPropria, chaveNacionalDeBrasilia, MunicipioADN},
+		{"nota do Sistema Nacional", munAPIPropria, chaveNacionalDeBrasilia, SessaoNacional},
 		{"nota da prefeitura", munAPIPropria, chaveDeBrasilia, munAPIPropria},
 		{"sem chave", munAPIPropria, "", munAPIPropria},
 		{"link no lugar da chave", munAPIPropria, "https://nfse.exemplo/2", munAPIPropria},
@@ -199,7 +199,7 @@ func TestEventosEConsultasSeguemAChave(t *testing.T) {
 	casos := []struct {
 		nome, chave, quero string
 	}{
-		{"nota nacional", chaveNacionalDeBrasilia, MunicipioADN},
+		{"nota nacional", chaveNacionalDeBrasilia, SessaoNacional},
 		{"nota da prefeitura", chaveDeBrasilia, munAPIPropria},
 	}
 	for _, c := range casos {
@@ -248,9 +248,9 @@ func TestSubstituicaoPelaNotaNova(t *testing.T) {
 		chave string
 		quero string
 	}{
-		{"nova em novembro, antiga na prefeitura", novembro, chaveDeBrasilia, MunicipioADN},
+		{"nova em novembro, antiga na prefeitura", novembro, chaveDeBrasilia, SessaoNacional},
 		{"nova em outubro, antiga na prefeitura", outubro, chaveDeBrasilia, munAPIPropria},
-		{"nova em outubro, antiga no nacional", outubro, chaveNacionalDeBrasilia, MunicipioADN},
+		{"nova em outubro, antiga no nacional", outubro, chaveNacionalDeBrasilia, SessaoNacional},
 	}
 	for _, c := range casos {
 		t.Run(c.nome, func(t *testing.T) {
@@ -276,8 +276,8 @@ func TestConsultaDPSProcuraNosDoisSistemas(t *testing.T) {
 	t.Run("achou no nacional", func(t *testing.T) {
 		f := &libFake{resConsulta: acbr.Result{Resposta: "[Consulta]\nChave=" + chaveNacionalDeBrasilia + "\n"}}
 		post(t, muxDe(f), "/nfse/consulta-dps", envelope(munAPIPropria, map[string]any{"chave": idDPS}))
-		if got := cfgDaSessao(f.sessao, "CodigoMunicipio"); got != MunicipioADN {
-			t.Errorf("sessão em %q, quero %q", got, MunicipioADN)
+		if got := cfgDaSessao(f.sessao, "CodigoMunicipio"); got != SessaoNacional {
+			t.Errorf("sessão em %q, quero %q", got, SessaoNacional)
 		}
 	})
 	t.Run("não achou no nacional", func(t *testing.T) {
@@ -293,7 +293,7 @@ func TestConsultaDPSProcuraNosDoisSistemas(t *testing.T) {
 // resposta vazia do nacional não pode esconder a nota que está na prefeitura.
 func TestSessoesDaConsultaDPS(t *testing.T) {
 	casos := map[string][]string{
-		munAPIPropria:     {MunicipioADN, munAPIPropria},
+		munAPIPropria:     {SessaoNacional, munAPIPropria},
 		munPadraoNacional: {munPadraoNacional},
 		munAbrasf:         {munAbrasf},
 	}
