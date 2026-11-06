@@ -38,10 +38,9 @@ func tenantDeTeste() TenantConfig {
 
 func boletoDeTeste() BoletoOnline {
 	return BoletoOnline{
-		INI:       segredoINI,
-		ConfigINI: segredoINI,
-		CertCRT:   []byte("cert"),
-		CertKEY:   []byte(segredoChave),
+		INI:     segredoINI,
+		CertCRT: []byte("cert"),
+		CertKEY: []byte(segredoChave),
 	}
 }
 

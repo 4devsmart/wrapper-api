@@ -129,30 +129,8 @@ type Servico interface {
 	// autorizado na SEFAZ e nada persistido. Separado, o pior caso é perder o
 	// PDF, que se regenera a partir do XML.
 	RenderizarPDF(t TenantConfig, xml string) (Result, error)
-	// XmlParaIni carrega um XML e devolve o INI canônico (diagnóstico).
-	XmlParaIni(t TenantConfig, xml string) (Result, error)
 	// Close libera recursos.
 	Close() error
-}
-
-// DistDFeModo seleciona o cursor de uma consulta de Distribuição DF-e.
-type DistDFeModo string
-
-const (
-	DistUltNSU DistDFeModo = "ultnsu" // a partir do último NSU (paginação de lote)
-	DistNSU    DistDFeModo = "nsu"    // o DF-e vinculado a um NSU específico
-	DistChave  DistDFeModo = "chave"  // o documento pela chave de acesso
-)
-
-// DistDFeParams são os parâmetros de uma Distribuição DF-e, em termos primitivos
-// (o binding não conhece o domínio). UFAutor (cUF do autor) é exigido por CT-e e
-// NFe; o MDF-e o ignora. NSU é string: a lib aceita com ou sem zero-padding.
-type DistDFeParams struct {
-	UFAutor int
-	CNPJCPF string
-	Modo    DistDFeModo
-	NSU     string // DistUltNSU / DistNSU
-	Chave   string // DistChave
 }
 
 // NFSeServico estende Servico com a substituição de NFS-e (NFSE_SubstituirNFSe),
@@ -220,14 +198,8 @@ type MDFeServico interface {
 	// DF-e, etc.) a partir do INI indexado ([EVENTO001]). Mesmo mecanismo do
 	// Encerrar/Cancelar (MDFE_CarregarEventoINI + MDFE_EnviarEvento).
 	EnviarEvento(t TenantConfig, ini string) (Result, error)
-	// DistribuicaoDFe consulta a Distribuição DF-e do MDF-e (MDFs emitidos contra
-	// o CNPJ). MDF-e NÃO usa p.UFAutor. A resposta crua (INI do lote) é
-	// interpretada por internal/distribuicao.Parse.
-	DistribuicaoDFe(t TenantConfig, p DistDFeParams) (Result, error)
 	// StatusServico consulta o status do serviço da SEFAZ (MDFE_StatusServico).
 	StatusServico(t TenantConfig) (Result, error)
-	// ConsultarRecibo consulta o processamento de um lote pelo recibo (assíncrono).
-	ConsultarRecibo(t TenantConfig, recibo string) (Result, error)
 	// ConsultaNaoEncerrados lista os MDF-e do CNPJ ainda não encerrados
 	// (MDFE_ConsultaMDFeNaoEnc): útil para conformidade antes de emitir novos.
 	ConsultaNaoEncerrados(t TenantConfig, cnpj string) (Result, error)
@@ -247,38 +219,14 @@ type CTeServico interface {
 	// EnviarEvento transmite um evento genérico do CT-e (EPEC, comprovante de
 	// entrega, etc.) a partir do INI indexado. Mesmo mecanismo do CartaCorrecao.
 	EnviarEvento(t TenantConfig, ini string) (Result, error)
-	// DistribuicaoDFe consulta a Distribuição DF-e do CT-e (CTs emitidos contra o
-	// CNPJ). Exige p.UFAutor (cUF do autor). A resposta crua (INI do lote) é
-	// interpretada por internal/distribuicao.Parse.
-	DistribuicaoDFe(t TenantConfig, p DistDFeParams) (Result, error)
 	// StatusServico consulta o status do serviço da SEFAZ (CTE_StatusServico).
 	StatusServico(t TenantConfig) (Result, error)
-	// ConsultarRecibo consulta o processamento de um lote pelo recibo (assíncrono).
-	ConsultarRecibo(t TenantConfig, recibo string) (Result, error)
 	// ConsultaCadastro consulta o cadastro de um contribuinte na UF. ehIE=true
 	// quando nDocumento é Inscrição Estadual; senão é CNPJ/CPF.
 	ConsultaCadastro(t TenantConfig, uf, nDocumento string, ehIE bool) (Result, error)
 	// SalvarEventoPDF gera o DACTE do evento (PDF em Result.PDF) a partir do XML
 	// do CT-e + o XML do evento. Render FortesReport (gtk2+Xvfb), como o DACTE.
 	SalvarEventoPDF(t TenantConfig, xmlDoc, xmlEvento string) (Result, error)
-}
-
-// NFeServico é o binding da NF-e RESTRITO a Distribuição DF-e + Manifestação do
-// Destinatário (receber NF-e emitidas contra o CNPJ e manifestar-se). Por design
-// NÃO embute Servico nem expõe emissão: está fora do escopo do projeto. Reusa
-// DistDFeParams (CT-e e NF-e compartilham a assinatura, com AcUFAutor).
-type NFeServico interface {
-	Backend() string
-	Version() (string, error)
-	// DistribuicaoDFe consulta a Distribuição DF-e da NF-e (documentos emitidos
-	// contra o CNPJ + eventos). Exige p.UFAutor. A resposta crua (INI do lote) é
-	// interpretada por internal/distribuicao.Parse.
-	DistribuicaoDFe(t TenantConfig, p DistDFeParams) (Result, error)
-	// Manifestar envia um evento de Manifestação do Destinatário (tpEvento
-	// 210200/210210/210220/210240) a partir do INI indexado do evento
-	// (NFE_CarregarEventoINI + NFE_EnviarEvento). xJust é obrigatório no 210240.
-	Manifestar(t TenantConfig, ini string) (Result, error)
-	Close() error
 }
 
 // BoletoServico é o binding do boleto bancário (não-fiscal): geração do
@@ -300,24 +248,19 @@ type BoletoServico interface {
 	// Registrar registra o(s) boleto(s) ONLINE via API do banco,
 	// usando op.INI (títulos+config) e op.Operacao.
 	Registrar(t TenantConfig, op BoletoOnline) (Result, error)
-	// ConsultarTitulos consulta títulos por período na API do banco, usando
-	// op.ConfigINI (config do banco) e op.FiltroINI (período/filtros).
-	ConsultarTitulos(t TenantConfig, op BoletoOnline) (Result, error)
 	Close() error
 }
 
 // BoletoOnline reúne os parâmetros da integração ONLINE com a API do banco
 // , evitando passar crt/key/operacao posicionais.
 type BoletoOnline struct {
-	INI       string // Registrar: config + títulos a registrar/baixar
-	ConfigINI string // ConsultarTitulos: config do banco (credenciais WS)
-	FiltroINI string // ConsultarTitulos: [BoletoConsulta] (período/filtros)
-	Operacao  int    // Registrar: 0=incluir, 2=baixar
-	CertCRT   []byte // certificado mTLS (.crt): pode ser nil
-	CertKEY   []byte // chave privada mTLS (.key): pode ser nil
+	INI      string // Registrar: config + títulos a registrar/baixar
+	Operacao int    // Registrar: 0=incluir, 2=baixar
+	CertCRT  []byte // certificado mTLS (.crt): pode ser nil
+	CertKEY  []byte // chave privada mTLS (.key): pode ser nil
 }
 
-// String e LogValue redigem o tipo inteiro. Os três INIs carregam as
+// String e LogValue redigem o tipo inteiro. O INI carrega as
 // credenciais de webservice do banco (ClientID, ClientSecret) em texto, e
 // CertKEY é a chave PRIVADA do mTLS: nenhum deles pode aparecer num log.
 func (o BoletoOnline) String() string { return "BoletoOnline{redigido}" }
@@ -330,14 +273,13 @@ type Servicos struct {
 	NFSe   NFSeServico
 	CTe    CTeServico
 	MDFe   MDFeServico
-	NFe    NFeServico
 	Boleto BoletoServico
 }
 
 // Close libera os recursos de todos os serviços.
 func (s *Servicos) Close() error {
 	var firstErr error
-	closers := []interface{ Close() error }{s.NFSe, s.CTe, s.MDFe, s.NFe, s.Boleto}
+	closers := []interface{ Close() error }{s.NFSe, s.CTe, s.MDFe, s.Boleto}
 	for _, sv := range closers {
 		if sv == nil {
 			continue

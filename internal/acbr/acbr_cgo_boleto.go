@@ -143,26 +143,6 @@ func (l *boletoLib) Registrar(_ TenantConfig, op BoletoOnline) (Result, error) {
 	})
 }
 
-// Consultar consulta títulos por período na API do banco. configINI =
-// config do banco (com credenciais WS); filtroINI = [BoletoConsulta] com o
-// período/filtros.
-func (l *boletoLib) ConsultarTitulos(_ TenantConfig, op BoletoOnline) (Result, error) {
-	return l.withSession(func(h C.LibHandle, dir string) (Result, error) {
-		l.setCert(h, dir, op.CertCRT, op.CertKEY)
-		cCfg := C.CString(op.ConfigINI)
-		defer C.free(unsafe.Pointer(cCfg))
-		if code := int(C.Boleto_ConfigurarDados(h, cCfg)); code != 0 {
-			return Result{Codigo: code, Resposta: l.ultRet(h, 0)}, fmt.Errorf("Boleto_ConfigurarDados falhou: %d", code)
-		}
-		cFil := C.CString(op.FiltroINI)
-		defer C.free(unsafe.Pointer(cFil))
-		code, resp := l.callBuf(h, func(b *C.char, sz *C.int) C.int {
-			return C.Boleto_ConsultarTitulosPorPeriodo(h, cFil, b, sz)
-		})
-		return Result{Codigo: code, Resposta: resp}, nil
-	})
-}
-
 // setCert grava o certificado mTLS (CRT/KEY) na sessão e aponta a config do WS.
 func (l *boletoLib) setCert(h C.LibHandle, dir string, crt, key []byte) {
 	if len(crt) > 0 {

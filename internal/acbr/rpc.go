@@ -17,7 +17,6 @@ const (
 	ServicoNFSe   = "nfse"
 	ServicoCTe    = "cte"
 	ServicoMDFe   = "mdfe"
-	ServicoNFe    = "nfe"
 	ServicoBoleto = "boleto"
 )
 
@@ -42,11 +41,10 @@ var metodosLocais = map[string]bool{
 	"Version":         true,
 	"MontarXML":       true,
 	"ValidarRegras":   true,
-	"XmlParaIni":      true,
 	"RenderizarPDF":   true,
 	"SalvarEventoPDF": true,
-	// Boleto: a geração e a leitura de arquivo são offline; Registrar e
-	// ConsultarTitulos falam com a API do banco e ficam de fora.
+	// Boleto: a geração e a leitura de arquivo são offline; Registrar fala com a
+	// API do banco e fica de fora.
 	"GerarPDF":     true,
 	"GerarRemessa": true,
 	"LerRetorno":   true,
@@ -66,7 +64,7 @@ type Pedido struct {
 // custaria a legibilidade dos dois lados do protocolo.
 type Args struct {
 	INI            string `json:"ini,omitempty"`             // Emitir, MontarXML, Cancelar, eventos, GerarPDF/GerarRemessa
-	XML            string `json:"xml,omitempty"`             // XmlParaIni, RenderizarPDF, Transmitir
+	XML            string `json:"xml,omitempty"`             // RenderizarPDF, Transmitir
 	XMLDoc         string `json:"xml_doc,omitempty"`         // SalvarEventoPDF
 	XMLEvento      string `json:"xml_evento,omitempty"`      // SalvarEventoPDF
 	Chave          string `json:"chave,omitempty"`           // Consultar, ObterPDF
@@ -77,7 +75,6 @@ type Args struct {
 	CodVerificacao string `json:"cod_verificacao,omitempty"` // ConsultarPorRps
 	Protocolo      string `json:"protocolo,omitempty"`       // ConsultarSituacao, ConsultarLoteRps
 	NumLote        string `json:"num_lote,omitempty"`        // ConsultarSituacao, ConsultarLoteRps
-	Recibo         string `json:"recibo,omitempty"`          // ConsultarRecibo
 	UF             string `json:"uf,omitempty"`              // ConsultaCadastro
 	Documento      string `json:"documento,omitempty"`       // ConsultaCadastro (CNPJ/CPF ou IE)
 	CNPJ           string `json:"cnpj,omitempty"`            // ConsultaNaoEncerrados
@@ -88,9 +85,8 @@ type Args struct {
 	NSU            int    `json:"nsu,omitempty"`             // ConsultarDFe (NFS-e/ADN)
 	NumArquivo     int    `json:"num_arquivo,omitempty"`     // GerarRemessa
 
-	Dist   *DistDFeParams    `json:"dist,omitempty"`   // DistribuicaoDFe
 	Sub    *SubstituicaoNFSe `json:"sub,omitempty"`    // SubstituirNFSe
-	Boleto *BoletoOnline     `json:"boleto,omitempty"` // Registrar, ConsultarTitulos
+	Boleto *BoletoOnline     `json:"boleto,omitempty"` // Registrar
 }
 
 // Resposta devolve o Result da chamada mais o erro, se houve. Result e erro NÃO

@@ -28,7 +28,6 @@ var (
 	_ NFSeServico   = remoto{}
 	_ CTeServico    = remoto{}
 	_ MDFeServico   = remoto{}
-	_ NFeServico    = remoto{}
 	_ BoletoServico = remoto{}
 )
 
@@ -39,7 +38,6 @@ func newRemotos(cfg config.ACBr) *Servicos {
 		NFSe:   remoto{servico: ServicoNFSe, pool: p},
 		CTe:    remoto{servico: ServicoCTe, pool: p},
 		MDFe:   remoto{servico: ServicoMDFe, pool: p},
-		NFe:    remoto{servico: ServicoNFe, pool: p},
 		Boleto: remoto{servico: ServicoBoleto, pool: p},
 	}
 }
@@ -299,10 +297,6 @@ func (r remoto) RenderizarPDF(t TenantConfig, xml string) (Result, error) {
 	return r.chamar("RenderizarPDF", t, Args{XML: xml})
 }
 
-func (r remoto) XmlParaIni(t TenantConfig, xml string) (Result, error) {
-	return r.chamar("XmlParaIni", t, Args{XML: xml})
-}
-
 // NFS-e.
 
 func (r remoto) SubstituirNFSe(t TenantConfig, iniNovaDPS string, sub SubstituicaoNFSe) (Result, error) {
@@ -363,16 +357,8 @@ func (r remoto) SalvarEventoPDF(t TenantConfig, xmlDoc, xmlEvento string) (Resul
 	return r.chamar("SalvarEventoPDF", t, Args{XMLDoc: xmlDoc, XMLEvento: xmlEvento})
 }
 
-func (r remoto) DistribuicaoDFe(t TenantConfig, p DistDFeParams) (Result, error) {
-	return r.chamar("DistribuicaoDFe", t, Args{Dist: &p})
-}
-
 func (r remoto) StatusServico(t TenantConfig) (Result, error) {
 	return r.chamar("StatusServico", t, Args{})
-}
-
-func (r remoto) ConsultarRecibo(t TenantConfig, recibo string) (Result, error) {
-	return r.chamar("ConsultarRecibo", t, Args{Recibo: recibo})
 }
 
 func (r remoto) ConsultaCadastro(t TenantConfig, uf, nDocumento string, ehIE bool) (Result, error) {
@@ -384,10 +370,6 @@ func (r remoto) ConsultaNaoEncerrados(t TenantConfig, cnpj string) (Result, erro
 }
 
 // NF-e (distribuição + manifestação).
-
-func (r remoto) Manifestar(t TenantConfig, ini string) (Result, error) {
-	return r.chamar("Manifestar", t, Args{INI: ini})
-}
 
 // Boleto.
 
@@ -405,8 +387,4 @@ func (r remoto) LerRetorno(t TenantConfig, configINI, retornoConteudo string) (R
 
 func (r remoto) Registrar(t TenantConfig, op BoletoOnline) (Result, error) {
 	return r.chamar("Registrar", t, Args{Boleto: &op})
-}
-
-func (r remoto) ConsultarTitulos(t TenantConfig, op BoletoOnline) (Result, error) {
-	return r.chamar("ConsultarTitulos", t, Args{Boleto: &op})
 }

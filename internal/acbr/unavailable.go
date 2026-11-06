@@ -14,7 +14,6 @@ var (
 	_ NFSeServico   = indisponivel{}
 	_ CTeServico    = indisponivel{}
 	_ MDFeServico   = indisponivel{}
-	_ NFeServico    = indisponivel{}
 	_ BoletoServico = indisponivel{}
 )
 
@@ -34,8 +33,7 @@ func (indisponivel) ObterPDF(TenantConfig, string) (Result, error)  { return Res
 func (indisponivel) RenderizarPDF(TenantConfig, string) (Result, error) {
 	return Result{}, ErrUnavailable
 }
-func (indisponivel) XmlParaIni(TenantConfig, string) (Result, error) { return Result{}, ErrUnavailable }
-func (indisponivel) Encerrar(TenantConfig, string) (Result, error)   { return Result{}, ErrUnavailable }
+func (indisponivel) Encerrar(TenantConfig, string) (Result, error) { return Result{}, ErrUnavailable }
 func (indisponivel) EnviarEvento(TenantConfig, string) (Result, error) {
 	return Result{}, ErrUnavailable
 }
@@ -43,9 +41,6 @@ func (indisponivel) CartaCorrecao(TenantConfig, string) (Result, error) {
 	return Result{}, ErrUnavailable
 }
 func (indisponivel) SalvarEventoPDF(TenantConfig, string, string) (Result, error) {
-	return Result{}, ErrUnavailable
-}
-func (indisponivel) DistribuicaoDFe(TenantConfig, DistDFeParams) (Result, error) {
 	return Result{}, ErrUnavailable
 }
 func (indisponivel) SubstituirNFSe(TenantConfig, string, SubstituicaoNFSe) (Result, error) {
@@ -57,13 +52,7 @@ func (indisponivel) InformacoesProvedor(TenantConfig) (Result, error) {
 func (indisponivel) ConsultarDFe(TenantConfig, int) (Result, error) {
 	return Result{}, ErrUnavailable
 }
-func (indisponivel) Manifestar(TenantConfig, string) (Result, error) {
-	return Result{}, ErrUnavailable
-}
 func (indisponivel) StatusServico(TenantConfig) (Result, error) { return Result{}, ErrUnavailable }
-func (indisponivel) ConsultarRecibo(TenantConfig, string) (Result, error) {
-	return Result{}, ErrUnavailable
-}
 func (indisponivel) ConsultaCadastro(TenantConfig, string, string, bool) (Result, error) {
 	return Result{}, ErrUnavailable
 }
@@ -96,9 +85,6 @@ func (indisponivel) LerRetorno(TenantConfig, string, string) (Result, error) {
 	return Result{}, ErrUnavailable
 }
 func (indisponivel) Registrar(TenantConfig, BoletoOnline) (Result, error) {
-	return Result{}, ErrUnavailable
-}
-func (indisponivel) ConsultarTitulos(TenantConfig, BoletoOnline) (Result, error) {
 	return Result{}, ErrUnavailable
 }
 func (indisponivel) Close() error { return nil }
