@@ -69,6 +69,9 @@ func operacao(nome string, h http.HandlerFunc) http.HandlerFunc {
 			adicionar("motivo", string(o.rota.Motivo))
 		}
 		adicionar("ambiente", o.ambiente)
+		if o.rota.Sessao != "" {
+			adicionar("nota_tecnica", NotaTecnicaDe(o.rota.Provedor(), o.ambiente))
+		}
 		adicionar("desfecho", o.desfecho)
 		if len(o.rejeicoes) > 0 {
 			attrs = append(attrs, "rejeicoes", o.rejeicoes)

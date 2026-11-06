@@ -40,6 +40,7 @@ import sys
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 INI_PADRAO = RAIZ / "acbr-source/acbr/Fontes/ACBrDFe/ACBrNFSeX/ACBrNFSeXServicos.ini"
 DESTINO = RAIZ / "internal/tabelas/municipios_provedor.tsv"
+NOTAS_TECNICAS = RAIZ / "internal/tabelas/notas_tecnicas.tsv"
 FAMILIAS = RAIZ / "internal/tabelas/provedor_familia.tsv"
 MUNICIPIOS = RAIZ / "internal/tabelas/municipios.tsv"
 PROVEDORES_PAS = RAIZ / "acbr-source/acbr/Fontes/ACBrDFe/ACBrNFSeX/Provedores"
@@ -47,6 +48,22 @@ PROVIDER_MANAGER = (RAIZ / "acbr-source/acbr/Fontes/ACBrDFe/ACBrNFSeX/Base/Prove
                     / "ACBrNFSeXProviderManager.pas")
 
 CODIGO_IBGE = re.compile(r"\d{7}")
+
+
+def notas_tecnicas(secoes):
+    """Linhas (provedor, ambiente, versão) das NTs ligadas no .ini.
+
+    É o que escolhe o leiaute dentro da lib, sem data e por ambiente. Vira arquivo
+    versionado para um bump não ligar uma NT sem ninguém decidir: o teste de
+    internal/nfse cobra a linha correspondente em notasTecnicas.
+    """
+    linhas = []
+    for nome, dados in secoes.items():
+        for chave, ambiente in (("ProVersaoNT", "producao"), ("HomVersaoNT", "homologacao")):
+            versao = dados.get(chave, "0")
+            if versao not in ("", "0"):
+                linhas.append((nome, ambiente, versao))
+    return sorted(linhas)
 
 
 def ler_ini(caminho):
@@ -233,6 +250,13 @@ def main():
     if orfaos:
         print(f"códigos ausentes de municipios.tsv: {', '.join(orfaos)}")
         return 1
+
+    notas = "".join("\t".join(linha) + "\n" for linha in notas_tecnicas(ler_ini(ini)))
+    if conferir and NOTAS_TECNICAS.read_text(encoding="utf-8") != notas:
+        print(f"{NOTAS_TECNICAS.relative_to(RAIZ)} desatualizado. Rode 'make acbr-tabelas'.")
+        return 1
+    if not conferir:
+        NOTAS_TECNICAS.write_text(notas, encoding="utf-8")
 
     antes = DESTINO.read_text(encoding="utf-8") if DESTINO.exists() else ""
     # As colunas de marca só vão até a última marcada: as linhas sem marca ficam

@@ -213,3 +213,17 @@ func TestOperacao_LimitaRejeicoes(t *testing.T) {
 		t.Errorf("%d rejeições, quero %d", len(r), maxRejeicoesNoLog)
 	}
 }
+
+// O XML muda com a NT, e produção e homologação podem estar em leiautes diferentes.
+func TestOperacao_RegistraANotaTecnicaDoAmbiente(t *testing.T) {
+	original := notasTecnicas
+	t.Cleanup(func() { notasTecnicas = original })
+	notasTecnicas = []NotaTecnica{{
+		Provedor: "PadraoNacional", Ambiente: "homologacao", Versao: "009.1.01", Base: "teste",
+	}}
+	buf := capturarLog(t)
+
+	post(t, muxDe(&libFake{}), "/nfse/transmissao", transmissaoDe(munAPIPropria, "2026-11-01", opSimpNacMEEPP))
+
+	conferirCampos(t, linhaDaOperacao(t, buf), map[string]any{"nota_tecnica": "009.1.01"})
+}
