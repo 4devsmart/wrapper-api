@@ -99,7 +99,9 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t := m.tenant(cnpj, cmun, p.InfDPS.Prest.Pessoa, p.Ambiente, fiscal.Certificado{}, Credenciais{})
+	// O provedor da resposta é o da sessão: é por ele que a nota vai sair.
+	sessao := MunicipioDaSessao(cmun, p)
+	t := m.tenant(cnpj, sessao, p.InfDPS.Prest.Pessoa, p.Ambiente, fiscal.Certificado{}, Credenciais{})
 	xml, val, res, err := fiscal.Montar(m.svc, t, ToINIDoLayout(layout, p))
 	if err != nil {
 		m.responderErro(w, res, err)
@@ -112,11 +114,11 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 	}
 	if raiz, _ := RaizDoXML(xml); !LayoutConfere(layout, raiz) {
 		slog.Error("nfse: XML gerado fora do layout do município",
-			"municipio", cmun, "provedor", provedorDoMunicipio(cmun),
+			"municipio", cmun, "provedor", provedorDoMunicipio(sessao),
 			"layout", layout, "raiz", raiz.Nome, "namespace", raiz.Namespace)
 		httpx.ErroDetalhado(w, http.StatusInternalServerError, "layout_divergente",
 			"o XML gerado não é do layout do município; nada foi devolvido para não ser transmitido",
-			map[string]any{"municipio": cmun, "provedor": provedorDoMunicipio(cmun),
+			map[string]any{"municipio": cmun, "provedor": provedorDoMunicipio(sessao),
 				"layout": layout, "raiz": raiz})
 		return
 	}
@@ -128,7 +130,7 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 		// o cliente arquive isto achando que é documento assinado.
 		Assinado: false,
 		Layout:   string(layout),
-		Provedor: provedorDoMunicipio(cmun),
+		Provedor: provedorDoMunicipio(sessao),
 		// Validacao.Suportada virá false: o ACBrNFSeX não exporta validação de
 		// regras de negócio (CT-e e MDF-e exportam). Fingir "ok" seria mentir
 		// sobre a garantia que o cliente tem em mãos.
@@ -212,14 +214,15 @@ func (m *Modulo) handleTransmissao(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ambiente := fiscal.Primeiro(fiscal.AmbienteDoXML(xml), p.Ambiente)
-	t := m.tenantEmitente(p.Emitente, p.Municipio, ambiente, p.Certificado, p.Credenciais)
+	sessao := MunicipioDaSessaoDoXML(p.Municipio, xml)
+	t := m.tenantEmitente(p.Emitente, sessao, ambiente, p.Certificado, p.Credenciais)
 
 	res, err := m.svc.Transmitir(t, xml)
 	if err != nil {
 		m.responderErro(w, res, err)
 		return
 	}
-	if m.naoSuportada(w, t, p.Municipio, res.Resposta, "emissão") {
+	if m.naoSuportada(w, t, sessao, res.Resposta, "emissão") {
 		return
 	}
 
@@ -344,6 +347,7 @@ func (m *Modulo) handleEvento(w http.ResponseWriter, r *http.Request) {
 	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 		return
 	}
+	p.Municipio = MunicipioDoEvento(tipo, p)
 	t := m.tenantEmitente(p.Emitente, p.Municipio, p.Ambiente,
 		p.Certificado, p.Credenciais)
 
@@ -507,7 +511,9 @@ func (m *Modulo) substituirPorDPS(w http.ResponseWriter, t acbr.TenantConfig,
 		httpx.ErroJSON(w, http.StatusBadRequest, "pedido_invalido", msg)
 		return
 	}
-	if msg := ValidarDPSDoMunicipio(cmun, e.DPS); msg != "" {
+	// cmun é o da sessão, que pode ser o do Ambiente Nacional. A validação olha o
+	// município da nota nova, que é quem tem regra.
+	if msg := ValidarDPSDoMunicipio(fiscal.Primeiro(MunicipioDoPedido(e.DPS), cmun), e.DPS); msg != "" {
 		httpx.ErroJSON(w, http.StatusBadRequest, "campo_obrigatorio", msg)
 		return
 	}
@@ -584,6 +590,17 @@ func (m *Modulo) handleConsultaDPS(w http.ResponseWriter, r *http.Request) {
 		httpx.ErroJSON(w, http.StatusBadRequest, "campo_obrigatorio",
 			"chave (o id_dps devolvido ao gerar) é obrigatória")
 		return
+	}
+	// A chave da DPS não diz em que sistema ela foi: só o da NFS-e diz. Num
+	// município com os dois caminhos, o Ambiente Nacional responde primeiro, e só
+	// a NFS-e encontrada encerra a busca. Não achar lá, ou falhar, cai no provedor
+	// do município, onde a nota também pode estar.
+	if simplesSaiPeloAmbienteNacional[fiscal.SoDigitos(p.Municipio)] {
+		tn := m.tenantEmitente(p.Emitente, MunicipioADN, p.Ambiente, p.Certificado, p.Credenciais)
+		if res, err := m.svc.ConsultarDPSPorChave(tn, chave); err == nil && reChaveNaResposta.MatchString(res.Resposta) {
+			m.responderConsulta(w, tn, MunicipioADN, res, nil)
+			return
+		}
 	}
 	res, err := m.svc.ConsultarDPSPorChave(t, chave)
 	m.responderConsulta(w, t, p.Municipio, res, err)
@@ -682,6 +699,7 @@ func (m *Modulo) lerConsulta(w http.ResponseWriter, r *http.Request) (PedidoCons
 	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 		return p, acbr.TenantConfig{}, false
 	}
+	p.Municipio = MunicipioDaNota(p.Municipio, p.Chave)
 	t := m.tenantEmitente(p.Emitente, p.Municipio, p.Ambiente,
 		p.Certificado, p.Credenciais)
 	return p, t, true
@@ -764,6 +782,7 @@ func (m *Modulo) handlePDF(w http.ResponseWriter, r *http.Request) {
 		if _, ok := m.layout(w, cmun); !ok {
 			return
 		}
+		cmun = MunicipioDaNota(cmun, ChaveDoXML(xml))
 		// Render local: não fala com o provedor, então não pede certificado.
 		t = fiscal.Tenant("", secaoACBr, "", fiscal.Certificado{})
 		t.Config = append(t.Config,
@@ -780,8 +799,8 @@ func (m *Modulo) handlePDF(w http.ResponseWriter, r *http.Request) {
 		if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 			return
 		}
-		cmun = fiscal.SoDigitos(p.Municipio)
-		t = m.tenantEmitente(p.Emitente, p.Municipio, p.Ambiente,
+		cmun = MunicipioDaNota(fiscal.SoDigitos(p.Municipio), p.Chave)
+		t = m.tenantEmitente(p.Emitente, cmun, p.Ambiente,
 			p.Certificado, p.Credenciais)
 		res, err = m.svc.ObterPDF(t, p.Chave)
 	default:

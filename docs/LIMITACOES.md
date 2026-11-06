@@ -126,6 +126,19 @@ transmitir: falhou ali, nada saiu.
   configuração `Provedor` é recusada em todas as formas, então não há override
   possível por aqui. Se um município migrou e a tabela da sua versão está
   atrasada, o caminho é atualizar a biblioteca.
+- **Em Brasília, ME/EPP do Simples sai pelo Ambiente Nacional a partir da
+  competência de 01/11/2026.** O ISSNet recusa essas notas com EM110, e quem não
+  é do Simples continua nele, então o caminho depende do emitente e não cabe na
+  tabela. Não há campo novo: `opSimpNac` e `dCompet` decidem, na geração e na
+  transmissão, e `provedor` na resposta do `/xml` diz por onde a nota vai sair.
+  `opSimpNac` errado manda a nota para o caminho errado. MEI fica de fora, e
+  os demais municípios só entram com a recusa comprovada.
+
+  Cancelamento, consulta e DANFSE seguem a chave da nota, cuja posição 8 diz onde
+  ela foi gerada, e `consulta-dps` procura primeiro no nacional e depois no
+  ISSNet. As consultas sem chave (`/consultas/{tipo}`) continuam só no ISSNet.
+  Na substituição, a nota nova decide: em competência a partir de 01/11 ela vai
+  pelo Ambiente Nacional, mesmo com a antiga no ISSNet.
 - **Boletos: `ConsultarTitulos` não é exposto.** O método existe no binding, mas
   a seção de filtro que ele exigiria (`[BoletoConsulta]`) não aparece no fonte
   oficial do ACBr: o formato do INI seria chute.
