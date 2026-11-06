@@ -32,6 +32,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Antes de tudo: sem registro no changelog, nada é promovido. A seção precisa
+      # estar no commit da tag, então corrija e crie a tag de novo.
+      - name: a versão está no changelog
+        run: |
+          case "$GITHUB_REF_NAME" in
+            *-*) echo "pré-release: changelog opcional" ;;
+            *) scripts/changelog-da-versao.sh "$GITHUB_REF_NAME" >/dev/null ;;
+          esac
+
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -142,14 +151,11 @@ jobs:
           NFSE_SHA="$(awk '$2 ~ /libacbrnfse64\.so$/ {print $1}' acbr-libs/SHA256SUMS)"
 
           {
-            # O resto da página sai dos títulos dos commits, onde o que exige ação
-            # de quem atualiza se perde. Por isso vem primeiro, e escrito à mão.
-            AVISO="docs/avisos/${VERSAO}.md"
-            if [ -f "$AVISO" ]; then
-              printf '## Antes de atualizar\n\n'
-              cat "$AVISO"
-              printf '\n'
-            fi
+            # O changelog abre a página: é onde está o que exige ação de quem atualiza.
+            case "$VERSAO" in
+              *-*) ;;
+              *) scripts/changelog-da-versao.sh "$VERSAO"; printf '\n---\n\n' ;;
+            esac
             printf 'Imagem: `%s:%s`' "$IMAGEM" "$VERSAO"
             case "$VERSAO" in
               *-*) printf ' (pré-release: não move `:stable` nem a tag maior)\n' ;;
@@ -168,12 +174,15 @@ jobs:
                 printf 'O `make acbr-libs-baixar` os busca de lá.\n\n' 
               fi
             fi
-            if [ -n "$ANTERIOR" ]; then
-              printf '## Mudanças desde %s\n\n' "$ANTERIOR"
-              git log --no-merges --pretty='- %s' "${ANTERIOR}..${VERSAO}"
-            else
-              printf '## Primeira versão\n\nHistórico completo em `git log`.\n'
-            fi
+            # Pré-release não exige changelog: a lista de commits faz esse papel.
+            case "$VERSAO" in
+              *-*)
+                if [ -n "$ANTERIOR" ]; then
+                  printf '## Mudanças desde %s\n\n' "$ANTERIOR"
+                  git log --no-merges --pretty='- %s' "${ANTERIOR}..${VERSAO}"
+                fi
+                ;;
+            esac
             printf '\n\nComo subir, escopo e o que conferir antes de apontar para produção:\n'
             printf '[README](../blob/%s/README.md) e [docs/LIMITACOES.md](../blob/%s/docs/LIMITACOES.md).\n' "$VERSAO" "$VERSAO"
           } > /tmp/notas.md

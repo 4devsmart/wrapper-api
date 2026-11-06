@@ -6,6 +6,9 @@ boletos.
 
 **Nada é guardado no servidor.** Nem o XML, nem o certificado.
 
+O que mudou em cada versão, e o que fazer antes de atualizar, está no
+[CHANGELOG](CHANGELOG.md).
+
 > **English.** Stateless JSON REST API (Go) wrapping the native ACBrLib for
 > Brazilian fiscal documents. It generates, signs and transmits the XML, and
 > returns the authorized document. It stores nothing: your application owns the
