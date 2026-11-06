@@ -1,0 +1,92 @@
+Padrao Nacional: a chave da DPS usa o cLocEmi informado, nao o da sessao.
+
+O provedor e escolhido pelo CodigoMunicipio da sessao, e o Id da DPS e a chave
+da NFS-e saiam desse mesmo CodigoMunicipio (CodMunEmit), mesmo com cLocEmi
+informado no INI. Para emitir pelo Ambiente Nacional num municipio que a lib
+atende por outra classe, a sessao tem de ficar num municipio do Padrao Nacional,
+e o XML saia com o Id de um e o cLocEmi de outro:
+
+  <infDPS Id="DPS3304557...">
+  <cLocEmi>5300108</cLocEmi>
+
+E o caso do Simples Nacional desde 01/11/2026: Brasilia recusa no ISSNet com
+
+  EM110 - Nao e permitido emitir NFSe atraves deste servico na data de
+  competencia informada. A emissao deve ser realizada no Emissor Nacional ou
+  atraves de sistemas de terceiros que comuniquem com a API do Ambiente
+  Nacional.
+
+e o Provedor=PadraoNacional na tabela nao serve, porque quem nao e do Simples
+continua no ISSNet. O provedor varia por emitente, nao por municipio.
+
+Com cLocEmi vazio, ou igual ao da sessao, o XML sai byte a byte igual ao da
+r48784. O ISSNet e o Fiorilli pela API propria tem GerarXml proprio e nao mudam.
+
+Base: ACBr trunk2 r48784. Ainda nao reportado ao projeto ACBr.
+
+--- a/Fontes/ACBrDFe/ACBrNFSeX/Provedores/PadraoNacional.GravarXml.pas
++++ b/Fontes/ACBrDFe/ACBrNFSeX/Provedores/PadraoNacional.GravarXml.pas
+@@ -58,6 +58,7 @@
+     function GerarChaveNFSe(const AcMun, AAmbGer, ACNPJCPF,
+       ANumero, AUF: string; ADataEmis: TDateTime; ACodNum: Int64): string;
+     function CodigoLocalEmissao: Integer;
++    function CodigoMunicipioChave: Integer;
+ 
+     function GerarXMLNFSe: TACBrXmlNode;
+     function GerarXMLInfNFSe: TACBrXmlNode;
+@@ -196,6 +197,22 @@
+   end;
+ end;
+ 
++// wrapper-api: o municipio da chave e o do documento. O cLocEmi informado vence
++// o da sessao porque a sessao escolhe a classe do provedor: um emitente do
++// Simples em municipio de emissor proprio sai pela classe do Padrao Nacional
++// com a sessao em outro municipio, e a chave nao pode carregar esse municipio.
++// Com cLocEmi igual ao da sessao, ou vazio, o resultado nao muda.
++function TNFSeW_PadraoNacional.CodigoMunicipioChave: Integer;
++begin
++  Result := StrToIntDef(NFSe.cLocEmi, 0);
++
++  if Result = 0 then
++    Result := CodMunEmit;
++
++  if Result = 0 then
++    Result := CodigoLocalEmissao;
++end;
++
+ function TNFSeW_PadraoNacional.DevoGerarXMLObra: Boolean;
+ begin
+   Result := (NFSe.ConstrucaoCivil.CodigoObra <> '') or
+@@ -455,10 +472,7 @@
+   chave, CodigoMun, CNPJ: string;
+   xmlNode: TACBrXmlNode;
+ begin
+-  if CodMunEmit <> 0 then
+-    CodigoMun := IntToStr(CodMunEmit)
+-  else
+-    CodigoMun := IntToStr(CodigoLocalEmissao);
++  CodigoMun := IntToStr(CodigoMunicipioChave);
+ 
+   CNPJ := Trim(CNPJEmitente);
+ 
+@@ -490,10 +504,7 @@
+   cLocIncid: Integer;
+   xmlNode: TACBrXmlNode;
+ begin
+-  if CodMunEmit <> 0 then
+-    CodigoMun := IntToStr(CodMunEmit)
+-  else
+-    CodigoMun := IntToStr(CodigoLocalEmissao);
++  CodigoMun := IntToStr(CodigoMunicipioChave);
+ 
+   CNPJ := Trim(CNPJEmitente);
+ 
+@@ -1833,7 +1844,7 @@
+ 
+   FpVersao := VersaoNFSeToStr(VersaoNFSe);
+ 
+-  CodigoMun := IntToStr(CodMunEmit);
++  CodigoMun := IntToStr(CodigoMunicipioChave);
+   CNPJ := CNPJEmitente;
+ 
+   if CNPJ = '' then
