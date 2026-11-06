@@ -25,8 +25,13 @@ jobs:
       # CGO desligado: compila o binding stub. O domínio inteiro, que é o ativo
       # do projeto: é testável sem a lib nativa E sem certificado, porque a fase
       # 1 do contrato não assina. É o que torna este job barato e honesto.
-      - run: CGO_ENABLED=0 go vet ./...
+      # A tag integracao só roda depois do merge, e sem compilar aqui um rename
+      # quebraria esses testes sem ninguém ver no PR.
+      - run: CGO_ENABLED=0 go vet -tags integracao ./...
       - run: CGO_ENABLED=0 go test ./...
+      # O race detector exige cgo, mas não a lib: sem a tag acbrlib entra o stub.
+      # O que importa aqui é o pool e o servidor do worker, que são concorrentes.
+      - run: CGO_ENABLED=1 go test -race ./...
       # A spec é gerada dos modelos Go. Este gate impede que ela envelheça: sem
       # ele, o campo que alguém adicionar hoje some da documentação amanhã.
       # Regenera a spec e confere que ela é YAML válido. O segundo já pegou uma
@@ -61,6 +66,8 @@ jobs:
       # em runtime, já aconteceu com CTE_Enviar.
       - run: make test-cgo
       - run: make build-cgo
+      # Um bump do ACBr pode trocar os XSD sem nenhum teste de Go perceber.
+      - run: make enums-conferir
 
   govulncheck:
     name: govulncheck (CVEs alcançadas pelo código)
@@ -71,7 +78,7 @@ jobs:
         with:
           go-version: "1.27.3"
           cache: true
-      - run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - run: go install golang.org/x/vuln/cmd/govulncheck@v1.9.0
       - run: CGO_ENABLED=0 govulncheck ./...
 
   lint:

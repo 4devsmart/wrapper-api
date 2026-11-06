@@ -241,13 +241,13 @@ func erroDaResposta(resp Resposta) error {
 func erroDeTransporte(d *destino, p Pedido, err error) (falha error, falhouNoDial bool) {
 	var opErr *net.OpError
 	if errors.As(err, &opErr) && opErr.Op == "dial" {
-		return fmt.Errorf("worker fiscal %s inacessível (%v): %w", d.rotulo, err, ErrUnavailable), true
+		return fmt.Errorf("worker fiscal %s inacessível (%w): %w", d.rotulo, err, ErrUnavailable), true
 	}
 	if metodosLocais[p.Metodo] {
-		return fmt.Errorf("worker fiscal %s caiu durante %s/%s (%v): a operação não transmite nada, repetir é seguro: %w",
+		return fmt.Errorf("worker fiscal %s caiu durante %s/%s (%w): a operação não transmite nada, repetir é seguro: %w",
 			d.rotulo, p.Servico, p.Metodo, err, ErrUnavailable), false
 	}
-	return fmt.Errorf("worker fiscal %s falhou durante %s/%s (%v): confira antes de repetir: %w",
+	return fmt.Errorf("worker fiscal %s falhou durante %s/%s (%w): confira antes de repetir: %w",
 		d.rotulo, p.Servico, p.Metodo, err, ErrIndeterminado), false
 }
 

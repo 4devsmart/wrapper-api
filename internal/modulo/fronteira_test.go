@@ -1,6 +1,7 @@
 package modulo_test
 
 import (
+	"errors"
 	"go/build"
 	"os"
 	"path/filepath"
@@ -94,7 +95,8 @@ func importsDe(t *testing.T, dir string) []string {
 	ctx.UseAllFiles = true // ignora build tags: queremos ver TODOS os arquivos
 	p, err := ctx.ImportDir(dir, 0)
 	if err != nil {
-		if _, ok := err.(*build.NoGoError); ok {
+		var semGo *build.NoGoError
+		if errors.As(err, &semGo) {
 			return nil
 		}
 		// UseAllFiles junta arquivos de builds incompatíveis; os imports ainda
