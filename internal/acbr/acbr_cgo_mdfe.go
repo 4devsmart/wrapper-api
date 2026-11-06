@@ -214,52 +214,10 @@ func (l *mdfeLib) SalvarEventoPDF(t TenantConfig, xmlDoc, xmlEvento string) (Res
 	})
 }
 
-// DistribuicaoDFe consulta a Distribuição DF-e do MDF-e. Sessão direta (sem
-// CarregarINI). MDF-e NÃO recebe AcUFAutor (p.UFAutor é ignorado de propósito).
-func (l *mdfeLib) DistribuicaoDFe(t TenantConfig, p DistDFeParams) (Result, error) {
-	return l.s.run(t, func(h C.LibHandle) (Result, error) {
-		cCNPJ := C.CString(p.CNPJCPF)
-		defer C.free(unsafe.Pointer(cCNPJ))
-		var code int
-		var resp string
-		switch p.Modo {
-		case DistChave:
-			cv := C.CString(p.Chave)
-			defer C.free(unsafe.Pointer(cv))
-			code, resp = l.s.callBuf(h, func(b *C.char, sz *C.int) C.int {
-				return C.MDFE_DistribuicaoDFePorChave(h, cCNPJ, cv, b, sz)
-			})
-		case DistNSU:
-			cv := C.CString(p.NSU)
-			defer C.free(unsafe.Pointer(cv))
-			code, resp = l.s.callBuf(h, func(b *C.char, sz *C.int) C.int {
-				return C.MDFE_DistribuicaoDFePorNSU(h, cCNPJ, cv, b, sz)
-			})
-		default: // DistUltNSU
-			cv := C.CString(p.NSU)
-			defer C.free(unsafe.Pointer(cv))
-			code, resp = l.s.callBuf(h, func(b *C.char, sz *C.int) C.int {
-				return C.MDFE_DistribuicaoDFePorUltNSU(h, cCNPJ, cv, b, sz)
-			})
-		}
-		return Result{Codigo: code, Resposta: resp}, nil
-	})
-}
-
 // StatusServico consulta o status do serviço da SEFAZ-MDFe.
 func (l *mdfeLib) StatusServico(t TenantConfig) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		code, resp := l.s.callBuf(h, func(b *C.char, sz *C.int) C.int { return C.MDFE_StatusServico(h, b, sz) })
-		return Result{Codigo: code, Resposta: resp}, nil
-	})
-}
-
-// ConsultarRecibo consulta o processamento de um lote pelo recibo.
-func (l *mdfeLib) ConsultarRecibo(t TenantConfig, recibo string) (Result, error) {
-	return l.s.run(t, func(h C.LibHandle) (Result, error) {
-		cr := C.CString(recibo)
-		defer C.free(unsafe.Pointer(cr))
-		code, resp := l.s.callBuf(h, func(b *C.char, sz *C.int) C.int { return C.MDFE_ConsultarRecibo(h, cr, b, sz) })
 		return Result{Codigo: code, Resposta: resp}, nil
 	})
 }
@@ -270,18 +228,6 @@ func (l *mdfeLib) ConsultaNaoEncerrados(t TenantConfig, cnpj string) (Result, er
 		cc := C.CString(cnpj)
 		defer C.free(unsafe.Pointer(cc))
 		code, resp := l.s.callBuf(h, func(b *C.char, sz *C.int) C.int { return C.MDFE_ConsultaMDFeNaoEnc(h, cc, b, sz) })
-		return Result{Codigo: code, Resposta: resp}, nil
-	})
-}
-
-func (l *mdfeLib) XmlParaIni(t TenantConfig, xml string) (Result, error) {
-	return l.s.run(t, func(h C.LibHandle) (Result, error) {
-		cXML := C.CString(xml)
-		defer C.free(unsafe.Pointer(cXML))
-		if code := int(C.MDFE_CarregarXML(h, cXML)); code != 0 {
-			return Result{Codigo: code, Resposta: l.s.ultRet(h, 0)}, nil
-		}
-		code, resp := l.s.callBuf(h, func(b *C.char, sz *C.int) C.int { return C.MDFE_ObterIni(h, 0, b, sz) })
 		return Result{Codigo: code, Resposta: resp}, nil
 	})
 }

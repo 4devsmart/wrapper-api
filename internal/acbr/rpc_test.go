@@ -16,7 +16,7 @@ import (
 	"github.com/4devsmart/wrapper-api/internal/platform/config"
 )
 
-// servicoFake embute indisponivel (que já satisfaz as cinco interfaces) e
+// servicoFake embute indisponivel (que já satisfaz as quatro interfaces) e
 // sobrescreve apenas o que o teste exercita.
 type servicoFake struct {
 	indisponivel
@@ -54,9 +54,9 @@ func (f *servicoFake) Emitir(t TenantConfig, ini string) (Result, error) {
 
 func (f *servicoFake) Version() (string, error) { return f.versaoFake, nil }
 
-// servicosFake monta um *Servicos com o mesmo fake nos cinco serviços.
+// servicosFake monta um *Servicos com o mesmo fake nos quatro serviços.
 func servicosFake(f *servicoFake) *Servicos {
-	return &Servicos{NFSe: f, CTe: f, MDFe: f, NFe: f, Boleto: f}
+	return &Servicos{NFSe: f, CTe: f, MDFe: f, Boleto: f}
 }
 
 // clienteDe monta o binding remoto apontando para um endereço de worker.
@@ -372,7 +372,6 @@ func TestDespachoCobreTodasAsInterfaces(t *testing.T) {
 		ServicoNFSe:   reflect.TypeOf((*NFSeServico)(nil)).Elem(),
 		ServicoCTe:    reflect.TypeOf((*CTeServico)(nil)).Elem(),
 		ServicoMDFe:   reflect.TypeOf((*MDFeServico)(nil)).Elem(),
-		ServicoNFe:    reflect.TypeOf((*NFeServico)(nil)).Elem(),
 		ServicoBoleto: reflect.TypeOf((*BoletoServico)(nil)).Elem(),
 	}
 	svc := servicosFake(&servicoFake{})
@@ -427,7 +426,7 @@ func TestRPC_GerarETransmitirAtravessamOWorker(t *testing.T) {
 		resMontar:     Result{Codigo: 0, XML: "<CTe><infCte Id=\"CTe35...\"/></CTe>"},
 		resTransmitir: Result{Codigo: 0, Resposta: "cStat=100", XML: "<cteProc/>"},
 	}
-	ts := httptest.NewServer(handlerDeTeste(&Servicos{NFSe: f, CTe: f, MDFe: f, NFe: f, Boleto: f}, 1))
+	ts := httptest.NewServer(handlerDeTeste(&Servicos{NFSe: f, CTe: f, MDFe: f, Boleto: f}, 1))
 	t.Cleanup(ts.Close)
 	cli := clienteDe(t, ts.URL, 1, 5*time.Second).CTe
 
@@ -465,7 +464,7 @@ func TestRPC_GerarETransmitirAtravessamOWorker(t *testing.T) {
 // depois). A sentinela tem de sobreviver ao JSON do RPC.
 func TestRPC_NaoSuportadoNaoViraIndisponivel(t *testing.T) {
 	f := &fluxoFake{errValidar: ErrNaoSuportado}
-	ts := httptest.NewServer(handlerDeTeste(&Servicos{NFSe: f, CTe: f, MDFe: f, NFe: f, Boleto: f}, 1))
+	ts := httptest.NewServer(handlerDeTeste(&Servicos{NFSe: f, CTe: f, MDFe: f, Boleto: f}, 1))
 	t.Cleanup(ts.Close)
 
 	_, err := clienteDe(t, ts.URL, 1, 5*time.Second).NFSe.ValidarRegras(TenantConfig{}, "[DPS]")

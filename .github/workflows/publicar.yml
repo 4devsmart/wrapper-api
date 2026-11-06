@@ -82,9 +82,9 @@ jobs:
           fi
           curl -fsS localhost:8080/healthz
           curl -fsS localhost:8080/readyz
-          # backend "cgo" nos cinco serviços = a lib nativa realmente carregou.
-          docker logs fumaca-worker 2>&1 | grep -c '"backend":"cgo"' | grep -q '^5$' \
-            || { echo "::error::a lib nativa não carregou nos 5 serviços"; docker logs fumaca-worker; exit 1; }
+          # backend "cgo" nos quatro serviços = a lib nativa realmente carregou.
+          docker logs fumaca-worker 2>&1 | grep -c '"backend":"cgo"' | grep -q '^4$' \
+            || { echo "::error::a lib nativa não carregou nos 4 serviços"; docker logs fumaca-worker; exit 1; }
           echo "fumaça OK"
 
       # A fumaça prova que a lib carrega, não qual lib é. A v1.3.0 subiu e passou

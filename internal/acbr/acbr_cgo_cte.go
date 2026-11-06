@@ -229,54 +229,10 @@ func (l *cteLib) SalvarEventoPDF(t TenantConfig, xmlDoc, xmlEvento string) (Resu
 	})
 }
 
-// DistribuicaoDFe consulta a Distribuição DF-e do CT-e. Sessão direta (sem
-// CarregarINI): Inicializar → config → CTE_DistribuicaoDFePor{UltNSU,NSU,Chave}.
-// CT-e exige AcUFAutor (cUF do autor). A resposta é o INI do lote.
-func (l *cteLib) DistribuicaoDFe(t TenantConfig, p DistDFeParams) (Result, error) {
-	return l.s.run(t, func(h C.LibHandle) (Result, error) {
-		cCNPJ := C.CString(p.CNPJCPF)
-		defer C.free(unsafe.Pointer(cCNPJ))
-		uf := C.int(p.UFAutor)
-		var code int
-		var resp string
-		switch p.Modo {
-		case DistChave:
-			cv := C.CString(p.Chave)
-			defer C.free(unsafe.Pointer(cv))
-			code, resp = l.s.callBuf(h, func(b *C.char, sz *C.int) C.int {
-				return C.CTE_DistribuicaoDFePorChave(h, uf, cCNPJ, cv, b, sz)
-			})
-		case DistNSU:
-			cv := C.CString(p.NSU)
-			defer C.free(unsafe.Pointer(cv))
-			code, resp = l.s.callBuf(h, func(b *C.char, sz *C.int) C.int {
-				return C.CTE_DistribuicaoDFePorNSU(h, uf, cCNPJ, cv, b, sz)
-			})
-		default: // DistUltNSU
-			cv := C.CString(p.NSU)
-			defer C.free(unsafe.Pointer(cv))
-			code, resp = l.s.callBuf(h, func(b *C.char, sz *C.int) C.int {
-				return C.CTE_DistribuicaoDFePorUltNSU(h, uf, cCNPJ, cv, b, sz)
-			})
-		}
-		return Result{Codigo: code, Resposta: resp}, nil
-	})
-}
-
 // StatusServico consulta o status do serviço da SEFAZ-CTe.
 func (l *cteLib) StatusServico(t TenantConfig) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		code, resp := l.s.callBuf(h, func(b *C.char, sz *C.int) C.int { return C.CTE_StatusServico(h, b, sz) })
-		return Result{Codigo: code, Resposta: resp}, nil
-	})
-}
-
-// ConsultarRecibo consulta o processamento de um lote pelo recibo.
-func (l *cteLib) ConsultarRecibo(t TenantConfig, recibo string) (Result, error) {
-	return l.s.run(t, func(h C.LibHandle) (Result, error) {
-		cr := C.CString(recibo)
-		defer C.free(unsafe.Pointer(cr))
-		code, resp := l.s.callBuf(h, func(b *C.char, sz *C.int) C.int { return C.CTE_ConsultarRecibo(h, cr, b, sz) })
 		return Result{Codigo: code, Resposta: resp}, nil
 	})
 }
@@ -293,18 +249,6 @@ func (l *cteLib) ConsultaCadastro(t TenantConfig, uf, nDocumento string, ehIE bo
 			nIE = 1
 		}
 		code, resp := l.s.callBuf(h, func(b *C.char, sz *C.int) C.int { return C.CTE_ConsultaCadastro(h, cUF, cDoc, nIE, b, sz) })
-		return Result{Codigo: code, Resposta: resp}, nil
-	})
-}
-
-func (l *cteLib) XmlParaIni(t TenantConfig, xml string) (Result, error) {
-	return l.s.run(t, func(h C.LibHandle) (Result, error) {
-		cXML := C.CString(xml)
-		defer C.free(unsafe.Pointer(cXML))
-		if code := int(C.CTE_CarregarXML(h, cXML)); code != 0 {
-			return Result{Codigo: code, Resposta: l.s.ultRet(h, 0)}, nil
-		}
-		code, resp := l.s.callBuf(h, func(b *C.char, sz *C.int) C.int { return C.CTE_ObterIni(h, 0, b, sz) })
 		return Result{Codigo: code, Resposta: resp}, nil
 	})
 }

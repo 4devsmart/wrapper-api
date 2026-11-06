@@ -95,8 +95,6 @@ func Despachar(s *Servicos, p Pedido) (resp Resposta, conhecido bool) {
 			return r, true
 		}
 		return chamarMDFe(s.MDFe, p)
-	case ServicoNFe:
-		return chamarNFe(s.NFe, p)
 	case ServicoBoleto:
 		return chamarBoleto(s.Boleto, p)
 	}
@@ -126,8 +124,6 @@ func chamarComum(sv Servico, p Pedido) (Resposta, bool) {
 		return resposta(sv.ObterPDF(p.Tenant, a.Chave)), true
 	case "RenderizarPDF":
 		return resposta(sv.RenderizarPDF(p.Tenant, a.XML)), true
-	case "XmlParaIni":
-		return resposta(sv.XmlParaIni(p.Tenant, a.XML)), true
 	}
 	return Resposta{}, false
 }
@@ -170,12 +166,8 @@ func chamarCTe(sv CTeServico, p Pedido) (Resposta, bool) {
 		return resposta(sv.CartaCorrecao(p.Tenant, a.INI)), true
 	case "EnviarEvento":
 		return resposta(sv.EnviarEvento(p.Tenant, a.INI)), true
-	case "DistribuicaoDFe":
-		return resposta(sv.DistribuicaoDFe(p.Tenant, distParams(a))), true
 	case "StatusServico":
 		return resposta(sv.StatusServico(p.Tenant)), true
-	case "ConsultarRecibo":
-		return resposta(sv.ConsultarRecibo(p.Tenant, a.Recibo)), true
 	case "ConsultaCadastro":
 		return resposta(sv.ConsultaCadastro(p.Tenant, a.UF, a.Documento, a.EhIE)), true
 	case "SalvarEventoPDF":
@@ -191,28 +183,12 @@ func chamarMDFe(sv MDFeServico, p Pedido) (Resposta, bool) {
 		return resposta(sv.Encerrar(p.Tenant, a.INI)), true
 	case "EnviarEvento":
 		return resposta(sv.EnviarEvento(p.Tenant, a.INI)), true
-	case "DistribuicaoDFe":
-		return resposta(sv.DistribuicaoDFe(p.Tenant, distParams(a))), true
 	case "StatusServico":
 		return resposta(sv.StatusServico(p.Tenant)), true
-	case "ConsultarRecibo":
-		return resposta(sv.ConsultarRecibo(p.Tenant, a.Recibo)), true
 	case "ConsultaNaoEncerrados":
 		return resposta(sv.ConsultaNaoEncerrados(p.Tenant, a.CNPJ)), true
 	case "SalvarEventoPDF":
 		return resposta(sv.SalvarEventoPDF(p.Tenant, a.XMLDoc, a.XMLEvento)), true
-	}
-	return Resposta{}, false
-}
-
-func chamarNFe(sv NFeServico, p Pedido) (Resposta, bool) {
-	switch p.Metodo {
-	case "Version":
-		return respostaVersao(sv.Version()), true
-	case "DistribuicaoDFe":
-		return resposta(sv.DistribuicaoDFe(p.Tenant, distParams(p.Args))), true
-	case "Manifestar":
-		return resposta(sv.Manifestar(p.Tenant, p.Args.INI)), true
 	}
 	return Resposta{}, false
 }
@@ -230,17 +206,8 @@ func chamarBoleto(sv BoletoServico, p Pedido) (Resposta, bool) {
 		return resposta(sv.LerRetorno(p.Tenant, a.ConfigINI, a.Retorno)), true
 	case "Registrar":
 		return resposta(sv.Registrar(p.Tenant, boletoOnline(a))), true
-	case "ConsultarTitulos":
-		return resposta(sv.ConsultarTitulos(p.Tenant, boletoOnline(a))), true
 	}
 	return Resposta{}, false
-}
-
-func distParams(a Args) DistDFeParams {
-	if a.Dist == nil {
-		return DistDFeParams{}
-	}
-	return *a.Dist
 }
 
 func boletoOnline(a Args) BoletoOnline {

@@ -21,11 +21,11 @@ import (
 // cliente, e não olha os argumentos. Trocar Args{NumeroFinal: final} por
 // Args{Numero: final} passa por ele inteiro.
 //
-// Este aqui percorre TODOS os métodos das cinco interfaces, chama cada um pelo
+// Este aqui percorre TODOS os métodos das quatro interfaces, chama cada um pelo
 // cliente remoto com uma sentinela distinta por posição, e cobra do outro lado
 // o mesmo nome e os mesmos valores, na mesma ordem.
 
-// espiao implementa as cinco interfaces SEM embutir nada. É deliberado: método
+// espiao implementa as quatro interfaces SEM embutir nada. É deliberado: método
 // novo numa interface quebra a COMPILAÇÃO deste arquivo, e quem o acrescentar
 // é obrigado a passar por aqui. Embutindo indisponivel, como faz o servicoFake,
 // o método novo nasceria fora da conferência.
@@ -72,9 +72,6 @@ func (e *espiao) ObterPDF(t TenantConfig, chave string) (Result, error) {
 func (e *espiao) RenderizarPDF(t TenantConfig, xml string) (Result, error) {
 	return e.reg("RenderizarPDF", t, xml)
 }
-func (e *espiao) XmlParaIni(t TenantConfig, xml string) (Result, error) {
-	return e.reg("XmlParaIni", t, xml)
-}
 
 // NFS-e.
 func (e *espiao) SubstituirNFSe(t TenantConfig, ini string, sub SubstituicaoNFSe) (Result, error) {
@@ -115,14 +112,8 @@ func (e *espiao) Encerrar(t TenantConfig, ini string) (Result, error) {
 func (e *espiao) EnviarEvento(t TenantConfig, ini string) (Result, error) {
 	return e.reg("EnviarEvento", t, ini)
 }
-func (e *espiao) DistribuicaoDFe(t TenantConfig, p DistDFeParams) (Result, error) {
-	return e.reg("DistribuicaoDFe", t, p)
-}
 func (e *espiao) StatusServico(t TenantConfig) (Result, error) {
 	return e.reg("StatusServico", t)
-}
-func (e *espiao) ConsultarRecibo(t TenantConfig, recibo string) (Result, error) {
-	return e.reg("ConsultarRecibo", t, recibo)
 }
 func (e *espiao) ConsultaCadastro(t TenantConfig, uf, doc string, ehIE bool) (Result, error) {
 	return e.reg("ConsultaCadastro", t, uf, doc, ehIE)
@@ -132,11 +123,6 @@ func (e *espiao) ConsultaNaoEncerrados(t TenantConfig, cnpj string) (Result, err
 }
 func (e *espiao) SalvarEventoPDF(t TenantConfig, xmlDoc, xmlEvento string) (Result, error) {
 	return e.reg("SalvarEventoPDF", t, xmlDoc, xmlEvento)
-}
-
-// NF-e.
-func (e *espiao) Manifestar(t TenantConfig, ini string) (Result, error) {
-	return e.reg("Manifestar", t, ini)
 }
 
 // Boleto.
@@ -152,15 +138,12 @@ func (e *espiao) LerRetorno(t TenantConfig, configINI, retorno string) (Result, 
 func (e *espiao) Registrar(t TenantConfig, op BoletoOnline) (Result, error) {
 	return e.reg("Registrar", t, op)
 }
-func (e *espiao) ConsultarTitulos(t TenantConfig, op BoletoOnline) (Result, error) {
-	return e.reg("ConsultarTitulos", t, op)
-}
 
 // --- o teste ----------------------------------------------------------------
 
 func TestDespacho_CadaMetodoChegaComOsArgumentosCertos(t *testing.T) {
 	e := &espiao{}
-	ts := httptest.NewServer(handlerDeTeste(&Servicos{NFSe: e, CTe: e, MDFe: e, NFe: e, Boleto: e}, 1))
+	ts := httptest.NewServer(handlerDeTeste(&Servicos{NFSe: e, CTe: e, MDFe: e, Boleto: e}, 1))
 	t.Cleanup(ts.Close)
 	svc := newRemotos(config.ACBr{Workers: []string{ts.URL}, WorkerSlots: 1, WorkerTimeout: 5 * time.Second})
 
@@ -174,7 +157,6 @@ func TestDespacho_CadaMetodoChegaComOsArgumentosCertos(t *testing.T) {
 		{ServicoNFSe, svc.NFSe, reflect.TypeOf((*NFSeServico)(nil)).Elem()},
 		{ServicoCTe, svc.CTe, reflect.TypeOf((*CTeServico)(nil)).Elem()},
 		{ServicoMDFe, svc.MDFe, reflect.TypeOf((*MDFeServico)(nil)).Elem()},
-		{ServicoNFe, svc.NFe, reflect.TypeOf((*NFeServico)(nil)).Elem()},
 		{ServicoBoleto, svc.Boleto, reflect.TypeOf((*BoletoServico)(nil)).Elem()},
 	}
 
@@ -241,11 +223,6 @@ func sentinelas(t *testing.T, tipo reflect.Type, tenant TenantConfig) ([]reflect
 func sentinela(t *testing.T, tipo reflect.Type, pos int) reflect.Value {
 	t.Helper()
 	switch tipo {
-	case reflect.TypeOf(DistDFeParams{}):
-		return reflect.ValueOf(DistDFeParams{
-			UFAutor: 35, CNPJCPF: "12345678000199", Modo: DistDFeModo("ultnsu"),
-			NSU: "000000000000042", Chave: "chave-da-distribuicao",
-		})
 	case reflect.TypeOf(SubstituicaoNFSe{}):
 		return reflect.ValueOf(SubstituicaoNFSe{
 			NumeroNFSe: "n-1", SerieNFSe: "s-2", CodigoCancelamento: "c-3",
@@ -253,7 +230,7 @@ func sentinela(t *testing.T, tipo reflect.Type, pos int) reflect.Value {
 		})
 	case reflect.TypeOf(BoletoOnline{}):
 		return reflect.ValueOf(BoletoOnline{
-			INI: "ini-1", ConfigINI: "config-2", FiltroINI: "filtro-3",
+			INI:      "ini-1",
 			Operacao: 2, CertCRT: []byte("crt"), CertKEY: []byte("key"),
 		})
 	}
@@ -287,7 +264,6 @@ func TestMetodosLocais_TodosExistemNasInterfaces(t *testing.T) {
 		reflect.TypeOf((*NFSeServico)(nil)).Elem(),
 		reflect.TypeOf((*CTeServico)(nil)).Elem(),
 		reflect.TypeOf((*MDFeServico)(nil)).Elem(),
-		reflect.TypeOf((*NFeServico)(nil)).Elem(),
 		reflect.TypeOf((*BoletoServico)(nil)).Elem(),
 	} {
 		for i := range tipo.NumMethod() {

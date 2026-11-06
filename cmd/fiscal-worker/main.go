@@ -47,7 +47,7 @@ func main() {
 			Backend() string
 			Version() (string, error)
 		}
-	}{{"NFSe", svc.NFSe}, {"CTe", svc.CTe}, {"MDFe", svc.MDFe}, {"NFe", svc.NFe}, {"Boleto", svc.Boleto}} {
+	}{{"NFSe", svc.NFSe}, {"CTe", svc.CTe}, {"MDFe", svc.MDFe}, {"Boleto", svc.Boleto}} {
 		if v, err := b.sv.Version(); err != nil {
 			slog.Warn("lib fiscal indisponível", "servico", b.nome, "backend", b.sv.Backend(), "err", err)
 		} else {
