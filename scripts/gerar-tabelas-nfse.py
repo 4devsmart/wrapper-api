@@ -24,7 +24,7 @@ somada ao ramo `if APIPropria` do GetProvider (ACBrNFSeXProviderManager.pas).
 A quinta coluna marca os municípios com URL própria de Distribuição DF-e
 (ProConsultarDFe ou HomConsultarDFe na seção do município). Neles a fila não é
 a do ADN, e sim a do sefin da prefeitura, com NSU próprio. É o que impede o
-município fixo da distribuição (MunicipioADN, no Go) de virar outra fila sem
+município fixo da distribuição (SessaoNacional, no Go) de virar outra fila sem
 ninguém perceber.
 
 Uso:  make acbr-tabelas

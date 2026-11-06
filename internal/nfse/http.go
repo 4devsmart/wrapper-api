@@ -664,7 +664,7 @@ func (m *Modulo) handleConsultas(w http.ResponseWriter, r *http.Request) {
 // do provedor dele, como sempre saiu: em alguns a fila é a do sefin da
 // prefeitura, e trocar de fila em silêncio quebraria o cursor de quem já a lê.
 // Só quando essa classe não implementa a distribuição, ou sem município, a
-// sessão sai por MunicipioADN, sem credenciais de prefeitura: o ADN autentica
+// sessão sai por SessaoNacional, sem credenciais de prefeitura: o ADN autentica
 // pelo certificado. Erro de outra natureza não cai para o ADN, porque o NSU do
 // cliente é da fila do município.
 func (m *Modulo) handleDistribuicao(w http.ResponseWriter, r *http.Request) {
@@ -685,9 +685,9 @@ func (m *Modulo) handleDistribuicao(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	t := m.sessaoDoEmitente(p.Emitente, MunicipioADN, p.Ambiente, p.Certificado, Credenciais{})
+	t := m.sessaoDoEmitente(p.Emitente, SessaoNacional, p.Ambiente, p.Certificado, Credenciais{})
 	res, err := m.svc.ConsultarDFe(t, p.NSU)
-	m.responderConsulta(w, t, MunicipioADN, res, err)
+	m.responderConsulta(w, t, SessaoNacional, res, err)
 }
 
 // lerConsulta lê o pedido e abre a sessão no município informado, que é quem
