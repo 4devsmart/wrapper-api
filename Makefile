@@ -243,8 +243,11 @@ limpar:
 	rm -rf $(OUT)
 
 ## help: esta lista
+# Dois formatos: "## alvo: texto" acima do alvo, aqui, e "alvo: ## texto" no fluxo git.
 help:
-	@grep -hE '^## ' $(MAKEFILE_LIST) | sed 's/^## /  /' | sort
+	@{ grep -hE '^## [a-z]' $(MAKEFILE_LIST); \
+	   grep -hE '^[a-z-]+:.* ## ' $(MAKEFILE_LIST) | sed -E 's/^([a-z-]+):.* ## /## \1: /'; \
+	 } | sed 's/^## /  /' | sort
 
 .PHONY: ci acbr-libs-publicadas build build-cgo run test test-integracao-nfse test-cgo openapi openapi-check openapi-valida yaml-valida enums-conferir vet fmt fmt-check tidy limpar help \
 	acbr-fonte acbr-compilar acbr-extrair \
