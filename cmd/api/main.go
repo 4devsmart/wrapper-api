@@ -37,6 +37,10 @@ func main() {
 		slog.Error("falha ao carregar configuração", "err", err)
 		os.Exit(1)
 	}
+	if err := cfg.ExigirToken(); err != nil {
+		slog.Error("falha ao carregar configuração", "err", err)
+		os.Exit(1)
+	}
 	if len(cfg.ACBr.Workers) == 0 {
 		// Sem worker a API sobe e responde 503 no /readyz. É deliberado: melhor
 		// subir dizendo o que falta do que recusar o boot e não explicar nada.
@@ -83,7 +87,7 @@ func main() {
 
 	// Prazo generoso pelo mesmo motivo do WriteTimeout ausente: pode haver uma
 	// transmissão em curso falando com a SEFAZ.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cfg.ACBr.PrazoDeEncerramento())
 	defer cancel()
 	if err := srv.Shutdown(shutdownCtx); err != nil {
 		slog.Error("erro no shutdown", "err", err)

@@ -21,6 +21,7 @@ import (
 
 	"github.com/4devsmart/wrapper-api/internal/acbr"
 	"github.com/4devsmart/wrapper-api/internal/platform/httpx"
+	"github.com/4devsmart/wrapper-api/internal/platform/inifmt"
 )
 
 // Certificado é o A1 (.pfx) que o cliente envia na chamada que transmite.
@@ -411,9 +412,19 @@ func StatusDoEvento(status string) int {
 
 // --- utilidades -------------------------------------------------------------
 
-// AgoraLocal formata data/hora no formato que o StringToDateTime do ACBr aceita
-// (sem fuso; a lib aplica o do estado ao gerar o XML).
-func AgoraLocal() string { return time.Now().Format("2006-01-02 15:04:05") }
+// FusoDaChave é o fuso da UF que abre a chave de acesso (CT-e e MDF-e).
+func FusoDaChave(chave string) *time.Location {
+	cuf, _ := strconv.Atoi(chave[:min(2, len(chave))])
+	return inifmt.LocalDoCodigoUF(cuf)
+}
+
+// DataHoraDoEvento é o dhEvento no fuso do documento: o informado, ou agora. A lib
+// carimba o fuso da UF sobre o relógio que recebe, sem converter nada, e o
+// container roda em UTC: time.Now() cru sairia três horas adiantado.
+func DataHoraDoEvento(informado, chave string) string {
+	fuso := FusoDaChave(chave)
+	return inifmt.DataHoraNoFuso(Primeiro(informado, time.Now().Format(time.RFC3339)), fuso)
+}
 
 // Linhas quebra um texto em linhas não vazias (saída de validação da lib).
 func Linhas(s string) []string {

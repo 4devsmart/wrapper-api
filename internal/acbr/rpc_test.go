@@ -287,6 +287,65 @@ func TestPool_WorkerMortoNaoRoubaAFila(t *testing.T) {
 	}
 }
 
+// Cada chamada leva mais da metade do prazo: com fila e chamada no mesmo relógio,
+// a segunda transmitiria e estouraria no meio, virando desfecho indeterminado.
+func TestPool_EsperaNaFilaNaoEncurtaAChamada(t *testing.T) {
+	f := &servicoFake{atraso: 300 * time.Millisecond}
+	svc := clienteDe(t, workerDeTeste(t, f, 1), 1, 500*time.Millisecond)
+
+	var wg sync.WaitGroup
+	for range 2 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if _, err := svc.CTe.Emitir(Sessao{}, "[infCTe]"); err != nil {
+				t.Errorf("Emitir falhou por ter esperado na fila: %v", err)
+			}
+		}()
+	}
+	wg.Wait()
+}
+
+// Desistir na fila é seguro: nada saiu, e o cliente precisa saber que pode repetir.
+func TestPool_FilaEsgotadaNaoViraIndeterminado(t *testing.T) {
+	f := &servicoFake{}
+	p := novoPool(config.ACBr{
+		Workers:       []string{workerDeTeste(t, f, 1)},
+		WorkerSlots:   1,
+		WorkerTimeout: 50 * time.Millisecond,
+	})
+	<-p.livres // a única vaga fica ocupada até o fim do teste
+
+	_, err := p.chamar(Pedido{Servico: ServicoCTe, Metodo: "Emitir"})
+	if !errors.Is(err, ErrUnavailable) || errors.Is(err, ErrIndeterminado) {
+		t.Errorf("quero ErrUnavailable, veio: %v", err)
+	}
+	if n := f.chamadas.Load(); n != 0 {
+		t.Errorf("%d chamadas chegaram à lib; a da fila não podia sair", n)
+	}
+}
+
+// Com 1 vaga e uma emissão em curso, o /readyz tem de responder que está pronto.
+func TestRemoto_SaudavelNaoDisputaAVaga(t *testing.T) {
+	f := &servicoFake{atraso: 300 * time.Millisecond}
+	svc := clienteDe(t, workerDeTeste(t, f, 1), 1, 5*time.Second)
+	h := svc.NFSe.(interface{ Saudavel(context.Context) error })
+
+	emitindo := make(chan struct{})
+	go func() {
+		defer close(emitindo)
+		_, _ = svc.CTe.Emitir(Sessao{}, "[infCTe]")
+	}()
+	time.Sleep(30 * time.Millisecond)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
+	if err := h.Saudavel(ctx); err != nil {
+		t.Errorf("worker ocupado deveria estar pronto: %v", err)
+	}
+	<-emitindo
+}
+
 // TestRemoto_SaudavelRefleteOWorker: é o sinal que alimenta o /readyz, sem ele
 // a API se declara pronta com a emissão morta.
 func TestRemoto_SaudavelRefleteOWorker(t *testing.T) {
