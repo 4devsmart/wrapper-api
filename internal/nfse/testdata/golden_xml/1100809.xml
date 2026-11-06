@@ -1,0 +1,61 @@
+<dps:DPS xmlns:dps="http://www.sped.fazenda.gov.br/nfse" versao="1.01">
+<dps:infDPS id="DPS110080921234567800019000005000000000000004">
+<dps:tpAmb>2</dps:tpAmb>
+<dps:dhEmi>2026-09-01T00:00:00-04:00</dps:dhEmi>
+<dps:verAplic>integracao</dps:verAplic>
+<dps:serie>5</dps:serie>
+<dps:nDPS>4</dps:nDPS>
+<dps:dCompet>2026-09-01</dps:dCompet>
+<dps:tpEmit>1</dps:tpEmit>
+<dps:cLocEmi>1100809</dps:cLocEmi>
+<dps:prest>
+<dps:CNPJ>12345678000190</dps:CNPJ>
+<dps:fone>5130000000</dps:fone>
+<dps:email>teste@example.com</dps:email>
+<dps:regTrib>
+<dps:opSimpNac>3</dps:opSimpNac>
+<dps:regApTribSN>1</dps:regApTribSN>
+<dps:regEspTrib>0</dps:regEspTrib>
+</dps:regTrib>
+</dps:prest>
+<dps:toma>
+<dps:CPF>11144477735</dps:CPF>
+<dps:xNome>Tomador de Teste</dps:xNome>
+<dps:end>
+<dps:endNac>
+<dps:cMun>4309209</dps:cMun>
+<dps:CEP>94170068</dps:CEP>
+</dps:endNac>
+<dps:xLgr>Rua de Teste</dps:xLgr>
+<dps:nro>2</dps:nro>
+<dps:xBairro>Centro</dps:xBairro>
+</dps:end>
+</dps:toma>
+<dps:serv>
+<dps:locPrest>
+<dps:cLocPrestacao>1100809</dps:cLocPrestacao>
+</dps:locPrest>
+<dps:cServ>
+<dps:cTribNac>010501</dps:cTribNac>
+<dps:cTribMun>101</dps:cTribMun>
+<dps:xDescServ>teste de layout</dps:xDescServ>
+<dps:cNBS>111062000</dps:cNBS>
+</dps:cServ>
+</dps:serv>
+<dps:valores>
+<dps:vServPrest>
+<dps:vServ>1.00</dps:vServ>
+</dps:vServPrest>
+<dps:trib>
+<dps:tribMun>
+<dps:tribISSQN>1</dps:tribISSQN>
+<dps:tpRetISSQN>1</dps:tpRetISSQN>
+</dps:tribMun>
+<dps:totTrib>
+<dps:pTotTribSN>9.00</dps:pTotTribSN>
+</dps:totTrib>
+</dps:trib>
+</dps:valores>
+</dps:infDPS>
+</dps:DPS>
+

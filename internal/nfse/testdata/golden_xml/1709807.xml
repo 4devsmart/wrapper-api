@@ -1,0 +1,52 @@
+<Rps xmlns="http://www.centi.com.br/files/nfse.xsd">
+<InfDeclaracaoPrestacaoServico>
+<Rps Id="Rps_45">
+<IdentificacaoRps>
+<Numero>4</Numero>
+<Serie>5</Serie>
+<Tipo>1</Tipo>
+</IdentificacaoRps>
+<DataEmissao>2026-09-01T00:00:00</DataEmissao>
+<Status>1</Status>
+</Rps>
+<Competencia>2026-09-01T00:00:00</Competencia>
+<Servico>
+<Valores>
+<ValorServicos>1.00</ValorServicos>
+<Aliquota>0.00</Aliquota>
+</Valores>
+<ItemListaServico>105</ItemListaServico>
+<CodigoNbs>111062000</CodigoNbs>
+<CodigoTributacaoMunicipio>101</CodigoTributacaoMunicipio>
+<Discriminacao>teste de layout</Discriminacao>
+<CodigoMunicipio>1709807</CodigoMunicipio>
+<CodigoPais>1058</CodigoPais>
+<MunicipioIncidencia>1709807</MunicipioIncidencia>
+</Servico>
+<Prestador>
+<CpfCnpj>
+<Cnpj>12345678000190</Cnpj>
+</CpfCnpj>
+<RazaoSocial>EMPRESA DE TESTE LTDA</RazaoSocial>
+</Prestador>
+<Tomador>
+<IdentificacaoTomador>
+<CpfCnpj>
+<Cpf>11144477735</Cpf>
+</CpfCnpj>
+</IdentificacaoTomador>
+<RazaoSocial>Tomador de Teste</RazaoSocial>
+<Endereco>
+<Endereco>Rua de Teste</Endereco>
+<Numero>2</Numero>
+<Bairro>Centro</Bairro>
+<CodigoMunicipio>4309209</CodigoMunicipio>
+<Uf>RS</Uf>
+<Cep>94170068</Cep>
+</Endereco>
+</Tomador>
+<OptanteSimplesNacional>1</OptanteSimplesNacional>
+<IncentivoFiscal>1</IncentivoFiscal>
+</InfDeclaracaoPrestacaoServico>
+</Rps>
+

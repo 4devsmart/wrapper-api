@@ -1,0 +1,31 @@
+<Sdt_ws_001_in_gera_nfse_token>
+<ws_001_in_prest_insc_seq>
+</ws_001_in_prest_insc_seq>
+<ws_001_in_prest_cnpj>12345678000190</ws_001_in_prest_cnpj>
+<ws_001_in_prest_ws_senha>
+</ws_001_in_prest_ws_senha>
+<ws_001_in_prest_ws_token>
+</ws_001_in_prest_ws_token>
+<ws_001_in_tom_nat>F</ws_001_in_tom_nat>
+<ws_001_in_tom_cpf_cnpj>11144477735</ws_001_in_tom_cpf_cnpj>
+<ws_001_in_tom_nome_rso>Tomador de Teste</ws_001_in_tom_nome_rso>
+<ws_001_in_tom_end_log_tip>
+</ws_001_in_tom_end_log_tip>
+<ws_001_in_tom_end_log_des>Rua de Teste</ws_001_in_tom_end_log_des>
+<ws_001_in_tom_end_nro>2</ws_001_in_tom_end_nro>
+<ws_001_in_tom_end_compl>
+</ws_001_in_tom_end_compl>
+<ws_001_in_tom_end_bairro>Centro</ws_001_in_tom_end_bairro>
+<ws_001_in_tom_end_cidade>
+</ws_001_in_tom_end_cidade>
+<ws_001_in_tom_end_uf>RS</ws_001_in_tom_end_uf>
+<ws_001_in_tom_end_cep>94170068</ws_001_in_tom_end_cep>
+<ws_001_in_nfse_cod_atividade>01.05</ws_001_in_nfse_cod_atividade>
+<ws_001_in_nfse_desc_resumida>VIDE DESCRICAO DETALHADA</ws_001_in_nfse_desc_resumida>
+<ws_001_in_nfse_desc_detalhada>teste de layout</ws_001_in_nfse_desc_detalhada>
+<ws_001_in_nfse_valor_bruto>1.00</ws_001_in_nfse_valor_bruto>
+<ws_001_in_nfse_local_retencao>S</ws_001_in_nfse_local_retencao>
+<ws_001_in_nfse_opcao_envio_e_mail>N</ws_001_in_nfse_opcao_envio_e_mail>
+<ws_001_in_opcao_execucao>T</ws_001_in_opcao_execucao>
+</Sdt_ws_001_in_gera_nfse_token>
+

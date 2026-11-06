@@ -1,0 +1,45 @@
+<Rps xmlns="http://www.abrasf.org.br/ABRASF/arquivos/nfse.xsd">
+<InfRps Id="Rps_45">
+<IdentificacaoRps>
+<Numero>4</Numero>
+<Serie>5</Serie>
+<Tipo>1</Tipo>
+</IdentificacaoRps>
+<DataEmissao>2026-09-01T00:00:00</DataEmissao>
+<NaturezaOperacao>1</NaturezaOperacao>
+<OptanteSimplesNacional>1</OptanteSimplesNacional>
+<IncentivadorCultural>2</IncentivadorCultural>
+<Status>1</Status>
+<Servico>
+<Valores>
+<ValorServicos>1.00</ValorServicos>
+<IssRetido>2</IssRetido>
+</Valores>
+<ItemListaServico>0105</ItemListaServico>
+<CodigoCnae>6201501</CodigoCnae>
+<CodigoTributacaoMunicipio>101</CodigoTributacaoMunicipio>
+<Discriminacao>teste de layout</Discriminacao>
+<CodigoMunicipio>2705200</CodigoMunicipio>
+</Servico>
+<Prestador>
+<Cnpj>12345678000190</Cnpj>
+</Prestador>
+<Tomador>
+<IdentificacaoTomador>
+<CpfCnpj>
+<Cpf>11144477735</Cpf>
+</CpfCnpj>
+</IdentificacaoTomador>
+<RazaoSocial>Tomador de Teste</RazaoSocial>
+<Endereco>
+<Endereco>Rua de Teste</Endereco>
+<Numero>2</Numero>
+<Bairro>Centro</Bairro>
+<CodigoMunicipio>4309209</CodigoMunicipio>
+<Uf>RS</Uf>
+<Cep>94170068</Cep>
+</Endereco>
+</Tomador>
+</InfRps>
+</Rps>
+

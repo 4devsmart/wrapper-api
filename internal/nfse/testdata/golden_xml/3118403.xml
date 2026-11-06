@@ -1,0 +1,65 @@
+<Rps xmlns="https://conselheiropena.nfsebrasil.net.br/webservices/2.04/nfse_v204.xsd">
+<InfDeclaracaoPrestacaoServico Id="Dec_45">
+<Rps>
+<IdentificacaoRps>
+<Numero>4</Numero>
+<Serie>5</Serie>
+<Tipo>1</Tipo>
+</IdentificacaoRps>
+<DataEmissao>2026-09-01</DataEmissao>
+<Status>1</Status>
+</Rps>
+<Competencia>2026-09-01</Competencia>
+<Servico>
+<Valores>
+<ValorServicos>1.00</ValorServicos>
+<ValorPis>0.00</ValorPis>
+<ValorCofins>0.00</ValorCofins>
+<ValorInss>0.00</ValorInss>
+<ValorIr>0.00</ValorIr>
+<ValorCsll>0.00</ValorCsll>
+<OutrasRetencoes>0.00</OutrasRetencoes>
+<ValTotTributos>0.00</ValTotTributos>
+<ValorIss>0.00</ValorIss>
+<DescontoIncondicionado>0.00</DescontoIncondicionado>
+<DescontoCondicionado>0.00</DescontoCondicionado>
+</Valores>
+<IssRetido>2</IssRetido>
+<ResponsavelRetencao>
+</ResponsavelRetencao>
+<ItemListaServico>01.05</ItemListaServico>
+<CodigoCnae>6201501</CodigoCnae>
+<CodigoTributacaoMunicipio>101</CodigoTributacaoMunicipio>
+<CodigoNbs>111062000</CodigoNbs>
+<Discriminacao>teste de layout</Discriminacao>
+<CodigoMunicipio>3118403</CodigoMunicipio>
+<ExigibilidadeISS>1</ExigibilidadeISS>
+<IdentifNaoExigibilidade>0</IdentifNaoExigibilidade>
+<MunicipioIncidencia>3118403</MunicipioIncidencia>
+</Servico>
+<Prestador>
+<CpfCnpj>
+<Cnpj>12345678000190</Cnpj>
+</CpfCnpj>
+</Prestador>
+<TomadorServico>
+<IdentificacaoTomador>
+<CpfCnpj>
+<Cpf>11144477735</Cpf>
+</CpfCnpj>
+</IdentificacaoTomador>
+<RazaoSocial>Tomador de Teste</RazaoSocial>
+<Endereco>
+<Endereco>Rua de Teste</Endereco>
+<Numero>2</Numero>
+<Bairro>Centro</Bairro>
+<CodigoMunicipio>4309209</CodigoMunicipio>
+<Uf>RS</Uf>
+<Cep>94170068</Cep>
+</Endereco>
+</TomadorServico>
+<OptanteSimplesNacional>1</OptanteSimplesNacional>
+<IncentivoFiscal>2</IncentivoFiscal>
+</InfDeclaracaoPrestacaoServico>
+</Rps>
+

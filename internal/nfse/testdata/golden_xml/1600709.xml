@@ -1,0 +1,42 @@
+<Rps xmlns="http://megasoftarrecadanet.com.br/xsd/nfse_v01.xsd">
+<InfDeclaracaoPrestacaoServico Id="Dec_45">
+<Rps>
+<IdentificacaoRps>
+<Numero>4</Numero>
+</IdentificacaoRps>
+<DataEmissao>2026-09-01T00:00:00</DataEmissao>
+</Rps>
+<Servico>
+<Valores>
+<ValorServicos>1.00</ValorServicos>
+</Valores>
+<IssRetido>2</IssRetido>
+<CodigoMunicipio>1600709</CodigoMunicipio>
+<CodigoTributacaoMunicipio>101</CodigoTributacaoMunicipio>
+<Exigibilidade>1</Exigibilidade>
+<NumeroNbs>111062000</NumeroNbs>
+<Discriminacao>teste de layout</Discriminacao>
+</Servico>
+<Prestador>
+<CpfCnpj>
+<Cnpj>12345678000190</Cnpj>
+</CpfCnpj>
+</Prestador>
+<Tomador>
+<IdentificacaoTomador>
+<CpfCnpj>
+<Cpf>11144477735</Cpf>
+</CpfCnpj>
+</IdentificacaoTomador>
+<RazaoSocial>Tomador de Teste</RazaoSocial>
+<Endereco>
+<Endereco>Rua de Teste</Endereco>
+<Numero>2</Numero>
+<Bairro>Centro</Bairro>
+<Cep>94170068</Cep>
+<CodigoMunicipio>4309209</CodigoMunicipio>
+</Endereco>
+</Tomador>
+</InfDeclaracaoPrestacaoServico>
+</Rps>
+

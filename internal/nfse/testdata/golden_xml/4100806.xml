@@ -1,0 +1,55 @@
+<rps xmlns="http://www.equiplano.com.br/esnfs">
+<nrRps>4</nrRps>
+<nrEmissorRps>5</nrEmissorRps>
+<dtEmissaoRps>2026-09-01T00:00:00</dtEmissaoRps>
+<stRps>1</stRps>
+<tpTributacao>1</tpTributacao>
+<nrCidadeIbgeServico>4100806</nrCidadeIbgeServico>
+<isIssRetido>2</isIssRetido>
+<tomador>
+<documento>
+<nrDocumento>11144477735</nrDocumento>
+<tpDocumento>1</tpDocumento>
+<dsDocumentoEstrangeiro>
+</dsDocumentoEstrangeiro>
+</documento>
+<nmTomador>Tomador de Teste</nmTomador>
+<dsEndereco>Rua de Teste</dsEndereco>
+<nrEndereco>2</nrEndereco>
+<dsComplemento>
+</dsComplemento>
+<nmBairro>Centro</nmBairro>
+<nrCidadeIbge>4309209</nrCidadeIbge>
+<nmUf>RS</nmUf>
+<nmPais>
+</nmPais>
+<nrCep>94170068</nrCep>
+</tomador>
+<listaServicos>
+<servico>
+<nrServico>010501</nrServico>
+<cdNbs>111062000</cdNbs>
+<vlServico>1.00</vlServico>
+<vlAliquota>0.00</vlAliquota>
+<vlBaseCalculo>0.00</vlBaseCalculo>
+<vlIssServico>0.00</vlIssServico>
+<dsDiscriminacaoServico>teste de layout</dsDiscriminacaoServico>
+</servico>
+</listaServicos>
+<vlTotalRps>1.00</vlTotalRps>
+<vlLiquidoRps>0.00</vlLiquidoRps>
+<retencoes>
+<vlCofins>0.00</vlCofins>
+<vlCsll>0.00</vlCsll>
+<vlInss>0.00</vlInss>
+<vlIrrf>0.00</vlIrrf>
+<vlPis>0.00</vlPis>
+<vlIss>0.00</vlIss>
+<vlAliquotaCofins>0.00</vlAliquotaCofins>
+<vlAliquotaCsll>0.00</vlAliquotaCsll>
+<vlAliquotaInss>0.00</vlAliquotaInss>
+<vlAliquotaIrrf>0.00</vlAliquotaIrrf>
+<vlAliquotaPis>0.00</vlAliquotaPis>
+</retencoes>
+</rps>
+

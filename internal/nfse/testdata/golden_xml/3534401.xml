@@ -1,0 +1,46 @@
+<eis:NotaFiscal>
+<eis1:Aliquota>0.0000</eis1:Aliquota>
+<eis1:Atividade>01.05</eis1:Atividade>
+<eis1:BairroPrestacaoServico>Centro</eis1:BairroPrestacaoServico>
+<eis1:CEPPrestacaoServico>94170068</eis1:CEPPrestacaoServico>
+<eis1:ChaveAutenticacao>
+</eis1:ChaveAutenticacao>
+<eis1:CidadePrestacaoServico>
+</eis1:CidadePrestacaoServico>
+<eis1:CodigoCidadeIBGEPrestacaoServico>4309209</eis1:CodigoCidadeIBGEPrestacaoServico>
+<eis1:DataRecibo>2026-09-01</eis1:DataRecibo>
+<eis1:EnderecoPrestacaoServico>Rua de Teste</eis1:EnderecoPrestacaoServico>
+<eis1:EstadoPrestacaoServico>RS</eis1:EstadoPrestacaoServico>
+<eis1:Homologacao>false</eis1:Homologacao>
+<eis1:NotificarTomadorPorEmail>false</eis1:NotificarTomadorPorEmail>
+<eis1:NumeroPrestacaoServico>2</eis1:NumeroPrestacaoServico>
+<eis1:NumeroRecibo>4</eis1:NumeroRecibo>
+<eis1:PaisPrestacaoServico>
+</eis1:PaisPrestacaoServico>
+<eis1:SemIncidenciaISS>false</eis1:SemIncidenciaISS>
+<eis1:SimplesNacional>true</eis1:SimplesNacional>
+<eis1:SubstituicaoTributaria>false</eis1:SubstituicaoTributaria>
+<eis1:Tomador>
+<eis2:CPF>11144477735</eis2:CPF>
+<eis2:Endereco>
+<eis2:Bairro>Centro</eis2:Bairro>
+<eis2:CEP>94170068</eis2:CEP>
+<eis2:Cidade>
+</eis2:Cidade>
+<eis2:CodigoCidadeIBGE>4309209</eis2:CodigoCidadeIBGE>
+<eis2:Estado>RS</eis2:Estado>
+<eis2:Logradouro>Rua de Teste</eis2:Logradouro>
+<eis2:Numero>2</eis2:Numero>
+<eis2:Pais>
+</eis2:Pais>
+</eis2:Endereco>
+<eis2:Nome>Tomador de Teste</eis2:Nome>
+</eis1:Tomador>
+<eis1:TomadorEstrangeiro>false</eis1:TomadorEstrangeiro>
+<eis1:Valor>1.00</eis1:Valor>
+<eis1:ValorDeducao>0.00</eis1:ValorDeducao>
+<eis1:CodigoNBS>111062000</eis1:CodigoNBS>
+<eis1:IndOperacao>
+</eis1:IndOperacao>
+</eis:NotaFiscal>
+
