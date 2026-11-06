@@ -87,6 +87,20 @@ jobs:
             || { echo "::error::a lib nativa não carregou nos 4 serviços"; docker logs fumaca-worker; exit 1; }
           echo "fumaça OK"
 
+      # A fumaça só prova que a lib carrega. Isto gera o XML de um município por
+      # combinação de provedor, versão e API própria contra a lib da imagem e cobra
+      # o layout que a tabela informa. Não transmite nada. A discordância entre a
+      # tabela e a lib já mandou DPS com valores de ABRASF para Brasília.
+      - uses: actions/setup-go@v7
+        with:
+          go-version: "1.27.3"
+
+      - name: "integração: raiz do XML por provedor, contra a imagem"
+        env:
+          WRAPPER_API_URL: http://127.0.0.1:8080
+          WRAPPER_API_TOKEN: fumaca
+        run: make test-integracao-nfse
+
       # A fumaça prova que a lib carrega, não qual lib é. A v1.3.0 subiu e passou
       # na fumaça com a lib de NFS-e sem os patches que o próprio release trazia.
       - name: as libs da imagem são as do release
