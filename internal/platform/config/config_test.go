@@ -10,12 +10,49 @@ import (
 
 func TestProducaoExigeToken(t *testing.T) {
 	t.Setenv("MODO", "producao")
-	if _, err := Load(); err == nil {
+	semToken, err := Load()
+	if err != nil {
+		t.Fatalf("o worker carrega esta config sem token, e não pode falhar: %v", err)
+	}
+	if semToken.ExigirToken() == nil {
 		t.Fatal("produção sem API_TOKEN deveria falhar: a API aceitaria qualquer chamador")
 	}
 	t.Setenv("API_TOKEN", "abc")
-	if _, err := Load(); err != nil {
-		t.Fatalf("produção com API_TOKEN deveria carregar: %v", err)
+	comToken, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := comToken.ExigirToken(); err != nil {
+		t.Fatalf("produção com API_TOKEN deveria subir: %v", err)
+	}
+}
+
+// Só o caminho já liga o log, no nível que grava certificado.
+func TestProducaoRecusaLogSemNivelInformado(t *testing.T) {
+	t.Setenv("MODO", "producao")
+	t.Setenv("ACBR_LOG_PATH", "/tmp/acbr")
+	if _, err := Load(); err == nil {
+		t.Fatal("ACBR_LOG_PATH sozinho em produção deveria falhar: o nível padrão grava certificado")
+	}
+}
+
+func TestLogSemCaminhoNaoLigaNivel(t *testing.T) {
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.ACBr.LogNivel != "" {
+		t.Errorf("nível %q sem caminho", cfg.ACBr.LogNivel)
+	}
+}
+
+func TestPrazoDeEncerramentoCobreUmaChamada(t *testing.T) {
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.ACBr.PrazoDeEncerramento() <= cfg.ACBr.WorkerTimeout {
+		t.Errorf("prazo %s não cobre o teto de %s", cfg.ACBr.PrazoDeEncerramento(), cfg.ACBr.WorkerTimeout)
 	}
 }
 

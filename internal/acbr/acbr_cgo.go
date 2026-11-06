@@ -116,11 +116,7 @@ func (s *dfeSession) run(t Sessao, fn func(h C.LibHandle) (Result, error)) (Resu
 
 	if s.cfg.LogPath != "" {
 		_ = os.MkdirAll(s.cfg.LogPath, 0o755)
-		nivel := s.cfg.LogNivel
-		if nivel == "" {
-			nivel = "4"
-		}
-		_ = os.WriteFile(cfgPath, []byte("[Principal]\nLogNivel="+nivel+"\nLogPath="+s.cfg.LogPath+"\n"), 0o644)
+		_ = os.WriteFile(cfgPath, []byte("[Principal]\nLogNivel="+s.cfg.LogNivel+"\nLogPath="+s.cfg.LogPath+"\n"), 0o644)
 	}
 
 	cArq := C.CString(cfgPath)
@@ -644,11 +640,7 @@ func (l *cgoLib) withSession(t Sessao, fn func(h C.LibHandle) (Result, error)) (
 	// arquivo de config, então gravamos [Principal] LogNivel/LogPath ANTES.
 	if l.cfg.LogPath != "" {
 		_ = os.MkdirAll(l.cfg.LogPath, 0o755)
-		nivel := l.cfg.LogNivel
-		if nivel == "" {
-			nivel = "4"
-		}
-		preCfg := "[Principal]\nLogNivel=" + nivel + "\nLogPath=" + l.cfg.LogPath + "\n"
+		preCfg := "[Principal]\nLogNivel=" + l.cfg.LogNivel + "\nLogPath=" + l.cfg.LogPath + "\n"
 		_ = os.WriteFile(cfgPath, []byte(preCfg), 0o644)
 	}
 
