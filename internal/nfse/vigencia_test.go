@@ -70,7 +70,7 @@ func TestVigencias_UmaLinhaBastaParaOutroMunicipio(t *testing.T) {
 	if s := rota.DaNota(chaveDe(munAbrasf, "2")).Sessao; s != SessaoNacional {
 		t.Errorf("nota nacional na sessão %s, quero %s", s, SessaoNacional)
 	}
-	if s := rota.SessoesDaConsultaDPS(); len(s) != 2 || s[0] != SessaoNacional {
-		t.Errorf("consulta-dps em %v, quero o nacional primeiro", s)
+	if s := rota.RotasDaConsultaDPS(); len(s) != 2 || s[0].Sessao != SessaoNacional {
+		t.Errorf("consulta-dps em %+v, quero o nacional primeiro", s)
 	}
 }

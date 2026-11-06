@@ -343,6 +343,27 @@ depois de a SEFAZ autorizar.
 
 ---
 
+## Log por operação
+
+Além da linha `http`, cada chamada à NFS-e gera uma linha `nfse` em JSON, com por
+onde ela saiu e como terminou:
+
+```json
+{"msg":"nfse","operacao":"transmissao","http":422,"ms":812,"municipio":"5300108",
+ "sessao":"3304557","provedor":"PadraoNacional","layout":"padrao_nacional",
+ "motivo":"vigencia","ambiente":"producao","desfecho":"rejeitado","rejeicoes":["E0314"]}
+```
+
+- `municipio` é o do documento; `sessao` e `provedor` são o caminho efetivo.
+- `motivo` diz por que a rota é aquela: `tabela`, `vigencia`, `chave`,
+  `consulta-dps` ou `distribuicao`.
+- `desfecho` é o status da nota ou o código do erro. `desfecho_indeterminado` é o
+  que se procura depois de um timeout: a nota pode ter saído.
+
+A linha não leva CNPJ, CPF, chave, número da nota, XML nem a descrição da
+rejeição, só o código. Para ligar a linha a uma nota, cruze com o horário e o
+município no sistema que chamou a API.
+
 ## Antes de produção
 
 Leia **[docs/LIMITACOES.md](docs/LIMITACOES.md)**. O essencial:
