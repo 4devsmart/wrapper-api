@@ -325,3 +325,13 @@ func TestToINI_CNPJEmBrancoNaoRoubaOLugarDoCPF(t *testing.T) {
 		t.Errorf("o CPF não ocupou o lugar do CNPJ em branco:\n%s", ini)
 	}
 }
+
+// Os status de sucesso são do documento: 132 não autoriza CT-e.
+func TestParseEnvioSoAceitaOsStatusDoCTe(t *testing.T) {
+	for cstat, quero := range map[string]bool{"100": true, "104": true, "132": false} {
+		e := ParseEnvio("[Retorno]\ncStat=" + cstat + "\nchCTe=C1\n")
+		if e.Sucesso != quero {
+			t.Errorf("cStat %s: Sucesso = %v, quero %v", cstat, e.Sucesso, quero)
+		}
+	}
+}
