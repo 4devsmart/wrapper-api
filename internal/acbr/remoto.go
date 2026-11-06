@@ -49,8 +49,10 @@ func newRemotos(cfg config.ACBr) *Servicos {
 // capacidade é len(workers)*slots, e é ela que limita quantas chamadas nativas
 // correm em paralelo: limite que NÃO existia com a lib no processo da API.
 type poolWorkers struct {
-	livres  chan *destino
-	timeout time.Duration
+	livres chan *destino
+	// destinos são todos os workers, livres ou não.
+	destinos []*destino
+	timeout  time.Duration
 	// quarentena é quanto tempo um worker que falhou o DIAL fica fora do rodízio.
 	// Sem isso ele devolve a vaga na hora, é reescolhido em microssegundos e passa
 	// a absorver a fila inteira servindo erro: enquanto um worker vivo está
@@ -81,6 +83,7 @@ func novoPool(cfg config.ACBr) *poolWorkers {
 	}
 	for _, addr := range cfg.Workers {
 		d := novoDestino(addr)
+		p.destinos = append(p.destinos, d)
 		for i := 0; i < slots; i++ {
 			p.livres <- d // o mesmo destino ocupa `slots` vagas
 		}
@@ -113,20 +116,23 @@ func novoDestino(addr string) *destino {
 	return &destino{rotulo: addr, url: strings.TrimSuffix(addr, "/") + RotaRPC, cli: &http.Client{Transport: tr}}
 }
 
-// saudavel tenta o /healthz de um worker livre. Não consome vaga por muito
-// tempo nem toca na lib nativa.
+// saudavel diz se algum worker responde ao /healthz. Pergunta a todos, sem passar
+// pelas vagas: worker ocupado com uma emissão está pronto, e disputar a vaga faria
+// o /readyz acusar indisponível justo quando ele trabalha.
 func (p *poolWorkers) saudavel(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	var d *destino
-	select {
-	case d = <-p.livres:
-		defer func() { p.livres <- d }()
-	case <-ctx.Done():
-		return fmt.Errorf("nenhum worker fiscal livre: %w", ErrUnavailable)
+	falha := fmt.Errorf("nenhum worker fiscal configurado: %w", ErrUnavailable)
+	for _, d := range p.destinos {
+		if falha = d.saudavel(ctx); falha == nil {
+			return nil
+		}
 	}
+	return falha
+}
 
+func (d *destino) saudavel(ctx context.Context) error {
 	url := strings.TrimSuffix(d.url, RotaRPC) + RotaHealth
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -144,9 +150,14 @@ func (p *poolWorkers) saudavel(ctx context.Context) error {
 }
 
 // chamar adquire um worker livre, faz a chamada e devolve a vaga.
+//
+// A fila e a chamada têm prazos separados. Com um só, quem esperou 85s na fila
+// transmitia com 5s de sobra: o documento saía, o prazo estourava no meio, e a
+// resposta virava indeterminada por culpa da fila. Desistir na fila é seguro, nada
+// saiu, então o prazo da chamada só começa com a vaga na mão.
 func (p *poolWorkers) chamar(pedido Pedido) (Resposta, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
-	defer cancel()
+	fila := time.NewTimer(p.timeout)
+	defer fila.Stop()
 
 	var d *destino
 	var mortoNoDial bool
@@ -163,9 +174,12 @@ func (p *poolWorkers) chamar(pedido Pedido) (Resposta, error) {
 			}
 			p.livres <- d
 		}()
-	case <-ctx.Done():
+	case <-fila.C:
 		return Resposta{}, fmt.Errorf("nenhum worker fiscal livre em %s: %w", p.timeout, ErrUnavailable)
 	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
+	defer cancel()
 
 	corpo, err := json.Marshal(pedido)
 	if err != nil {
