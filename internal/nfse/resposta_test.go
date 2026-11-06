@@ -22,6 +22,7 @@ func TestOperacaoNaoSuportada(t *testing.T) {
 	naoSup := []string{
 		"Serviço Cancelar não implementado para este provedor.",
 		"Serviço não implementado pelo Provedor.",
+		"[Envio]\nSucesso=0\n[Erro1]\nCodigo=999\nDescricao=Serviço não implementado pelo Provedor.\n",
 	}
 	for _, s := range naoSup {
 		if !OperacaoNaoSuportada(s) {
@@ -32,6 +33,11 @@ func TestOperacaoNaoSuportada(t *testing.T) {
 		"[Envio]\nSucesso=1\nNumeroNota=10\n",
 		"[Envio]\nSucesso=0\n[Erro1]\nCodigo=E0014\nDescricao=DPS duplicada\n",
 		"",
+		// O XML da nota vem na resposta, e a descrição é texto livre do emitente.
+		"[Envio]\nSucesso=1\nNumeroNota=10\nXmlEnvio=<xDescServ>Sistema implementado pelo provedor</xDescServ>\n",
+		"[Envio]\nSucesso=1\nXmlRetorno=<xDescServ>Link implementado para este provedor</xDescServ>\n",
+		// Rejeição de verdade que só cita as palavras não é serviço ausente.
+		"[Envio]\nSucesso=0\n[Erro1]\nCodigo=E1\nDescricao=provedor de internet sem o campo implementado\n",
 	}
 	for _, s := range sup {
 		if OperacaoNaoSuportada(s) {
