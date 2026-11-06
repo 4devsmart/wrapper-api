@@ -78,7 +78,7 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 		!grupoDoTipoCoerente(w, p) {
 		return
 	}
-	m.montar(w, fiscal.Tenant(cnpj, secaoACBr, p.Ambiente, fiscal.Certificado{}), ToINI(p))
+	m.montar(w, fiscal.Sessao(cnpj, secaoACBr, p.Ambiente, fiscal.Certificado{}), ToINI(p))
 }
 
 func (m *Modulo) handleXMLSimp(w http.ResponseWriter, r *http.Request) {
@@ -94,12 +94,12 @@ func (m *Modulo) handleXMLSimp(w http.ResponseWriter, r *http.Request) {
 	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, p.InfCte.Ide.TpAmb, "infCte.ide.tpAmb") || !fiscal.ModalSuportado(w, p.InfCte.Ide.Modal, modalRodoviario) {
 		return
 	}
-	m.montar(w, fiscal.Tenant(cnpj, secaoACBr, p.Ambiente, fiscal.Certificado{}), ToINISimp(p))
+	m.montar(w, fiscal.Sessao(cnpj, secaoACBr, p.Ambiente, fiscal.Certificado{}), ToINISimp(p))
 }
 
 // montar é o corpo comum da geração deste módulo: delega a fiscal.Montar (que é
 // igual para todo documento) e monta a resposta do CT-e.
-func (m *Modulo) montar(w http.ResponseWriter, t acbr.TenantConfig, ini string) {
+func (m *Modulo) montar(w http.ResponseWriter, t acbr.Sessao, ini string) {
 	xml, val, res, err := fiscal.Montar(m.svc, t, ini)
 	if err != nil {
 		fiscal.ResponderErroDaLib(w, "CT-e", res, err)
@@ -177,7 +177,7 @@ func (m *Modulo) handleTransmissao(w http.ResponseWriter, r *http.Request) {
 	// O ambiente vem do XML, não do cliente. Divergir dá rejeição 252, ou,
 	// pior, manda um documento de homologação para o webservice de produção.
 	ambiente := fiscal.Primeiro(fiscal.AmbienteDoXML(xml), p.Ambiente)
-	t := fiscal.Tenant(fiscal.CNPJDaChave(chave), secaoACBr, ambiente, p.Certificado)
+	t := fiscal.Sessao(fiscal.CNPJDaChave(chave), secaoACBr, ambiente, p.Certificado)
 
 	res, err := m.svc.Transmitir(t, xml)
 	if err != nil {
@@ -257,7 +257,7 @@ func (m *Modulo) handleEvento(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t := fiscal.Tenant(cnpj, secaoACBr, p.Ambiente, p.Certificado)
+	t := fiscal.Sessao(cnpj, secaoACBr, p.Ambiente, p.Certificado)
 	res, err := envia(t, ini)
 	if err != nil {
 		fiscal.ResponderErroDaLib(w, "CT-e", res, err)
@@ -278,7 +278,7 @@ func (m *Modulo) handleEvento(w http.ResponseWriter, r *http.Request) {
 // prepararEvento monta o INI do tipo pedido e escolhe o método de envio.
 // errMsg != "" é erro do cliente; envia == nil é tipo inexistente.
 func (m *Modulo) prepararEvento(tipo, chave, cnpj, dh string, p PedidoEvento) (
-	ini string, envia func(acbr.TenantConfig, string) (acbr.Result, error), errMsg string) {
+	ini string, envia func(acbr.Sessao, string) (acbr.Result, error), errMsg string) {
 
 	// Genérico cobre EPEC, comprovante, insucesso e desacordo; cancelamento e
 	// CC-e têm método próprio na lib.
@@ -372,7 +372,7 @@ func (m *Modulo) handleConsulta(w http.ResponseWriter, r *http.Request) {
 	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 		return
 	}
-	t := fiscal.Tenant(fiscal.CNPJDaChave(chave), secaoACBr, p.Ambiente, p.Certificado)
+	t := fiscal.Sessao(fiscal.CNPJDaChave(chave), secaoACBr, p.Ambiente, p.Certificado)
 	res, err := m.svc.Consultar(t, chave)
 	if err != nil {
 		fiscal.ResponderErroDaLib(w, "CT-e", res, err)
@@ -421,19 +421,19 @@ func (m *Modulo) handleCadastro(w http.ResponseWriter, r *http.Request) {
 	m.responderCru(w, res, err)
 }
 
-func (m *Modulo) lerPedidoSefaz(w http.ResponseWriter, r *http.Request) (PedidoSefaz, acbr.TenantConfig, bool) {
+func (m *Modulo) lerPedidoSefaz(w http.ResponseWriter, r *http.Request) (PedidoSefaz, acbr.Sessao, bool) {
 	var p PedidoSefaz
 	if !httpx.LerJSON(w, r, &p) {
-		return p, acbr.TenantConfig{}, false
+		return p, acbr.Sessao{}, false
 	}
 	if err := p.Certificado.Validar(); err != nil {
 		httpx.ErroJSON(w, http.StatusBadRequest, "certificado_invalido", err.Error())
-		return p, acbr.TenantConfig{}, false
+		return p, acbr.Sessao{}, false
 	}
 	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
-		return p, acbr.TenantConfig{}, false
+		return p, acbr.Sessao{}, false
 	}
-	t := fiscal.Tenant(fiscal.SoDigitos(p.CNPJ), secaoACBr, p.Ambiente, p.Certificado)
+	t := fiscal.Sessao(fiscal.SoDigitos(p.CNPJ), secaoACBr, p.Ambiente, p.Certificado)
 	return p, t, true
 }
 
@@ -470,7 +470,7 @@ func (m *Modulo) handlePDF(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	res, err := m.svc.RenderizarPDF(fiscal.Tenant("", secaoACBr, "", fiscal.Certificado{}), xml)
+	res, err := m.svc.RenderizarPDF(fiscal.Sessao("", secaoACBr, "", fiscal.Certificado{}), xml)
 	m.responderPDF(w, res, err)
 }
 
@@ -488,7 +488,7 @@ func (m *Modulo) handlePDFEvento(w http.ResponseWriter, r *http.Request) {
 		httpx.ErroJSON(w, http.StatusBadRequest, "xml_invalido", "xml_evento_b64 é obrigatório e deve ser base64")
 		return
 	}
-	res, err := m.svc.SalvarEventoPDF(fiscal.Tenant("", secaoACBr, "", fiscal.Certificado{}), xml, string(evt))
+	res, err := m.svc.SalvarEventoPDF(fiscal.Sessao("", secaoACBr, "", fiscal.Certificado{}), xml, string(evt))
 	m.responderPDF(w, res, err)
 }
 

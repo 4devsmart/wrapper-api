@@ -240,12 +240,12 @@ func erroDeTransporte(d *destino, p Pedido, err error) (falha error, falhouNoDia
 // --- implementação das interfaces -------------------------------------------
 
 // rpc executa um método no worker.
-func (r remoto) rpc(metodo string, t TenantConfig, a Args) (Resposta, error) {
-	return r.pool.chamar(Pedido{Servico: r.servico, Metodo: metodo, Tenant: t, Args: a})
+func (r remoto) rpc(metodo string, t Sessao, a Args) (Resposta, error) {
+	return r.pool.chamar(Pedido{Servico: r.servico, Metodo: metodo, Sessao: t, Args: a})
 }
 
 // chamar é o atalho para os métodos que devolvem (Result, error).
-func (r remoto) chamar(metodo string, t TenantConfig, a Args) (Result, error) {
+func (r remoto) chamar(metodo string, t Sessao, a Args) (Result, error) {
 	resp, err := r.rpc(metodo, t, a)
 	return resp.Result(), err
 }
@@ -259,113 +259,113 @@ func (r remoto) Saudavel(ctx context.Context) error { return r.pool.saudavel(ctx
 func (remoto) Close() error                         { return nil } // a conexão é por chamada; nada a liberar
 
 func (r remoto) Version() (string, error) {
-	resp, err := r.rpc("Version", TenantConfig{}, Args{})
+	resp, err := r.rpc("Version", Sessao{}, Args{})
 	return resp.Versao, err
 }
 
 // Servico (comum a NFS-e/CT-e/MDF-e).
 
-func (r remoto) Emitir(t TenantConfig, ini string) (Result, error) {
+func (r remoto) Emitir(t Sessao, ini string) (Result, error) {
 	return r.chamar("Emitir", t, Args{INI: ini})
 }
 
-func (r remoto) MontarXML(t TenantConfig, ini string) (Result, error) {
+func (r remoto) MontarXML(t Sessao, ini string) (Result, error) {
 	return r.chamar("MontarXML", t, Args{INI: ini})
 }
 
-func (r remoto) ValidarRegras(t TenantConfig, ini string) (Result, error) {
+func (r remoto) ValidarRegras(t Sessao, ini string) (Result, error) {
 	return r.chamar("ValidarRegras", t, Args{INI: ini})
 }
 
-func (r remoto) Transmitir(t TenantConfig, xml string) (Result, error) {
+func (r remoto) Transmitir(t Sessao, xml string) (Result, error) {
 	return r.chamar("Transmitir", t, Args{XML: xml})
 }
 
-func (r remoto) Consultar(t TenantConfig, chave string) (Result, error) {
+func (r remoto) Consultar(t Sessao, chave string) (Result, error) {
 	return r.chamar("Consultar", t, Args{Chave: chave})
 }
 
-func (r remoto) Cancelar(t TenantConfig, ini string) (Result, error) {
+func (r remoto) Cancelar(t Sessao, ini string) (Result, error) {
 	return r.chamar("Cancelar", t, Args{INI: ini})
 }
 
-func (r remoto) ObterPDF(t TenantConfig, chave string) (Result, error) {
+func (r remoto) ObterPDF(t Sessao, chave string) (Result, error) {
 	return r.chamar("ObterPDF", t, Args{Chave: chave})
 }
 
-func (r remoto) RenderizarPDF(t TenantConfig, xml string) (Result, error) {
+func (r remoto) RenderizarPDF(t Sessao, xml string) (Result, error) {
 	return r.chamar("RenderizarPDF", t, Args{XML: xml})
 }
 
 // NFS-e.
 
-func (r remoto) SubstituirNFSe(t TenantConfig, iniNovaDPS string, sub SubstituicaoNFSe) (Result, error) {
+func (r remoto) SubstituirNFSe(t Sessao, iniNovaDPS string, sub SubstituicaoNFSe) (Result, error) {
 	return r.chamar("SubstituirNFSe", t, Args{INI: iniNovaDPS, Sub: &sub})
 }
 
 // InformacoesProvedor não leva argumento: o provedor sai do CodigoMunicipio que
-// já viaja no tenant.
-func (r remoto) InformacoesProvedor(t TenantConfig) (Result, error) {
+// já viaja na sessão.
+func (r remoto) InformacoesProvedor(t Sessao) (Result, error) {
 	return r.chamar("InformacoesProvedor", t, Args{})
 }
 
-func (r remoto) ConsultarDFe(t TenantConfig, nsu int) (Result, error) {
+func (r remoto) ConsultarDFe(t Sessao, nsu int) (Result, error) {
 	return r.chamar("ConsultarDFe", t, Args{NSU: nsu})
 }
 
-func (r remoto) ConsultarDPSPorChave(t TenantConfig, chaveDPS string) (Result, error) {
+func (r remoto) ConsultarDPSPorChave(t Sessao, chaveDPS string) (Result, error) {
 	return r.chamar("ConsultarDPSPorChave", t, Args{Chave: chaveDPS})
 }
 
-func (r remoto) ConsultarPorNumero(t TenantConfig, numero string, pagina int) (Result, error) {
+func (r remoto) ConsultarPorNumero(t Sessao, numero string, pagina int) (Result, error) {
 	return r.chamar("ConsultarPorNumero", t, Args{Numero: numero, Pagina: pagina})
 }
 
-func (r remoto) ConsultarPorFaixa(t TenantConfig, inicial, final string, pagina int) (Result, error) {
+func (r remoto) ConsultarPorFaixa(t Sessao, inicial, final string, pagina int) (Result, error) {
 	return r.chamar("ConsultarPorFaixa", t, Args{Numero: inicial, NumeroFinal: final, Pagina: pagina})
 }
 
-func (r remoto) ConsultarPorRps(t TenantConfig, numeroRps, serie, tipo, codVerificacao string) (Result, error) {
+func (r remoto) ConsultarPorRps(t Sessao, numeroRps, serie, tipo, codVerificacao string) (Result, error) {
 	return r.chamar("ConsultarPorRps", t, Args{
 		Numero: numeroRps, Serie: serie, Tipo: tipo, CodVerificacao: codVerificacao,
 	})
 }
 
-func (r remoto) ConsultarSituacao(t TenantConfig, protocolo, numLote string) (Result, error) {
+func (r remoto) ConsultarSituacao(t Sessao, protocolo, numLote string) (Result, error) {
 	return r.chamar("ConsultarSituacao", t, Args{Protocolo: protocolo, NumLote: numLote})
 }
 
-func (r remoto) ConsultarLoteRps(t TenantConfig, protocolo, numLote string) (Result, error) {
+func (r remoto) ConsultarLoteRps(t Sessao, protocolo, numLote string) (Result, error) {
 	return r.chamar("ConsultarLoteRps", t, Args{Protocolo: protocolo, NumLote: numLote})
 }
 
 // CT-e / MDF-e.
 
-func (r remoto) CartaCorrecao(t TenantConfig, ini string) (Result, error) {
+func (r remoto) CartaCorrecao(t Sessao, ini string) (Result, error) {
 	return r.chamar("CartaCorrecao", t, Args{INI: ini})
 }
 
-func (r remoto) Encerrar(t TenantConfig, ini string) (Result, error) {
+func (r remoto) Encerrar(t Sessao, ini string) (Result, error) {
 	return r.chamar("Encerrar", t, Args{INI: ini})
 }
 
-func (r remoto) EnviarEvento(t TenantConfig, ini string) (Result, error) {
+func (r remoto) EnviarEvento(t Sessao, ini string) (Result, error) {
 	return r.chamar("EnviarEvento", t, Args{INI: ini})
 }
 
-func (r remoto) SalvarEventoPDF(t TenantConfig, xmlDoc, xmlEvento string) (Result, error) {
+func (r remoto) SalvarEventoPDF(t Sessao, xmlDoc, xmlEvento string) (Result, error) {
 	return r.chamar("SalvarEventoPDF", t, Args{XMLDoc: xmlDoc, XMLEvento: xmlEvento})
 }
 
-func (r remoto) StatusServico(t TenantConfig) (Result, error) {
+func (r remoto) StatusServico(t Sessao) (Result, error) {
 	return r.chamar("StatusServico", t, Args{})
 }
 
-func (r remoto) ConsultaCadastro(t TenantConfig, uf, nDocumento string, ehIE bool) (Result, error) {
+func (r remoto) ConsultaCadastro(t Sessao, uf, nDocumento string, ehIE bool) (Result, error) {
 	return r.chamar("ConsultaCadastro", t, Args{UF: uf, Documento: nDocumento, EhIE: ehIE})
 }
 
-func (r remoto) ConsultaNaoEncerrados(t TenantConfig, cnpj string) (Result, error) {
+func (r remoto) ConsultaNaoEncerrados(t Sessao, cnpj string) (Result, error) {
 	return r.chamar("ConsultaNaoEncerrados", t, Args{CNPJ: cnpj})
 }
 
@@ -373,18 +373,18 @@ func (r remoto) ConsultaNaoEncerrados(t TenantConfig, cnpj string) (Result, erro
 
 // Boleto.
 
-func (r remoto) GerarPDF(t TenantConfig, ini string) (Result, error) {
+func (r remoto) GerarPDF(t Sessao, ini string) (Result, error) {
 	return r.chamar("GerarPDF", t, Args{INI: ini})
 }
 
-func (r remoto) GerarRemessa(t TenantConfig, ini string, numArquivo int) (Result, error) {
+func (r remoto) GerarRemessa(t Sessao, ini string, numArquivo int) (Result, error) {
 	return r.chamar("GerarRemessa", t, Args{INI: ini, NumArquivo: numArquivo})
 }
 
-func (r remoto) LerRetorno(t TenantConfig, configINI, retornoConteudo string) (Result, error) {
+func (r remoto) LerRetorno(t Sessao, configINI, retornoConteudo string) (Result, error) {
 	return r.chamar("LerRetorno", t, Args{ConfigINI: configINI, Retorno: retornoConteudo})
 }
 
-func (r remoto) Registrar(t TenantConfig, op BoletoOnline) (Result, error) {
+func (r remoto) Registrar(t Sessao, op BoletoOnline) (Result, error) {
 	return r.chamar("Registrar", t, Args{Boleto: &op})
 }

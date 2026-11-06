@@ -51,7 +51,7 @@ func (m *Modulo) handlePDF(w http.ResponseWriter, r *http.Request) {
 	if !m.exigirContaETitulos(w, p) {
 		return
 	}
-	res, err := m.svc.GerarPDF(m.tenant(p.Conta), ToINI(p))
+	res, err := m.svc.GerarPDF(m.sessao(p.Conta), ToINI(p))
 	if err != nil {
 		fiscal.ResponderErroDaLib(w, "boleto", res, err)
 		return
@@ -86,7 +86,7 @@ func (m *Modulo) handleRemessa(w http.ResponseWriter, r *http.Request) {
 	if num <= 0 {
 		num = 1
 	}
-	res, err := m.svc.GerarRemessa(m.tenant(p.Conta), ToINI(p.Pedido), num)
+	res, err := m.svc.GerarRemessa(m.sessao(p.Conta), ToINI(p.Pedido), num)
 	if err != nil {
 		fiscal.ResponderErroDaLib(w, "boleto", res, err)
 		return
@@ -127,7 +127,7 @@ func (m *Modulo) handleRetorno(w http.ResponseWriter, r *http.Request) {
 	}
 	// Só a config do banco: o INI de retorno não leva títulos.
 	cfg := ToINI(Pedido{Conta: p.Conta})
-	res, err := m.svc.LerRetorno(m.tenant(p.Conta), cfg, p.Arquivo)
+	res, err := m.svc.LerRetorno(m.sessao(p.Conta), cfg, p.Arquivo)
 	if err != nil {
 		fiscal.ResponderErroDaLib(w, "boleto", res, err)
 		return
@@ -178,7 +178,7 @@ func (m *Modulo) handleRegistro(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := m.svc.Registrar(m.tenant(p.Conta), acbr.BoletoOnline{
+	res, err := m.svc.Registrar(m.sessao(p.Conta), acbr.BoletoOnline{
 		INI:      ToINI(p.Pedido),
 		Operacao: p.Operacao,
 		CertCRT:  crt,
@@ -212,11 +212,11 @@ func (m *Modulo) exigirContaETitulos(w http.ResponseWriter, p Pedido) bool {
 	return true
 }
 
-// tenant rotula a sessão nativa com o cedente. O boleto não tem certificado A1
+// sessao rotula a sessão nativa com o cedente. O boleto não tem certificado A1
 // nem ambiente fiscal: o banco é configuração, e o mTLS (quando existe) vai em
-// BoletoOnline, não no TenantConfig.
-func (m *Modulo) tenant(c Conta) acbr.TenantConfig {
-	return acbr.TenantConfig{CNPJ: fiscal.SoDigitos(c.CNPJCPF)}
+// BoletoOnline, não na Sessao.
+func (m *Modulo) sessao(c Conta) acbr.Sessao {
+	return acbr.Sessao{CNPJ: fiscal.SoDigitos(c.CNPJCPF)}
 }
 
 func decodarOpcional(b64 string) ([]byte, error) {

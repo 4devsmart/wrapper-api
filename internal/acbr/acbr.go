@@ -47,10 +47,11 @@ type ConfigKV struct {
 	Value   string
 }
 
-// TenantConfig descreve a configuração de uma empresa para uma operação.
-// O certificado A1 (.pfx) é informado em base64 (PFXBase64) com a senha.
+// Sessao é a configuração de UMA chamada à lib: vem do pedido e morre com ele.
+// Não há cadastro de empresas aqui, e quem separa clientes é o sistema que
+// consome a API. O certificado A1 (.pfx) é informado em base64 (PFXBase64) com a senha.
 // SSL no Linux é configurado automaticamente (OpenSSL/LibXml2).
-type TenantConfig struct {
+type Sessao struct {
 	CNPJ      string
 	PFXBase64 string // conteúdo do .pfx em base64 (vazio = sem certificado)
 	SenhaPFX  string
@@ -65,9 +66,9 @@ type TenantConfig struct {
 // A serialização JSON continua carregando tudo, de propósito: é por ela que o
 // certificado atravessa o socket até o worker. A redação é contra LOG, não
 // contra transporte, e confundir as duas quebraria a transmissão.
-func (t TenantConfig) String() string { return "TenantConfig{redigido}" }
+func (t Sessao) String() string { return "Sessao{redigido}" }
 
-func (t TenantConfig) LogValue() slog.Value { return slog.StringValue("TenantConfig{redigido}") }
+func (t Sessao) LogValue() slog.Value { return slog.StringValue("Sessao{redigido}") }
 
 // Result é o retorno cru de uma operação da ACBrLib: o código de retorno e a
 // resposta (JSON ou INI, conforme a config TipoResposta da lib).
@@ -78,16 +79,16 @@ type Result struct {
 	PDF      []byte // PDF (DANFSE/DACTE/DAMDFE) preenchido quando gerado
 }
 
-// Servico é a fachada comum de um documento fiscal. As operações recebem o
-// TenantConfig para configurar a instância correta (no modo MT, um handle por
-// empresa). NFSe e CTe usam exatamente este conjunto; o MDFe o estende.
+// Servico é a fachada comum de um documento fiscal. Cada operação recebe a
+// Sessao e abre um handle próprio da lib. NFSe e CTe usam exatamente este
+// conjunto; o MDFe o estende.
 type Servico interface {
 	// Backend descreve a implementação ativa ("stub" ou "cgo").
 	Backend() string
 	// Version retorna a versão da ACBrLib carregada.
 	Version() (string, error)
 	// Emitir carrega o INI do documento e o transmite à SEFAZ/provedor.
-	Emitir(t TenantConfig, ini string) (Result, error)
+	Emitir(t Sessao, ini string) (Result, error)
 	// MontarXML carrega o INI e devolve o XML montado pela lib SEM transmitir
 	// (CarregarINI → ObterXml). É a GERAÇÃO: o cliente recebe o
 	// documento e a sua chave antes de qualquer byte sair para a SEFAZ, e é isso
@@ -95,7 +96,7 @@ type Servico interface {
 	//
 	// NÃO assina: nenhuma lib assina em CarregarINI, e a NFS-e sequer expõe
 	// assinatura separada. Por isso gerar dispensa certificado.
-	MontarXML(t TenantConfig, ini string) (Result, error)
+	MontarXML(t Sessao, ini string) (Result, error)
 	// ValidarRegras roda as validações de REGRAS DE NEGÓCIO da lib sobre o INI
 	// carregado, sem certificado e sem rede: as rejeições que a SEFAZ daria,
 	// antecipadas na geração.
@@ -104,7 +105,7 @@ type Servico interface {
 	// só pode ser validada depois de assinar, o que acontece na transmissão, ainda
 	// antes de transmitir. Devolve ErrNaoSuportado onde a lib não expõe a função
 	// (NFS-e).
-	ValidarRegras(t TenantConfig, ini string) (Result, error)
+	ValidarRegras(t Sessao, ini string) (Result, error)
 	// Transmitir carrega um XML JÁ MONTADO (o da geração) e o envia ao webservice
 	// (CarregarXML → Enviar/Emitir). É a TRANSMISSÃO: o certificado chega aqui, e é
 	// a lib que assina no envio.
@@ -112,14 +113,14 @@ type Servico interface {
 	// Como qualquer envio, NUNCA deve ser repetido às cegas: em falha
 	// indeterminada (ErrIndeterminado) o documento pode ter sido transmitido, e
 	// a recuperação correta é Consultar pela chave.
-	Transmitir(t TenantConfig, xml string) (Result, error)
+	Transmitir(t Sessao, xml string) (Result, error)
 	// Consultar consulta um documento pela chave de acesso.
-	Consultar(t TenantConfig, chave string) (Result, error)
+	Consultar(t Sessao, chave string) (Result, error)
 	// Cancelar envia o evento de cancelamento. Recebe o INI do evento.
-	Cancelar(t TenantConfig, ini string) (Result, error)
+	Cancelar(t Sessao, ini string) (Result, error)
 	// ObterPDF retorna o PDF (base64) da representação gráfica pela chave
 	// (DANFSE/DACTE/DAMDFE).
-	ObterPDF(t TenantConfig, chave string) (Result, error)
+	ObterPDF(t Sessao, chave string) (Result, error)
 	// RenderizarPDF gera a representação gráfica a partir do XML JÁ AUTORIZADO
 	// (CarregarXML → SalvarPDF), fora do fluxo de emissão.
 	//
@@ -128,7 +129,7 @@ type Servico interface {
 	// a transmissão: um SIGSEGV ali matava o processo com o documento já
 	// autorizado na SEFAZ e nada persistido. Separado, o pior caso é perder o
 	// PDF, que se regenera a partir do XML.
-	RenderizarPDF(t TenantConfig, xml string) (Result, error)
+	RenderizarPDF(t Sessao, xml string) (Result, error)
 	// Close libera recursos.
 	Close() error
 }
@@ -140,24 +141,23 @@ type NFSeServico interface {
 	// SubstituirNFSe substitui uma NFS-e: carrega a DPS substituta (iniNovaDPS,
 	// via NFSE_CarregarINI) e envia a substituição identificando a NFS-e antiga
 	// (sub). O componente exige a DPS nova carregada antes (NotasFiscais.Count>0).
-	SubstituirNFSe(t TenantConfig, iniNovaDPS string, sub SubstituicaoNFSe) (Result, error)
+	SubstituirNFSe(t Sessao, iniNovaDPS string, sub SubstituicaoNFSe) (Result, error)
 	// EnviarEvento transmite um evento de NFS-e a partir do INI [Evento]
 	// (NFSE_EnviarEvento). É por aqui que o Padrão Nacional cancela: o provedor
 	// dele não implementa o webservice CancelaNFSe, e o cancelamento é o evento
 	// e101101 do pedido de registro de evento.
-	EnviarEvento(t TenantConfig, ini string) (Result, error)
-	// InformacoesProvedor devolve o que o provedor do município configurado no
-	// tenant de fato expõe (NFSE_ObterInformacoesProvedor): identificação,
+	EnviarEvento(t Sessao, ini string) (Result, error)
+	// InformacoesProvedor devolve o que o provedor do município configurado na
+	// sessão de fato expõe (NFSE_ObterInformacoesProvedor): identificação,
 	// autenticações exigidas e a lista de serviços disponibilizados.
 	//
 	// Não vai à prefeitura: é a capacidade que a própria lib declara para aquele
 	// provedor. Existe para que "não dá para cancelar aqui" seja uma resposta
 	// verificada, e não um palpite nosso.
-	InformacoesProvedor(t TenantConfig) (Result, error)
+	InformacoesProvedor(t Sessao) (Result, error)
 	// ConsultarDFe consulta a Distribuição DF-e do ADN (Padrão Nacional) por NSU.
-	// O CNPJ vem da config do tenant (não é parâmetro). A resposta crua é
-	// interpretada por internal/distribuicao.ParseNFSe.
-	ConsultarDFe(t TenantConfig, nsu int) (Result, error)
+	// O CNPJ vem da config da sessão (não é parâmetro).
+	ConsultarDFe(t Sessao, nsu int) (Result, error)
 	// ConsultarDPSPorChave consulta a NFS-e gerada a partir de uma DPS, usando a
 	// chave DA DPS: a que a geração devolve, antes de qualquer transmissão.
 	//
@@ -165,17 +165,17 @@ type NFSeServico interface {
 	// perdeu só é resolvível perguntando ao ADN se aquela DPS virou nota. É o
 	// análogo do Consultar por chave do CT-e, e a razão de a geração devolver o
 	// identificador da DPS.
-	ConsultarDPSPorChave(t TenantConfig, chaveDPS string) (Result, error)
+	ConsultarDPSPorChave(t Sessao, chaveDPS string) (Result, error)
 	// ConsultarPorNumero consulta a NFS-e pelo número (paginação por pagina≥1).
-	ConsultarPorNumero(t TenantConfig, numero string, pagina int) (Result, error)
+	ConsultarPorNumero(t Sessao, numero string, pagina int) (Result, error)
 	// ConsultarPorFaixa consulta NFS-e numa faixa de números (paginação).
-	ConsultarPorFaixa(t TenantConfig, inicial, final string, pagina int) (Result, error)
+	ConsultarPorFaixa(t Sessao, inicial, final string, pagina int) (Result, error)
 	// ConsultarPorRps consulta a NFS-e a partir do RPS que a originou.
-	ConsultarPorRps(t TenantConfig, numeroRps, serie, tipo, codVerificacao string) (Result, error)
+	ConsultarPorRps(t Sessao, numeroRps, serie, tipo, codVerificacao string) (Result, error)
 	// ConsultarSituacao consulta a situação de um lote pelo protocolo/numLote.
-	ConsultarSituacao(t TenantConfig, protocolo, numLote string) (Result, error)
+	ConsultarSituacao(t Sessao, protocolo, numLote string) (Result, error)
 	// ConsultarLoteRps consulta o resultado de um lote de RPS pelo protocolo/numLote.
-	ConsultarLoteRps(t TenantConfig, protocolo, numLote string) (Result, error)
+	ConsultarLoteRps(t Sessao, protocolo, numLote string) (Result, error)
 }
 
 // SubstituicaoNFSe identifica a NFS-e antiga numa substituição (evita parâmetros
@@ -193,40 +193,39 @@ type SubstituicaoNFSe struct {
 type MDFeServico interface {
 	Servico
 	// Encerrar envia o evento de encerramento do MDF-e. Recebe o INI do evento.
-	Encerrar(t TenantConfig, ini string) (Result, error)
+	Encerrar(t Sessao, ini string) (Result, error)
 	// EnviarEvento transmite um evento genérico do MDF-e (inclusão de condutor/
 	// DF-e, etc.) a partir do INI indexado ([EVENTO001]). Mesmo mecanismo do
 	// Encerrar/Cancelar (MDFE_CarregarEventoINI + MDFE_EnviarEvento).
-	EnviarEvento(t TenantConfig, ini string) (Result, error)
+	EnviarEvento(t Sessao, ini string) (Result, error)
 	// StatusServico consulta o status do serviço da SEFAZ (MDFE_StatusServico).
-	StatusServico(t TenantConfig) (Result, error)
+	StatusServico(t Sessao) (Result, error)
 	// ConsultaNaoEncerrados lista os MDF-e do CNPJ ainda não encerrados
 	// (MDFE_ConsultaMDFeNaoEnc): útil para conformidade antes de emitir novos.
-	ConsultaNaoEncerrados(t TenantConfig, cnpj string) (Result, error)
+	ConsultaNaoEncerrados(t Sessao, cnpj string) (Result, error)
 	// SalvarEventoPDF gera o DAMDFE do evento (PDF em Result.PDF) a partir do XML
 	// do MDF-e + o XML do evento. Render FortesReport (gtk2+Xvfb), como o DANFSE.
-	SalvarEventoPDF(t TenantConfig, xmlDoc, xmlEvento string) (Result, error)
+	SalvarEventoPDF(t Sessao, xmlDoc, xmlEvento string) (Result, error)
 }
 
 // CTeServico estende Servico com a Carta de Correção (CC-e, tpEvento 110110).
-// O INI segue o formato INDEXADO de evento ([EVENTO001]+[DETEVENTO001..]); ver
-// .claude/skills/acbr-especialista/referencia/cte-eventos.md.
+// O INI segue o formato INDEXADO de evento ([EVENTO001]+[DETEVENTO001..]).
 type CTeServico interface {
 	Servico
 	// CartaCorrecao envia a CC-e. Recebe o INI do evento (mesmo mecanismo do
 	// Cancelar: CTE_CarregarEventoINI + CTE_EnviarEvento).
-	CartaCorrecao(t TenantConfig, ini string) (Result, error)
+	CartaCorrecao(t Sessao, ini string) (Result, error)
 	// EnviarEvento transmite um evento genérico do CT-e (EPEC, comprovante de
 	// entrega, etc.) a partir do INI indexado. Mesmo mecanismo do CartaCorrecao.
-	EnviarEvento(t TenantConfig, ini string) (Result, error)
+	EnviarEvento(t Sessao, ini string) (Result, error)
 	// StatusServico consulta o status do serviço da SEFAZ (CTE_StatusServico).
-	StatusServico(t TenantConfig) (Result, error)
+	StatusServico(t Sessao) (Result, error)
 	// ConsultaCadastro consulta o cadastro de um contribuinte na UF. ehIE=true
 	// quando nDocumento é Inscrição Estadual; senão é CNPJ/CPF.
-	ConsultaCadastro(t TenantConfig, uf, nDocumento string, ehIE bool) (Result, error)
+	ConsultaCadastro(t Sessao, uf, nDocumento string, ehIE bool) (Result, error)
 	// SalvarEventoPDF gera o DACTE do evento (PDF em Result.PDF) a partir do XML
 	// do CT-e + o XML do evento. Render FortesReport (gtk2+Xvfb), como o DACTE.
-	SalvarEventoPDF(t TenantConfig, xmlDoc, xmlEvento string) (Result, error)
+	SalvarEventoPDF(t Sessao, xmlDoc, xmlEvento string) (Result, error)
 }
 
 // BoletoServico é o binding do boleto bancário (não-fiscal): geração do
@@ -237,17 +236,17 @@ type BoletoServico interface {
 	Version() (string, error)
 	// GerarPDF carrega o INI (config + títulos) e devolve o PDF do boleto (base64
 	// decodificado em Result.PDF). Geração offline, não fala com o banco.
-	GerarPDF(t TenantConfig, ini string) (Result, error)
+	GerarPDF(t Sessao, ini string) (Result, error)
 	// GerarRemessa carrega o INI (config + títulos) e gera o arquivo de remessa
 	// CNAB (texto em Result.Resposta). numArquivo = sequencial da remessa.
-	GerarRemessa(t TenantConfig, ini string, numArquivo int) (Result, error)
+	GerarRemessa(t Sessao, ini string, numArquivo int) (Result, error)
 	// LerRetorno processa um arquivo de retorno CNAB (conteúdo cru) usando a
 	// config do banco (configINI) e devolve o retorno parseado como INI
 	// (títulos + ocorrências) em Result.Resposta.
-	LerRetorno(t TenantConfig, configINI, retornoConteudo string) (Result, error)
+	LerRetorno(t Sessao, configINI, retornoConteudo string) (Result, error)
 	// Registrar registra o(s) boleto(s) ONLINE via API do banco,
 	// usando op.INI (títulos+config) e op.Operacao.
-	Registrar(t TenantConfig, op BoletoOnline) (Result, error)
+	Registrar(t Sessao, op BoletoOnline) (Result, error)
 	Close() error
 }
 

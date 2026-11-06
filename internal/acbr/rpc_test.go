@@ -2,6 +2,7 @@ package acbr
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -22,7 +23,7 @@ type servicoFake struct {
 	indisponivel
 
 	iniRecebido    string
-	tenantRecebido TenantConfig
+	sessaoRecebida Sessao
 	result         Result
 	err            error
 
@@ -39,13 +40,13 @@ func handlerDeTeste(s *Servicos, slots int) http.Handler {
 	return h
 }
 
-func (f *servicoFake) Emitir(t TenantConfig, ini string) (Result, error) {
+func (f *servicoFake) Emitir(t Sessao, ini string) (Result, error) {
 	f.chamadas.Add(1)
 	if n := f.emCurso.Add(1); n > f.pico.Load() {
 		f.pico.Store(n)
 	}
 	defer f.emCurso.Add(-1)
-	f.iniRecebido, f.tenantRecebido = ini, t
+	f.iniRecebido, f.sessaoRecebida = ini, t
 	if f.atraso > 0 {
 		time.Sleep(f.atraso)
 	}
@@ -86,13 +87,13 @@ func TestRPC_RoundTripEmissao(t *testing.T) {
 	}}
 	svc := clienteDe(t, workerDeTeste(t, f, 1), 1, 5*time.Second)
 
-	tenant := TenantConfig{
+	sessao := Sessao{
 		CNPJ:      "12345678000199",
 		PFXBase64: "cGZ4LWZha2U=",
 		SenhaPFX:  "segredo",
 		Config:    []ConfigKV{{Section: "NFSe", Key: "CodigoMunicipio", Value: "3550308"}},
 	}
-	res, err := svc.NFSe.Emitir(tenant, "[DPS]\nnDPS=1\n")
+	res, err := svc.NFSe.Emitir(sessao, "[DPS]\nnDPS=1\n")
 	if err != nil {
 		t.Fatalf("Emitir devolveu erro: %v", err)
 	}
@@ -108,11 +109,11 @@ func TestRPC_RoundTripEmissao(t *testing.T) {
 	}
 	// O certificado e as chaves de config precisam atravessar intactos, senão a
 	// emissão falha do outro lado por motivo obscuro.
-	if f.tenantRecebido.PFXBase64 != tenant.PFXBase64 || f.tenantRecebido.SenhaPFX != tenant.SenhaPFX {
-		t.Errorf("TenantConfig chegou incompleto: %+v", f.tenantRecebido)
+	if f.sessaoRecebida.PFXBase64 != sessao.PFXBase64 || f.sessaoRecebida.SenhaPFX != sessao.SenhaPFX {
+		t.Errorf("Sessao chegou incompleto: %+v", f.sessaoRecebida)
 	}
-	if len(f.tenantRecebido.Config) != 1 || f.tenantRecebido.Config[0].Value != "3550308" {
-		t.Errorf("ConfigKV não atravessou: %+v", f.tenantRecebido.Config)
+	if len(f.sessaoRecebida.Config) != 1 || f.sessaoRecebida.Config[0].Value != "3550308" {
+		t.Errorf("ConfigKV não atravessou: %+v", f.sessaoRecebida.Config)
 	}
 }
 
@@ -120,7 +121,7 @@ func TestRPC_PreservaErrUnavailable(t *testing.T) {
 	// O stub responde ErrUnavailable a tudo: é o cenário "worker sem a lib".
 	svc := clienteDe(t, workerDeTeste(t, &servicoFake{err: ErrUnavailable}, 1), 1, 5*time.Second)
 
-	_, err := svc.NFSe.Emitir(TenantConfig{}, "[DPS]")
+	_, err := svc.NFSe.Emitir(Sessao{}, "[DPS]")
 	if err == nil {
 		t.Fatal("esperava erro")
 	}
@@ -138,7 +139,7 @@ func TestRPC_ErroDaLibNaoViraIndisponivel(t *testing.T) {
 	}
 	svc := clienteDe(t, workerDeTeste(t, f, 1), 1, 5*time.Second)
 
-	res, err := svc.NFSe.Emitir(TenantConfig{}, "[DPS]")
+	res, err := svc.NFSe.Emitir(Sessao{}, "[DPS]")
 	if err == nil {
 		t.Fatal("esperava erro")
 	}
@@ -156,7 +157,7 @@ func TestRemoto_WorkerInacessivelEhIndisponivel(t *testing.T) {
 	socket := filepath.Join(t.TempDir(), "nao-existe.sock")
 	svc := clienteDe(t, socket, 1, 2*time.Second)
 
-	_, err := svc.NFSe.Emitir(TenantConfig{}, "[DPS]")
+	_, err := svc.NFSe.Emitir(Sessao{}, "[DPS]")
 	if err == nil {
 		t.Fatal("esperava erro")
 	}
@@ -180,7 +181,7 @@ func TestRemoto_QuedaDuranteChamadaAvisaRiscoDeDuplicidade(t *testing.T) {
 	defer ts.Close()
 
 	svc := clienteDe(t, ts.URL, 1, 5*time.Second)
-	_, err := svc.NFSe.Emitir(TenantConfig{}, "[DPS]")
+	_, err := svc.NFSe.Emitir(Sessao{}, "[DPS]")
 	if err == nil {
 		t.Fatal("esperava erro")
 	}
@@ -223,7 +224,7 @@ func TestPool_LimitaChamadasSimultaneas(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			if _, err := svc.CTe.Emitir(TenantConfig{}, "[infCTe]"); err != nil {
+			if _, err := svc.CTe.Emitir(Sessao{}, "[infCTe]"); err != nil {
 				t.Errorf("Emitir concorrente falhou: %v", err)
 			}
 		}()
@@ -271,7 +272,7 @@ func TestPool_WorkerMortoNaoRoubaAFila(t *testing.T) {
 	// encontrar o vivo, porque o morto fica de quarentena.
 	var indisponiveis int
 	for i := 0; i < 6; i++ {
-		if _, err := svc.NFSe.Emitir(TenantConfig{}, "[DPS]"); err != nil {
+		if _, err := svc.NFSe.Emitir(Sessao{}, "[DPS]"); err != nil {
 			if !errors.Is(err, ErrUnavailable) {
 				t.Fatalf("erro inesperado: %v", err)
 			}
@@ -319,7 +320,7 @@ func TestReciclagemSinalizaAposTeto(t *testing.T) {
 	defer ts.Close()
 	svc := clienteDe(t, ts.URL, 1, 5*time.Second)
 
-	if _, err := svc.NFSe.Emitir(TenantConfig{}, "[DPS]"); err != nil {
+	if _, err := svc.NFSe.Emitir(Sessao{}, "[DPS]"); err != nil {
 		t.Fatalf("1ª chamada: %v", err)
 	}
 	select {
@@ -328,7 +329,7 @@ func TestReciclagemSinalizaAposTeto(t *testing.T) {
 	default:
 	}
 
-	if _, err := svc.NFSe.Emitir(TenantConfig{}, "[DPS]"); err != nil {
+	if _, err := svc.NFSe.Emitir(Sessao{}, "[DPS]"); err != nil {
 		t.Fatalf("2ª chamada: %v", err)
 	}
 	select {
@@ -348,7 +349,7 @@ func TestReciclagemDesligadaPorPadrao(t *testing.T) {
 	svc := clienteDe(t, ts.URL, 1, 5*time.Second)
 
 	for i := 0; i < 5; i++ {
-		if _, err := svc.CTe.Emitir(TenantConfig{}, "[infCTe]"); err != nil {
+		if _, err := svc.CTe.Emitir(Sessao{}, "[infCTe]"); err != nil {
 			t.Fatalf("chamada %d: %v", i, err)
 		}
 	}
@@ -396,9 +397,9 @@ type fluxoFake struct {
 	indisponivel
 
 	montarINI     string
-	montarTenant  TenantConfig
+	montarSessao  Sessao
 	transmitirXML string
-	transmitirTn  TenantConfig
+	transmitirTn  Sessao
 	validarINI    string
 
 	resMontar     Result
@@ -406,17 +407,17 @@ type fluxoFake struct {
 	errValidar    error
 }
 
-func (f *fluxoFake) MontarXML(t TenantConfig, ini string) (Result, error) {
-	f.montarINI, f.montarTenant = ini, t
+func (f *fluxoFake) MontarXML(t Sessao, ini string) (Result, error) {
+	f.montarINI, f.montarSessao = ini, t
 	return f.resMontar, nil
 }
 
-func (f *fluxoFake) Transmitir(t TenantConfig, xml string) (Result, error) {
+func (f *fluxoFake) Transmitir(t Sessao, xml string) (Result, error) {
 	f.transmitirXML, f.transmitirTn = xml, t
 	return f.resTransmitir, nil
 }
 
-func (f *fluxoFake) ValidarRegras(_ TenantConfig, ini string) (Result, error) {
+func (f *fluxoFake) ValidarRegras(_ Sessao, ini string) (Result, error) {
 	f.validarINI = ini
 	return Result{}, f.errValidar
 }
@@ -432,19 +433,19 @@ func TestRPC_GerarETransmitirAtravessamOWorker(t *testing.T) {
 
 	// Gerar: monta e valida SEM certificado. É o que permite testar a camada de
 	// montagem: o ativo real do projeto, sem um .pfx no repositório.
-	res, err := cli.MontarXML(TenantConfig{CNPJ: "12345678000199"}, "[infCTe]\nversao=4.00")
+	res, err := cli.MontarXML(Sessao{CNPJ: "12345678000199"}, "[infCTe]\nversao=4.00")
 	if err != nil {
 		t.Fatalf("MontarXML: %v", err)
 	}
 	if res.XML != f.resMontar.XML {
 		t.Errorf("XML da geração = %q, quero %q", res.XML, f.resMontar.XML)
 	}
-	if f.montarTenant.PFXBase64 != "" {
-		t.Errorf("a geração recebeu certificado (%q): ela existe justamente para não precisar de um", f.montarTenant.PFXBase64)
+	if f.montarSessao.PFXBase64 != "" {
+		t.Errorf("a geração recebeu certificado (%q): ela existe justamente para não precisar de um", f.montarSessao.PFXBase64)
 	}
 
-	// Transmitir: envia o XML gerado, agora com o certificado no tenant.
-	res, err = cli.Transmitir(TenantConfig{CNPJ: "12345678000199", PFXBase64: "cGZ4", SenhaPFX: "s3nh4"}, f.resMontar.XML)
+	// Transmitir: envia o XML gerado, agora com o certificado na sessão.
+	res, err = cli.Transmitir(Sessao{CNPJ: "12345678000199", PFXBase64: "cGZ4", SenhaPFX: "s3nh4"}, f.resMontar.XML)
 	if err != nil {
 		t.Fatalf("Transmitir: %v", err)
 	}
@@ -467,7 +468,7 @@ func TestRPC_NaoSuportadoNaoViraIndisponivel(t *testing.T) {
 	ts := httptest.NewServer(handlerDeTeste(&Servicos{NFSe: f, CTe: f, MDFe: f, Boleto: f}, 1))
 	t.Cleanup(ts.Close)
 
-	_, err := clienteDe(t, ts.URL, 1, 5*time.Second).NFSe.ValidarRegras(TenantConfig{}, "[DPS]")
+	_, err := clienteDe(t, ts.URL, 1, 5*time.Second).NFSe.ValidarRegras(Sessao{}, "[DPS]")
 	if err == nil {
 		t.Fatal("esperava erro")
 	}
@@ -491,7 +492,7 @@ func TestTransmitir_QuedaNoMeioNaoAutorizaRepetir(t *testing.T) {
 	}))
 	t.Cleanup(ts.Close)
 
-	_, err := clienteDe(t, ts.URL, 1, 5*time.Second).CTe.Transmitir(TenantConfig{}, "<CTe/>")
+	_, err := clienteDe(t, ts.URL, 1, 5*time.Second).CTe.Transmitir(Sessao{}, "<CTe/>")
 	if err == nil {
 		t.Fatal("esperava erro")
 	}
@@ -525,9 +526,9 @@ func TestQuedaEmMetodoLocalNaoViraIndeterminado(t *testing.T) {
 
 	svc := clienteDe(t, ts.URL, 1, 5*time.Second)
 	for nome, chamada := range map[string]func() error{
-		"MontarXML":     func() error { _, err := svc.CTe.MontarXML(TenantConfig{}, "[ide]"); return err },
-		"ValidarRegras": func() error { _, err := svc.CTe.ValidarRegras(TenantConfig{}, "[ide]"); return err },
-		"RenderizarPDF": func() error { _, err := svc.CTe.RenderizarPDF(TenantConfig{}, "<CTe/>"); return err },
+		"MontarXML":     func() error { _, err := svc.CTe.MontarXML(Sessao{}, "[ide]"); return err },
+		"ValidarRegras": func() error { _, err := svc.CTe.ValidarRegras(Sessao{}, "[ide]"); return err },
+		"RenderizarPDF": func() error { _, err := svc.CTe.RenderizarPDF(Sessao{}, "<CTe/>"); return err },
 	} {
 		t.Run(nome, func(t *testing.T) {
 			err := chamada()
@@ -541,5 +542,29 @@ func TestQuedaEmMetodoLocalNaoViraIndeterminado(t *testing.T) {
 				t.Errorf("%s deveria ser ErrUnavailable (503, repetir é seguro), veio: %v", nome, err)
 			}
 		})
+	}
+}
+
+// O nome do campo no fio é "tenant", mesmo com o tipo chamado Sessao. O protocolo
+// não tem versão e API e worker sobem separados: trocar a tag faria o lado antigo
+// ignorar o campo sem erro nenhum e abrir a sessão sem certificado nem município.
+func TestPedido_CampoDaSessaoNoFioContinuaTenant(t *testing.T) {
+	b, err := json.Marshal(Pedido{Servico: ServicoNFSe, Metodo: "Emitir", Sessao: Sessao{CNPJ: "123"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var cru map[string]json.RawMessage
+	if err := json.Unmarshal(b, &cru); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := cru["tenant"]; !ok {
+		t.Fatalf("o campo tem de continuar \"tenant\" no JSON: %s", b)
+	}
+	var volta Pedido
+	if err := json.Unmarshal([]byte(`{"tenant":{"CNPJ":"456"}}`), &volta); err != nil {
+		t.Fatal(err)
+	}
+	if volta.Sessao.CNPJ != "456" {
+		t.Errorf("um pedido da versão anterior perdeu a sessão: %+v", volta)
 	}
 }

@@ -40,7 +40,7 @@ func (l *mdfeLib) Backend() string { return "cgo" }
 func (l *mdfeLib) Close() error    { return nil }
 
 func (l *mdfeLib) Version() (string, error) {
-	res, err := l.s.run(TenantConfig{}, func(h C.LibHandle) (Result, error) {
+	res, err := l.s.run(Sessao{}, func(h C.LibHandle) (Result, error) {
 		code, resp := l.s.callBuf(h, func(b *C.char, sz *C.int) C.int { return C.MDFE_Versao(h, b, sz) })
 		return Result{Codigo: code, Resposta: resp}, nil
 	})
@@ -53,7 +53,7 @@ func (l *mdfeLib) Version() (string, error) {
 	return res.Resposta, nil
 }
 
-func (l *mdfeLib) Emitir(t TenantConfig, ini string) (Result, error) {
+func (l *mdfeLib) Emitir(t Sessao, ini string) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		cIni := C.CString(ini)
 		defer C.free(unsafe.Pointer(cIni))
@@ -80,7 +80,7 @@ func (l *mdfeLib) Emitir(t TenantConfig, ini string) (Result, error) {
 
 // MontarXML carrega o INI e devolve o XML montado, SEM transmitir à SEFAZ
 // (MDFE_CarregarINI → MDFE_ObterXml). Preview/validação local.
-func (l *mdfeLib) MontarXML(t TenantConfig, ini string) (Result, error) {
+func (l *mdfeLib) MontarXML(t Sessao, ini string) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		cIni := C.CString(ini)
 		defer C.free(unsafe.Pointer(cIni))
@@ -95,7 +95,7 @@ func (l *mdfeLib) MontarXML(t TenantConfig, ini string) (Result, error) {
 // ValidarRegras carrega o INI e roda MDFE_ValidarRegrasdeNegocios: as rejeições
 // que a SEFAZ daria, antecipadas localmente, sem certificado e sem rede. É a
 // validação da geração. XSD fica de fora: ver o comentário da interface.
-func (l *mdfeLib) ValidarRegras(t TenantConfig, ini string) (Result, error) {
+func (l *mdfeLib) ValidarRegras(t Sessao, ini string) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		cIni := C.CString(ini)
 		defer C.free(unsafe.Pointer(cIni))
@@ -111,7 +111,7 @@ func (l *mdfeLib) ValidarRegras(t TenantConfig, ini string) (Result, error) {
 
 // Transmitir envia o XML montado na geração (MDFE_CarregarXML → MDFE_Enviar). A
 // lib assina no envio, então é aqui, e só aqui, que o certificado é preciso.
-func (l *mdfeLib) Transmitir(t TenantConfig, xml string) (Result, error) {
+func (l *mdfeLib) Transmitir(t Sessao, xml string) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		cXML := C.CString(xml)
 		defer C.free(unsafe.Pointer(cXML))
@@ -138,7 +138,7 @@ func (l *mdfeLib) Transmitir(t TenantConfig, xml string) (Result, error) {
 	})
 }
 
-func (l *mdfeLib) Consultar(t TenantConfig, chave string) (Result, error) {
+func (l *mdfeLib) Consultar(t Sessao, chave string) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		c := C.CString(chave)
 		defer C.free(unsafe.Pointer(c))
@@ -150,11 +150,11 @@ func (l *mdfeLib) Consultar(t TenantConfig, chave string) (Result, error) {
 // Cancelar (tpEvento 110111) e Encerrar (tpEvento 110112) são eventos: o INI já
 // vem montado pelo domínio; carrega via MDFE_CarregarEventoINI e transmite via
 // MDFE_EnviarEvento.
-func (l *mdfeLib) Cancelar(t TenantConfig, ini string) (Result, error)     { return l.evento(t, ini) }
-func (l *mdfeLib) Encerrar(t TenantConfig, ini string) (Result, error)     { return l.evento(t, ini) }
-func (l *mdfeLib) EnviarEvento(t TenantConfig, ini string) (Result, error) { return l.evento(t, ini) }
+func (l *mdfeLib) Cancelar(t Sessao, ini string) (Result, error)     { return l.evento(t, ini) }
+func (l *mdfeLib) Encerrar(t Sessao, ini string) (Result, error)     { return l.evento(t, ini) }
+func (l *mdfeLib) EnviarEvento(t Sessao, ini string) (Result, error) { return l.evento(t, ini) }
 
-func (l *mdfeLib) evento(t TenantConfig, ini string) (Result, error) {
+func (l *mdfeLib) evento(t Sessao, ini string) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		cIni := C.CString(ini)
 		defer C.free(unsafe.Pointer(cIni))
@@ -175,7 +175,7 @@ func (l *mdfeLib) evento(t TenantConfig, ini string) (Result, error) {
 // RenderizarPDF gera o DAMDFE a partir do XML já autorizado (CarregarXML →
 // SalvarPDF), fora do caminho de emissão. É o que permite o PDF sob demanda:
 // perder o render deixou de significar perder o documento.
-func (l *mdfeLib) RenderizarPDF(t TenantConfig, xml string) (Result, error) {
+func (l *mdfeLib) RenderizarPDF(t Sessao, xml string) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		cXML := C.CString(xml)
 		defer C.free(unsafe.Pointer(cXML))
@@ -191,13 +191,13 @@ func (l *mdfeLib) RenderizarPDF(t TenantConfig, xml string) (Result, error) {
 	})
 }
 
-func (l *mdfeLib) ObterPDF(_ TenantConfig, _ string) (Result, error) {
+func (l *mdfeLib) ObterPDF(_ Sessao, _ string) (Result, error) {
 	return Result{}, fmt.Errorf("ObterPDF sob demanda não suportado para MDF-e; use o PDF da emissão")
 }
 
 // SalvarEventoPDF gera o DAMDFE do evento a partir do XML do MDF-e + o XML do
 // evento (conteúdo, não path). PDF em Result.PDF, como o MDFE_SalvarPDF.
-func (l *mdfeLib) SalvarEventoPDF(t TenantConfig, xmlDoc, xmlEvento string) (Result, error) {
+func (l *mdfeLib) SalvarEventoPDF(t Sessao, xmlDoc, xmlEvento string) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		cDoc := C.CString(xmlDoc)
 		cEv := C.CString(xmlEvento)
@@ -215,7 +215,7 @@ func (l *mdfeLib) SalvarEventoPDF(t TenantConfig, xmlDoc, xmlEvento string) (Res
 }
 
 // StatusServico consulta o status do serviço da SEFAZ-MDFe.
-func (l *mdfeLib) StatusServico(t TenantConfig) (Result, error) {
+func (l *mdfeLib) StatusServico(t Sessao) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		code, resp := l.s.callBuf(h, func(b *C.char, sz *C.int) C.int { return C.MDFE_StatusServico(h, b, sz) })
 		return Result{Codigo: code, Resposta: resp}, nil
@@ -223,7 +223,7 @@ func (l *mdfeLib) StatusServico(t TenantConfig) (Result, error) {
 }
 
 // ConsultaNaoEncerrados lista os MDF-e do CNPJ ainda não encerrados.
-func (l *mdfeLib) ConsultaNaoEncerrados(t TenantConfig, cnpj string) (Result, error) {
+func (l *mdfeLib) ConsultaNaoEncerrados(t Sessao, cnpj string) (Result, error) {
 	return l.s.run(t, func(h C.LibHandle) (Result, error) {
 		cc := C.CString(cnpj)
 		defer C.free(unsafe.Pointer(cc))

@@ -22,29 +22,29 @@ type libFake struct {
 	iniPDF, iniRemessa, cfgRetorno, arquivoRetorno string
 	numArquivo                                     int
 	online                                         acbr.BoletoOnline
-	tenant                                         acbr.TenantConfig
+	sessao                                         acbr.Sessao
 
 	resPDF, resRemessa, resRetorno, resOnline acbr.Result
 	err                                       error
 }
 
-func (f *libFake) GerarPDF(t acbr.TenantConfig, ini string) (acbr.Result, error) {
-	f.iniPDF, f.tenant = ini, t
+func (f *libFake) GerarPDF(t acbr.Sessao, ini string) (acbr.Result, error) {
+	f.iniPDF, f.sessao = ini, t
 	return f.resPDF, f.err
 }
 
-func (f *libFake) GerarRemessa(t acbr.TenantConfig, ini string, num int) (acbr.Result, error) {
-	f.iniRemessa, f.numArquivo, f.tenant = ini, num, t
+func (f *libFake) GerarRemessa(t acbr.Sessao, ini string, num int) (acbr.Result, error) {
+	f.iniRemessa, f.numArquivo, f.sessao = ini, num, t
 	return f.resRemessa, f.err
 }
 
-func (f *libFake) LerRetorno(t acbr.TenantConfig, cfg, conteudo string) (acbr.Result, error) {
-	f.cfgRetorno, f.arquivoRetorno, f.tenant = cfg, conteudo, t
+func (f *libFake) LerRetorno(t acbr.Sessao, cfg, conteudo string) (acbr.Result, error) {
+	f.cfgRetorno, f.arquivoRetorno, f.sessao = cfg, conteudo, t
 	return f.resRetorno, f.err
 }
 
-func (f *libFake) Registrar(t acbr.TenantConfig, op acbr.BoletoOnline) (acbr.Result, error) {
-	f.online, f.tenant = op, t
+func (f *libFake) Registrar(t acbr.Sessao, op acbr.BoletoOnline) (acbr.Result, error) {
+	f.online, f.sessao = op, t
 	return f.resOnline, f.err
 }
 
@@ -115,11 +115,11 @@ func TestPDFDevolveBase64(t *testing.T) {
 		t.Errorf("pdf_b64 não decodifica num PDF: %v", err)
 	}
 	// O boleto não é fiscal: nada de certificado A1 nem ambiente na sessão.
-	if f.tenant.PFXBase64 != "" || len(f.tenant.Config) != 0 {
-		t.Errorf("tenant do boleto não deveria ter certificado nem config fiscal: %+v", f.tenant)
+	if f.sessao.PFXBase64 != "" || len(f.sessao.Config) != 0 {
+		t.Errorf("sessao do boleto não deveria ter certificado nem config fiscal: %+v", f.sessao)
 	}
-	if f.tenant.CNPJ != "12345678000190" {
-		t.Errorf("CNPJ do cedente = %q, quero só os dígitos", f.tenant.CNPJ)
+	if f.sessao.CNPJ != "12345678000190" {
+		t.Errorf("CNPJ do cedente = %q, quero só os dígitos", f.sessao.CNPJ)
 	}
 	for _, quero := range []string{"[Banco]", "[Conta]", "[Cedente]", "[Titulo1]"} {
 		if !strings.Contains(f.iniPDF, quero) {

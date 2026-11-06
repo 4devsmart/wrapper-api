@@ -18,7 +18,6 @@ type PedidoCancelamento struct {
 // ACBrCTe.LerFromIni espera: [EVENTO] (idLote) + [EVENTO001] com os campos comuns.
 // cOrgao = 2 primeiros dígitos da chave (cUF). No fluxo CarregarEventoINI a lib
 // NÃO auto-preenche cOrgao/CNPJ/dhEvento, então informamos tudo.
-// Ver .claude/skills/acbr-especialista/referencia/cte-eventos.md.
 func eventoHeader(b *iniBuilder, chave, cnpj, dhEvento, tpEvento string, nSeq int) {
 	cOrgao := ""
 	if len(chave) >= 2 {

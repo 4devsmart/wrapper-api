@@ -19,43 +19,43 @@ type libFake struct {
 
 	iniMontar, iniEvento           string
 	xmlTransmitido                 string
-	tenantMontar, tenantTransmitir acbr.TenantConfig
+	sessaoMontar, sessaoTransmitir acbr.Sessao
 	metodoEvento                   string
 
 	resMontar, resValidar, resTransmitir, resEvento acbr.Result
 	errValidar, errTransmitir                       error
 }
 
-func (f *libFake) MontarXML(t acbr.TenantConfig, ini string) (acbr.Result, error) {
-	f.iniMontar, f.tenantMontar = ini, t
+func (f *libFake) MontarXML(t acbr.Sessao, ini string) (acbr.Result, error) {
+	f.iniMontar, f.sessaoMontar = ini, t
 	return f.resMontar, nil
 }
 
-func (f *libFake) ValidarRegras(_ acbr.TenantConfig, _ string) (acbr.Result, error) {
+func (f *libFake) ValidarRegras(_ acbr.Sessao, _ string) (acbr.Result, error) {
 	return f.resValidar, f.errValidar
 }
 
-func (f *libFake) Transmitir(t acbr.TenantConfig, xml string) (acbr.Result, error) {
-	f.xmlTransmitido, f.tenantTransmitir = xml, t
+func (f *libFake) Transmitir(t acbr.Sessao, xml string) (acbr.Result, error) {
+	f.xmlTransmitido, f.sessaoTransmitir = xml, t
 	return f.resTransmitir, f.errTransmitir
 }
 
-func (f *libFake) Encerrar(_ acbr.TenantConfig, ini string) (acbr.Result, error) {
+func (f *libFake) Encerrar(_ acbr.Sessao, ini string) (acbr.Result, error) {
 	f.iniEvento, f.metodoEvento = ini, "Encerrar"
 	return f.resEvento, nil
 }
 
-func (f *libFake) Cancelar(_ acbr.TenantConfig, ini string) (acbr.Result, error) {
+func (f *libFake) Cancelar(_ acbr.Sessao, ini string) (acbr.Result, error) {
 	f.iniEvento, f.metodoEvento = ini, "Cancelar"
 	return f.resEvento, nil
 }
 
-func (f *libFake) EnviarEvento(_ acbr.TenantConfig, ini string) (acbr.Result, error) {
+func (f *libFake) EnviarEvento(_ acbr.Sessao, ini string) (acbr.Result, error) {
 	f.iniEvento, f.metodoEvento = ini, "EnviarEvento"
 	return f.resEvento, nil
 }
 
-func (f *libFake) ConsultaNaoEncerrados(_ acbr.TenantConfig, cnpj string) (acbr.Result, error) {
+func (f *libFake) ConsultaNaoEncerrados(_ acbr.Sessao, cnpj string) (acbr.Result, error) {
 	return acbr.Result{Resposta: "cnpj=" + cnpj}, nil
 }
 
@@ -122,8 +122,8 @@ func TestGerarNaoRecebeCertificado(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d: %s", rec.Code, rec.Body)
 	}
-	if f.tenantMontar.PFXBase64 != "" || f.tenantMontar.SenhaPFX != "" {
-		t.Errorf("a geração montou tenant com certificado: %+v", f.tenantMontar)
+	if f.sessaoMontar.PFXBase64 != "" || f.sessaoMontar.SenhaPFX != "" {
+		t.Errorf("a geração montou sessao com certificado: %+v", f.sessaoMontar)
 	}
 	var resp RespostaXML
 	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
@@ -177,8 +177,8 @@ func TestTransmiteOXMLGerado(t *testing.T) {
 	if f.xmlTransmitido != xml {
 		t.Error("a lib recebeu XML diferente do enviado")
 	}
-	if f.tenantTransmitir.CNPJ != "12345678000190" {
-		t.Errorf("CNPJ da sessão = %q, quero o extraído da chave", f.tenantTransmitir.CNPJ)
+	if f.sessaoTransmitir.CNPJ != "12345678000190" {
+		t.Errorf("CNPJ da sessão = %q, quero o extraído da chave", f.sessaoTransmitir.CNPJ)
 	}
 	var resp RespostaTransmissao
 	_ = json.Unmarshal(rec.Body.Bytes(), &resp)
@@ -204,7 +204,7 @@ func TestAmbienteVemDoXMLNaoDoCliente(t *testing.T) {
 				"certificado": certValido(),
 			})
 			var ordinal string
-			for _, kv := range f.tenantTransmitir.Config {
+			for _, kv := range f.sessaoTransmitir.Config {
 				if kv.Key == "Ambiente" {
 					ordinal = kv.Value
 				}

@@ -27,8 +27,8 @@ const (
 	segredoChave = "-----BEGIN PRIVATE KEY----- material-mTLS"
 )
 
-func tenantDeTeste() TenantConfig {
-	return TenantConfig{
+func sessaoDeTeste() Sessao {
+	return Sessao{
 		CNPJ:      "99999999000191",
 		PFXBase64: segredoPFX,
 		SenhaPFX:  segredoSenha,
@@ -54,24 +54,24 @@ func vazou(t *testing.T, onde, texto string, segredos ...string) {
 	}
 }
 
-func TestTenantConfig_NaoVazaEmFormatacao(t *testing.T) {
-	c := tenantDeTeste()
+func TestSessao_NaoVazaEmFormatacao(t *testing.T) {
+	c := sessaoDeTeste()
 	for _, f := range []string{"%v", "%+v", "%s"} {
 		vazou(t, "fmt "+f, fmt.Sprintf(f, c), segredoPFX, segredoSenha)
 	}
-	// O caso real: alguém loga a struct que CONTÉM o tenant, para depurar.
+	// O caso real: alguém loga a struct que CONTÉM o sessao, para depurar.
 	dentro := struct {
 		Rota   string
-		Tenant TenantConfig
+		Sessao Sessao
 	}{"/v1/cte/transmissao", c}
-	vazou(t, "fmt %+v de struct que contém o tenant", fmt.Sprintf("%+v", dentro), segredoPFX, segredoSenha)
+	vazou(t, "fmt %+v de struct que contém o sessao", fmt.Sprintf("%+v", dentro), segredoPFX, segredoSenha)
 }
 
-func TestTenantConfig_NaoVazaNoSlog(t *testing.T) {
+func TestSessao_NaoVazaNoSlog(t *testing.T) {
 	var buf bytes.Buffer
 	log := slog.New(slog.NewJSONHandler(&buf, nil))
-	log.Info("abrindo sessão", "tenant", tenantDeTeste())
-	log.Info("abrindo sessão", slog.Any("tenant", tenantDeTeste()))
+	log.Info("abrindo sessão", "sessao", sessaoDeTeste())
+	log.Info("abrindo sessão", slog.Any("sessao", sessaoDeTeste()))
 
 	vazou(t, "slog", buf.String(), segredoPFX, segredoSenha)
 	if !strings.Contains(buf.String(), "redigido") {
@@ -92,18 +92,18 @@ func TestBoletoOnline_NaoVaza(t *testing.T) {
 	}
 }
 
-// O JSON é o caminho legítimo: é por ele que o tenant atravessa o socket até o
+// O JSON é o caminho legítimo: é por ele que o sessao atravessa o socket até o
 // worker. A redação é contra LOG, não contra transporte, e confundir as duas
 // quebraria a transmissão inteira. Este teste existe para a distinção ficar
 // explícita para quem mexer aqui.
 func TestRedacao_NaoAtrapalhaOTransporte(t *testing.T) {
-	b, err := json.Marshal(tenantDeTeste())
+	b, err := json.Marshal(sessaoDeTeste())
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, quero := range []string{segredoPFX, segredoSenha} {
 		if !strings.Contains(string(b), quero) {
-			t.Errorf("o tenant precisa atravessar o JSON inteiro: %s", b)
+			t.Errorf("o sessao precisa atravessar o JSON inteiro: %s", b)
 		}
 	}
 

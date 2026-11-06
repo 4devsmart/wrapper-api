@@ -24,8 +24,7 @@ type Correcao struct {
 }
 
 // ToINICartaCorrecao monta o INI da CC-e (tpEvento 110110) no formato indexado:
-// [EVENTO]/[EVENTO001] (cabeçalho) + [DETEVENTO001..] (uma por correção). Ver
-// .claude/skills/acbr-especialista/referencia/cte-eventos.md.
+// [EVENTO]/[EVENTO001] (cabeçalho) + [DETEVENTO001..] (uma por correção).
 func ToINICartaCorrecao(chave, cnpj, dhEvento string, p PedidoCartaCorrecao) string {
 	var b iniBuilder
 	eventoHeader(&b, chave, cnpj, dhEvento, "110110", p.NSeqEvento)

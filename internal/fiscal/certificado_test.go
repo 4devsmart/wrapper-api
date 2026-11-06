@@ -144,9 +144,9 @@ func TestCertificado_Informado(t *testing.T) {
 
 // --- a sessão nativa --------------------------------------------------------
 
-func TestTenant_LevaCertificadoEAmbiente(t *testing.T) {
+func TestSessao_LevaCertificadoEAmbiente(t *testing.T) {
 	c := certDeTeste()
-	tn := Tenant("12345678000190", "CTe", "producao", c)
+	tn := Sessao("12345678000190", "CTe", "producao", c)
 
 	if tn.CNPJ != "12345678000190" {
 		t.Errorf("CNPJ = %q", tn.CNPJ)
@@ -167,16 +167,16 @@ func TestTenant_LevaCertificadoEAmbiente(t *testing.T) {
 
 // A geração não assina e não fala com a SEFAZ: o certificado não deve nem
 // existir na sessão. É a garantia que sustenta o contrato de duas chamadas.
-func TestTenant_GeracaoNaoCarregaCertificado(t *testing.T) {
-	tn := Tenant("12345678000190", "CTe", "homologacao", Certificado{})
+func TestSessao_GeracaoNaoCarregaCertificado(t *testing.T) {
+	tn := Sessao("12345678000190", "CTe", "homologacao", Certificado{})
 	if tn.PFXBase64 != "" || tn.SenhaPFX != "" {
 		t.Errorf("sessão de geração com certificado: %+v", tn)
 	}
 }
 
-func TestTenant_EspacoNoPFXNaoVaiParaALib(t *testing.T) {
+func TestSessao_EspacoNoPFXNaoVaiParaALib(t *testing.T) {
 	c := Certificado{PFXBase64: "  " + certDeTeste().PFXBase64 + "  ", Senha: "x"}
-	if tn := Tenant("1", "CTe", "", c); strings.HasPrefix(tn.PFXBase64, " ") {
+	if tn := Sessao("1", "CTe", "", c); strings.HasPrefix(tn.PFXBase64, " ") {
 		t.Error("espaço em volta do base64 chegou à lib")
 	}
 }

@@ -23,11 +23,11 @@ type svcFake struct {
 	errValidar  error
 }
 
-func (f svcFake) MontarXML(acbr.TenantConfig, string) (acbr.Result, error) {
+func (f svcFake) MontarXML(acbr.Sessao, string) (acbr.Result, error) {
 	return acbr.Result{XML: f.xml, Codigo: f.codigoMontar}, f.errMontar
 }
 
-func (f svcFake) ValidarRegras(acbr.TenantConfig, string) (acbr.Result, error) {
+func (f svcFake) ValidarRegras(acbr.Sessao, string) (acbr.Result, error) {
 	return acbr.Result{Resposta: f.respValidar}, f.errValidar
 }
 
@@ -42,7 +42,7 @@ func TestMontar_FalhaNaValidacaoNaoViraOK(t *testing.T) {
 	falha := errors.New("worker fiscal caiu: " + acbr.ErrUnavailable.Error())
 	svc := svcFake{xml: "<CTe/>", errValidar: falha}
 
-	xml, val, _, err := Montar(svc, acbr.TenantConfig{}, "[ide]")
+	xml, val, _, err := Montar(svc, acbr.Sessao{}, "[ide]")
 	if err == nil {
 		t.Fatalf("falha na validação precisa subir; veio xml=%q val=%+v", xml, val)
 	}
@@ -60,7 +60,7 @@ func TestMontar_FalhaNaValidacaoNaoViraOK(t *testing.T) {
 func TestMontar_NaoSuportadoContinuaSendoRespostaValida(t *testing.T) {
 	svc := svcFake{xml: "<DPS/>", errValidar: acbr.ErrNaoSuportado}
 
-	xml, val, _, err := Montar(svc, acbr.TenantConfig{}, "[DPS]")
+	xml, val, _, err := Montar(svc, acbr.Sessao{}, "[DPS]")
 	if err != nil {
 		t.Fatalf("ErrNaoSuportado não é falha da geração: %v", err)
 	}
@@ -78,7 +78,7 @@ func TestMontar_NaoSuportadoContinuaSendoRespostaValida(t *testing.T) {
 func TestMontar_RejeicaoDeRegraDeNegocio(t *testing.T) {
 	svc := svcFake{xml: "<CTe/>", respValidar: "252 - Ambiente informado diverge\n"}
 
-	_, val, _, err := Montar(svc, acbr.TenantConfig{}, "[ide]")
+	_, val, _, err := Montar(svc, acbr.Sessao{}, "[ide]")
 	if err != nil {
 		t.Fatalf("rejeição de regra não é erro de infraestrutura: %v", err)
 	}
@@ -119,7 +119,7 @@ func TestResponderErroDaLib_StatusPorSentinela(t *testing.T) {
 // sai o "detalhes" com o código de retorno).
 func TestMontar_FalhaNaMontagemSobeComOResultado(t *testing.T) {
 	svc := svcFake{codigoMontar: -10, errMontar: errors.New("CTE_CarregarINI falhou")}
-	xml, val, res, err := Montar(svc, acbr.TenantConfig{}, "[ide]")
+	xml, val, res, err := Montar(svc, acbr.Sessao{}, "[ide]")
 	if err == nil {
 		t.Fatal("falha na montagem precisa subir")
 	}
