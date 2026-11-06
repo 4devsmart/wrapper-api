@@ -1,14 +1,11 @@
 package nfse
 
 import (
-	"encoding/json"
 	"encoding/xml"
 	"io"
 	"regexp"
-	"strconv"
 	"strings"
 
-	"github.com/4devsmart/wrapper-api/internal/fiscal"
 	"github.com/4devsmart/wrapper-api/internal/tabelas"
 )
 
@@ -43,122 +40,6 @@ func LayoutDoMunicipio(cmun string) (Layout, bool) {
 	default:
 		return "", false
 	}
-}
-
-// MunicipioADN é o município pelo qual a sessão nativa fala com o ADN
-// (Ambiente de Dados Nacional) quando a distribuição não pode sair pelo
-// município do cliente.
-//
-// A lib escolhe a classe do provedor pelo CodigoMunicipio, e a Distribuição
-// DF-e só existe em algumas: a do Padrão Nacional e as de API própria de
-// Betha, Fiorilli, Infisc, ISSNet e outras. As demais levantam ERR_NAO_IMP
-// antes de qualquer byte sair, e quem emite num município ABRASF ou próprio
-// ficava sem a fila do ADN. Nem toda classe que implementa fala com o ADN: nos
-// municípios Infisc do RS (Caxias do Sul, Canoas e outros) a URL é o sefin da
-// prefeitura, com NSU próprio, por isso o município do pedido continua tendo
-// preferência e este só entra no lugar do ERR_NAO_IMP.
-//
-// Qualquer município atendido pelo PadraoNacional puro serve, porque o ADN é o
-// mesmo para todos. O código é o do Rio de Janeiro, e um teste garante que a
-// tabela continua a classificá-lo assim.
-const MunicipioADN = "3304557"
-
-// competenciaSimplesNacional é a primeira competência em que ME e EPP do Simples
-// não emitem mais no sistema próprio do município (Resolução CGSN 191/2026).
-const competenciaSimplesNacional = "2026-11-01"
-
-// opSimpNacMEEPP é o opSimpNac de ME e EPP optantes do Simples Nacional.
-const opSimpNacMEEPP = 3
-
-// ambGerSistemaNacional é o ambiente gerador das notas do Sistema Nacional, na
-// posição 8 da chave de acesso. O 1 é o sistema da prefeitura.
-const ambGerSistemaNacional = '2'
-
-// simplesSaiPeloAmbienteNacional são os municípios onde o emitente do Simples
-// sai pelo Ambiente Nacional sem que a tabela da lib diga isso. A tabela é por
-// município, e aqui o caminho depende do emitente: em Brasília quem não é do
-// Simples continua no ISSNet, que recusa o Simples com EM110.
-//
-// Só entra aqui município com a recusa comprovada. A regra é nacional, mas tirar
-// um município do provedor que hoje autoriza é trocar nota que sai por aposta.
-var simplesSaiPeloAmbienteNacional = map[string]bool{"5300108": true}
-
-// PeloAmbienteNacional diz se a nota deste emitente sai pelo Ambiente Nacional
-// em vez do provedor do município. A competência decide, e não a data de
-// emissão: nota de outubro emitida em novembro continua no provedor.
-func PeloAmbienteNacional(cmun string, opSimpNac int, dCompet string) bool {
-	return simplesSaiPeloAmbienteNacional[fiscal.SoDigitos(cmun)] &&
-		opSimpNac == opSimpNacMEEPP && len(dCompet) >= 10 &&
-		dCompet[:10] >= competenciaSimplesNacional
-}
-
-// dpsPeloAmbienteNacional é PeloAmbienteNacional a partir do pedido.
-func dpsPeloAmbienteNacional(cmun string, p DPSPedido) bool {
-	rt := p.InfDPS.Prest.RegTrib
-	return rt != nil && PeloAmbienteNacional(cmun, rt.OpSimpNac, p.InfDPS.DCompet)
-}
-
-// MunicipioDaSessao é o município que abre a sessão da DPS: o da nota, salvo
-// quando ela sai pelo Ambiente Nacional. A lib escolhe a classe pelo município
-// da sessão, e o documento continua levando o município de verdade: cLocEmi e
-// a chave da DPS vêm do INI (patch 0004 do ACBr).
-func MunicipioDaSessao(cmun string, p DPSPedido) string {
-	if dpsPeloAmbienteNacional(cmun, p) {
-		return MunicipioADN
-	}
-	return cmun
-}
-
-// MunicipioDaSessaoDoXML é o mesmo para a transmissão, que só recebe a DPS
-// pronta. O regime e a competência estão no próprio documento, então o cliente
-// não precisa informar nada a mais, e uma DPS gerada antes desta regra também
-// acerta o caminho.
-func MunicipioDaSessaoDoXML(cmun, xml string) string {
-	op, dCompet := 0, ""
-	if m := reOpSimpNac.FindStringSubmatch(xml); len(m) == 2 {
-		op, _ = strconv.Atoi(m[1])
-	}
-	if m := reDCompet.FindStringSubmatch(xml); len(m) == 2 {
-		dCompet = m[1]
-	}
-	if PeloAmbienteNacional(cmun, op, dCompet) {
-		return MunicipioADN
-	}
-	return cmun
-}
-
-// MunicipioDaNota é o município que abre a sessão para uma nota já emitida. Num
-// município da lista convivem notas nos dois sistemas: as do Simples até
-// outubro e as de quem não é do Simples no provedor, as novas no Sistema
-// Nacional. É a chave que diz onde a nota está, sem nada a mais no pedido.
-func MunicipioDaNota(cmun, chave string) string {
-	chave = strings.TrimSpace(chave)
-	if !simplesSaiPeloAmbienteNacional[fiscal.SoDigitos(cmun)] ||
-		len(chave) != 50 || fiscal.SoDigitos(chave) != chave {
-		return cmun
-	}
-	if chave[7] == ambGerSistemaNacional {
-		return MunicipioADN
-	}
-	return cmun
-}
-
-// MunicipioDoEvento é o município da sessão de um evento. Na substituição a
-// nota nova decide primeiro: se ela só pode sair pelo Ambiente Nacional, é por
-// lá que a substituição tem de ir, qualquer que seja a antiga. Evento malformado
-// fica na regra da chave, e a recusa sai na validação do próprio evento.
-func MunicipioDoEvento(tipo string, p PedidoEvento) string {
-	chave := p.Chave
-	if tipo == "substituicao" {
-		var e SubstituicaoPedido
-		if json.Unmarshal(p.Evento, &e) == nil {
-			if dpsPeloAmbienteNacional(p.Municipio, e.DPS) {
-				return MunicipioADN
-			}
-			chave = fiscal.Primeiro(e.Substituida.Chave, chave)
-		}
-	}
-	return MunicipioDaNota(p.Municipio, chave)
 }
 
 // ToINIDoLayout escolhe o construtor de INI conforme o layout. Padrão Nacional
@@ -212,12 +93,9 @@ func MunicipioDoXML(xml string) string {
 const abre = `<(?:[A-Za-z0-9_.-]+:)?` // abertura de tag, com prefixo opcional
 
 var (
-	reCLocEmi         = regexp.MustCompile(abre + `cLocEmi>([0-9]{7})<`)
-	reCLocIncid       = regexp.MustCompile(abre + `cLocIncid>([0-9]{7})<`)
-	reOpSimpNac       = regexp.MustCompile(abre + `opSimpNac>([0-9])<`)
-	reDCompet         = regexp.MustCompile(abre + `dCompet>([0-9-]{10})<`)
-	reChaveNaResposta = regexp.MustCompile(`[0-9]{50}`)
-	reOrgaoGerador    = regexp.MustCompile(`(?s)` + abre + `OrgaoGerador>.*?` + abre + `CodigoMunicipio>([0-9]{7})<`)
+	reCLocEmi      = regexp.MustCompile(abre + `cLocEmi>([0-9]{7})<`)
+	reCLocIncid    = regexp.MustCompile(abre + `cLocIncid>([0-9]{7})<`)
+	reOrgaoGerador = regexp.MustCompile(`(?s)` + abre + `OrgaoGerador>.*?` + abre + `CodigoMunicipio>([0-9]{7})<`)
 )
 
 // nsNFSeNacional é o namespace da DPS e da NFS-e do Padrão Nacional.
