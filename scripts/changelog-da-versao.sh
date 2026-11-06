@@ -8,8 +8,9 @@ set -eu
 versao="$1"
 arquivo="${2:-CHANGELOG.md}"
 
-secao="$(awk -v titulo="## $versao" '
-  $0 == titulo || index($0, titulo " ") == 1 { dentro = 1; next }
+# Até a v1.7.0 o título é "## v1.7.0 - data"; o `make release` escreve "## 1.8.0 — data".
+secao="$(awk -v com_v="## $versao " -v sem_v="## ${versao#v} " '
+  index($0 " ", com_v) == 1 || index($0 " ", sem_v) == 1 { dentro = 1; next }
   /^## / { dentro = 0 }
   dentro
 ' "$arquivo")"

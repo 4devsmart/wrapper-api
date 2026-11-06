@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(./scripts/release major)",
+      "Bash(./scripts/release minor)",
+      "Bash(./scripts/release patch)",
+      "Bash(./scripts/release)",
+      "Bash(./scripts/ship)",
+      "Bash(make release bump=*)",
+      "Bash(make release)",
+      "Bash(make ship)"
+    ]
+  }
+}

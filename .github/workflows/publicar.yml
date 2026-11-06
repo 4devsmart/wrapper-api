@@ -1,24 +1,24 @@
 name: Publicar imagem
 
-# Builda a imagem a cada push em main e só a publica como :<sha> e :latest depois
-# de fumaça, integração e conferência das libs. Até lá ela existe só como
-# :teste-<sha>, que ninguém consome. Assim, :<sha> existir quer dizer que ela
-# passou, e é isso que o release confere antes de promover.
-# NÃO implanta nada: quem promove para :vX.Y.Z é o workflow de release.
+# Builda a imagem da release e só a publica como :<sha> depois de fumaça, integração
+# e conferência das libs. Até lá ela existe só como :teste-<sha>, que ninguém
+# consome. Assim, :<sha> existir quer dizer que ela passou.
+#
+# Roda no push de release/vX.Y.Z, que é o `make release`. O `make ship` espera este
+# workflow antes de mover a main, e o release.yml promove este mesmo digest: nada é
+# compilado de novo na entrega, e um erro de lib ou de integração para a release
+# antes de chegar à main.
 on:
   push:
-    branches: [main]
-  workflow_dispatch:
+    branches: ["release/v*"]
 
 permissions:
   contents: read
   packages: write
 
-# Em fila, nunca em paralelo: dois merges seguidos disputariam o :latest, e o mais
-# lento venceria mesmo sendo o commit mais velho.
 concurrency:
-  group: publicar
-  cancel-in-progress: false
+  group: publicar-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   IMAGEM: ghcr.io/${{ github.repository }}/api
@@ -26,10 +26,8 @@ env:
 
 jobs:
   publicar:
-    # O disparo manual é para repetir a publicação da main. Em outra branch, ele
-    # escreveria no :latest uma imagem que não passou pela revisão.
-    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
 
@@ -118,6 +116,6 @@ jobs:
         run: scripts/conferir-libs-imagem.sh "${IMAGEM_TESTE}" acbr-libs
 
       # Último passo de propósito. Copia o manifesto, então o digest é o da imagem
-      # que acabou de ser conferida.
-      - name: "promove :teste-<sha> → :<sha> e :latest"
-        run: docker buildx imagetools create -t "${IMAGEM}:${GITHUB_SHA}" -t "${IMAGEM}:latest" "${IMAGEM_TESTE}"
+      # que acabou de ser conferida. :latest só anda na entrega, no release.yml.
+      - name: "promove :teste-<sha> → :<sha>"
+        run: docker buildx imagetools create -t "${IMAGEM}:${GITHUB_SHA}" "${IMAGEM_TESTE}"

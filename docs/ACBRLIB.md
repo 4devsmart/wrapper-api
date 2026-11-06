@@ -146,9 +146,9 @@ As libs entram e saem do repositório por dois comandos, e os dois passam por
 | publicar | `make acbr-libs-publicar` | quem mantém, uma vez por revisão |
 | consumir | `make acbr-libs-baixar` | qualquer clone, e os jobs `cgo` e `publicar` do CI |
 
-Os binários são **anexos de um release `v*`**, não de um release próprio: a aba
-de Releases tem só versões deste serviço, em versionamento semântico.
-`ACBR_LIBS_RELEASE`, no `Makefile`, diz qual release os carrega.
+Da v1.5.1 em diante os binários ficam em releases `v*`; revisões novas têm release
+próprio, `acbrlib-rNNNNN`, marcado como pré-release para nunca levar o selo
+"Latest". `ACBR_LIBS_RELEASE`, no `Makefile`, diz qual release os carrega.
 
 `ACBR_REV` continua sendo a fonte única da revisão do ACBr. Como a tag do
 release não carrega mais esse número, vai junto um `revisao.txt`, e o download
@@ -185,18 +185,15 @@ São oito arquivos: os cinco `.so`, o `schemas.tar.gz`, o `SHA256SUMS` e o
    falha quando o snapshot versionado diverge do fonte pinado.
 4. `make enums-conferir`, que compara os valores publicados com os XSD do pacote
    de schemas. É por ali que uma nota técnica que mexe em código aparece.
-5. Suba `ACBR_REV` e `ACBR_LIBS_RELEASE` no `Makefile`, commite e mescle.
-6. Empurre a tag da versão: `git tag -a vX.Y.Z -m vX.Y.Z && git push origin
-   vX.Y.Z`. O `release.yml` cria a página do release e promove as tags da
-   imagem (`:vX.Y.Z`, `:vX`, `:stable`, `:latest`).
-7. `make acbr-libs-publicar`, que anexa os oito arquivos ao release da versão.
-   Rodar de novo atualiza os anexos em vez de falhar. O script recusa rodar se o
-   release ainda não existir, e confere no fim que o selo "Latest" está numa tag
-   `v*`.
+5. `make acbr-libs-publicar ACBR_REV=<rev> ACBR_LIBS_RELEASE=acbrlib-r<rev>`, que
+   cria o release das libs e anexa os oito arquivos. Rodar de novo atualiza os
+   anexos em vez de falhar.
+6. Suba `ACBR_REV` e `ACBR_LIBS_RELEASE` no `Makefile` numa branch, e termine com
+   `make finish`.
+7. `make release` e `make ship`, como em qualquer versão.
 
-A ordem importa: o CI baixa os `.so` do release apontado por
-`ACBR_LIBS_RELEASE`, então o passo 7 precisa acontecer antes de o próximo push
-na `main` rodar os jobs `cgo` e `publicar`.
+A ordem importa: o `make finish` recusa a branch se o release das libs não tiver a
+revisão pinada, e o `publicar.yml` baixa as libs de lá.
 
 O `SHA256SUMS` é gerado na publicação e conferido no download **antes** de os
 arquivos entrarem em `acbr-libs/`: download truncado que chega ao diretório vira

@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# Lembra quais arvores passaram no gate, para o mesmo codigo nao ser gateado
+# duas vezes.
+#
+#   gate-stamp record <rev>    a arvore de <rev> passou no gate
+#   gate-stamp has <rev>       sai 0 quando a arvore de <rev> passou
+#   gate-stamp inherit <rev>   registra <rev> quando a arvore do pai passou e
+#                              <rev> so mudou VERSION e CHANGELOG.md — o commit
+#                              de release, que nenhum teste le diferente
+#
+# ── Por que a ARVORE, e nao o commit ────────────────────────────────────
+#
+# Rebase, amend sem mudanca ou cherry-pick geram commit novo sobre os mesmos
+# arquivos, e o gate mede arquivos. O hash da arvore e exatamente "estes
+# arquivos".
+#
+# ── Onde mora ───────────────────────────────────────────────────────────
+#
+# No diretorio git do clone: nunca commitado, e some junto com o clone. Um carimbo
+# e a palavra desta maquina de que rodou o gate; vale o que `--no-verify` vale.
+set -euo pipefail
+. "$(dirname "${BASH_SOURCE[0]}")/flow-lib.sh"
+
+action="${1:-}"
+rev="${2:-}"
+if [ -z "$rev" ] || ! [[ "$action" =~ ^(record|has|inherit)$ ]]; then
+  echo "Uso: gate-stamp record|has|inherit <rev>" >&2
+  exit 2
+fi
+
+dir="$(git rev-parse --git-common-dir)/gate-stamps"
+tree() { git rev-parse "$1^{tree}"; }
+
+case "$action" in
+  record)
+    mkdir -p "$dir"
+    date -u +%FT%TZ >"$dir/$(tree "$rev")"
+    echo "Gate registrado para $(git rev-parse --short "$rev")."
+    ;;
+  has)
+    [ -f "$dir/$(tree "$rev")" ]
+    ;;
+  inherit)
+    if ! [ -f "$dir/$(tree "$rev^")" ]; then
+      echo "O pai de $(git rev-parse --short "$rev") nunca passou no gate: nada a herdar." >&2
+      exit 1
+    fi
+    other="$(git diff --name-only "$rev^" "$rev" | grep -vE '^(VERSION|CHANGELOG\.md)$' || true)"
+    if [ -n "$other" ]; then
+      echo "$(git rev-parse --short "$rev") muda mais que VERSION e CHANGELOG.md:" >&2
+      printf '  %s\n' $other >&2
+      exit 1
+    fi
+    mkdir -p "$dir"
+    date -u +%FT%TZ >"$dir/$(tree "$rev")"
+    ;;
+esac

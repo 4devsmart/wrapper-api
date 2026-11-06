@@ -1,0 +1,140 @@
+#!/usr/bin/env bash
+# Entrega a release que `make release` abriu: main anda para ela, e o deploy
+# roda (quando DEPLOY_WORKFLOW esta configurado, e acompanhado ate o fim).
+# Com RELEASE_BUILD_WORKFLOW, so entrega depois que o build da release (o push
+# de release/vX.Y.Z) terminou bem: o deploy implanta o que ja foi construido.
+#
+#   ship [--dry-run]
+#
+# ── Por que nao o botao de merge do GitHub ──────────────────────────────
+#
+# Nenhum dos tres merges dele e fast-forward: merge commit deixa main num commit
+# que nao e a release, e squash ou rebase reescrevem os commits — a tag sai de
+# main, e main e develop se separam. Entao o merge e um fast-forward enviado
+# daqui, e o GitHub, vendo a cabeca do PR em main, marca o PR como merged sozinho.
+#
+# Isso exige que main aceite push direto de quem roda o ship (sem regra que
+# obrigue merge pelo botao).
+#
+# O agente nunca roda de verdade: confere com --dry-run e entrega o comando a
+# pessoa.
+set -euo pipefail
+. "$(dirname "${BASH_SOURCE[0]}")/flow-lib.sh"
+
+dry_run=0
+[ "${1:-}" = --dry-run ] && dry_run=1
+
+if ! has_origin; then
+  echo "Nao ha origin: nao ha o que entregar." >&2
+  exit 1
+fi
+
+git fetch --quiet --tags origin
+
+version="$(git show "origin/$DEVELOP_BRANCH:VERSION" | tr -d '[:space:]')"
+tag="v$version"
+
+if ! release="$(git rev-parse --verify --quiet "refs/tags/$tag^{commit}")"; then
+  echo "Nao ha a tag $tag: 'make release' corta e marca a versao." >&2
+  exit 1
+fi
+
+subject="$(git log -1 --format=%s "$release")"
+if [ "$subject" != "chore(release): $tag" ]; then
+  echo "$tag aponta para '$subject', nao para o seu commit de release." >&2
+  exit 1
+fi
+
+current="$(git rev-parse "origin/$MAIN_BRANCH")"
+if [ "$current" = "$release" ]; then
+  echo "$MAIN_BRANCH ja esta em $tag: nada a entregar."
+  exit 0
+fi
+
+printf 'refs/heads/%s %s refs/heads/%s %s\n' "$MAIN_BRANCH" "$release" "$MAIN_BRANCH" "$current" \
+  | ./scripts/check-not-main origin
+
+if ! ./scripts/gate-stamp has "$release"; then
+  echo "$tag nunca passou no gate nesta maquina. 'make release' gateia; rode-o aqui." >&2
+  exit 1
+fi
+
+pr="$(gh pr view "release/$tag" --json state,url --jq '.state + " " + .url')"
+if [ "${pr%% *}" != OPEN ]; then
+  echo "O Pull Request de $tag nao esta aberto: $pr" >&2
+  exit 1
+fi
+
+echo "Entregando $tag ($(git rev-parse --short "$release")): $MAIN_BRANCH $(git rev-parse --short "$current") -> $(git rev-parse --short "$release")"
+echo "Pull Request: ${pr#* }"
+
+if [ -n "$RELEASE_BUILD_WORKFLOW" ]; then
+  build="$(gh run list --workflow "$RELEASE_BUILD_WORKFLOW" --branch "release/$tag" --commit "$release" \
+    --json databaseId,status,conclusion --jq '.[0] | select(.) | "\(.databaseId) \(.status) \(.conclusion)"')"
+  if [ -z "$build" ]; then
+    echo "Nenhum build de $RELEASE_BUILD_WORKFLOW para release/$tag: o push da release nao o disparou. Veja a aba Actions." >&2
+    exit 1
+  fi
+  read -r build_id build_status build_conclusion <<< "$build"
+  if [ "$build_status" != completed ]; then
+    if [ "$dry_run" = 1 ]; then
+      echo "Build da release ainda rodando (run $build_id): o ship espera ele terminar."
+    else
+      echo "Esperando o build da release terminar (run $build_id)..."
+      gh run watch "$build_id" --exit-status >/dev/null || { echo "O build de $tag falhou: nada foi entregue. Veja o run $build_id." >&2; exit 1; }
+    fi
+  elif [ "$build_conclusion" != success ]; then
+    echo "O build de $tag terminou em '$build_conclusion' (run $build_id): nada a entregar." >&2
+    exit 1
+  else
+    echo "Build da release pronto (run $build_id): o deploy so implanta a imagem."
+  fi
+fi
+
+if [ "$dry_run" = 1 ]; then
+  echo "Dry run: nada mudou. Para entregar, a PESSOA roda: make ship"
+  exit 0
+fi
+
+git push origin "$release:refs/heads/$MAIN_BRANCH"
+
+if [ "$(current_branch)" != "$MAIN_BRANCH" ]; then
+  git update-ref "refs/heads/$MAIN_BRANCH" "$release"
+fi
+
+# O GitHub marca o PR como merged quando ve a cabeca dele em main. A branch so
+# sai depois disso: apagada antes, o PR fecharia sem merge.
+for _ in $(seq 1 30); do
+  [ "$(gh pr view "release/$tag" --json state --jq .state)" = MERGED ] && break
+  sleep 2
+done
+
+if [ "$(gh pr view "release/$tag" --json state --jq .state)" = MERGED ]; then
+  # wrapper-api: `|| true` porque o repositorio apaga a branch ao marcar o merge.
+  git push origin --delete "release/$tag" 2>/dev/null || true
+  git branch -D "release/$tag" 2>/dev/null || true
+else
+  echo "O GitHub ainda nao marcou o PR como merged; release/$tag fica. Apague quando marcar." >&2
+fi
+
+if [ -z "$DEPLOY_WORKFLOW" ]; then
+  echo "$tag entregue: $MAIN_BRANCH em $(git rev-parse --short "$release")."
+  exit 0
+fi
+
+# O deploy e o workflow do push em main. Filtrado pela branch: o mesmo commit
+# tambem tem o run do build da release.
+run=''
+for _ in $(seq 1 30); do
+  run="$(gh run list --workflow "$DEPLOY_WORKFLOW" --branch "$MAIN_BRANCH" --commit "$release" --json databaseId --jq '.[0].databaseId // empty')"
+  [ -n "$run" ] && break
+  sleep 2
+done
+
+if [ -z "$run" ]; then
+  echo "$MAIN_BRANCH esta em $tag, e nenhum run de $DEPLOY_WORKFLOW apareceu para ele. Veja a aba Actions." >&2
+  exit 1
+fi
+
+gh run watch "$run" --exit-status
+echo "$tag entregue e implantado."

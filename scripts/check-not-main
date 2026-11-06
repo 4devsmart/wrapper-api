@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+# Recusa um push que escreve em main, a nao ser que leve main a uma release.
+#
+# O trabalho entra em develop, e main so anda por `make ship`: um fast-forward
+# para o commit `chore(release):`. Entao o que se julga e onde main ATERRISSA —
+# a ponta nova precisa ser um commit de release — e que ela so anda para frente.
+#
+# Julga o que esta sendo ENVIADO, nao a branch em checkout: `git push origin
+# HEAD:main` a partir de uma feature tambem escreve main. O git entrega ao
+# pre-push uma linha por ref no stdin — `<ref local> <sha local> <ref remota>
+# <sha remoto>` — e o primeiro argumento e o nome do remoto.
+set -euo pipefail
+. "$(dirname "${BASH_SOURCE[0]}")/flow-lib.sh"
+
+remote="${1:-origin}"
+
+if [ -t 0 ]; then
+  echo "check-not-main le do stdin as refs sendo enviadas, como o git entrega a um pre-push." >&2
+  exit 2
+fi
+
+refuse() {
+  cat >&2 <<MSG
+Push para $MAIN_BRANCH: $1
+
+  O trabalho vai para $DEVELOP_BRANCH; $MAIN_BRANCH so anda para uma release.
+
+  Caminho:  make feature name=<modulo>-<assunto>   (ou make fix)
+            make finish                            (entra em $DEVELOP_BRANCH)
+            make release                           (corta a versao, abre o PR)
+            make ship                              (move $MAIN_BRANCH)
+MSG
+  exit 1
+}
+
+while read -r _local_ref local_sha remote_ref remote_sha; do
+  [ "$remote_ref" = "refs/heads/$MAIN_BRANCH" ] || continue
+
+  if [[ "$local_sha" =~ ^0+$ ]]; then
+    refuse "apaga $MAIN_BRANCH."
+  fi
+
+  # O PRIMEIRO push, o que cria main no remoto, passa: nao ha main a proteger.
+  # A excecao e precisa — o remoto diz que nao tem main E este clone nunca viu um la.
+  if [[ "$remote_sha" =~ ^0+$ ]]; then
+    if git rev-parse --verify --quiet "refs/remotes/$remote/$MAIN_BRANCH" >/dev/null; then
+      refuse "o remoto nao tem $MAIN_BRANCH, mas este clone ja viu um la."
+    fi
+    echo "Primeiro push: $remote ainda nao tem $MAIN_BRANCH, nada a proteger."
+    continue
+  fi
+
+  if ! git merge-base --is-ancestor "$remote_sha" "$local_sha" 2>/dev/null; then
+    refuse "nao move $MAIN_BRANCH para frente do que o remoto tem."
+  fi
+
+  if ! subject="$(git log -1 --format=%s "$local_sha" 2>/dev/null)"; then
+    refuse "o commit enviado nao esta neste clone."
+  fi
+  if ! grep -q '^chore(release):' <<<"$subject"; then
+    refuse "leva $MAIN_BRANCH a um commit que nao e release: $subject"
+  fi
+done
+
+exit 0

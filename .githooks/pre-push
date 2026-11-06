@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Versionado em .githooks/ e ligado por `make hooks` (core.hooksPath).
+# O stdin (as refs sendo enviadas) passa direto para o script.
+exec ./scripts/pre-push "$@"

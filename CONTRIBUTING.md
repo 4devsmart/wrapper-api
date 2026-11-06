@@ -178,27 +178,41 @@ DhEmi  string `json:"dhEmi"  fmt:"data-hora"`
 Campo enumerado que aparece como `integer` puro no Swagger não diz nada a quem
 integra. Se você encostar num, aproveite e enriqueça.
 
-## Changelog e release
-
-Toda versão tem seção no [CHANGELOG](CHANGELOG.md), escrita **antes da tag**: é de
-lá que sai a página do release, e o `release.yml` recusa a versão sem ela, antes de
-promover a imagem. Pré-release (`v1.7.0-rc1`) não exige.
-
-O título é `## vX.Y.Z - AAAA-MM-DD`, com a versão no início: é por ele que a seção
-é encontrada. Para conferir:
+## Fluxo de trabalho e release
 
 ```bash
-scripts/changelog-da-versao.sh v1.7.0
+make feature name=modulo-assunto   # ou make fix: branch a partir de develop
+make finish                        # gate local, e entra em develop
+make release                       # versão, CHANGELOG, tag, release/vX.Y.Z e PR
+make ship                          # depois da revisão: entrega
 ```
 
-Escreva para quem opera o serviço, não a lista de commits. O que exige ação vai em
-`### Antes de atualizar`, no topo da seção; o resto em `### Adicionado`,
-`### Corrigido` e `### Alterado`. Se a data mudar até a tag sair, atualize o título.
+`main` só anda por `make ship`. Uma versão entrega três coisas, e cada uma tem um
+momento:
+
+| O quê | Quando | Quem garante |
+|---|---|---|
+| Lib | Antes do commit que sobe `ACBR_REV` | `make finish` recusa sem o release das libs |
+| Imagem | No push de `release/vX.Y.Z`, que `make release` faz | `publicar.yml`: fumaça, integração e libs |
+| Tags | No push da `main`, que `make ship` faz | `release.yml` promove o digest testado |
+
+O `make ship` espera o `publicar.yml` e não move a `main` se ele falhou. Depois,
+acompanha o `release.yml` até o fim. Nada é compilado de novo na entrega.
+
+O `CHANGELOG.md` e o `VERSION` só mudam no `make release`, e a versão sai dos
+commits em Conventional Commits. O que exige ação de quem atualiza vai numa linha na
+mensagem do commit, e abre o CHANGELOG e a página do release:
+
+```text
+feat(config): prazo de parada configurável
+
+Antes-de-atualizar: defina stop_grace_period de 120s na API e no worker.
+```
 
 ## Pull requests
 
 - um assunto por PR;
-- `make fmt-check vet test` verdes;
+- `make ci` verde;
 - teste que falharia sem a sua mudança;
 - comentário explicando **por que**, não o que: o código já diz o que.
 

@@ -1,14 +1,28 @@
 name: CI
 
+# Uma vez só por mudança. Com push em toda branch E pull_request, cada PR rodava
+# tudo em dobro. A branch de trabalho já passou pelo gate local do `make finish`:
+# aqui valem develop, onde o trabalho se integra, e o PR da release para main.
+#
+# Documentação não dispara em develop. No PR não dá para ignorar caminho: os checks
+# são obrigatórios em main, e um check que não roda deixa o PR esperando para sempre.
 on:
   push:
-    branches: ["**"]
+    branches: [develop]
+    paths-ignore: ["**.md", "docs/**", "LICENSE", "NOTICE"]
   pull_request:
+    branches: [main]
+
+# Commit novo na mesma branch torna o run anterior inútil.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
     name: fmt + vet + test (domínio puro, sem .so)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
@@ -28,9 +42,8 @@ jobs:
       # A tag integracao só roda depois do merge, e sem compilar aqui um rename
       # quebraria esses testes sem ninguém ver no PR.
       - run: CGO_ENABLED=0 go vet -tags integracao ./...
-      - run: CGO_ENABLED=0 go test ./...
-      # O race detector exige cgo, mas não a lib: sem a tag acbrlib entra o stub.
-      # O que importa aqui é o pool e o servidor do worker, que são concorrentes.
+      # O race detector exige cgo, mas não a lib: sem a tag acbrlib entra o stub, o
+      # mesmo código de CGO_ENABLED=0. Por isso roda uma vez só, e já com -race.
       - run: CGO_ENABLED=1 go test -race ./...
       # A spec é gerada dos modelos Go. Este gate impede que ela envelheça: sem
       # ele, o campo que alguém adicionar hoje some da documentação amanhã.
@@ -46,6 +59,7 @@ jobs:
   cgo:
     name: type-check + link do binding contra as .so reais
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
@@ -56,9 +70,17 @@ jobs:
       # referências transitivas.
       - name: dependências nativas
         run: |
+          # Sem docs nem man: é o que mais demora no apt do runner.
+          sudo rm -f /var/lib/man-db/auto-update
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libglib2.0-0 libgtk2.0-0
+      # O download confere o cache contra o SHA256SUMS do release, então um cache
+      # velho não passa: no pior caso ele baixa de novo.
+      - uses: actions/cache@v4
+        with:
+          path: acbr-libs
+          key: acbr-libs-${{ hashFiles('Makefile') }}
       - name: baixa as libs nativas
         run: make acbr-libs-baixar
       # Este job pega o que o job acima NÃO pega: assinatura C errada no header.
@@ -72,6 +94,7 @@ jobs:
   govulncheck:
     name: govulncheck (CVEs alcançadas pelo código)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
@@ -84,6 +107,7 @@ jobs:
   lint:
     name: golangci-lint
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     env:
       CGO_ENABLED: "0"
     steps:
@@ -103,6 +127,7 @@ jobs:
   segredo:
     name: nenhum segredo no repositório
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       # Este projeto recebe certificado alheio por payload. Um .pfx ou .env que

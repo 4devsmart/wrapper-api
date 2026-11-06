@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Versionado em .githooks/ e ligado por `make hooks` (core.hooksPath).
+exec ./scripts/pre-commit
