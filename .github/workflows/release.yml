@@ -142,6 +142,14 @@ jobs:
           NFSE_SHA="$(awk '$2 ~ /libacbrnfse64\.so$/ {print $1}' acbr-libs/SHA256SUMS)"
 
           {
+            # O resto da página sai dos títulos dos commits, onde o que exige ação
+            # de quem atualiza se perde. Por isso vem primeiro, e escrito à mão.
+            AVISO="docs/avisos/${VERSAO}.md"
+            if [ -f "$AVISO" ]; then
+              printf '## Antes de atualizar\n\n'
+              cat "$AVISO"
+              printf '\n'
+            fi
             printf 'Imagem: `%s:%s`' "$IMAGEM" "$VERSAO"
             case "$VERSAO" in
               *-*) printf ' (pré-release: não move `:stable` nem a tag maior)\n' ;;

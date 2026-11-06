@@ -58,6 +58,7 @@ services:
 
   fiscal-api:
     image: ghcr.io/4devsmart/wrapper-api/api:v1
+    stop_grace_period: 120s    # ver "Tempo de parada", em Subindo
     environment:
       API_TOKEN: ${FISCAL_API_TOKEN}
       ACBR_WORKERS: /run/wrapper/fiscal.sock
@@ -66,6 +67,7 @@ services:
   fiscal-worker:
     image: ghcr.io/4devsmart/wrapper-api/api:v1
     command: ["worker"]
+    stop_grace_period: 120s
     volumes: [fiscal-run:/run/wrapper]
 
 volumes: { fiscal-run: }
@@ -158,6 +160,22 @@ migrando para o Padrão Nacional. Essa tabela também vem da biblioteca, e
 
 ## Subindo
 
+> [!IMPORTANT]
+> **Tempo de parada: defina 120s na API e no worker.** Uma transmissão pode levar
+> até 90s, e o `docker stop` mata o container em 10s. Sem um prazo maior, um deploy
+> no meio de uma emissão corta a transmissão: a nota pode sair sem que a sua
+> aplicação receba a resposta. A imagem não tem como definir isso: o prazo é de
+> quem inicia o container, e vale com log ligado ou não.
+>
+> | Como você sobe | O que definir |
+> |---|---|
+> | `docker-compose.yml` deste repositório | Nada: já vem definido |
+> | Compose próprio | `stop_grace_period: 120s` |
+> | `docker run` | `--stop-timeout 120` |
+> | Kubernetes | `terminationGracePeriodSeconds: 120` |
+>
+> Se aumentar `ACBR_WORKER_TIMEOUT_SECONDS`, suba este prazo junto.
+
 ```bash
 git clone https://github.com/4devsmart/wrapper-api && cd wrapper-api
 cp .env.example .env            # defina API_TOKEN
@@ -185,11 +203,11 @@ requisição que atendia. O worker não publica porta, quem escuta é a API.
 docker network create wrapper
 docker volume create wrapper-run
 
-docker run -d --name wrapper-worker --network wrapper \
+docker run -d --name wrapper-worker --network wrapper --stop-timeout 120 \
   -v wrapper-run:/run/wrapper \
   ghcr.io/4devsmart/wrapper-api/api:latest worker
 
-docker run -d --name wrapper-api --network wrapper -p 8080:8080 \
+docker run -d --name wrapper-api --network wrapper --stop-timeout 120 -p 8080:8080 \
   -e API_TOKEN=troque-este-token \
   -e ACBR_WORKERS=/run/wrapper/fiscal.sock \
   -v wrapper-run:/run/wrapper \
@@ -378,9 +396,7 @@ Leia **[docs/LIMITACOES.md](docs/LIMITACOES.md)**. O essencial:
 - **não paralelize a distribuição DF-e do mesmo CNPJ.** O cursor é seu;
 - **o envio à SEFAZ não é exercitado em CI**, porque exige um certificado A1
   real. Transmita em homologação com o seu certificado antes de mudar `MODO`;
-- **dê tempo para encerrar.** O compose já define `stop_grace_period`. Com
-  `docker run`, use `--stop-timeout 120`: nos 10s padrão, uma transmissão em curso
-  morre no meio. Se aumentar `ACBR_WORKER_TIMEOUT_SECONDS`, suba este prazo junto.
+- **dê 120s para o container encerrar**, como explica o aviso em [Subindo](#subindo).
 
 ---
 
