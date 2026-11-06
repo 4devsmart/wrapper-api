@@ -1,6 +1,9 @@
 name: Publicar imagem
 
-# Builda e publica a imagem no GHCR a cada push em main, taggeada com o SHA.
+# Builda a imagem a cada push em main e só a publica como :<sha> e :latest depois
+# de fumaça, integração e conferência das libs. Até lá ela existe só como
+# :teste-<sha>, que ninguém consome. Assim, :<sha> existir quer dizer que ela
+# passou, e é isso que o release confere antes de promover.
 # NÃO implanta nada: quem promove para :vX.Y.Z é o workflow de release.
 on:
   push:
@@ -11,11 +14,21 @@ permissions:
   contents: read
   packages: write
 
+# Em fila, nunca em paralelo: dois merges seguidos disputariam o :latest, e o mais
+# lento venceria mesmo sendo o commit mais velho.
+concurrency:
+  group: publicar
+  cancel-in-progress: false
+
 env:
   IMAGEM: ghcr.io/${{ github.repository }}/api
+  IMAGEM_TESTE: ghcr.io/${{ github.repository }}/api:teste-${{ github.sha }}
 
 jobs:
   publicar:
+    # O disparo manual é para repetir a publicação da main. Em outra branch, ele
+    # escreveria no :latest uma imagem que não passou pela revisão.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -37,9 +50,7 @@ jobs:
           context: .
           platforms: linux/amd64 # a ACBrLib só existe para x86_64
           push: true
-          tags: |
-            ${{ env.IMAGEM }}:${{ github.sha }}
-            ${{ env.IMAGEM }}:latest
+          tags: ${{ env.IMAGEM_TESTE }}
           build-args: |
             APP_COMMIT=${{ github.sha }}
             APP_BUILD=${{ github.event.repository.updated_at }}
@@ -60,10 +71,10 @@ jobs:
           # herda a dona do /run/wrapper da imagem.
           docker volume create fumaca-run
           docker run -d --name fumaca-worker --network fumaca \
-            -v fumaca-run:/run/wrapper "${IMAGEM}:${GITHUB_SHA}" worker
+            -v fumaca-run:/run/wrapper "${IMAGEM_TESTE}" worker
           docker run -d --name fumaca-api --network fumaca -p 8080:8080 \
             -e API_TOKEN=fumaca -e ACBR_WORKERS=/run/wrapper/fiscal.sock \
-            -v fumaca-run:/run/wrapper "${IMAGEM}:${GITHUB_SHA}"
+            -v fumaca-run:/run/wrapper "${IMAGEM_TESTE}"
           # A espera é pelo /readyz, NÃO pelo /healthz. O healthz responde assim
           # que a API abre a porta e não toca no worker, então esperar por ele é
           # esperar por nada: quem depende da lib nativa ter carregado e do
@@ -104,4 +115,9 @@ jobs:
       # A fumaça prova que a lib carrega, não qual lib é. A v1.3.0 subiu e passou
       # na fumaça com a lib de NFS-e sem os patches que o próprio release trazia.
       - name: as libs da imagem são as do release
-        run: scripts/conferir-libs-imagem.sh "${IMAGEM}:${GITHUB_SHA}" acbr-libs
+        run: scripts/conferir-libs-imagem.sh "${IMAGEM_TESTE}" acbr-libs
+
+      # Último passo de propósito. Copia o manifesto, então o digest é o da imagem
+      # que acabou de ser conferida.
+      - name: "promove :teste-<sha> → :<sha> e :latest"
+        run: docker buildx imagetools create -t "${IMAGEM}:${GITHUB_SHA}" -t "${IMAGEM}:latest" "${IMAGEM_TESTE}"
