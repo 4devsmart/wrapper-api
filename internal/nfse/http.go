@@ -87,7 +87,7 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	cmun := MunicipioDoPedido(p)
-	layout, ok := m.layout(w, cmun)
+	rota, ok := m.rota(w, cmun)
 	if !ok {
 		return
 	}
@@ -98,10 +98,10 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 		httpx.ErroJSON(w, http.StatusBadRequest, "campo_obrigatorio", msg)
 		return
 	}
+	rota = rota.DaEmissao(p)
+	layout := rota.Layout
 
-	// O provedor da resposta é o da sessão: é por ele que a nota vai sair.
-	sessao := MunicipioDaSessao(cmun, p)
-	t := m.sessao(cnpj, sessao, p.InfDPS.Prest.Pessoa, p.Ambiente, fiscal.Certificado{}, Credenciais{})
+	t := m.sessao(cnpj, rota.Sessao, p.InfDPS.Prest.Pessoa, p.Ambiente, fiscal.Certificado{}, Credenciais{})
 	xml, val, res, err := fiscal.Montar(m.svc, t, ToINIDoLayout(layout, p))
 	if err != nil {
 		m.responderErro(w, res, err)
@@ -114,11 +114,11 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 	}
 	if raiz, _ := RaizDoXML(xml); !LayoutConfere(layout, raiz) {
 		slog.Error("nfse: XML gerado fora do layout do município",
-			"municipio", cmun, "provedor", provedorDoMunicipio(sessao),
+			"municipio", cmun, "provedor", rota.Provedor(),
 			"layout", layout, "raiz", raiz.Nome, "namespace", raiz.Namespace)
 		httpx.ErroDetalhado(w, http.StatusInternalServerError, "layout_divergente",
 			"o XML gerado não é do layout do município; nada foi devolvido para não ser transmitido",
-			map[string]any{"municipio": cmun, "provedor": provedorDoMunicipio(sessao),
+			map[string]any{"municipio": cmun, "provedor": rota.Provedor(),
 				"layout": layout, "raiz": raiz})
 		return
 	}
@@ -130,7 +130,7 @@ func (m *Modulo) handleXML(w http.ResponseWriter, r *http.Request) {
 		// o cliente arquive isto achando que é documento assinado.
 		Assinado: false,
 		Layout:   string(layout),
-		Provedor: provedorDoMunicipio(sessao),
+		Provedor: rota.Provedor(),
 		// Validacao.Suportada virá false: o ACBrNFSeX não exporta validação de
 		// regras de negócio (CT-e e MDF-e exportam). Fingir "ok" seria mentir
 		// sobre a garantia que o cliente tem em mãos.
@@ -206,7 +206,8 @@ func (m *Modulo) handleTransmissao(w http.ResponseWriter, r *http.Request) {
 		httpx.ErroJSON(w, http.StatusBadRequest, "certificado_invalido", err.Error())
 		return
 	}
-	if _, ok := m.layout(w, p.Municipio); !ok {
+	rota, ok := m.rota(w, p.Municipio)
+	if !ok {
 		return
 	}
 
@@ -214,15 +215,15 @@ func (m *Modulo) handleTransmissao(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ambiente := fiscal.Primeiro(fiscal.AmbienteDoXML(xml), p.Ambiente)
-	sessao := MunicipioDaSessaoDoXML(p.Municipio, xml)
-	t := m.sessaoDoEmitente(p.Emitente, sessao, ambiente, p.Certificado, p.Credenciais)
+	rota = rota.DaDPSPronta(xml)
+	t := m.sessaoDoEmitente(p.Emitente, rota.Sessao, ambiente, p.Certificado, p.Credenciais)
 
 	res, err := m.svc.Transmitir(t, xml)
 	if err != nil {
 		m.responderErro(w, res, err)
 		return
 	}
-	if m.naoSuportada(w, t, sessao, res.Resposta, "emissão") {
+	if m.naoSuportada(w, t, rota.Sessao, res.Resposta, "emissão") {
 		return
 	}
 
@@ -340,14 +341,16 @@ func (m *Modulo) handleEvento(w http.ResponseWriter, r *http.Request) {
 		httpx.ErroJSON(w, http.StatusBadRequest, "certificado_invalido", err.Error())
 		return
 	}
-	layout, ok := m.layout(w, p.Municipio)
+	rota, ok := m.rota(w, p.Municipio)
 	if !ok {
 		return
 	}
 	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 		return
 	}
-	p.Municipio = MunicipioDoEvento(tipo, p)
+	rota = rota.DoEvento(tipo, p)
+	layout := rota.Layout
+	p.Municipio = rota.Sessao
 	t := m.sessaoDoEmitente(p.Emitente, p.Municipio, p.Ambiente,
 		p.Certificado, p.Credenciais)
 
@@ -591,14 +594,15 @@ func (m *Modulo) handleConsultaDPS(w http.ResponseWriter, r *http.Request) {
 			"chave (o id_dps devolvido ao gerar) é obrigatória")
 		return
 	}
-	// A chave da DPS não diz em que sistema ela foi: só o da NFS-e diz. Num
-	// município com os dois caminhos, o Ambiente Nacional responde primeiro, e só
-	// a NFS-e encontrada encerra a busca. Não achar lá, ou falhar, cai no provedor
-	// do município, onde a nota também pode estar.
-	if simplesSaiPeloAmbienteNacional[fiscal.SoDigitos(p.Municipio)] {
-		tn := m.sessaoDoEmitente(p.Emitente, MunicipioADN, p.Ambiente, p.Certificado, p.Credenciais)
+	// Só a NFS-e encontrada encerra a busca. Não achar, ou falhar, passa para a
+	// sessão seguinte, onde a nota também pode estar, e a última responde o que
+	// tiver.
+	rota, _ := RotaDoMunicipio(p.Municipio)
+	sessoes := rota.SessoesDaConsultaDPS()
+	for _, sessao := range sessoes[:len(sessoes)-1] {
+		tn := m.sessaoDoEmitente(p.Emitente, sessao, p.Ambiente, p.Certificado, p.Credenciais)
 		if res, err := m.svc.ConsultarDPSPorChave(tn, chave); err == nil && reChaveNaResposta.MatchString(res.Resposta) {
-			m.responderConsulta(w, tn, MunicipioADN, res, nil)
+			m.responderConsulta(w, tn, sessao, res, nil)
 			return
 		}
 	}
@@ -693,13 +697,14 @@ func (m *Modulo) lerConsulta(w http.ResponseWriter, r *http.Request) (PedidoCons
 	if !m.lerPedidoConsulta(w, r, &p) {
 		return p, acbr.Sessao{}, false
 	}
-	if _, ok := m.layout(w, p.Municipio); !ok {
+	rota, ok := m.rota(w, p.Municipio)
+	if !ok {
 		return p, acbr.Sessao{}, false
 	}
 	if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 		return p, acbr.Sessao{}, false
 	}
-	p.Municipio = MunicipioDaNota(p.Municipio, p.Chave)
+	p.Municipio = rota.DaNota(p.Chave).Sessao
 	t := m.sessaoDoEmitente(p.Emitente, p.Municipio, p.Ambiente,
 		p.Certificado, p.Credenciais)
 	return p, t, true
@@ -779,10 +784,11 @@ func (m *Modulo) handlePDF(w http.ResponseWriter, r *http.Request) {
 		// selecionado"). O município vem do pedido; na falta dele, do próprio
 		// XML, que já o carrega.
 		cmun = fiscal.Primeiro(fiscal.SoDigitos(p.Municipio), MunicipioDoXML(xml))
-		if _, ok := m.layout(w, cmun); !ok {
+		rota, ok := m.rota(w, cmun)
+		if !ok {
 			return
 		}
-		cmun = MunicipioDaNota(cmun, ChaveDoXML(xml))
+		cmun = rota.DaNota(ChaveDoXML(xml)).Sessao
 		// Render local: não fala com o provedor, então não pede certificado.
 		t = fiscal.Sessao("", secaoACBr, "", fiscal.Certificado{})
 		t.Config = append(t.Config,
@@ -793,13 +799,14 @@ func (m *Modulo) handlePDF(w http.ResponseWriter, r *http.Request) {
 			httpx.ErroJSON(w, http.StatusBadRequest, "certificado_invalido", errCert.Error())
 			return
 		}
-		if _, ok := m.layout(w, p.Municipio); !ok {
+		rota, ok := m.rota(w, p.Municipio)
+		if !ok {
 			return
 		}
 		if !fiscal.AmbienteDoPedido(w, &p.Ambiente, 0, "") {
 			return
 		}
-		cmun = MunicipioDaNota(fiscal.SoDigitos(p.Municipio), p.Chave)
+		cmun = rota.DaNota(p.Chave).Sessao
 		t = m.sessaoDoEmitente(p.Emitente, cmun, p.Ambiente,
 			p.Certificado, p.Credenciais)
 		res, err = m.svc.ObterPDF(t, p.Chave)
@@ -851,25 +858,6 @@ func (m *Modulo) handleMunicipio(w http.ResponseWriter, r *http.Request) {
 }
 
 // --- apoio ------------------------------------------------------------------
-
-// layout resolve o município ou responde 422. Recusar aqui é melhor do que
-// mandar um XML que a prefeitura rejeitaria com mensagem obscura.
-func (m *Modulo) layout(w http.ResponseWriter, cmun string) (Layout, bool) {
-	c := fiscal.SoDigitos(cmun)
-	if c == "" {
-		httpx.ErroJSON(w, http.StatusBadRequest, "campo_obrigatorio",
-			"município (código IBGE) é obrigatório: é ele que decide o provedor de NFS-e")
-		return "", false
-	}
-	l, ok := LayoutDoMunicipio(c)
-	if !ok {
-		httpx.ErroDetalhado(w, http.StatusUnprocessableEntity, "provedor_nao_suportado",
-			"o município "+c+" não tem provedor de NFS-e conhecido nesta versão da tabela",
-			map[string]any{"municipio": c})
-		return "", false
-	}
-	return l, true
-}
 
 // sessao monta a sessão a partir do prestador do próprio pedido (ao gerar).
 func (m *Modulo) sessao(cnpj, cmun string, prest Pessoa, ambiente string,
