@@ -215,7 +215,7 @@ func (m *Modulo) handleEvento(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	cnpj := fiscal.CNPJDaChave(chave)
-	dh := fiscal.Primeiro(p.DhEvento, fiscal.AgoraLocal())
+	dh := fiscal.DataHoraDoEvento(p.DhEvento, chave)
 
 	ini, envia, errMsg := m.prepararEvento(tipo, chave, cnpj, dh, p)
 	if errMsg != "" {

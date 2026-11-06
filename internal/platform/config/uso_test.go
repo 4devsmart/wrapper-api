@@ -125,6 +125,30 @@ func fontesForaDaqui(t *testing.T) string {
 // bloco environment não chega ao container. Quem edita o .env vê o valor lá e
 // não vê efeito nenhum, que é o mesmo sintoma da config morta, com uma causa
 // diferente e mais difícil de achar.
+// O pool que respeita slots e timeout mora na API, e o worker também os lê. Estar
+// no compose não basta: em um serviço só, a variável vale pela metade. E sem
+// stop_grace_period o Docker mata em 10s o que o processo ainda está drenando.
+func TestComposeRepassaOPoolAosDoisServicos(t *testing.T) {
+	bruto, err := os.ReadFile(filepath.Join(raiz, "docker-compose.yml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	compose := string(bruto)
+	inicioWorker := strings.Index(compose, "\n  worker:\n")
+	fimWorker := strings.Index(compose, "\nvolumes:\n  worker-run:")
+	if inicioWorker < 0 || fimWorker < inicioWorker {
+		t.Fatal("o compose mudou de forma: ajuste a separação dos serviços")
+	}
+	servicos := map[string]string{"api": compose[:inicioWorker], "worker": compose[inicioWorker:fimWorker]}
+	for nome, trecho := range servicos {
+		for _, chave := range []string{"ACBR_WORKER_SLOTS:", "ACBR_WORKER_TIMEOUT_SECONDS:", "stop_grace_period:"} {
+			if !strings.Contains(trecho, chave) {
+				t.Errorf("serviço %s sem %s", nome, chave)
+			}
+		}
+	}
+}
+
 func TestComposeRepassaOQueOEnvExemplifica(t *testing.T) {
 	compose, err := os.ReadFile(filepath.Join(raiz, "docker-compose.yml"))
 	if err != nil {

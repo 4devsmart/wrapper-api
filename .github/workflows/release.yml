@@ -12,7 +12,6 @@ name: Release
 on:
   push:
     tags: ["v*"]
-  workflow_dispatch:
 
 permissions:
   # write, e não read, porque este workflow cria a página do Release. É a única
@@ -39,9 +38,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # O publicar.yml empurra :<sha> antes de conferir, e daqui só se sabe que
-      # a imagem existe, não que aquele workflow passou. Conferir de novo aqui é
-      # o que impede promover uma imagem com lib diferente da do release.
+      # :<sha> só existe se o publicar.yml passou. As libs são conferidas de novo
+      # porque aquela conferência foi contra as libs do commit, e esta é contra as
+      # do release.
       - name: baixa as libs do release
         run: make acbr-libs-baixar
 
@@ -54,8 +53,14 @@ jobs:
           VERSAO="${GITHUB_REF_NAME}"
           ORIGEM="${IMAGEM}:${GITHUB_SHA}"
 
+          # Tag fora do padrão viraria tag de imagem e moveria o :stable.
+          if ! printf '%s' "$VERSAO" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
+            echo "::error::$VERSAO não é uma versão vX.Y.Z"
+            exit 1
+          fi
+
           if ! docker buildx imagetools inspect "$ORIGEM" >/dev/null 2>&1; then
-            echo "::error::$ORIGEM não existe no registry. Faça a tag num commit de main já publicado."
+            echo "::error::$ORIGEM não existe no registry: o commit não é de main ou a publicação dele não passou."
             exit 1
           fi
 
@@ -68,7 +73,11 @@ jobs:
               # que é onde há quebra. Sem ela o exemplo do README aponta para
               # uma tag que não existe.
               MAIOR="${VERSAO%%.*}"
-              TAGS="$TAGS -t ${IMAGEM}:stable -t ${IMAGEM}:${MAIOR}"
+              # Só a versão mais alta move as tags que andam: um hotfix numa linha
+              # antiga publica a própria tag, sem levar :stable e :v1 para trás.
+              mais_alta() { git tag -l "$1" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1; }
+              if [ "$(mais_alta "${MAIOR}.*")" = "$VERSAO" ]; then TAGS="$TAGS -t ${IMAGEM}:${MAIOR}"; fi
+              if [ "$(mais_alta 'v*')" = "$VERSAO" ]; then TAGS="$TAGS -t ${IMAGEM}:stable"; fi
               ;;
           esac
 

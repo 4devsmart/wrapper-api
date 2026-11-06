@@ -38,6 +38,15 @@ func TestToINICartaCorrecao_DetEvento(t *testing.T) {
 	}
 }
 
+func TestToINIEPEC_DhEmiNoFusoDaChave(t *testing.T) {
+	const chave = "35240812345678000190570010000000011000000010"
+	ini := ToINIEPEC(chave, "12345678000190", "06/11/2026 12:00:00",
+		PedidoEPEC{DhEmi: "2026-11-06T15:00:00Z"})
+	if quero := "dhEmi=06/11/2026 12:00:00"; !strings.Contains(ini, quero) {
+		t.Errorf("INI do EPEC não tem %q:\n%s", quero, ini)
+	}
+}
+
 // TestToINIEPEC_FormatoIndexado: EPEC (110113) com [EVENTO001] + [TOMADOR] + float vírgula.
 func TestToINIEPEC_FormatoIndexado(t *testing.T) {
 	ini := ToINIEPEC("35240812345678000190570010000000011000000010", "12345678000190", "2026-05-31 10:00:00",

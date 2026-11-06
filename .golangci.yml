@@ -2,8 +2,21 @@
 # govet, ineffassign, staticcheck, unused). O gate de gofmt já vive no CI à parte.
 version: "2"
 
+run:
+  # Os testes de integração só rodam depois do merge: o lint é quem os vê no PR.
+  build-tags:
+    - integracao
+
 linters:
   default: standard
+  enable:
+    # Os erros da lib são classificados com errors.Is, e um %v no caminho perde
+    # ErrIndeterminado, que é o que manda o cliente não repetir.
+    - errorlint
+    # Serviço fiscal não pode engolir erro devolvendo sucesso.
+    - nilerr
+    # O cliente RPC abre um corpo por chamada.
+    - bodyclose
   exclusions:
     # Cache local do fonte ACBr (não versionado), não é nosso código.
     paths:
