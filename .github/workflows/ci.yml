@@ -77,7 +77,7 @@ jobs:
             libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libglib2.0-0 libgtk2.0-0
       # O download confere o cache contra o SHA256SUMS do release, então um cache
       # velho não passa: no pior caso ele baixa de novo.
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: acbr-libs
           key: acbr-libs-${{ hashFiles('Makefile') }}
