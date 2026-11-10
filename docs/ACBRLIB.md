@@ -105,6 +105,7 @@ uma sustenta um pedaço do contrato:
 | `0002-lerxml-abrasfv2-endereco-nacional-mantem-1058` | o releitor do ABRASF 2.04 não perde o `CodigoPais` do endereço nacional | a emissão no GISS 2.04, que sem ele volta X800 |
 | `0003-giss-totrib-emite-indtottrib` | sem valor a declarar, o gravador do GISS emite `<indTotTrib>0</indTotTrib>` em vez de um ramo de `totTrib` só com zeros | a saída do E160 de carga tributária para quem não informa `valores.totTrib` |
 | `0004-padraonacional-chave-usa-cloc-emi-informado` | a chave da DPS sai do `cLocEmi` informado, não do município da sessão | emitir pelo Ambiente Nacional num município que a lib atende por outra classe, com a sessão em `SessaoNacional`: é a saída do EM110 de Brasília para o Simples |
+| `0005-lib-consultardfe-por-cnpj` | a lib passa a exportar `NFSE_ConsultarDFePorCNPJ`, que leva o `cnpjConsulta`; o `NFSE_ConsultarDFe` não muda | a Distribuição DF-e pelo ADN, que sem o parâmetro responde `REJEICAO` sem nenhum erro listado |
 
 Cada mudança na lib também aparece no golden de XML, em
 `internal/nfse/testdata/golden_xml`: um arquivo por combinação de provedor, versão
@@ -123,7 +124,7 @@ Isso importa na hora de trocar a `.so`. Compilada **sem** os patches, a lib
 aceita o mesmo INI e descarta em silêncio as chaves da primeira linha: a nota
 sai, e sai errada.
 
-As `.so` do release `acbrlib-r49010` são a r49010 compilada com estes quatro patches
+As `.so` do release `acbrlib-r49010` são a r49010 compilada com estes cinco patches
 (antes, a r48784 vinha do v1.5.1, a partir da imagem v1.5.2).
 O `revisao.txt` diz só `49010`, porque o download compara esse valor exato: o que distingue os
 binários dos oficiais é o `SHA256SUMS` do release e o conteúdo de

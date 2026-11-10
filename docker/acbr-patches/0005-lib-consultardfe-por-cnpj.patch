@@ -1,0 +1,172 @@
+ACBrLib NFSe: exporta NFSE_ConsultarDFePorCNPJ.
+
+A Distribuicao DF-e do ADN passou a exigir o cnpjConsulta. Sem ele a consulta
+volta rejeitada, sem nenhum erro listado, mesmo com o certificado do proprio
+CNPJ (homologacao, 2026-11-10):
+
+  GET /contribuintes/DFe/600
+  HTTP 400 {"TipoConsulta":"InscricaoCertificado",
+            "StatusProcessamento":"REJEICAO","Erros":[]}
+
+  GET /contribuintes/DFe/600?cnpjConsulta=<CNPJ do certificado>
+  HTTP 404 {"TipoConsulta":"CnpjBase",
+            "StatusProcessamento":"NENHUM_DOCUMENTO_LOCALIZADO", ...}
+
+O componente ja monta o parametro quando recebe o CNPJ
+(TACBrNFSeX.ConsultarDFe(aCNPJ, aNSU), ACBR-9006), mas a lib so exportava
+NFSE_ConsultarDFe(aNSU), que chama a sobrecarga sem CNPJ.
+
+O patch so acrescenta NFSE_ConsultarDFePorCNPJ(aCNPJ, aNSU), com o mesmo corpo
+do NFSE_ConsultarDFe, nas variantes MT e ST. NFSE_ConsultarDFe nao muda.
+
+A sobrecarga com CNPJ vale para toda classe que herda do PadraoNacional. As de
+API propria (Betha, ISSNet, Fiorilli e outras) usam a URL do ADN, mas os
+municipios do Infisc no RS tem URL propria (o sefin da prefeitura), onde o
+cnpjConsulta nao foi testado: ali o wrapper-api continua chamando
+NFSE_ConsultarDFe.
+
+Base: ACBr trunk2 r49010. Ainda nao reportado ao projeto ACBr.
+
+--- a/Projetos/ACBrLib/Fontes/NFSe/ACBrLibNFSeBase.pas
++++ b/Projetos/ACBrLib/Fontes/NFSe/ACBrLibNFSeBase.pas
+@@ -104,6 +104,7 @@
+     function ConsultarNFSePorChave(const aChaveNFSe: PAnsiChar; const sResposta: PAnsiChar; var esTamanho: Integer): Integer;
+     function ConsultarEvento(const aChave: PAnsiChar; aTipoEvento: Integer; aNumSeq: Integer; const sResposta: PAnsiChar; var esTamanho: Integer): Integer;
+     function ConsultarDFe(aNSU: Integer; sResposta: PAnsiChar; var esTamanho: Integer): Integer;
++    function ConsultarDFePorCNPJ(const aCNPJ: PAnsiChar; aNSU: Integer; sResposta: PAnsiChar; var esTamanho: Integer): Integer;
+     function ObterDANFSE(const aChaveNFSe: PAnsiChar; const sResposta: PAnsiChar; var esTamanho: Integer): Integer;
+     function ConsultarParametros(aTipoParametroMunicipio: Integer; const aCodigoServico: PAnsiChar; aCompetencia: TDateTime; aNumeroBeneficio: PAnsiChar; const sResposta: PAnsiChar; var esTamanho: Integer): Integer;
+     function ObterInformacoesProvedor(const sResposta: PAnsiChar; var esTamanho: Integer): Integer;
+@@ -1950,6 +1951,54 @@
+ 
+       try
+         Resp.Processar(NFSeDM.ACBrNFSeX1.WebService.ConsultarDFe);
++
++        Resposta:= Resp.Gerar;
++        MoverStringParaPChar(Resposta, sResposta, esTamanho);
++        Result := SetRetorno(ErrOK, Resposta);
++      finally
++        Resp.Free
++      end;
++    finally
++      NFSeDM.Destravar;
++    end;
++  except
++    on E: EACBrLibException do
++      Result := SetRetorno(E.Erro, ConverterStringSaida(E.Message));
++
++    on E: Exception do
++      Result := SetRetorno(ErrExecutandoMetodo, ConverterStringSaida(E.Message));
++  end;
++end;
++
++// wrapper-api: a Distribuicao DF-e do ADN passou a exigir o cnpjConsulta.
++// Sem ele a consulta volta REJEICAO (HTTP 400, sem nenhum erro listado),
++// inclusive com o certificado do proprio CNPJ. O componente ja monta o
++// parametro (ACBR-9006) quando recebe o CNPJ, mas a lib so exportava a
++// consulta por NSU. Mesmo corpo do ConsultarDFe, com o CNPJ.
++function TACBrLibNFSe.ConsultarDFePorCNPJ(const aCNPJ: PAnsiChar; aNSU: Integer; sResposta: PAnsiChar; var esTamanho: Integer): Integer;
++var
++  Resp: TConsultaDFeResposta;
++  Resposta: AnsiString;
++  CNPJ: String;
++begin
++  try
++    CNPJ := ConverterStringEntrada(aCNPJ);
++
++    if Config.Log.Nivel > logNormal then
++      GravarLog('NFSE_ConsultarDFePorCNPJ(' + CNPJ + ', ' + IntToStr(aNSU) + ' )', logCompleto, True)
++      else
++      GravarLog('NFSE_ConsultarDFePorCNPJ', logNormal);
++
++    NFSeDM.Travar;
++    try
++      NFSeDM.ACBrNFSeX1.ConsultarDFe(CNPJ, aNSU);
++      Resp := TConsultaDFeResposta.Create(Config.TipoResposta, Config.CodResposta);
++
++      if Config.Log.Nivel = logParanoico then
++        GravarLogsHttp('NFSE_ConsultarDFePorCNPJ', NFSeDM.ACBrNFSeX1.WebService.ConsultarDFe);
++
++      try
++        Resp.Processar(NFSeDM.ACBrNFSeX1.WebService.ConsultarDFe);
+ 
+         Resposta:= Resp.Gerar;
+         MoverStringParaPChar(Resposta, sResposta, esTamanho);
+--- a/Projetos/ACBrLib/Fontes/NFSe/ACBrLibNFSe.lpr
++++ b/Projetos/ACBrLib/Fontes/NFSe/ACBrLibNFSe.lpr
+@@ -122,6 +122,7 @@
+   NFSE_ConsultarNFSePorChave,
+   NFSE_ConsultarEvento,
+   NFSE_ConsultarDFe,
++  NFSE_ConsultarDFePorCNPJ,
+   NFSE_ObterDANFSE,
+   NFSE_ConsultarParametros;
+ 
+--- a/Projetos/ACBrLib/Fontes/NFSe/ACBrLibNFSeMT.pas
++++ b/Projetos/ACBrLib/Fontes/NFSe/ACBrLibNFSeMT.pas
+@@ -207,6 +207,9 @@
+ function NFSE_ConsultarDFe(const libHandle: PLibHandle; aNSU: Integer; sResposta: PAnsiChar; var esTamanho: Integer): Integer;
+   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
+ 
++function NFSE_ConsultarDFePorCNPJ(const libHandle: PLibHandle; const aCNPJ: PAnsiChar; aNSU: Integer; sResposta: PAnsiChar; var esTamanho: Integer): Integer;
++  {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
++
+ function NFSE_ObterDANFSE(const libHandle: PLibHandle; const aChaveNFSe: PAnsiChar; const sResposta: PAnsiChar; var esTamanho: Integer): Integer;
+   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
+ 
+@@ -935,6 +938,21 @@
+   except
+       on E: EACBrLibException do
+        Result := E.Erro;
++
++      on E: Exception do
++        Result := ErrExecutandoMetodo;
++  end;
++end;
++
++function NFSE_ConsultarDFePorCNPJ(const libHandle: PLibHandle; const aCNPJ: PAnsiChar; aNSU: Integer; sResposta: PAnsiChar; var esTamanho: Integer): Integer;
++  {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
++begin
++  try
++    VerificarLibInicializada(libHandle);
++    Result := TACBrLibNFSe(libHandle^.Lib).ConsultarDFePorCNPJ(aCNPJ, aNSU, sResposta, esTamanho);
++  except
++      on E: EACBrLibException do
++       Result := E.Erro;
+ 
+       on E: Exception do
+         Result := ErrExecutandoMetodo;
+--- a/Projetos/ACBrLib/Fontes/NFSe/ACBrLibNFSeST.pas
++++ b/Projetos/ACBrLib/Fontes/NFSe/ACBrLibNFSeST.pas
+@@ -208,6 +208,9 @@
+ function NFSE_ConsultarDFe(aNSU: Integer; sResposta: PAnsiChar; var esTamanho: Integer): Integer;
+   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
+ 
++function NFSE_ConsultarDFePorCNPJ(const aCNPJ: PAnsiChar; aNSU: Integer; sResposta: PAnsiChar; var esTamanho: Integer): Integer;
++  {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
++
+ function NFSE_ObterDANFSE(const aChaveNFSe: PAnsiChar; const sResposta: PAnsiChar; var esTamanho: Integer): Integer;
+   {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
+ 
+@@ -936,6 +939,21 @@
+   except
+       on E: EACBrLibException do
+        Result := E.Erro;
++
++      on E: Exception do
++        Result := ErrExecutandoMetodo;
++  end;
++end;
++
++function NFSE_ConsultarDFePorCNPJ(const aCNPJ: PAnsiChar; aNSU: Integer; sResposta: PAnsiChar; var esTamanho: Integer): Integer;
++  {$IfDef STDCALL} stdcall{$Else} cdecl{$EndIf};
++begin
++  try
++    VerificarLibInicializada(pLib);
++    Result := TACBrLibNFSe(pLib^.Lib).ConsultarDFePorCNPJ(aCNPJ, aNSU, sResposta, esTamanho);
++  except
++      on E: EACBrLibException do
++       Result := E.Erro;
+ 
+       on E: Exception do
+         Result := ErrExecutandoMetodo;
