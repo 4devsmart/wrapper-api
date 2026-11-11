@@ -1,11 +1,31 @@
 # Changelog
 
-O que mudou em cada versão, para quem opera o serviço. As versões seguem
-[SemVer](https://semver.org/lang/pt-BR/), e a página de cada release sai daqui.
+Escrito por `make release`. Nao edite a mao.
 
-Toda versão tem seção aqui, escrita antes da tag: o release falha sem ela, e nada
-é promovido. Use `### Antes de atualizar` para o que exige ação de quem atualiza.
-As versões até a v1.6.0 foram preenchidas depois, a partir dos commits.
+## 1.8.0 — 2026-11-10
+
+### Antes de atualizar
+
+- 27 municípios trocam de provedor ou versão; quem emite neles passa a sair pelo provedor novo, e pode precisar de outras credenciais.
+- Centi: ItemListaServico sai como enviado (01.05, antes 105); confira o formato que a prefeitura aceita.
+- em homologação o Padrão Nacional usa a NT 009: o XML muda, e deduções e reembolsos são recusados. Produção não muda.
+- a distribuição que voltava 200 sem documentos por uma rejeição muda do ADN agora volta 502 distribuicao_rejeitada; trate esse código como falha, não como fila vazia.
+
+### Funcionalidades
+
+- **nfse**: notas técnicas registradas no fonte e cobradas contra a lib (51aa8d0)
+
+### Correcoes
+
+- **make**: help lista também os alvos do fluxo git (6b42f2b)
+- **nfse**: distribuição pelo ADN envia o cnpjConsulta (0d2af84)
+
+### Infraestrutura
+
+- **acbr**: relatório do que muda antes de atualizar a revisão (ea936a2)
+- **acbr**: ensaio do update para a r49010 (6d42d85)
+- **acbr**: atualiza a ACBrLib para a r49010 (beb4974)
+- **acbr**: patch 0005 exporta a distribuição DF-e com cnpjConsulta (5d5c8be)
 
 ## v1.7.0 - 2026-11-06
 
