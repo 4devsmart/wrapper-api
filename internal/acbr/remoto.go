@@ -323,8 +323,8 @@ func (r remoto) InformacoesProvedor(t Sessao) (Result, error) {
 	return r.chamar("InformacoesProvedor", t, Args{})
 }
 
-func (r remoto) ConsultarDFe(t Sessao, nsu int) (Result, error) {
-	return r.chamar("ConsultarDFe", t, Args{NSU: nsu})
+func (r remoto) ConsultarDFe(t Sessao, cnpj string, nsu int) (Result, error) {
+	return r.chamar("ConsultarDFe", t, Args{CNPJ: cnpj, NSU: nsu})
 }
 
 func (r remoto) ConsultarDPSPorChave(t Sessao, chaveDPS string) (Result, error) {

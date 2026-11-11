@@ -43,14 +43,16 @@ type libFake struct {
 	protocoloLote                                      string
 	nsu                                                int
 	municipiosDFe                                      []string
+	cnpjsDFe                                           []string
 	dfeNaoImplementado                                 map[string]bool
 	errTransmitir, errDFe                              error
 }
 
 // ConsultarDFe responde como a lib responde por classe: no município marcado
 // em dfeNaoImplementado, o ERR_NAO_IMP que sai antes de qualquer byte.
-func (f *libFake) ConsultarDFe(t acbr.Sessao, nsu int) (acbr.Result, error) {
+func (f *libFake) ConsultarDFe(t acbr.Sessao, cnpj string, nsu int) (acbr.Result, error) {
 	f.nsu, f.sessao = nsu, t
+	f.cnpjsDFe = append(f.cnpjsDFe, cnpj)
 	cmun := cfgDaSessao(t, "CodigoMunicipio")
 	f.municipiosDFe = append(f.municipiosDFe, cmun)
 	if f.dfeNaoImplementado[cmun] {
@@ -893,6 +895,17 @@ func TestDistribuicaoTentaOMunicipioECaiParaOADN(t *testing.T) {
 			if strings.Join(f.municipiosDFe, ",") != strings.Join(c.quero, ",") {
 				t.Errorf("sessões abertas em %v, quero %v", f.municipiosDFe, c.quero)
 			}
+			// O ADN exige o cnpjConsulta. Só o sefin da prefeitura (URL própria
+			// de distribuição) segue sem ele, como sempre saiu.
+			for i, cmun := range f.municipiosDFe {
+				quero := "12345678000190"
+				if cmun == munInfiscSefin {
+					quero = ""
+				}
+				if f.cnpjsDFe[i] != quero {
+					t.Errorf("cnpjConsulta na sessão %s = %q, quero %q", cmun, f.cnpjsDFe[i], quero)
+				}
+			}
 			if got := cfgDaSessao(f.sessao, "Emitente.CNPJ"); got != "12345678000190" {
 				t.Errorf("Emitente.CNPJ = %q: a fila é do CNPJ do emitente", got)
 			}
@@ -1582,5 +1595,64 @@ func TestTransmissao_NotaAutorizadaQueCitaOProvedorNaoViraRecusa(t *testing.T) {
 	}
 	if !strings.Contains(rec.Body.String(), `"status":"autorizado"`) {
 		t.Errorf("a nota autorizada se perdeu: %s", rec.Body)
+	}
+}
+
+// O cnpjConsulta só leva CNPJ: a lib recusa outro tamanho antes de enviar.
+func TestCnpjConsultaSoComCatorzeDigitos(t *testing.T) {
+	for in, quero := range map[string]string{
+		"12.345.678/0001-90": "12345678000190",
+		"12345678000190":     "12345678000190",
+		"123.456.789-09":     "",
+		"":                   "",
+	} {
+		if got := cnpjConsulta(Emitente{CNPJ: in}, SessaoNacional); got != quero {
+			t.Errorf("cnpjConsulta(%q) = %q, quero %q", in, got, quero)
+		}
+	}
+}
+
+// Respostas da lib na r49010 com o patch 0005, contra o ADN de homologação
+// (2026-11-10), sem e com o cnpjConsulta.
+const (
+	dfeRejeicaoMuda = "[ConsultarDFe]\nChaveNFSe=\nNSU=600\nXmlEnvio=/DFe/600\n" +
+		`XmlRetorno={"TipoConsulta":"InscricaoCertificado","StatusProcessamento":"REJEICAO","LoteDFe":[],"Alertas":[],"Erros":[],"TipoAmbiente":"HOMOLOGACAO","VersaoAplicativo":"1.0.0.0","DataHoraProcessamento":"2026-11-10T20:56:59.9474435-03:00"}` + "\n"
+	dfeNenhumDocumento = "[ConsultarDFe]\nChaveNFSe=\nNSU=600\nXmlEnvio=/DFe/600?cnpjConsulta=12345678000190\n" +
+		`XmlRetorno={"TipoConsulta":"CnpjBase","StatusProcessamento":"NENHUM_DOCUMENTO_LOCALIZADO","LoteDFe":[],"Alertas":[],"Erros":[{"Codigo":"E2220","Descricao":"Nenhum documento localizado"}],"TipoAmbiente":"HOMOLOGACAO","VersaoAplicativo":"1.0.0.0","DataHoraProcessamento":"2026-11-10T20:56:57.7863138-03:00"}` +
+		"\n\n[Erro1]\nCodigo=E2220\nCorrecao=\nDescricao=Nenhum documento localizado\n"
+)
+
+func TestRejeicaoSemErro(t *testing.T) {
+	casos := map[string]struct {
+		resposta string
+		quero    bool
+	}{
+		"rejeição sem erro listado": {dfeRejeicaoMuda, true},
+		"rejeição com CRLF":         {strings.ReplaceAll(dfeRejeicaoMuda, "\n", "\r\n"), true},
+		"nenhum documento":          {dfeNenhumDocumento, false},
+		"rejeição com erro listado": {"[ConsultarDFe]\n" + `XmlRetorno={"StatusProcessamento":"REJEICAO","Erros":[{"Codigo":"E1"}]}` + "\n", false},
+		"retorno que não é JSON":    {"[ConsultarDFe]\nXmlRetorno=<retorno/>\n", false},
+		"sem XmlRetorno":            {"[ConsultarDFe]\nSucesso=1\nUltimoNSU=7\n", false},
+	}
+	for nome, c := range casos {
+		if got := rejeicaoSemErro(c.resposta); got != c.quero {
+			t.Errorf("%s: rejeicaoSemErro = %v, quero %v", nome, got, c.quero)
+		}
+	}
+}
+
+// A rejeição muda do ADN chegava como 200, código 0 e nenhum erro: igual a uma
+// fila sem documentos novos.
+func TestDistribuicaoRejeitadaSemErroNaoEhSucesso(t *testing.T) {
+	f := &libFake{resConsulta: acbr.Result{Resposta: dfeRejeicaoMuda}}
+	rec := post(t, muxDe(f), "/nfse/distribuicao", envelope(munPadraoNacional, map[string]any{"nsu": 600}))
+	if rec.Code != http.StatusBadGateway || !strings.Contains(rec.Body.String(), "distribuicao_rejeitada") {
+		t.Fatalf("status = %d, quero 502 distribuicao_rejeitada: %s", rec.Code, rec.Body)
+	}
+
+	f = &libFake{resConsulta: acbr.Result{Resposta: dfeNenhumDocumento}}
+	rec = post(t, muxDe(f), "/nfse/distribuicao", envelope(munPadraoNacional, map[string]any{"nsu": 600}))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("nenhum documento virou erro: status = %d: %s", rec.Code, rec.Body)
 	}
 }

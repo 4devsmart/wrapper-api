@@ -49,7 +49,7 @@ func (indisponivel) SubstituirNFSe(Sessao, string, SubstituicaoNFSe) (Result, er
 func (indisponivel) InformacoesProvedor(Sessao) (Result, error) {
 	return Result{}, ErrUnavailable
 }
-func (indisponivel) ConsultarDFe(Sessao, int) (Result, error) {
+func (indisponivel) ConsultarDFe(Sessao, string, int) (Result, error) {
 	return Result{}, ErrUnavailable
 }
 func (indisponivel) StatusServico(Sessao) (Result, error) { return Result{}, ErrUnavailable }

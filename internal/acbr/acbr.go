@@ -155,9 +155,14 @@ type NFSeServico interface {
 	// provedor. Existe para que "não dá para cancelar aqui" seja uma resposta
 	// verificada, e não um palpite nosso.
 	InformacoesProvedor(t Sessao) (Result, error)
-	// ConsultarDFe consulta a Distribuição DF-e do ADN (Padrão Nacional) por NSU.
-	// O CNPJ vem da config da sessão (não é parâmetro).
-	ConsultarDFe(t Sessao, nsu int) (Result, error)
+	// ConsultarDFe consulta a Distribuição DF-e por NSU.
+	//
+	// Com cnpj, a consulta sai com o cnpjConsulta (NFSE_ConsultarDFePorCNPJ, do
+	// patch 0005), que o ADN exige. Vazio, sai sem ele, como a lib oficial faz:
+	// é o caminho das classes que falam com o servidor da prefeitura, onde o
+	// parâmetro não foi testado. A config da sessão não supre o CNPJ: o
+	// componente não a lê para montar a URL.
+	ConsultarDFe(t Sessao, cnpj string, nsu int) (Result, error)
 	// ConsultarDPSPorChave consulta a NFS-e gerada a partir de uma DPS, usando a
 	// chave DA DPS: a que a geração devolve, antes de qualquer transmissão.
 	//

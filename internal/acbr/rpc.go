@@ -81,7 +81,7 @@ type Args struct {
 	NumLote        string `json:"num_lote,omitempty"`        // ConsultarSituacao, ConsultarLoteRps
 	UF             string `json:"uf,omitempty"`              // ConsultaCadastro
 	Documento      string `json:"documento,omitempty"`       // ConsultaCadastro (CNPJ/CPF ou IE)
-	CNPJ           string `json:"cnpj,omitempty"`            // ConsultaNaoEncerrados
+	CNPJ           string `json:"cnpj,omitempty"`            // ConsultaNaoEncerrados, ConsultarDFe (cnpjConsulta)
 	ConfigINI      string `json:"config_ini,omitempty"`      // LerRetorno
 	Retorno        string `json:"retorno,omitempty"`         // LerRetorno (conteúdo do arquivo CNAB)
 	EhIE           bool   `json:"eh_ie,omitempty"`           // ConsultaCadastro

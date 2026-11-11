@@ -80,8 +80,8 @@ func (e *espiao) SubstituirNFSe(t Sessao, ini string, sub SubstituicaoNFSe) (Res
 func (e *espiao) InformacoesProvedor(t Sessao) (Result, error) {
 	return e.reg("InformacoesProvedor", t)
 }
-func (e *espiao) ConsultarDFe(t Sessao, nsu int) (Result, error) {
-	return e.reg("ConsultarDFe", t, nsu)
+func (e *espiao) ConsultarDFe(t Sessao, cnpj string, nsu int) (Result, error) {
+	return e.reg("ConsultarDFe", t, cnpj, nsu)
 }
 func (e *espiao) ConsultarDPSPorChave(t Sessao, chave string) (Result, error) {
 	return e.reg("ConsultarDPSPorChave", t, chave)

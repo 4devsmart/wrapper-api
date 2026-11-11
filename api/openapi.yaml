@@ -1109,6 +1109,11 @@ paths:
         O cursor (`nsu`) vai e volta no payload: sem estado, é você que guarda
         onde parou. **Não paralelize a distribuição do mesmo CNPJ**, sem o lock
         que existia com banco, chamadas simultâneas embaralham o cursor.
+
+        Na fila do ADN a consulta leva o `emitente.cnpj` como `cnpjConsulta`,
+        que o ADN exige. Sem ele o ADN rejeita sem dizer o motivo, e essa
+        rejeição volta como 502 `distribuicao_rejeitada`, com a resposta crua
+        em `detalhes`, e não como 200 sem documentos.
       requestBody:
         required: true
         content:
@@ -1116,6 +1121,7 @@ paths:
             schema: { $ref: "#/components/schemas/PedidoDistribuicaoNFSe" }
       responses:
         "200": { $ref: "#/components/responses/RespostaCrua" }
+        "502": { $ref: "#/components/responses/Erro502" }
 
   /v1/nfse/eventos/cancelamento:
     post:

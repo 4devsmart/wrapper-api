@@ -173,6 +173,13 @@ e Sapucaia do Sul) ela é a do sefin da prefeitura, com NSU próprio. Um NSU só
 vale na fila de onde veio: mande sempre o mesmo `municipio`, ou sempre nenhum,
 para o mesmo cursor.
 
+Na fila do ADN a consulta leva o `emitente.cnpj` como `cnpjConsulta`, que o ADN
+exige: sem o parâmetro ele responde `REJEICAO` sem nenhum erro listado, mesmo com
+o certificado do próprio CNPJ. A lib oficial não exporta a consulta com CNPJ; ela
+vem do patch `0005` (ver [ACBRLIB.md](ACBRLIB.md)). No sefin da prefeitura a
+consulta segue sem o parâmetro, que lá não foi testado. Uma rejeição sem motivo
+volta como 502 `distribuicao_rejeitada`, e não como 200 sem documentos.
+
 O cursor (NSU) vai e volta no payload: sem estado, é o cliente que guarda onde
 parou. **Não paralelize a distribuição do mesmo CNPJ**, sem o lock que existia
 com banco, chamadas simultâneas embaralham o cursor e você perde documentos sem

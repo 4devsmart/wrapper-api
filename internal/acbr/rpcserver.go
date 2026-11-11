@@ -142,7 +142,7 @@ func chamarNFSe(sv NFSeServico, p Pedido) (Resposta, bool) {
 	case "InformacoesProvedor":
 		return resposta(sv.InformacoesProvedor(p.Sessao)), true
 	case "ConsultarDFe":
-		return resposta(sv.ConsultarDFe(p.Sessao, a.NSU)), true
+		return resposta(sv.ConsultarDFe(p.Sessao, a.CNPJ, a.NSU)), true
 	case "ConsultarDPSPorChave":
 		return resposta(sv.ConsultarDPSPorChave(p.Sessao, a.Chave)), true
 	case "ConsultarPorNumero":

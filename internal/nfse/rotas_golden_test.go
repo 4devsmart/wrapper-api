@@ -78,7 +78,7 @@ func (l *libQueRegistra) ConsultarPorNumero(t acbr.Sessao, _ string, _ int) (acb
 	return acbr.Result{Resposta: "ok"}, nil
 }
 
-func (l *libQueRegistra) ConsultarDFe(t acbr.Sessao, _ int) (acbr.Result, error) {
+func (l *libQueRegistra) ConsultarDFe(t acbr.Sessao, _ string, _ int) (acbr.Result, error) {
 	l.anota("ConsultarDFe", t)
 	return acbr.Result{Resposta: "ok"}, nil
 }

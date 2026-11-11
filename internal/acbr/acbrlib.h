@@ -36,9 +36,11 @@ extern int NFSE_ConsultarNFSePorChave(LibHandle handle, const char* aChaveNFSe, 
  * Assinatura conferida em ACBrLibNFSeMT.pas:198 e ACBrNFSeMT.h:83. */
 extern int NFSE_ConsultarDPSPorChave(LibHandle handle, const char* aChaveDPS, char* sResposta, int* esTamanho);
 extern int NFSE_ObterDANFSE(LibHandle handle, const char* aChaveNFSe, char* sResposta, int* esTamanho);
-/* Distribuição DF-e do ADN (Padrão Nacional): consulta por NSU. O CNPJ vem da
- * config do componente, não do parâmetro. */
+/* Distribuição DF-e por NSU. Sem CNPJ a URL sai sem cnpjConsulta, que o ADN
+ * recusa: a config do componente (Emitente.CNPJ) não entra nela. */
 extern int NFSE_ConsultarDFe(LibHandle handle, int aNSU, char* sResposta, int* esTamanho);
+/* Com o cnpjConsulta. Não existe na lib oficial: vem do patch 0005. */
+extern int NFSE_ConsultarDFePorCNPJ(LibHandle handle, const char* aCNPJ, int aNSU, char* sResposta, int* esTamanho);
 /* Consultas pontuais (sem TDateTime). As por período/serviço ficam p/ outra passada. */
 extern int NFSE_ConsultarNFSePorNumero(LibHandle handle, const char* aNumero, int aPagina, char* sResposta, int* esTamanho);
 extern int NFSE_ConsultarNFSePorFaixa(LibHandle handle, const char* aNumeroInicial, const char* aNumeroFinal, int aPagina, char* sResposta, int* esTamanho);

@@ -688,16 +688,78 @@ func (m *Modulo) handleDistribuicao(w http.ResponseWriter, r *http.Request) {
 	if ok {
 		registrarRota(w, rota, p.Ambiente)
 		t := m.sessaoDoEmitente(p.Emitente, rota.Sessao, p.Ambiente, p.Certificado, p.Credenciais)
-		res, err := m.svc.ConsultarDFe(t, p.NSU)
+		res, err := m.svc.ConsultarDFe(t, cnpjConsulta(p.Emitente, rota.Sessao), p.NSU)
 		if err != nil || !OperacaoNaoSuportada(res.Resposta) {
-			m.responderConsulta(w, t, rota.Sessao, res, err)
+			m.responderDistribuicao(w, t, rota.Sessao, res, err)
 			return
 		}
 	}
 	registrarRota(w, rota.nacional(motivoDistribuicao), p.Ambiente)
 	t := m.sessaoDoEmitente(p.Emitente, SessaoNacional, p.Ambiente, p.Certificado, Credenciais{})
-	res, err := m.svc.ConsultarDFe(t, p.NSU)
-	m.responderConsulta(w, t, SessaoNacional, res, err)
+	res, err := m.svc.ConsultarDFe(t, cnpjConsulta(p.Emitente, SessaoNacional), p.NSU)
+	m.responderDistribuicao(w, t, SessaoNacional, res, err)
+}
+
+// responderDistribuicao é o responderConsulta, menos a rejeição muda do ADN.
+//
+// O ADN pode responder REJEICAO sem nenhum erro listado: é o que faz quando
+// falta o cnpjConsulta. A lib só monta [ErroN] a partir da lista, e a resposta
+// chegava com código 0, sem erro e sem documento, igual à de uma fila em dia.
+// O cliente seguia achando que não havia nada a baixar.
+func (m *Modulo) responderDistribuicao(w http.ResponseWriter, t acbr.Sessao,
+	cmun string, res acbr.Result, err error) {
+
+	if err == nil && rejeicaoSemErro(res.Resposta) {
+		httpx.ErroDetalhado(w, http.StatusBadGateway, "distribuicao_rejeitada",
+			"o ADN rejeitou a distribuição sem informar o motivo",
+			map[string]any{"resposta": res.Resposta})
+		return
+	}
+	m.responderConsulta(w, t, cmun, res, err)
+}
+
+// rejeicaoSemErro diz se o retorno do ADN, que a lib devolve cru em XmlRetorno,
+// é uma REJEICAO com a lista de erros vazia. Retorno que não é JSON (o sefin da
+// prefeitura, por exemplo) nunca é.
+func rejeicaoSemErro(resposta string) bool {
+	for linha := range strings.Lines(resposta) {
+		corpo, ok := strings.CutPrefix(strings.TrimRight(linha, "\r\n"), "XmlRetorno=")
+		if !ok {
+			continue
+		}
+		var r struct {
+			StatusProcessamento string
+			Erros               []json.RawMessage
+		}
+		if json.Unmarshal([]byte(corpo), &r) != nil {
+			return false
+		}
+		return r.StatusProcessamento == "REJEICAO" && len(r.Erros) == 0
+	}
+	return false
+}
+
+// cnpjConsulta é o CNPJ que a distribuição leva no cnpjConsulta, que o ADN
+// exige: sem o parâmetro, a consulta volta REJEICAO sem erro listado, mesmo com
+// o certificado do próprio CNPJ.
+//
+// A fila é a do ADN em toda classe que implementa a distribuição: o Padrão
+// Nacional e as de API própria que herdam dele (Betha, ISSNet, Fiorilli e
+// outras) reaproveitam a URL dele (ServicosPadraoNacional no
+// ACBrNFSeXServicos.ini). A exceção é o município com URL própria, o sefin da
+// prefeitura nos do Infisc no RS, onde o parâmetro não foi testado: ali a
+// consulta continua saindo sem ele, como sempre saiu.
+//
+// Vazio também quando o emitente não tem 14 dígitos: a lib recusa outro tamanho
+// antes de enviar.
+func cnpjConsulta(e Emitente, cmun string) string {
+	if tabelas.DistribuicaoPropriaNFSe(fiscal.SoDigitos(cmun)) {
+		return ""
+	}
+	if c := fiscal.SoDigitos(e.CNPJ); len(c) == 14 {
+		return c
+	}
+	return ""
 }
 
 // lerConsulta lê o pedido e abre a sessão no município informado, que é quem

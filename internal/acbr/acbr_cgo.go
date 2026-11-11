@@ -503,13 +503,21 @@ func (l *cgoLib) Consultar(t Sessao, chave string) (Result, error) {
 	})
 }
 
-// ConsultarDFe consulta a Distribuição DF-e do ADN (Padrão Nacional) por NSU.
-// O CNPJ é resolvido pela config do componente (aplicada em withSession), não
-// pelo parâmetro. A resposta é o INI de [ConsultarDFe] + [Arquivo###].
-func (l *cgoLib) ConsultarDFe(t Sessao, nsu int) (Result, error) {
+// ConsultarDFe consulta a Distribuição DF-e por NSU. Com cnpj, chama a função
+// do patch 0005, que leva o cnpjConsulta; sem, a da lib oficial. A resposta é o
+// INI de [ConsultarDFe] + [Arquivo###].
+func (l *cgoLib) ConsultarDFe(t Sessao, cnpj string, nsu int) (Result, error) {
 	return l.withSession(t, func(h C.LibHandle) (Result, error) {
+		if cnpj == "" {
+			code, resp := callBuffer(h, func(buf *C.char, size *C.int) C.int {
+				return C.NFSE_ConsultarDFe(h, C.int(nsu), buf, size)
+			})
+			return Result{Codigo: code, Resposta: resp}, nil
+		}
+		cCNPJ := C.CString(cnpj)
+		defer C.free(unsafe.Pointer(cCNPJ))
 		code, resp := callBuffer(h, func(buf *C.char, size *C.int) C.int {
-			return C.NFSE_ConsultarDFe(h, C.int(nsu), buf, size)
+			return C.NFSE_ConsultarDFePorCNPJ(h, cCNPJ, C.int(nsu), buf, size)
 		})
 		return Result{Codigo: code, Resposta: resp}, nil
 	})
