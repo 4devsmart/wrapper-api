@@ -28,7 +28,7 @@ type InfDPS struct {
 	Serie    string         `json:"serie"`
 	NDPS     string         `json:"nDPS"`                                 // número do RPS/DPS
 	DCompet  string         `json:"dCompet" fmt:"data"`                   // competência (YYYY-MM-DD)
-	DhEmi    string         `json:"dhEmi,omitempty" fmt:"data"`           // emissão; vazio = hoje
+	DhEmi    string         `json:"dhEmi,omitempty" fmt:"data-hora"`      // emissão; vazio = agora
 	TpEmit   int            `json:"tpEmit,omitempty" enum:"TipoEmitente"` // 1 = prestador
 	VerAplic string         `json:"verAplic,omitempty"`
 	CLocEmi  string         `json:"cLocEmi,omitempty"` // município emissor (IBGE); vazio = cMun do prestador

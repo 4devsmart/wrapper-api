@@ -23,6 +23,10 @@ type Builder struct {
 // Sem isso as datas caem em Brasília, que é o default da biblioteca.
 func (b *Builder) EmUF(cuf int) { b.local = LocalDoCodigoUF(cuf) }
 
+// EmSiglaUF é EmUF para quem só tem a sigla. É o caso da NFS-e: a DPS não tem
+// cUF, e a lib carimba o offset pela UF do prestador, então é ela que fixa o fuso.
+func (b *Builder) EmSiglaUF(uf string) { b.local = LocalDaUF(uf) }
+
 // Local devolve o fuso do documento; Brasília quando não definido.
 func (b *Builder) Local() *time.Location {
 	if b.local == nil {

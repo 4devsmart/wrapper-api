@@ -33,6 +33,7 @@ import (
 func ToINIAbrasf(p DPSPedido) string {
 	inf := p.InfDPS
 	var b iniBuilder
+	b.EmSiglaUF(inf.Prest.UF)
 
 	b.Secao("IdentificacaoNFSe")
 	b.KV("TipoXML", "RPS")
@@ -41,7 +42,7 @@ func ToINIAbrasf(p DPSPedido) string {
 	b.KV("Numero", inf.NDPS)
 	b.KV("Serie", inf.Serie)
 	b.KV("Tipo", "1") // 1 = RPS
-	b.KV("DataEmissao", inifmt.DataBR(inf.DhEmi, b.Local()))
+	b.KV("DataEmissao", b.DataHora(inf.DhEmi))
 	b.KV("Competencia", inifmt.DataBR(inf.DCompet, b.Local()))
 	b.KV("Status", "1") // 1 = normal (não cancelado)
 	b.KV("NaturezaOperacao", strconv.Itoa(cmp.Or(inf.Serv.NaturezaOperacao, 1)))

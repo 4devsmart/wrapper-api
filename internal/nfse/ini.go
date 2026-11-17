@@ -41,6 +41,7 @@ func nbs(s string) string {
 func ToINI(p DPSPedido) string {
 	inf := p.InfDPS
 	var b iniBuilder
+	b.EmSiglaUF(inf.Prest.UF)
 
 	b.Secao("IdentificacaoNFSe")
 	b.KV("TipoXML", "RPS")
@@ -48,7 +49,7 @@ func ToINI(p DPSPedido) string {
 	b.Secao("IdentificacaoRps")
 	b.KV("Numero", inf.NDPS)
 	b.KV("Serie", inf.Serie)
-	b.KV("DataEmissao", inifmt.DataBR(inf.DhEmi, b.Local()))
+	b.KV("DataEmissao", b.DataHora(inf.DhEmi))
 	b.KV("Competencia", inifmt.DataBR(inf.DCompet, b.Local()))
 	b.KV("verAplic", cmp.Or(inf.VerAplic, versao.Emissor()))
 	b.KV("tpEmit", strconv.Itoa(cmp.Or(inf.TpEmit, 1)))
